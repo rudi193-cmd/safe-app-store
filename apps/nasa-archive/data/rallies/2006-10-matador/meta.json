@@ -1,0 +1,19 @@
+{
+  "url": "http://scoot.net/gallery/2006/10/matador/",
+  "slug": "2006/10/matador",
+  "title": "Matador Scooter Rally Uno",
+  "year": 2006,
+  "month": 10,
+  "date_rally": "2006-10",
+  "photo_count": 112,
+  "stories": [],
+  "description": "Matador Scooter Rally Uno was a scooter rally event in 2006, hosted on scoot.net.",
+  "country": "US",
+  "notable_facts": [
+    "Hosted in October 2006, with photos available on scoot.net"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:51:51Z",
+  "enriched_provider": "Cerebras2"
+}

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#310445 — High Rollers Weekend 2026 — NASA</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.photo-inner {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/2;
+  background: #2a2622;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.photo-placeholder { text-align: center; color: var(--warm-gray) }
+.photo-placeholder .rally-name {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  letter-spacing: 0.15em;
+  color: var(--cream-dim);
+  opacity: 0.4;
+  line-height: 1.1;
+}
+.photo-placeholder .photo-id {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  margin-top: 0.75rem;
+  opacity: 0.3;
+}
+
+.photo-meta-left {
+  display: flex;
+  align-items: baseline;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.photo-actions { display: flex; gap: 0.5rem }
+
+.rally-context {
+  margin-top: 1.25rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+.rally-context h1 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  line-height: 1;
+}
+.rally-context .rally-date {
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  color: var(--red);
+  text-transform: uppercase;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 2rem;
+  margin-top: 2rem;
+  align-items: start;
+}
+@media (max-width: 800px) { .content-grid { grid-template-columns: 1fr } }
+
+.related-more {
+  margin-top: 0.75rem;
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--warm-gray);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.related-more:hover { color: var(--red) }
+
+.photographer-list {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  color: var(--warm-gray-dim);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.photographer-list a {
+  color: var(--warm-gray-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.photographer-list a:hover { color: var(--red) }
+.photographer-list .count {
+  color: var(--warm-gray-light);
+  font-size: 0.58rem;
+}
+
+.photo-section { animation: fadeUp 0.5s ease-out }
+.content-grid { animation: fadeUp 0.5s ease-out 0.15s both }
+</style>
+</head>
+<body data-page-type="photo">
+
+<div class="top-rule"></div>
+
+<header>
+  <div class="container">
+    <div class="header-eyebrow">archive &middot; est. 1997 &middot; north america</div>
+    <div class="header-main">
+      <a href="index.html" class="header-brand">
+        <span class="nasa-mark">NASA</span>
+        <span class="nasa-subtitle">North America<br>Scootering Archive</span>
+      </a>
+      <nav class="header-nav">
+        <a href="rallies.html">Rallies</a>
+        <a href="clubs.html">Clubs</a>
+        <a href="patches.html">Patches</a>
+        <a href="map.html">Map</a>
+        <a href="calendar.html">Calendar</a>
+        <a href="contribute.html" class="contribute-btn">Contribute</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="breadcrumb">
+    <a href="rallies.html">Rallies</a>
+    <span class="sep">&rsaquo;</span>
+    <a href="#" id="bc-rally-link">Loading...</a>
+    <span class="sep">&rsaquo;</span>
+    <span style="color: var(--warm-gray-dim)" id="bc-photo">Photo</span>
+  </div>
+
+  <div class="rally-context">
+    <h1 id="ctx-rally-name">&mdash;</h1>
+    <span class="rally-date" id="ctx-rally-date"></span>
+  </div>
+
+  <div class="photo-section" style="margin-top: 1.25rem; margin-bottom: 2rem">
+    <div class="photo-frame">
+      <span class="photo-frame-number" id="frame-number"></span>
+      <div class="photo-inner" id="photo-inner">
+        <div class="photo-placeholder">
+          <div class="rally-name" id="ph-rally-name">Loading...</div>
+          <div class="photo-id" id="ph-photo-id"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="photo-meta">
+      <div class="photo-meta-left" id="photo-meta-left"></div>
+      <div class="photo-actions">
+        <button class="btn-action" id="btn-was-there">I Was There</button>
+        <button class="btn-action" id="btn-tag">Tag Me</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="transition-strip"></div>
+
+  <div class="content-grid">
+
+    <!-- RIGGS CHAT -->
+    <div class="riggs-panel">
+      <div class="riggs-panel-inner">
+        <div class="riggs-header">
+          <div class="riggs-identity">
+            <div class="riggs-avatar">R</div>
+            <div>
+              <div class="riggs-name">Riggs</div>
+              <div class="riggs-title">What do you remember about this one?</div>
+            </div>
+          </div>
+          <button class="riggs-forget" title="Forget this conversation">&#10005;</button>
+          <button class="riggs-save" title="Download this conversation">&#8595; Save</button>
+        </div>
+        <div class="riggs-messages" id="chat-messages"></div>
+        <div class="riggs-input-row">
+          <input type="text" class="riggs-input" id="chat-input" placeholder="Tell me what you remember...">
+          <button class="riggs-send" id="chat-send">&rarr;</button>
+        </div>
+        <div class="riggs-consent">
+          Conversation saved locally on your machine. Share to the archive only when you choose to.
+        </div>
+      </div>
+    </div>
+
+    <!-- RELATED PHOTOS -->
+    <div id="related-section">
+      <div class="section-head"><span>Same Rally</span></div>
+      <div class="related-grid" id="related-grid"></div>
+      <a href="#" id="related-more" class="related-more"></a>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-pigeon">
+        Stories shared here are carried by Pigeon to the community archive &mdash; with your consent.
+        Your data lives on your machine. Always.
+      </div>
+      <div style="text-align: right">
+        <div class="footer-mark">NASA</div>
+        <div class="footer-links" style="margin-top: 0.35rem">
+          <a href="rallies.html">Rallies</a> &middot;
+          <a href="map.html">Map</a> &middot;
+          <a href="contribute.html">Contribute</a> &middot;
+          Powered by <a href="https://github.com/rudi193-cmd/Willow" style="color: var(--red)">Willow</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/session.js"></script>
+<script src="js/riggs.js"></script>
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var picId = params.get('pic') || '';
+  var rallySlug = params.get('rally') || '';
+  var dirSlug = rallySlug.replace(/\//g, '-');
+
+  function esc(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  // Set slug on body for session.js
+  document.body.dataset.slug = rallySlug;
+
+  // Fetch photos.json and meta.json
+  var R2_DATA = 'https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/rallies/';
+  var photosUrl = R2_DATA + dirSlug + '/photos.json';
+  var metaUrl = R2_DATA + dirSlug + '/meta.json';
+
+  // Load meta for rally context
+  fetch(metaUrl)
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (meta) {
+      if (!meta) return;
+      var title = meta.title || rallySlug;
+      document.getElementById('ctx-rally-name').textContent = title;
+
+      var dateParts = [];
+      if (meta.city && meta.city !== 'null') dateParts.push(meta.city);
+      if (meta.state_province && meta.state_province !== 'null') dateParts.push(meta.state_province);
+      if (meta.date_rally) dateParts.push(meta.date_rally);
+      document.getElementById('ctx-rally-date').textContent = dateParts.join(' \u00B7 ');
+
+      var bcLink = document.getElementById('bc-rally-link');
+      bcLink.textContent = title;
+      bcLink.href = 'rally.html?slug=' + encodeURIComponent(rallySlug);
+    })
+    .catch(function () {});
+
+  // Load photos to find this pic and show related
+  fetch(photosUrl)
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (photos) {
+      // Find this photo
+      var photo = null;
+      var photoIdx = -1;
+      for (var i = 0; i < photos.length; i++) {
+        if (String(photos[i].pic_id) === String(picId)) {
+          photo = photos[i];
+          photoIdx = i;
+          break;
+        }
+      }
+
+      if (!photo) {
+        document.getElementById('ph-rally-name').textContent = 'Photo Not Found';
+        return;
+      }
+
+      var photographer = photo.photographer || 'unknown';
+      var thumb = photo.r2_thumb || '';
+      var full = photo.r2_full || thumb;
+
+      // Page title
+      document.title = '#' + picId + ' — NASA';
+      document.getElementById('bc-photo').textContent = 'Photo #' + picId;
+      document.getElementById('frame-number').textContent = '#' + picId;
+
+      // Photo display
+      var inner = document.getElementById('photo-inner');
+      if (full || thumb) {
+        inner.innerHTML = '<img src="' + esc(full || thumb) + '" alt="Photo #' + esc(picId) + ' by ' + esc(photographer) + '" '
+          + 'style="width:100%;height:100%;object-fit:contain;background:#2a2622" '
+          + 'onerror="this.outerHTML=\'<div class=photo-placeholder><div class=rally-name>#' + esc(picId) + '</div><div class=photo-id>' + esc(photographer) + '</div></div>\'">';
+      } else {
+        document.getElementById('ph-rally-name').textContent = '#' + picId;
+        document.getElementById('ph-photo-id').textContent = photographer;
+      }
+
+      // Meta strip
+      var metaHtml = '';
+      metaHtml += '<span class="meta-item"><span class="red">&#9670;</span> <strong>' + esc(photographer) + '</strong></span>';
+      if (photo.date_rally) metaHtml += '<span class="meta-item">' + esc(photo.date_rally) + '</span>';
+      metaHtml += '<span class="meta-item">Photo #' + esc(picId) + '</span>';
+      document.getElementById('photo-meta-left').innerHTML = metaHtml;
+
+      // Related photos — nearby in same rally, different from current
+      var related = [];
+      for (var j = Math.max(0, photoIdx - 3); j < Math.min(photos.length, photoIdx + 4); j++) {
+        if (j !== photoIdx) related.push(photos[j]);
+      }
+      if (related.length === 0) related = photos.slice(0, 6).filter(function(p) { return p.pic_id !== picId; });
+
+      var gridHtml = '';
+      related.slice(0, 6).forEach(function (p) {
+        var t = p.r2_thumb || '';
+        gridHtml += '<a href="photo.html?pic=' + p.pic_id + '&rally=' + encodeURIComponent(rallySlug) + '" class="related-thumb">';
+        if (t) {
+          gridHtml += '<img src="' + esc(t) + '" style="width:100%;height:100%;object-fit:cover" loading="lazy" '
+            + 'onerror="this.style.display=\'none\'">';
+        }
+        gridHtml += '<span class="thumb-id">#' + esc(p.pic_id) + '</span>';
+        gridHtml += '<span class="thumb-photographer">' + esc(p.photographer || '') + '</span>';
+        gridHtml += '</a>';
+      });
+      document.getElementById('related-grid').innerHTML = gridHtml;
+
+      var moreLink = document.getElementById('related-more');
+      moreLink.href = 'rally.html?slug=' + encodeURIComponent(rallySlug);
+      moreLink.textContent = 'View all ' + photos.length + ' photos \u2192';
+    })
+    .catch(function () {
+      document.getElementById('ph-rally-name').textContent = 'Could not load photo data';
+    });
+
+  // Toggle buttons
+  document.getElementById('btn-was-there').addEventListener('click', function() {
+    this.classList.toggle('active');
+    this.textContent = this.classList.contains('active') ? '\u25C6 I Was There' : 'I Was There';
+  });
+  document.getElementById('btn-tag').addEventListener('click', function() {
+    this.classList.toggle('active');
+    this.textContent = this.classList.contains('active') ? '\u25C6 Tagged' : 'Tag Me';
+  });
+})();
+</script>
+
+</body>
+</html>

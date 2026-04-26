@@ -1,0 +1,9 @@
+openai>=1.30.0
+anthropic>=0.28.0
+pydantic>=2.8
+streamlit>=1.38
+pillow>=10.4
+pytesseract>=0.3.10
+cryptography>=43.0
+pyyaml>=6.0
+rich>=13.8

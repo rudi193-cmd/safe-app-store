@@ -1,0 +1,42 @@
+/* skins/80s.css — 1980s phosphor terminal */
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
+
+[data-skin="80s"] {
+  --font-display: 'VT323', monospace;
+  --font-body:    'Share Tech Mono', monospace;
+  --font-mono:    'Share Tech Mono', monospace;
+  --color-bg:         #000800;
+  --color-surface:    #001200;
+  --color-text:       #33ff33;
+  --color-muted:      #1a7a1a;
+  --color-accent:     #66ff66;
+  --color-accent-dim: #1a4a1a;
+  --border: 1px solid #1a4a1a;
+  --title-tracking: 0.3em;
+}
+
+[data-skin="80s"] body {
+  background-image: repeating-linear-gradient(
+    0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px
+  );
+}
+
+[data-skin="80s"] #title { font-size: 1.6rem; text-shadow: 0 0 10px #33ff33; }
+[data-skin="80s"] #title::before { content: "> "; }
+[data-skin="80s"] #content strong { text-shadow: 0 0 6px #66ff66; }
+[data-skin="80s"] #input-area textarea { caret-color: #33ff33; }
+[data-skin="80s"] #input-area textarea:focus { box-shadow: 0 0 8px #33ff3344; }
+
+/* Nav */
+[data-skin="80s"] #nav { border-bottom-color: #1a4a1a; }
+[data-skin="80s"] .nav-link { text-transform: uppercase; letter-spacing: 0.1em; }
+[data-skin="80s"] .nav-link--active { background: #001200; text-shadow: 0 0 8px #33ff33; }
+/* Cameo */
+[data-skin="80s"] .cameo { border-color: #33ff33; background: #000800; }
+[data-skin="80s"] .cameo-silhouette { color: #33ff33; opacity: 0.6; filter: drop-shadow(0 0 4px #33ff33); }
+/* Daguerreotype */
+[data-skin="80s"] .dag-frame { border-color: #33ff33; background: #000400; box-shadow: 0 0 0 2px #000800, 0 0 0 4px #1a4a1a, 0 0 12px #33ff3344; }
+[data-skin="80s"] .dag-frame .cameo-silhouette { color: #33ff33; opacity: 0.5; }
+[data-skin="80s"] .dag-name { text-shadow: 0 0 6px #33ff33; }
+/* Stories */
+[data-skin="80s"] .story-msg--jeles { text-shadow: 0 0 4px #66ff66; }

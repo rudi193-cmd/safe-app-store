@@ -1,0 +1,26 @@
+{
+  "url": "http://scoot.net/gallery/2006/04/swspringride/",
+  "slug": "2006/04/swspringride",
+  "title": "Scooterworks Spring Ride",
+  "year": 2006,
+  "month": 4,
+  "date_rally": "2006-04",
+  "photo_count": 28,
+  "stories": [],
+  "description": "A scooter rally organized by Scoot.net and others.",
+  "hosting_club": "null",
+  "city": "null",
+  "state_province": "null",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Held in 2006"
+  ],
+  "related_clubs": [
+    "Scoot.net community"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:54:20Z",
+  "enriched_provider": "Cerebras"
+}

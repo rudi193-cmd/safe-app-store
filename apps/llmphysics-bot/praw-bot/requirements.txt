@@ -1,0 +1,4 @@
+praw>=7.7
+wikipedia-api>=0.6
+python-dotenv>=1.0
+apscheduler>=3.10

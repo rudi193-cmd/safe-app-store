@@ -1,0 +1,24 @@
+{
+  "url": "http://scoot.net/gallery/2008/05/charmcity/",
+  "slug": "2008/05/charmcity",
+  "title": "Charm City",
+  "year": 2008,
+  "month": 5,
+  "date_rally": "2008-05",
+  "photo_count": 353,
+  "stories": [],
+  "city": "Baltimore",
+  "state_province": "Maryland",
+  "country": "US",
+  "recurring": true,
+  "notable_facts": [
+    null
+  ],
+  "related_clubs": [
+    null
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:01:58Z",
+  "enriched_provider": "Cerebras2"
+}

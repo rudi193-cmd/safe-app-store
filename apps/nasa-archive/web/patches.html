@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patch Gallery — NASA</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.page-title {
+  font-family: var(--font-display);
+  font-size: 2.8rem;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 0.4rem;
+}
+.page-title-accent {
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--warm-gray);
+  margin-bottom: 1.5rem;
+}
+
+.patches-coming {
+  text-align: center;
+  padding: 4rem 2rem;
+  border: 1px solid var(--cream-dim);
+  background: var(--paper);
+  position: relative;
+}
+.patches-coming::before, .patches-coming::after {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  border-color: var(--red);
+  border-style: solid;
+}
+.patches-coming::before { top: -1px; left: -1px; border-width: 2px 0 0 2px }
+.patches-coming::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0 }
+
+.patches-coming .pc-icon {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  letter-spacing: 0.15em;
+  color: var(--cream-dim);
+  margin-bottom: 1rem;
+}
+.patches-coming h2 {
+  font-family: var(--font-label);
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  margin-bottom: 0.6rem;
+}
+.patches-coming p {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  color: var(--warm-gray);
+  line-height: 1.7;
+  max-width: 480px;
+  margin: 0 auto 1.5rem;
+}
+.patches-coming .pc-note {
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--warm-gray-light);
+  margin-top: 1rem;
+}
+
+/* For when patches exist */
+.patch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.patch-card {
+  background: var(--paper);
+  border: 1px solid var(--cream-dim);
+  padding: 0.75rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+.patch-card:hover {
+  border-color: var(--red);
+  box-shadow: 0 2px 12px rgba(14,12,11,0.08);
+}
+.patch-card .patch-img {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--cream-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+.patch-card .patch-name {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.patch-card .patch-year {
+  font-family: var(--font-label);
+  font-size: 0.58rem;
+  color: var(--warm-gray);
+  letter-spacing: 0.1em;
+}
+</style>
+</head>
+<body data-page-type="patch">
+
+<div class="top-rule"></div>
+
+<header>
+  <div class="container">
+    <div class="header-eyebrow">archive &middot; est. 1997 &middot; north america</div>
+    <div class="header-main">
+      <a href="index.html" class="header-brand">
+        <span class="nasa-mark">NASA</span>
+        <span class="nasa-subtitle">North America<br>Scootering Archive</span>
+      </a>
+      <nav class="header-nav">
+        <a href="rallies.html">Rallies</a>
+        <a href="clubs.html">Clubs</a>
+        <a href="patches.html" style="color: var(--red)">Patches</a>
+        <a href="map.html">Map</a>
+        <a href="calendar.html">Calendar</a>
+        <a href="contribute.html" class="contribute-btn">Contribute</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<div class="container" style="padding-top: 1.5rem; padding-bottom: 3rem; animation: fadeUp 0.5s ease-out">
+
+  <div class="page-title">Patches</div>
+  <div class="page-title-accent">Rally patches — history you can hold</div>
+
+  <div class="patches-coming">
+    <div class="pc-icon">&#9670;</div>
+    <h2>Patch Collection Coming Soon</h2>
+    <p>
+      Every rally patch tells a story — who designed it, who earned it, what year it was.
+      We're building the most complete collection of North American scooter rally patches ever assembled.
+    </p>
+    <p>
+      Got patches? We want to see them. Scan or photograph your collection and help us build this archive.
+    </p>
+    <a href="contribute.html" class="btn-outline">Share Your Patches</a>
+    <div class="pc-note">Patches from scoot.net's original archive are being recovered</div>
+  </div>
+
+  <!-- Patch grid will render here when data exists -->
+  <div class="patch-grid" id="patch-grid" style="margin-top: 1.5rem"></div>
+
+</div>
+
+<div class="riggs-panel" style="max-width: 720px; margin: 2rem auto;">
+  <div class="riggs-panel-inner">
+    <div class="riggs-header">
+      <div class="riggs-identity">
+        <div class="riggs-avatar">R</div>
+        <div>
+          <div class="riggs-name">Riggs</div>
+          <div class="riggs-title">Every patch has a story. Got one?</div>
+        </div>
+      </div>
+      <button class="riggs-forget" title="Forget this conversation">&#10005;</button>
+      <button class="riggs-save" title="Download this conversation">&#8595; Save</button>
+    </div>
+    <div class="riggs-messages" id="chat-messages"></div>
+    <div class="riggs-input-row">
+      <input type="text" class="riggs-input" id="chat-input" placeholder="Tell me about a patch you have...">
+      <button class="riggs-send" id="chat-send">&#8594;</button>
+    </div>
+    <div class="riggs-consent">
+      Conversation saved locally on your machine. Share to the archive only when you choose to.
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-pigeon">
+        Stories shared here are carried by Pigeon to the community archive &mdash; with your consent.
+        Your data lives on your machine. Always.
+      </div>
+      <div style="text-align: right">
+        <div class="footer-mark">NASA</div>
+        <div class="footer-links" style="margin-top: 0.35rem">
+          <a href="rallies.html">Rallies</a> &middot;
+          <a href="map.html">Map</a> &middot;
+          <a href="contribute.html">Contribute</a> &middot;
+          Powered by <a href="https://github.com/rudi193-cmd/Willow" style="color: var(--red)">Willow</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// When patch data exists, render it
+(function () {
+  fetch('data/patches.json')
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (patches) {
+      if (!patches || !patches.length) return;
+      // Hide coming soon, show grid
+      var coming = document.querySelector('.patches-coming');
+      if (coming) coming.style.display = 'none';
+      var grid = document.getElementById('patch-grid');
+      var html = '';
+      patches.forEach(function (p) {
+        html += '<div class="patch-card">';
+        html += '<div class="patch-img">';
+        if (p.img) html += '<img src="' + p.img + '" style="width:100%;height:100%;object-fit:contain" loading="lazy">';
+        else html += '<span style="color:var(--warm-gray-light);font-family:var(--font-label);font-size:0.6rem">NO IMAGE</span>';
+        html += '</div>';
+        html += '<div class="patch-name">' + (p.n || '') + '</div>';
+        if (p.y) html += '<div class="patch-year">' + p.y + '</div>';
+        html += '</div>';
+      });
+      grid.innerHTML = html;
+    })
+    .catch(function () {});
+})();
+</script>
+
+<script src="js/session.js"></script>
+<script src="js/riggs.js"></script>
+</body>
+</html>

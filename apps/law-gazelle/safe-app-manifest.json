@@ -1,0 +1,40 @@
+{
+  "app_id": "safe-app-law-gazelle",
+  "name": "law-gazelle",
+  "version": "1.0.0",
+  "safe_version": ">=2.0.0",
+  "b17": "E472A",
+  "agent_type": "tool",
+  "description": "Legal reference tool \u2014 statute search, case summaries, plain-language explainers from verified sources.",
+  "author": "Sean Campbell",
+  "data_streams": [
+    {
+      "id": "cloud_llm_queries",
+      "purpose": "AI processing via free cloud tier",
+      "retention": "session",
+      "description": "Cloud LLM API calls"
+    },
+    {
+      "id": "file_reads",
+      "purpose": "File system access",
+      "retention": "session",
+      "description": "Files read by app"
+    },
+    {
+      "id": "patterns",
+      "purpose": "Behavioral pattern storage",
+      "retention": "permanent",
+      "description": "User pattern data"
+    }
+  ],
+  "permissions": [
+    "cloud_llm_free",
+    "file_read",
+    "pattern_storage"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 0.96,
+  "entry_point": "safe_integration:status",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-law-gazelle"
+}

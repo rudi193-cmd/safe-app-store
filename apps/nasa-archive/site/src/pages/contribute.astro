@@ -1,0 +1,90 @@
+---
+import Base from '../layouts/Base.astro';
+
+const type = Astro.url.searchParams.get('type') || '';
+const rally = Astro.url.searchParams.get('rally') || '';
+---
+<Base title="Contribute — NASA Archive">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-[#CC4444] uppercase tracking-widest mb-2">Contribute</h1>
+    <p class="text-[#666] text-sm">The archive belongs to the community. Help fill in the record.</p>
+  </div>
+
+  <!-- Contribution type cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+
+    <!-- Claim a photo -->
+    <div class={`border p-6 ${type === '' || type === 'claim' ? 'border-[#CC4444]' : 'border-[#333]'}`}>
+      <div class="text-[#CC4444] text-xs uppercase tracking-widest mb-3">◆ Claim a Photo</div>
+      <h2 class="text-[#f5f0e8] font-medium mb-2">Were you there?</h2>
+      <p class="text-[#666] text-sm mb-4">
+        Tag yourself or someone you recognise. Correct names, dates, or locations. The people in these photos deserve to be remembered.
+      </p>
+      <a href={`/contribute/claim${rally ? `?rally=${rally}` : ''}`}
+        class="border border-[#CC4444] text-[#CC4444] px-4 py-2 text-xs uppercase tracking-wider hover:bg-[#CC4444] hover:text-white transition-colors inline-block">
+        Claim a Photo
+      </a>
+    </div>
+
+    <!-- Add a story -->
+    <div class={`border p-6 ${type === 'story' ? 'border-[#CC4444]' : 'border-[#333]'}`}>
+      <div class="text-[#CC4444] text-xs uppercase tracking-widest mb-3">◆ Add Your Story</div>
+      <h2 class="text-[#f5f0e8] font-medium mb-2">What do you remember?</h2>
+      <p class="text-[#666] text-sm mb-4">
+        Share what it was like to be there. A funny moment, a breakdown on the highway, the smell of 2-stroke in the morning. These are the details that don't get saved anywhere else.
+      </p>
+      <a href={`/contribute/story${rally ? `?rally=${rally}` : ''}`}
+        class="border border-[#555] text-[#666] px-4 py-2 text-xs uppercase tracking-wider hover:border-[#CC4444] hover:text-[#CC4444] transition-colors inline-block">
+        Add Your Story
+      </a>
+    </div>
+
+    <!-- Submit rally / event -->
+    <div class={`border p-6 ${type === 'event' || type === 'patch' ? 'border-[#CC4444]' : 'border-[#333]'}`}>
+      <div class="text-[#CC4444] text-xs uppercase tracking-widest mb-3">◆ Submit Content</div>
+      <h2 class="text-[#f5f0e8] font-medium mb-2">Keep it going.</h2>
+      <p class="text-[#666] text-sm mb-4">
+        Add an upcoming rally to the calendar. Submit a patch scan. Share photos from a recent event. The record continues past 2013.
+      </p>
+      <div class="flex gap-3 flex-wrap">
+        <a href="/contribute/event"
+          class="border border-[#555] text-[#666] px-4 py-2 text-xs uppercase tracking-wider hover:border-[#CC4444] hover:text-[#CC4444] transition-colors inline-block">
+          Add Event
+        </a>
+        <a href="/contribute/patch"
+          class="border border-[#555] text-[#666] px-4 py-2 text-xs uppercase tracking-wider hover:border-[#CC4444] hover:text-[#CC4444] transition-colors inline-block">
+          Submit Patch
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- How it works -->
+  <div class="border-t border-[#222] pt-8">
+    <h3 class="text-[#888] text-xs uppercase tracking-wider mb-6">How contributions work</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-[#666]">
+      <div>
+        <div class="text-[#CC4444] mb-2">01 — Submit</div>
+        <p>Fill out the form. Add as much or as little context as you have. Nothing needs to be perfect.</p>
+      </div>
+      <div>
+        <div class="text-[#CC4444] mb-2">02 — Review</div>
+        <p>Submissions are lightly reviewed before going live — mainly to catch spam and obvious errors.</p>
+      </div>
+      <div>
+        <div class="text-[#CC4444] mb-2">03 — Published</div>
+        <p>Your contribution appears in the archive with attribution. You can update or remove it at any time.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auth nudge -->
+  <div class="mt-8 border border-[#222] p-4 text-xs text-[#555] flex items-center gap-4">
+    <span class="text-[#CC4444]">ℹ</span>
+    <span>
+      Signing in lets you manage your contributions, tag yourself in photos, and track your rally history.
+      <a href="/login" class="text-[#CC4444] hover:underline ml-1">Sign in →</a>
+    </span>
+  </div>
+</Base>

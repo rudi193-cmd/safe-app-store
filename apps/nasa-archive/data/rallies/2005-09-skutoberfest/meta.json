@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2005/09/skutoberfest/",
+  "slug": "2005/09/skutoberfest",
+  "title": "Skutoberfest",
+  "year": 2005,
+  "month": 9,
+  "date_rally": "2005-09",
+  "photo_count": 80,
+  "stories": [],
+  "city": "Las Vegas",
+  "state_province": "Nevada",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Held in Las Vegas, Nevada",
+    "Reportedly the West Coast's first large scooter gathering"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:47:46Z",
+  "enriched_provider": "Cerebras2"
+}

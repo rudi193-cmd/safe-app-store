@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2006/09/duluthblisterrun/",
+  "slug": "2006/09/duluthblisterrun",
+  "title": "Duluth Blister Run",
+  "year": 2006,
+  "month": 9,
+  "date_rally": "2006-09",
+  "photo_count": 70,
+  "stories": [],
+  "city": "Duluth",
+  "state_province": "Minnesota",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Held in September 2006",
+    "Hosted on scoot.net"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:50:49Z",
+  "enriched_provider": "Cerebras2"
+}

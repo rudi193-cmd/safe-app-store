@@ -1,0 +1,19 @@
+{
+  "url": "http://scoot.net/gallery/ktvx98/",
+  "slug": "ktvx98",
+  "title": "Alpine loop 1998 KTVX news story",
+  "year": null,
+  "month": null,
+  "date_rally": null,
+  "photo_count": 0,
+  "lat": 40.75962,
+  "lng": -111.886797,
+  "description": "This description is not available and may be a media report of the Alpine Loop scooter rally.",
+  "recurring": false,
+  "notable_facts": [],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:23:18Z",
+  "enriched_provider": "Groq3"
+}

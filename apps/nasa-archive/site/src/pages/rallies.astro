@@ -1,0 +1,101 @@
+---
+import Base from '../layouts/Base.astro';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+const DATA_DIR = join(process.cwd(), '..', 'data');
+
+let rallies = [];
+try {
+  const raw = JSON.parse(readFileSync(join(DATA_DIR, 'index.json'), 'utf-8'));
+  rallies = raw.rallies_list || [];
+} catch (e) {}
+
+const years = [...new Set(rallies.map(r => r.year).filter(Boolean))].sort((a, b) => b - a);
+---
+<Base title="Rallies — NASA Archive">
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="text-2xl font-bold text-[#CC4444] uppercase tracking-widest">Rallies</h1>
+    <div class="flex gap-2 flex-wrap" id="year-filters">
+      <button data-year="all"
+        class="px-3 py-1 text-xs border year-btn border-[#CC4444] text-[#CC4444]">
+        All
+      </button>
+      {years.map(y => (
+        <button data-year={String(y)}
+          class="px-3 py-1 text-xs border year-btn border-[#444] text-[#666] hover:border-[#CC4444] hover:text-[#CC4444]">
+          {y}
+        </button>
+      ))}
+    </div>
+  </div>
+
+  {rallies.length === 0 ? (
+    <p class="text-[#666] text-center py-16">Data still loading — run the scraper first.</p>
+  ) : (
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="rally-grid">
+      {rallies.map(rally => (
+        <a href={`/rally/${rally.slug.replace(/\//g, '-')}`}
+          data-year={String(rally.year || '')}
+          class="rally-card border border-[#333] p-4 hover:border-[#CC4444] transition-colors group">
+          <div class="text-[#CC4444] text-xs uppercase tracking-wider mb-1">
+            {rally.date_rally || rally.year || 'Unknown date'}
+          </div>
+          <div class="text-[#f5f0e8] font-medium group-hover:text-white">
+            {rally.title || rally.slug}
+          </div>
+          <div class="text-[#555] text-xs mt-2">
+            {rally.photo_count?.toLocaleString() || 0} photos
+          </div>
+        </a>
+      ))}
+    </div>
+  )}
+</Base>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  let selected = params.get('year') || 'all';
+
+  function applyFilter(year) {
+    selected = year;
+
+    // Update URL without reload
+    const url = new URL(window.location.href);
+    if (year === 'all') {
+      url.searchParams.delete('year');
+    } else {
+      url.searchParams.set('year', year);
+    }
+    window.history.replaceState({}, '', url);
+
+    // Filter cards
+    document.querySelectorAll('.rally-card').forEach(card => {
+      const el = card as HTMLElement;
+      const cardYear = el.dataset.year || '';
+      el.style.display = (year === 'all' || cardYear === year) ? '' : 'none';
+    });
+
+    // Update button styles
+    document.querySelectorAll('.year-btn').forEach(btn => {
+      const b = btn as HTMLElement;
+      const active = b.dataset.year === year;
+      b.className = `px-3 py-1 text-xs border year-btn ${
+        active
+          ? 'border-[#CC4444] text-[#CC4444]'
+          : 'border-[#444] text-[#666] hover:border-[#CC4444] hover:text-[#CC4444]'
+      }`;
+    });
+  }
+
+  // Apply on load
+  applyFilter(selected);
+
+  // Wire up buttons
+  document.querySelectorAll('.year-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const b = btn as HTMLElement;
+      applyFilter(b.dataset.year || 'all');
+    });
+  });
+</script>

@@ -1,0 +1,20 @@
+{
+  "url": "http://scoot.net/gallery/2004/01/fybo/",
+  "slug": "2004/01/fybo",
+  "title": "Freze Your Balls Off - 2004",
+  "year": 2004,
+  "month": 1,
+  "date_rally": "2004-01",
+  "photo_count": 592,
+  "stories": [],
+  "description": "The Freze Your Balls Off rally is a winter scooter event.",
+  "recurring": false,
+  "notable_facts": [
+    "Held in January 2004",
+    "Documentation available on Scoot.net"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:39:06Z",
+  "enriched_provider": "Novita"
+}

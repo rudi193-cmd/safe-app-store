@@ -1,0 +1,19 @@
+{
+  "url": "http://scoot.net/gallery/2008/08/solerunners/",
+  "slug": "2008/08/solerunners",
+  "title": "Solerunners Scooter Rally",
+  "year": 2008,
+  "month": 8,
+  "date_rally": "2008-08",
+  "photo_count": 0,
+  "description": "Details about the Solerunners Scooter Rally are limited.",
+  "city": "null (can't verify specific city from given URL)",
+  "country": "US (estimated, based on Scoot.net URL domain association)",
+  "notable_facts": [
+    "Scoot.net provided photos of the event."
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:06:18Z",
+  "enriched_provider": "Cerebras3"
+}

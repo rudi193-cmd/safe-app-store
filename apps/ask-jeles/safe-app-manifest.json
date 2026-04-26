@@ -1,0 +1,41 @@
+{
+  "app_id": "ask-jeles",
+  "name": "AskJeles",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "b17": "L5509",
+  "agent_type": "tool",
+  "description": "Jeles, your AI librarian. Search the verified web — Smithsonian, Library of Congress, NASA, NIH, and more. No SEO slop. No ads. Just authoritative knowledge, deposited into The Binder.",
+  "author": "Sean Campbell",
+  "data_streams": [
+    {
+      "id": "queries",
+      "purpose": "Process your search queries against verified sources",
+      "retention": "session",
+      "description": "Queries cleared when session ends — not stored or used for training"
+    },
+    {
+      "id": "binder_deposits",
+      "purpose": "Save search findings to your local Binder",
+      "retention": "permanent",
+      "description": "Only deposited if you explicitly choose to save — stored in local Binder database"
+    }
+  ],
+  "permissions": [
+    "local_llm",
+    "network_read",
+    "binder_write"
+  ],
+  "privacy_tier": "mixed",
+  "local_processing": 0.80,
+  "dev_server": {
+    "env_var": "ASK_JELES_DEV_SERVER",
+    "port": 8421,
+    "scope": "localhost",
+    "note": "Also requires --serve flag. Local development only. Not started in production."
+  },
+  "entry_point": "askjeles.crown:app",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-ask-jeles",
+  "notes": "network_read is used only for fetching from the verified source list (Smithsonian, LoC, NASA, etc.). No data sent upstream. binder_write deposits findings into the local Binder (requires Binder consent separately)."
+}

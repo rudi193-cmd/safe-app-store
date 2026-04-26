@@ -1,0 +1,13 @@
+name: llmphysics-bot
+version: 0.0.1
+description: "!define bot and weekly mod digest for r/LLMPhysics"
+
+# App icon shown in the Devvit directory and subreddit app list.
+# To enable: drop a 256x256 PNG at devvit/assets/icon.png, then
+# uncomment the line below and run `devvit upload`.
+# icon: assets/icon.png
+
+# Network access needed for Wikipedia API calls
+capabilities:
+  network:
+    - https://en.wikipedia.org

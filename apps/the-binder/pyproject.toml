@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-the-binder"
+version = "0.1.0"
+description = "A local knowledge base and connection engine. Drop in notes, documents, and links. Your NotebookLM replacement — private, local, yours."
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.28.0",
+]

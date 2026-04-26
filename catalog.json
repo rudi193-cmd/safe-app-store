@@ -11,6 +11,150 @@
       "status": "beta",
       "path": "apps/story-timeline",
       "tags": ["writing", "fiction", "timeline", "characters"]
+    },
+    {
+      "id": "vision-board",
+      "name": "Vision Board",
+      "description": "AI-powered goal visualization. 96% client-side. First Willow app.",
+      "status": "stable",
+      "path": "apps/vision-board",
+      "tags": ["productivity", "goals", "ai"]
+    },
+    {
+      "id": "utety-chat",
+      "name": "UTETY Chat",
+      "description": "Chat with 11 AI faculty members including Gerald (a headless rotisserie chicken) and Copenhagen (an orange). Built on Cloudflare Pages + Workers.",
+      "status": "stable",
+      "path": "apps/utety-chat",
+      "tags": ["chat", "ai", "utety", "professors"]
+    },
+    {
+      "id": "the-binder",
+      "name": "The Binder",
+      "description": "Local-first knowledge browser. Jeles at the desk. The Binder files everything.",
+      "status": "beta",
+      "path": "apps/the-binder",
+      "tags": ["knowledge", "search", "local"]
+    },
+    {
+      "id": "ask-jeles",
+      "name": "Ask Jeles",
+      "description": "SAFE search engine. Local stacks first. Verified sources when you need the world.",
+      "status": "beta",
+      "path": "apps/ask-jeles",
+      "tags": ["search", "jeles", "local"]
+    },
+    {
+      "id": "law-gazelle",
+      "name": "Law Gazelle",
+      "description": "Legal case management and document analysis.",
+      "status": "beta",
+      "path": "apps/law-gazelle",
+      "tags": ["legal", "documents"]
+    },
+    {
+      "id": "the-squirrel",
+      "name": "The Squirrel",
+      "description": "Local-first data hoarding and organization.",
+      "status": "beta",
+      "path": "apps/the-squirrel",
+      "tags": ["data", "local", "storage"]
+    },
+    {
+      "id": "nasa-archive",
+      "name": "NASA Archive",
+      "description": "Browse and preserve memories archived from scoot.net.",
+      "status": "stable",
+      "path": "apps/nasa-archive",
+      "tags": ["archive", "memories"]
+    },
+    {
+      "id": "llmphysics",
+      "name": "LLMPhysics JAC Judge",
+      "description": "r/LLMPhysics Journal Ambitions Contest paper evaluator.",
+      "status": "beta",
+      "path": "apps/llmphysics",
+      "tags": ["physics", "reddit", "evaluation"]
+    },
+    {
+      "id": "llmphysics-bot",
+      "name": "LLMPhysics Bot",
+      "description": "Reddit bot for r/LLMPhysics community.",
+      "status": "beta",
+      "path": "apps/llmphysics-bot",
+      "tags": ["reddit", "bot", "physics"]
+    },
+    {
+      "id": "UTETY-Reddit-Bots",
+      "name": "UTETY Reddit Bots",
+      "description": "Reddit bots for the UTETY University faculty.",
+      "status": "beta",
+      "path": "apps/UTETY-Reddit-Bots",
+      "tags": ["reddit", "bot", "utety"]
+    },
+    {
+      "id": "game",
+      "name": "SAFE Game",
+      "description": "SAFE framework game app.",
+      "status": "beta",
+      "path": "apps/game",
+      "tags": ["game"]
+    },
+    {
+      "id": "genealogy",
+      "name": "Genealogy",
+      "description": "Local-first family tree and genealogy research.",
+      "status": "beta",
+      "path": "apps/genealogy",
+      "tags": ["family", "history", "local"]
+    },
+    {
+      "id": "dating-wellbeing",
+      "name": "Dating Wellbeing",
+      "description": "Privacy-first dating profile analysis for SAFE framework.",
+      "status": "beta",
+      "path": "apps/dating-wellbeing",
+      "tags": ["privacy", "dating", "wellbeing"]
+    },
+    {
+      "id": "field-notes",
+      "name": "Field Notes",
+      "description": "Local-first field notes and observations.",
+      "status": "beta",
+      "path": "apps/field-notes",
+      "tags": ["notes", "local"]
+    },
+    {
+      "id": "bt-controller",
+      "name": "BT Controller",
+      "description": "Bluetooth device controller.",
+      "status": "beta",
+      "path": "apps/bt-controller",
+      "tags": ["bluetooth", "hardware"]
+    },
+    {
+      "id": "source-trail",
+      "name": "Source Trail",
+      "description": "Track and audit data sources.",
+      "status": "beta",
+      "path": "apps/source-trail",
+      "tags": ["audit", "data", "sources"]
+    },
+    {
+      "id": "public-ledger",
+      "name": "Public Ledger",
+      "description": "Transparent public transaction ledger.",
+      "status": "beta",
+      "path": "apps/public-ledger",
+      "tags": ["ledger", "transparency"]
+    },
+    {
+      "id": "private-ledger",
+      "name": "Private Ledger",
+      "description": "Local-first private financial ledger.",
+      "status": "beta",
+      "path": "apps/private-ledger",
+      "tags": ["ledger", "finance", "private"]
     }
   ]
 }

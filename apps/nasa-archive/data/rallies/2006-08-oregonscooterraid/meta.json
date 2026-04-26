@@ -1,0 +1,27 @@
+{
+  "url": "http://scoot.net/gallery/2006/08/oregonscooterraid/",
+  "slug": "2006/08/oregonscooterraid",
+  "title": "Oregon Scooter Raid",
+  "year": 2006,
+  "month": 8,
+  "date_rally": "2006-08",
+  "photo_count": 242,
+  "stories": [],
+  "description": "The Oregon Scooter Raid was a scooter rally held in 2006, likely featuring various scooter riders and models",
+  "hosting_club": "null",
+  "city": "null",
+  "state_province": "Oregon",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Held in August 2006",
+    "Featured a website on http://scoot.net"
+  ],
+  "related_clubs": [
+    "null"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:53:00Z",
+  "enriched_provider": "Cerebras"
+}

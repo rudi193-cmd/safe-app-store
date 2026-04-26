@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2006/07/burwellraces/",
+  "slug": "2006/07/burwellraces",
+  "title": "Port Burwell Races",
+  "year": 2006,
+  "month": 7,
+  "date_rally": "2006-07",
+  "photo_count": 79,
+  "stories": [],
+  "description": "The Port Burwell Races in 2006 took place in Port Burwell, Ontario.",
+  "city": "Port Burwell",
+  "state_province": "Ontario",
+  "country": "Canada",
+  "notable_facts": [
+    "It took place in July 2006",
+    "Held at the location shown in the Scoot.net gallery url"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:53:18Z",
+  "enriched_provider": "Cerebras"
+}

@@ -1,0 +1,21 @@
+{
+  "url": "http://scoot.net/gallery/summitpoint2000/",
+  "slug": "summitpoint2000",
+  "title": "Summit Point 2000",
+  "year": 2000,
+  "month": null,
+  "date_rally": "2000-??",
+  "photo_count": 34,
+  "stories": [],
+  "lat": 39.249547,
+  "lng": -77.958608,
+  "city": "Summit Point",
+  "state_province": "West Virginia",
+  "country": "US",
+  "notable_facts": [],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:23:59Z",
+  "enriched_provider": "Novita"
+}

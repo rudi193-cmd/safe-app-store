@@ -1,0 +1,24 @@
+{
+  "url": "http://scoot.net/gallery/2003/05/vespaboffi/",
+  "slug": "2003/05/vespaboffi",
+  "title": "Vespa Retrospective at Boffi - 2003",
+  "year": 2003,
+  "month": 5,
+  "date_rally": "2003-05",
+  "photo_count": 26,
+  "stories": [],
+  "description": "The Vespa Retrospective at Boffi was a scooter rally celebrating the Vespa brand, with a focus on historical Vespa scooters.",
+  "city": "Bellingham",
+  "state_province": "Washington",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Sponsored by Boffi Scooters",
+    "Held at Boffi Scooters in Bellingham"
+  ],
+  "related_clubs": [],
+  "source_confidence": "high",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:20:22Z",
+  "enriched_provider": "Cerebras2"
+}

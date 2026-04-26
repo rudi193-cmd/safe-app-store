@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/moab2001/",
+  "slug": "moab2001",
+  "title": "Moab 2001",
+  "year": 2001,
+  "month": null,
+  "date_rally": "2001-??",
+  "photo_count": 277,
+  "stories": [],
+  "lat": 38.57381,
+  "lng": -109.546214,
+  "city": "Moab",
+  "state_province": "Utah",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:24:53Z",
+  "enriched_provider": "Novita"
+}

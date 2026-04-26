@@ -1,0 +1,85 @@
+---
+// SafeConsentBanner.astro
+// SAFE OS auth check — replaces per-session consent gate with Willow-issued token verify.
+// If token valid → shows "Logged in as [display_name]" strip.
+// If invalid/expired → redirects to SAFE login page with ?next= current URL.
+const WILLOW_API = import.meta.env.PUBLIC_WILLOW_API ?? 'http://localhost:8420';
+const LOGIN_URL = import.meta.env.PUBLIC_SAFE_LOGIN_URL ?? 'http://localhost:8420/SAFE/web/login.html';
+---
+
+<!-- Auth strip: hidden by default, shown when logged in -->
+<div id="safe-auth-strip" class="hidden fixed bottom-0 left-0 right-0 bg-black text-orange-400 border-t border-orange-500 px-4 py-1.5 z-50 font-mono text-xs flex items-center justify-between">
+  <span>
+    <span class="text-orange-500 font-bold mr-2">SAFE OS</span>
+    Logged in as <span id="safe-display-name" class="font-bold"></span>
+  </span>
+  <span class="text-gray-600" id="safe-expires-label"></span>
+</div>
+
+<script define:vars={{ WILLOW_API, LOGIN_URL }}>
+  const AUTH_KEY = 'willow-auth-token';
+
+  function getStoredAuth() {
+    try {
+      const sess = sessionStorage.getItem(AUTH_KEY);
+      if (sess) return { tabOnly: true, ...JSON.parse(sess) };
+      const raw = localStorage.getItem(AUTH_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch { return null; }
+  }
+
+  function redirectToLogin() {
+    const next = encodeURIComponent(window.location.href);
+    window.location.href = `${LOGIN_URL}?next=${next}`;
+  }
+
+  async function checkAuth() {
+    const stored = getStoredAuth();
+    if (!stored?.token) {
+      redirectToLogin();
+      return;
+    }
+
+    // Quick local expiry check before hitting the server
+    if (!stored.tabOnly && stored.expires_at) {
+      if (new Date(stored.expires_at) <= new Date()) {
+        localStorage.removeItem(AUTH_KEY);
+        redirectToLogin();
+        return;
+      }
+    }
+
+    // Verify with Willow (best-effort — trust local if offline)
+    try {
+      const res = await fetch(`${WILLOW_API}/api/auth/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: stored.token }),
+        signal: AbortSignal.timeout(3000),
+      });
+      const data = await res.json();
+      if (!data.valid) {
+        localStorage.removeItem(AUTH_KEY);
+        sessionStorage.removeItem(AUTH_KEY);
+        redirectToLogin();
+        return;
+      }
+      // Show auth strip
+      document.getElementById('safe-display-name').textContent = data.display_name || data.username;
+      const exp = data.expires_at ? new Date(data.expires_at) : null;
+      if (exp) {
+        document.getElementById('safe-expires-label').textContent =
+          `expires ${exp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      }
+      document.getElementById('safe-auth-strip').classList.remove('hidden');
+    } catch {
+      // Willow offline — trust local token, show strip with stored display_name
+      const displayName = stored.display_name || stored.username || '?';
+      document.getElementById('safe-display-name').textContent = displayName;
+      document.getElementById('safe-auth-strip').classList.remove('hidden');
+    }
+  }
+
+  checkAuth();
+</script>

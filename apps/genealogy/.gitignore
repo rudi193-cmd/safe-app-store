@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+credentials.json
+*.db
+.venv/
+.cache/
+.wrangler/
+node_modules/

@@ -1,0 +1,27 @@
+{
+  "url": "http://scoot.net/gallery/2005/08/rallyinthevalley/",
+  "slug": "2005/08/rallyinthevalley",
+  "title": "Rally in the Valley",
+  "year": 2005,
+  "month": 8,
+  "date_rally": "2005-08",
+  "photo_count": 302,
+  "stories": [],
+  "description": "The Rally in the Valley was a scooter gathering of diverse scooter enthusiasts and clubs, held in a valley region of California, allowing participants to come and share their passion for motor scooters in a scenic setting.",
+  "city": "Trona",
+  "state_province": "California",
+  "country": "US",
+  "recurring": true,
+  "notable_facts": [
+    "Held annually",
+    "Unique desert valley landscape",
+    "Varied scooter clubs in attendance"
+  ],
+  "related_clubs": [
+    null
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:46:45Z",
+  "enriched_provider": "Cerebras3"
+}

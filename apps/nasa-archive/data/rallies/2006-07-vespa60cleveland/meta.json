@@ -1,0 +1,25 @@
+{
+  "url": "http://scoot.net/gallery/2006/07/vespa60cleveland/",
+  "slug": "2006/07/vespa60cleveland",
+  "title": "Vespa 60th Aniversay Rally, Cleveland",
+  "year": 2006,
+  "month": 7,
+  "date_rally": "2006-07",
+  "photo_count": 53,
+  "stories": [],
+  "description": "The Vespa 60th Anniversary Rally in Cleveland was a celebration of Vespa's 60-year history.",
+  "city": "Cleveland",
+  "state_province": "Ohio",
+  "country": "United States",
+  "recurring": false,
+  "notable_facts": [
+    "The rally marked Vespa's 60 years in the United States"
+  ],
+  "related_clubs": [
+    "Information on other clubs involved or attending is unknown."
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:55:20Z",
+  "enriched_provider": "Cerebras"
+}

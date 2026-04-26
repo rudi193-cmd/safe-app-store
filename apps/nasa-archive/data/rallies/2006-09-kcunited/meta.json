@@ -1,0 +1,25 @@
+{
+  "url": "http://scoot.net/gallery/2006/09/kcunited/",
+  "slug": "2006/09/kcunited",
+  "title": "Kansas City United Rally",
+  "year": 2006,
+  "month": 9,
+  "date_rally": "2006-09",
+  "photo_count": 219,
+  "stories": [],
+  "description": "A scooter rally held in Kansas City in September 2006.",
+  "hosting_club": "null",
+  "city": "Kansas City",
+  "state_province": "Missouri",
+  "country": "USA",
+  "recurring": "null",
+  "first_year": "null",
+  "notable_facts": [],
+  "related_clubs": [
+    "null"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:51:38Z",
+  "enriched_provider": "Cerebras2"
+}

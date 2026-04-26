@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendar — NASA</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.page-title {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  letter-spacing: 0.15em;
+  color: var(--red);
+  line-height: 1;
+  margin-bottom: 0.3rem;
+}
+.page-subtitle {
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--warm-gray);
+  margin-bottom: 1.5rem;
+}
+
+.cal-controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--cream-dim);
+}
+.cal-controls select {
+  background: var(--paper);
+  border: 1px solid var(--cream-dim);
+  color: var(--warm-gray-dim);
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  padding: 0.4rem 0.6rem;
+  outline: none;
+  cursor: pointer;
+}
+.cal-controls .cal-count {
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--warm-gray);
+  margin-left: auto;
+}
+
+/* Decade blocks */
+.decade-block { margin-bottom: 2rem }
+.decade-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+.decade-head .decade-label {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  line-height: 1;
+}
+.decade-head .decade-count {
+  font-family: var(--font-label);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  color: var(--warm-gray-light);
+}
+.decade-head::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--cream-dim);
+}
+.decade-head .toggle {
+  font-size: 0.6rem;
+  color: var(--warm-gray-light);
+  transition: transform 0.2s;
+}
+.decade-block.collapsed .toggle { transform: rotate(-90deg) }
+.decade-block.collapsed .decade-body { display: none }
+
+/* Year rows */
+.year-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--cream-dim);
+}
+.year-label {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  color: var(--red);
+  min-width: 50px;
+  line-height: 1.3;
+}
+.year-rallies { flex: 1 }
+
+/* Month groups */
+.month-label {
+  font-family: var(--font-label);
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--warm-gray-light);
+  margin-top: 0.4rem;
+  margin-bottom: 0.2rem;
+}
+.month-label:first-child { margin-top: 0 }
+
+.cal-rally {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  margin: 0.15rem 0.25rem 0.15rem 0;
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid var(--cream-dim);
+  transition: all 0.15s;
+  line-height: 1.4;
+}
+.cal-rally:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+.cal-rally .photo-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  background: var(--red);
+  border-radius: 50%;
+  margin-left: 0.3rem;
+  vertical-align: middle;
+}
+</style>
+</head>
+<body data-page-type="calendar">
+
+<div class="top-rule"></div>
+
+<header>
+  <div class="container">
+    <div class="header-eyebrow">archive &middot; est. 1997 &middot; north america</div>
+    <div class="header-main">
+      <a href="index.html" class="header-brand">
+        <span class="nasa-mark">NASA</span>
+        <span class="nasa-subtitle">North America<br>Scootering Archive</span>
+      </a>
+      <nav class="header-nav">
+        <a href="rallies.html">Rallies</a>
+        <a href="clubs.html">Clubs</a>
+        <a href="patches.html">Patches</a>
+        <a href="map.html">Map</a>
+        <a href="calendar.html" style="color: var(--red)">Calendar</a>
+        <a href="contribute.html" class="contribute-btn">Contribute</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<div class="container" style="padding-top: 1.5rem; padding-bottom: 3rem; animation: fadeUp 0.5s ease-out">
+
+  <div class="page-title">Calendar</div>
+  <div class="page-subtitle">Every rally in the archive, chronologically</div>
+
+  <div class="cal-controls">
+    <select id="decade-filter">
+      <option value="">All Decades</option>
+    </select>
+    <span class="cal-count" id="cal-count"></span>
+  </div>
+
+  <div id="cal-body"></div>
+
+</div>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-pigeon">
+        Stories shared here are carried by Pigeon to the community archive &mdash; with your consent.
+        Your data lives on your machine. Always.
+      </div>
+      <div style="text-align: right">
+        <div class="footer-mark">NASA</div>
+        <div class="footer-links" style="margin-top: 0.35rem">
+          <a href="rallies.html">Rallies</a> &middot;
+          <a href="map.html">Map</a> &middot;
+          <a href="contribute.html">Contribute</a> &middot;
+          Powered by <a href="https://github.com/rudi193-cmd/Willow" style="color: var(--red)">Willow</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var MONTHS = ['','January','February','March','April','May','June',
+    'July','August','September','October','November','December'];
+
+  var decadeEl = document.getElementById('decade-filter');
+  var bodyEl = document.getElementById('cal-body');
+  var countEl = document.getElementById('cal-count');
+  var allData = [];
+
+  function esc(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function render(data) {
+    // Group by decade, then year, then month
+    var decades = {};
+    data.forEach(function (r) {
+      var dec = Math.floor(r.y / 10) * 10;
+      if (!decades[dec]) decades[dec] = {};
+      if (!decades[dec][r.y]) decades[dec][r.y] = {};
+      var mo = r.m || 0;
+      if (!decades[dec][r.y][mo]) decades[dec][r.y][mo] = [];
+      decades[dec][r.y][mo].push(r);
+    });
+
+    var html = '';
+    var decKeys = Object.keys(decades).sort(function (a, b) { return b - a; });
+
+    decKeys.forEach(function (dec) {
+      var yearMap = decades[dec];
+      var decCount = 0;
+      Object.keys(yearMap).forEach(function (y) {
+        Object.keys(yearMap[y]).forEach(function (m) {
+          decCount += yearMap[y][m].length;
+        });
+      });
+
+      html += '<div class="decade-block">';
+      html += '<div class="decade-head" onclick="this.parentElement.classList.toggle(\'collapsed\')">';
+      html += '<span class="decade-label">' + dec + 's</span>';
+      html += '<span class="decade-count">' + decCount + ' rallies</span>';
+      html += '<span class="toggle">&#9660;</span>';
+      html += '</div>';
+      html += '<div class="decade-body">';
+
+      var years = Object.keys(yearMap).sort(function (a, b) { return b - a; });
+      years.forEach(function (yr) {
+        html += '<div class="year-row">';
+        html += '<div class="year-label">' + yr + '</div>';
+        html += '<div class="year-rallies">';
+
+        var months = Object.keys(yearMap[yr]).sort(function (a, b) { return a - b; });
+        months.forEach(function (mo) {
+          var moNum = parseInt(mo);
+          var label = moNum > 0 ? MONTHS[moNum] : 'Unknown Month';
+          html += '<div class="month-label">' + label + '</div>';
+
+          yearMap[yr][mo].forEach(function (r) {
+            html += '<a href="rally.html?slug=' + encodeURIComponent(r.s) + '" class="cal-rally">';
+            html += esc(r.n);
+            if (r.p > 0) html += '<span class="photo-dot"></span>';
+            html += '</a>';
+          });
+        });
+
+        html += '</div></div>';
+      });
+
+      html += '</div></div>';
+    });
+
+    bodyEl.innerHTML = html;
+    countEl.textContent = data.length + ' rallies';
+  }
+
+  function applyFilters() {
+    var decade = decadeEl.value;
+    var filtered = allData;
+    if (decade) {
+      var decNum = parseInt(decade);
+      filtered = allData.filter(function (r) {
+        return Math.floor(r.y / 10) * 10 === decNum;
+      });
+    }
+    render(filtered);
+  }
+
+  decadeEl.addEventListener('change', applyFilters);
+
+  fetch('data/calendar.json')
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (data) {
+      allData = data;
+
+      // Populate decade filter
+      var decades = {};
+      data.forEach(function (r) {
+        decades[Math.floor(r.y / 10) * 10] = true;
+      });
+      Object.keys(decades).sort(function (a, b) { return b - a; }).forEach(function (d) {
+        var opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d + 's';
+        decadeEl.appendChild(opt);
+      });
+
+      render(data);
+    })
+    .catch(function () {
+      bodyEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--warm-gray);font-style:italic">Could not load calendar data.</div>';
+    });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2003/11/appleride/",
+  "slug": "2003/11/appleride",
+  "title": "Oak Glen Apple Ride - 2003",
+  "year": 2003,
+  "month": 11,
+  "date_rally": "2003-11",
+  "photo_count": 42,
+  "stories": [],
+  "description": "November 2003 scooter rally in Oak Glen, California.",
+  "city": "Oak Glen",
+  "state_province": "California",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Held in November"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:32:56Z",
+  "enriched_provider": "Novita2"
+}

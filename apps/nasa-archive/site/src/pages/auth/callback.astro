@@ -1,0 +1,39 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Signing in — NASA Archive">
+  <div class="max-w-sm mx-auto py-16 text-center">
+    <div class="text-[#CC4444] text-2xl mb-4">◆</div>
+    <p class="text-[#888] text-sm" id="status">Signing you in...</p>
+  </div>
+</Base>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  const status = document.getElementById('status')!;
+  const next = new URLSearchParams(window.location.search).get('next') || '/';
+
+  // With flowType: 'implicit', Supabase parses #access_token from the URL hash on init.
+  // onAuthStateChange fires SIGNED_IN once the session is established.
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      window.location.href = next;
+    } else if (event === 'SIGNED_OUT') {
+      window.location.href = '/login';
+    }
+  });
+
+  // Also check for an already-established session (e.g., page refresh)
+  const { data, error } = await supabase.auth.getSession();
+  if (error) {
+    status.textContent = 'Sign in failed — ' + error.message;
+    console.error('Auth error:', error);
+  } else if (data.session) {
+    window.location.href = next;
+  } else if (!window.location.hash) {
+    // No hash, no session, no error — probably landed here directly
+    status.textContent = 'No session found. Redirecting...';
+    setTimeout(() => { window.location.href = '/login'; }, 2000);
+  }
+</script>

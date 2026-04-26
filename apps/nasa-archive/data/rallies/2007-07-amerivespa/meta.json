@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2007/07/amerivespa/",
+  "slug": "2007/07/amerivespa",
+  "title": "Amerivespa",
+  "year": 2007,
+  "month": 7,
+  "date_rally": "2007-07",
+  "photo_count": 3733,
+  "stories": [],
+  "city": "Austin",
+  "state_province": "Texas",
+  "country": "USA",
+  "recurring": true,
+  "notable_facts": [],
+  "related_clubs": [
+    "null - confirmed due to lack of info"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:55:43Z",
+  "enriched_provider": "Cerebras2"
+}

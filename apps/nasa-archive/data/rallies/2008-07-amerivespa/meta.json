@@ -1,0 +1,20 @@
+{
+  "url": "http://scoot.net/gallery/2008/07/amerivespa/",
+  "slug": "2008/07/amerivespa",
+  "title": "Amerivespa",
+  "year": 2008,
+  "month": 7,
+  "date_rally": "2008-07",
+  "photo_count": 2750,
+  "stories": [],
+  "description": "The 2008 Amerivespa was a Vespa scooter rally.",
+  "country": "US",
+  "recurring": true,
+  "notable_facts": [
+    "hosted by the United States Vespa Club"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:01:32Z",
+  "enriched_provider": "Novita"
+}

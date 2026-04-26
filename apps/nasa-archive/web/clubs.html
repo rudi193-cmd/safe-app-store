@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scooter Clubs — NASA</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--cream-dim);
+}
+.filter-bar input[type="search"] {
+  flex: 1;
+  min-width: 240px;
+  background: var(--paper);
+  border: 1px solid var(--cream-dim);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  padding: 0.5rem 0.8rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.filter-bar input[type="search"]:focus { border-color: var(--red) }
+.filter-bar input[type="search"]::placeholder { color: var(--warm-gray-light); font-style: italic }
+.filter-count {
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--warm-gray);
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 2.8rem;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 0.4rem;
+}
+.page-title-accent {
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--warm-gray);
+  margin-bottom: 1.5rem;
+}
+
+/* Results grid — rally cards from context search */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+}
+
+.result-card {
+  background: var(--paper);
+  border: 1px solid var(--cream-dim);
+  padding: 1rem 1.1rem;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: all 0.2s;
+  position: relative;
+}
+.result-card:hover {
+  border-color: var(--red);
+  box-shadow: 0 2px 12px rgba(14,12,11,0.08);
+}
+.result-card .rc-name {
+  font-family: var(--font-label);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.result-card .rc-meta {
+  font-family: var(--font-label);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--warm-gray);
+  margin-top: 0.25rem;
+}
+.result-card .rc-desc {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--warm-gray-dim);
+  margin-top: 0.4rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.result-card .rc-photos {
+  font-family: var(--font-label);
+  font-size: 0.58rem;
+  color: var(--red);
+  margin-top: 0.4rem;
+}
+.result-card .rc-match {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.8rem;
+  font-family: var(--font-label);
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--warm-gray-light);
+}
+
+/* Club directory section */
+.club-directory { margin-top: 2rem }
+.club-section-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.club-section-head span {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--warm-gray);
+}
+.club-section-head::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--cream-dim);
+}
+
+.club-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.club-card {
+  background: var(--paper);
+  border: 1px solid var(--cream-dim);
+  border-left: 3px solid var(--red);
+  padding: 0.9rem 1rem;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.club-card:hover {
+  border-color: var(--red);
+  box-shadow: 0 2px 12px rgba(14,12,11,0.08);
+}
+.club-card .cc-name {
+  font-family: var(--font-label);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.club-card .cc-loc {
+  font-family: var(--font-label);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--warm-gray);
+  margin-top: 0.2rem;
+}
+.club-card .cc-count {
+  font-family: var(--font-label);
+  font-size: 0.58rem;
+  color: var(--red);
+  margin-top: 0.3rem;
+}
+
+.contribute-cta {
+  margin-top: 2.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--cream-dim);
+  background: var(--paper);
+  text-align: center;
+}
+.contribute-cta .cta-heading {
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 0.4rem;
+}
+.contribute-cta .cta-body {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--warm-gray);
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+</style>
+</head>
+<body data-page-type="club">
+
+<div class="top-rule"></div>
+
+<header>
+  <div class="container">
+    <div class="header-eyebrow">archive &middot; est. 1997 &middot; north america</div>
+    <div class="header-main">
+      <a href="index.html" class="header-brand">
+        <span class="nasa-mark">NASA</span>
+        <span class="nasa-subtitle">North America<br>Scootering Archive</span>
+      </a>
+      <nav class="header-nav">
+        <a href="rallies.html">Rallies</a>
+        <a href="clubs.html" style="color: var(--red)">Clubs</a>
+        <a href="patches.html">Patches</a>
+        <a href="map.html">Map</a>
+        <a href="calendar.html">Calendar</a>
+        <a href="contribute.html" class="contribute-btn">Contribute</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<div class="container" style="padding-top: 1.5rem; padding-bottom: 3rem; animation: fadeUp 0.5s ease-out">
+
+  <div class="page-title">Clubs</div>
+  <div class="page-title-accent">Search the archive by club, city, or anything you remember</div>
+
+  <div class="filter-bar">
+    <input type="search" id="club-search" placeholder="Try &quot;Pharaohs&quot; or &quot;Las Vegas&quot; or &quot;2003 camp&quot;...">
+    <span class="filter-count" id="filter-count"></span>
+  </div>
+
+  <!-- Search results appear here -->
+  <div class="results-grid" id="results-grid"></div>
+
+  <!-- Club directory (shown when no search) -->
+  <div class="club-directory" id="club-directory">
+    <div class="club-section-head"><span>Clubs on Record</span></div>
+    <div class="club-grid" id="club-grid"></div>
+  </div>
+
+  <div class="contribute-cta bracket">
+    <div class="cta-heading">Know a club not listed?</div>
+    <div class="cta-body">
+      Help us build the most complete directory of North American scooter clubs.
+    </div>
+    <a href="contribute.html" class="btn-outline">Contribute a Club</a>
+  </div>
+
+</div>
+
+<div class="riggs-panel" style="max-width: 720px; margin: 2rem auto;">
+  <div class="riggs-panel-inner">
+    <div class="riggs-header">
+      <div class="riggs-identity">
+        <div class="riggs-avatar">R</div>
+        <div>
+          <div class="riggs-name">Riggs</div>
+          <div class="riggs-title">Looking for a club? I might know someone.</div>
+        </div>
+      </div>
+      <button class="riggs-forget" title="Forget this conversation">&#10005;</button>
+      <button class="riggs-save" title="Download this conversation">&#8595; Save</button>
+    </div>
+    <div class="riggs-messages" id="chat-messages"></div>
+    <div class="riggs-input-row">
+      <input type="text" class="riggs-input" id="chat-input" placeholder="Know anything about this club?">
+      <button class="riggs-send" id="chat-send">&#8594;</button>
+    </div>
+    <div class="riggs-consent">
+      Conversation saved locally on your machine. Share to the archive only when you choose to.
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-pigeon">
+        Stories shared here are carried by Pigeon to the community archive &mdash; with your consent.
+        Your data lives on your machine. Always.
+      </div>
+      <div style="text-align: right">
+        <div class="footer-mark">NASA</div>
+        <div class="footer-links" style="margin-top: 0.35rem">
+          <a href="rallies.html">Rallies</a> &middot;
+          <a href="clubs.html">Clubs</a> &middot;
+          <a href="map.html">Map</a> &middot;
+          <a href="contribute.html">Contribute</a> &middot;
+          Powered by <a href="https://github.com/rudi193-cmd/Willow" style="color: var(--red)">Willow</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var searchEl = document.getElementById('club-search');
+  var countEl = document.getElementById('filter-count');
+  var resultsEl = document.getElementById('results-grid');
+  var directoryEl = document.getElementById('club-directory');
+  var clubGridEl = document.getElementById('club-grid');
+
+  var searchIndex = [];
+  var clubsData = {};
+
+  function esc(s) {
+    var d = document.createElement('div');
+    d.textContent = s || '';
+    return d.innerHTML;
+  }
+
+  // Context-matching search — not keyword, but meaning
+  // Matches against name, description, hosting club, related clubs, city, state
+  // Scores results by relevance
+  function contextSearch(query) {
+    if (!query) return [];
+
+    var terms = query.toLowerCase().split(/\s+/).filter(function (t) { return t.length > 1; });
+    if (terms.length === 0) return [];
+
+    var scored = [];
+    searchIndex.forEach(function (r) {
+      var score = 0;
+      var haystack = [
+        r.n || '',
+        r.h || '',
+        r.d || '',
+        r.c || '',
+        r.st || '',
+        (r.rc || []).join(' ')
+      ].join(' ').toLowerCase();
+
+      terms.forEach(function (term) {
+        // Exact name match — high score
+        if ((r.n || '').toLowerCase().indexOf(term) !== -1) score += 10;
+        // Hosting club match — high score
+        if ((r.h || '').toLowerCase().indexOf(term) !== -1) score += 8;
+        // Related clubs — good score
+        if ((r.rc || []).join(' ').toLowerCase().indexOf(term) !== -1) score += 6;
+        // City match
+        if ((r.c || '').toLowerCase().indexOf(term) !== -1) score += 5;
+        // State match
+        if ((r.st || '').toLowerCase() === term) score += 4;
+        // Description match
+        if ((r.d || '').toLowerCase().indexOf(term) !== -1) score += 3;
+        // Year match
+        if (String(r.y) === term) score += 4;
+      });
+
+      if (score > 0) {
+        scored.push({ rally: r, score: score });
+      }
+    });
+
+    scored.sort(function (a, b) { return b.score - a.score; });
+    return scored;
+  }
+
+  function matchLabel(score) {
+    if (score >= 15) return 'strong';
+    if (score >= 8) return 'good';
+    return 'weak';
+  }
+
+  function renderResults(results) {
+    if (results.length === 0) {
+      resultsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--warm-gray);font-style:italic">No matches found. Try a different search.</div>';
+      return;
+    }
+
+    var html = '';
+    results.slice(0, 60).forEach(function (item) {
+      var r = item.rally;
+      var meta = [];
+      if (r.y) meta.push(String(r.y));
+      if (r.c) meta.push(r.c);
+      if (r.st) meta.push(r.st);
+      if (r.h) meta.push(r.h);
+
+      html += '<a href="rally.html?slug=' + encodeURIComponent(r.s) + '" class="result-card">';
+      html += '<span class="rc-match">' + matchLabel(item.score) + '</span>';
+      html += '<div class="rc-name">' + esc(r.n) + '</div>';
+      if (meta.length) html += '<div class="rc-meta">' + esc(meta.join(' \u00B7 ')) + '</div>';
+      if (r.d) html += '<div class="rc-desc">' + esc(r.d) + '</div>';
+      if (r.p > 0) html += '<div class="rc-photos">' + r.p + ' photos</div>';
+      html += '</a>';
+    });
+
+    if (results.length > 60) {
+      html += '<div style="grid-column:1/-1;text-align:center;padding:0.5rem;font-family:var(--font-label);font-size:0.62rem;color:var(--warm-gray)">'
+        + (results.length - 60) + ' more results</div>';
+    }
+
+    resultsEl.innerHTML = html;
+  }
+
+  function renderClubDirectory() {
+    var clubs = Object.keys(clubsData).sort(function (a, b) {
+      return clubsData[b].rally_count - clubsData[a].rally_count;
+    });
+
+    var html = '';
+    clubs.forEach(function (name) {
+      var club = clubsData[name];
+      var loc = [];
+      if (club.cities && club.cities.length) loc.push(club.cities[0]);
+      if (club.states && club.states.length) loc.push(club.states[0]);
+
+      html += '<div class="club-card" onclick="document.getElementById(\'club-search\').value=\'' + esc(name).replace(/'/g, "\\'") + '\';document.getElementById(\'club-search\').dispatchEvent(new Event(\'input\'))">';
+      html += '<div class="cc-name">' + esc(name) + '</div>';
+      if (loc.length) html += '<div class="cc-loc">' + esc(loc.join(', ')) + '</div>';
+      html += '<div class="cc-count">' + club.rally_count + ' rally' + (club.rally_count !== 1 ? 'rallies' : '') + '</div>';
+      html += '</div>';
+    });
+
+    clubGridEl.innerHTML = html;
+  }
+
+  var debounceTimer;
+  searchEl.addEventListener('input', function () {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function () {
+      var q = searchEl.value.trim();
+      if (q.length < 2) {
+        resultsEl.innerHTML = '';
+        directoryEl.style.display = '';
+        countEl.textContent = Object.keys(clubsData).length + ' clubs on record';
+        return;
+      }
+
+      var results = contextSearch(q);
+      directoryEl.style.display = 'none';
+      renderResults(results);
+      countEl.textContent = results.length + ' result' + (results.length !== 1 ? 's' : '');
+    }, 150);
+  });
+
+  // Check URL for pre-filled search
+  var urlParams = new URLSearchParams(window.location.search);
+  var preSearch = urlParams.get('q') || urlParams.get('club') || '';
+
+  // Load data
+  Promise.all([
+    fetch('data/search_index.json').then(function (r) { return r.ok ? r.json() : []; }),
+    fetch('data/clubs.json').then(function (r) { return r.ok ? r.json() : {}; })
+  ]).then(function (results) {
+    searchIndex = results[0];
+    clubsData = results[1];
+
+    countEl.textContent = Object.keys(clubsData).length + ' clubs on record';
+    renderClubDirectory();
+
+    if (preSearch) {
+      searchEl.value = preSearch;
+      searchEl.dispatchEvent(new Event('input'));
+    }
+  }).catch(function () {
+    countEl.textContent = 'Could not load data';
+  });
+})();
+</script>
+
+<script src="js/session.js"></script>
+<script src="js/riggs.js"></script>
+</body>
+</html>

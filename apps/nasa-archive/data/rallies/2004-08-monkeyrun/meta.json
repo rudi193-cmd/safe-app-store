@@ -1,0 +1,20 @@
+{
+  "url": "http://scoot.net/gallery/2004/08/monkeyrun/",
+  "slug": "2004/08/monkeyrun",
+  "title": "Monkey Run - 2004",
+  "year": 2004,
+  "month": 8,
+  "date_rally": "2004-08",
+  "photo_count": 0,
+  "description": "The Monkey Run rally is a scooter gathering.",
+  "state_province": "Michigan",
+  "country": "US",
+  "recurring": true,
+  "notable_facts": [
+    "Held in 2004"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:40:23Z",
+  "enriched_provider": "Novita2"
+}

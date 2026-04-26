@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-dating-wellbeing"
+version = "1.0.0"
+description = "Privacy-first dating profile analyzer for SAFE framework"
+authors = [{name = "Sean Campbell"}]
+requires-python = ">=3.10"
+license = {text = "MIT"}
+readme = "README.md"
+dependencies = [
+    "pydantic>=2.0.0",
+    "streamlit>=1.28.0",
+    "requests>=2.28.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/seancampbell3161/safe-app-dating-wellbeing"
+Repository = "https://github.com/seancampbell3161/safe-app-dating-wellbeing"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dating_wellbeing*", "core*"]

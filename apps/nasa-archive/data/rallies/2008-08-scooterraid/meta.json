@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2008/08/scooterraid/",
+  "slug": "2008/08/scooterraid",
+  "title": "Oregon Scooter Raid 6",
+  "year": 2008,
+  "month": 8,
+  "date_rally": "2008-08",
+  "photo_count": 318,
+  "stories": [],
+  "description": "Annual scooter rally held in Oregon.",
+  "city": "Salem",
+  "state_province": "Oregon",
+  "country": "United States",
+  "recurring": true,
+  "notable_facts": [
+    ""
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:04:26Z",
+  "enriched_provider": "Cerebras3"
+}

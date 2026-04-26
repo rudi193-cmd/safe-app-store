@@ -1,0 +1,19 @@
+{
+  "url": "http://scoot.net/gallery/2007/10/revolution/",
+  "slug": "2007/10/revolution",
+  "title": "Revolution IV",
+  "year": 2007,
+  "month": 10,
+  "date_rally": "2007-10",
+  "photo_count": 477,
+  "stories": [],
+  "description": "description not available",
+  "recurring": false,
+  "notable_facts": [
+    "held in October 2007"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:59:20Z",
+  "enriched_provider": "Cerebras2"
+}

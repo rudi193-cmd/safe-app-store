@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-nasa-archive"
+version = "1.0.0"
+description = "Explore and download NASA open datasets — imagery, mission telemetry, earth science — with a local pipeline for private analysis."
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.28.0",
+]

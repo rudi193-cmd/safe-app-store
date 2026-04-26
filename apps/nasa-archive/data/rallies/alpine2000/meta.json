@@ -1,0 +1,18 @@
+{
+  "url": "http://scoot.net/gallery/alpine2000/",
+  "slug": "alpine2000",
+  "title": "Alpine Loop 2000",
+  "year": 2000,
+  "month": null,
+  "date_rally": "2000-??",
+  "photo_count": 0,
+  "lat": 40.376806,
+  "lng": -111.795915,
+  "recurring": false,
+  "notable_facts": [],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:23:43Z",
+  "enriched_provider": "Novita"
+}

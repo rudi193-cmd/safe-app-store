@@ -1,0 +1,70 @@
+[
+  {
+    "pic_id": "426194",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=426194&b=2013/09/brewcity/Jered_Piencikowski/tinyindex.html",
+    "photographer": "Jered_Piencikowski",
+    "date_rally": "2013-09",
+    "date_exif": "2013:09:21 14:21:07",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-b58cb742396a47e6a5953f8d499e8c35.r2.dev/gallery/201309-Jered_Piencikowski/426194/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2013:09:21 14:21:07",
+      "Make": "Apple",
+      "Model": "iPhone 5",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "426195",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=426195&b=2013/09/brewcity/Jered_Piencikowski/tinyindex.html",
+    "photographer": "Jered_Piencikowski",
+    "date_rally": "2013-09",
+    "date_exif": "2013:09:22 11:40:52",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-b58cb742396a47e6a5953f8d499e8c35.r2.dev/gallery/201309-Jered_Piencikowski/426195/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2013:09:22 11:40:52",
+      "Make": "Apple",
+      "Model": "iPhone 5",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "426196",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=426196&b=2013/09/brewcity/Jered_Piencikowski/tinyindex.html",
+    "photographer": "Jered_Piencikowski",
+    "date_rally": "2013-09",
+    "date_exif": "2013:09:22 11:41:08",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-b58cb742396a47e6a5953f8d499e8c35.r2.dev/gallery/201309-Jered_Piencikowski/426196/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2013:09:22 11:41:08",
+      "Make": "Apple",
+      "Model": "iPhone 5",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "426197",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=426197&b=2013/09/brewcity/Jered_Piencikowski/tinyindex.html",
+    "photographer": "Jered_Piencikowski",
+    "date_rally": "2013-09",
+    "date_exif": "2013:09:22 11:41:15",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-b58cb742396a47e6a5953f8d499e8c35.r2.dev/gallery/201309-Jered_Piencikowski/426197/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2013:09:22 11:41:15",
+      "Make": "Apple",
+      "Model": "iPhone 5",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  }
+]

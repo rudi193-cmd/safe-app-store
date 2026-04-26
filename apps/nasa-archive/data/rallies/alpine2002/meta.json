@@ -1,0 +1,20 @@
+{
+  "url": "http://scoot.net/gallery/alpine2002/",
+  "slug": "alpine2002",
+  "title": "Alpine Loop - 2002",
+  "year": 2002,
+  "month": null,
+  "date_rally": "2002-??",
+  "photo_count": 103,
+  "stories": [],
+  "lat": 40.376806,
+  "lng": -111.795915,
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:25:26Z",
+  "enriched_provider": "Cerebras3"
+}

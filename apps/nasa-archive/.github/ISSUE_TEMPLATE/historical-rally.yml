@@ -1,0 +1,67 @@
+name: Historical Rally Submission
+description: Add a past rally to the archive — any era, any year
+labels: ["historical-rally"]
+body:
+  - type: input
+    id: title
+    attributes:
+      label: Rally Name
+      placeholder: "Chicago Mod Scooter Run 1987"
+    validations:
+      required: true
+
+  - type: input
+    id: date
+    attributes:
+      label: Date
+      description: As specific as you know — YYYY, YYYY-MM, YYYY-MM-DD, or approximate ("early 1980s", "summer 1973")
+      placeholder: "1987-08"
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: City, State / City, Province — as specific as you know
+      placeholder: "Chicago, IL"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: region
+    attributes:
+      label: Region
+      options:
+        - Northeast
+        - Southeast
+        - Midwest
+        - Southwest
+        - Mountain West
+        - Pacific Northwest
+        - Canada
+        - International
+        - National
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What do you remember?
+      description: Who organised it, how many people came, what happened, who was there. Anything you remember.
+      placeholder: "Run by the Chicago Scooter Company club. About 40 riders. We ended up at..."
+
+  - type: input
+    id: source
+    attributes:
+      label: Source / How do you know?
+      description: Were you there? Heard about it from someone? Have a flyer or photo?
+      placeholder: "I was there. I have photos I can scan."
+
+  - type: textarea
+    id: photos
+    attributes:
+      label: Photos
+      description: Have scanned photos, flyers, or patches? Attach them to this issue or describe what you have. We'll work out the upload.
+      placeholder: "I have ~30 prints I can scan. Also a rally patch."

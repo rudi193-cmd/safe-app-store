@@ -1,0 +1,30 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "gerald-bot",
+  "permissions": {
+    "reddit": {
+      "enable": true,
+      "scope": "moderator"
+    },
+    "http": {
+      "enable": false,
+      "domains": []
+    },
+    "redis": true
+  },
+  "blocks": {
+    "entry": "src/main.ts",
+    "triggers": [
+      "onPostSubmit",
+      "onCommentSubmit",
+      "onAppInstall",
+      "onAppUpgrade"
+    ]
+  },
+  "marketingAssets": {
+    "icon": "assets/icon.png"
+  },
+  "dev": {
+    "subreddit": "gerald_bot_dev"
+  }
+}

@@ -1,0 +1,859 @@
+[
+  {
+    "pic_id": "185488",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=185488&b=2005/11/cwc/Bill_Murar/tinyindex.html",
+    "photographer": "Bill_Murar",
+    "date_rally": "2005-11",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Bill_Murar/185488/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "185481",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=185481&b=2005/11/cwc/Thomas/tinyindex.html",
+    "photographer": "Thomas",
+    "date_rally": "2005-11",
+    "date_exif": "2006:02:04 10:25:52",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Thomas/185481/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2006:02:04 10:25:52",
+      "Make": "Minolta Co., Ltd.",
+      "Model": "DiMAGE X20",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "185482",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=185482&b=2005/11/cwc/Thomas/tinyindex.html",
+    "photographer": "Thomas",
+    "date_rally": "2005-11",
+    "date_exif": "2006:02:04 13:43:56",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Thomas/185482/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2006:02:04 13:43:56",
+      "Make": "Minolta Co., Ltd.",
+      "Model": "DiMAGE X20",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "189384",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=189384&b=2005/11/cwc/dylan_liley/tinyindex.html",
+    "photographer": "dylan_liley",
+    "date_rally": "2005-11",
+    "date_exif": "2006:02:19 11:31:14",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-dylan_liley/189384/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2006:02:19 11:31:14",
+      "Make": "Canon",
+      "Model": "Canon PowerShot SD200",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "189385",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=189385&b=2005/11/cwc/dylan_liley/tinyindex.html",
+    "photographer": "dylan_liley",
+    "date_rally": "2005-11",
+    "date_exif": "2006:02:19 12:10:40",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-dylan_liley/189385/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2006:02:19 12:10:40",
+      "Make": "Canon",
+      "Model": "Canon PowerShot SD200",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "189386",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=189386&b=2005/11/cwc/dylan_liley/tinyindex.html",
+    "photographer": "dylan_liley",
+    "date_rally": "2005-11",
+    "date_exif": "2006:02:19 12:14:04",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-dylan_liley/189386/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2006:02:19 12:14:04",
+      "Make": "Canon",
+      "Model": "Canon PowerShot SD200",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "189387",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=189387&b=2005/11/cwc/dylan_liley/tinyindex.html",
+    "photographer": "dylan_liley",
+    "date_rally": "2005-11",
+    "date_exif": "2006:02:19 13:10:51",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-dylan_liley/189387/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2006:02:19 13:10:51",
+      "Make": "Canon",
+      "Model": "Canon PowerShot SD200",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "189388",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=189388&b=2005/11/cwc/dylan_liley/tinyindex.html",
+    "photographer": "dylan_liley",
+    "date_rally": "2005-11",
+    "date_exif": "2006:02:19 13:13:26",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-dylan_liley/189388/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2006:02:19 13:13:26",
+      "Make": "Canon",
+      "Model": "Canon PowerShot SD200",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "189389",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=189389&b=2005/11/cwc/dylan_liley/tinyindex.html",
+    "photographer": "dylan_liley",
+    "date_rally": "2005-11",
+    "date_exif": "2006:02:19 15:15:32",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-dylan_liley/189389/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2006:02:19 15:15:32",
+      "Make": "Canon",
+      "Model": "Canon PowerShot SD200",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "189390",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=189390&b=2005/11/cwc/dylan_liley/tinyindex.html",
+    "photographer": "dylan_liley",
+    "date_rally": "2005-11",
+    "date_exif": "2006:02:18 13:24:32",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-dylan_liley/189390/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2006:02:18 13:24:32",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S330",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "189391",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=189391&b=2005/11/cwc/dylan_liley/tinyindex.html",
+    "photographer": "dylan_liley",
+    "date_rally": "2005-11",
+    "date_exif": "2006:02:17 17:48:12",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-dylan_liley/189391/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2006:02:17 17:48:12",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S330",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "189392",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=189392&b=2005/11/cwc/dylan_liley/tinyindex.html",
+    "photographer": "dylan_liley",
+    "date_rally": "2005-11",
+    "date_exif": "2006:02:17 17:48:01",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-dylan_liley/189392/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2006:02:17 17:48:01",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S330",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "189393",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=189393&b=2005/11/cwc/dylan_liley/tinyindex.html",
+    "photographer": "dylan_liley",
+    "date_rally": "2005-11",
+    "date_exif": "2006:02:19 09:43:42",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-dylan_liley/189393/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2006:02:19 09:43:42",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S330",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "188877",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=188877&b=2005/11/cwc/JenStichMikeScott/tinyindex.html",
+    "photographer": "JenStichMikeScott",
+    "date_rally": "2005-11",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-JenStichMikeScott/188877/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "183715",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183715&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 10:55:03",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183715/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 10:55:03",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183716",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183716&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 11:31:24",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183716/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 11:31:24",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183717",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183717&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 12:14:16",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183717/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 12:14:16",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183718",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183718&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 12:14:28",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183718/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 12:14:28",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183719",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183719&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 12:14:42",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183719/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 12:14:42",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183720",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183720&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 12:34:12",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183720/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 12:34:12",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183721",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183721&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 12:36:33",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183721/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 12:36:33",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183722",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183722&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 12:41:01",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183722/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 12:41:01",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183723",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183723&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 12:41:15",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183723/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 12:41:15",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183724",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183724&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 12:41:42",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183724/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 12:41:42",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183725",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183725&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 12:45:03",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183725/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 12:45:03",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183726",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183726&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 13:28:34",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183726/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 13:28:34",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183727",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183727&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 13:30:32",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183727/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 13:30:32",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183728",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183728&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 13:31:12",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183728/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 13:31:12",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183729",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183729&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 13:41:31",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183729/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 13:41:31",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183730",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183730&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 14:20:15",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183730/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 14:20:15",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183731",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183731&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 14:20:38",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183731/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 14:20:38",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183732",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183732&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 14:21:02",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183732/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 14:21:02",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183733",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183733&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 14:21:20",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183733/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 14:21:20",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "183734",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=183734&b=2005/11/cwc/Kickoff_Ride__PJ_Chmiel/tinyindex.html",
+    "photographer": "Kickoff_Ride__PJ_Chmiel",
+    "date_rally": "2005-11",
+    "date_exif": "2005:11:19 14:55:18",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Kickoff_Ride__PJ_Chmiel/183734/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:11:19 14:55:18",
+      "Make": "Canon",
+      "Model": "Canon PowerShot S230",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184281",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184281&b=2005/11/cwc/vesparex/tinyindex.html",
+    "photographer": "vesparex",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:07 07:32:49",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-vesparex/184281/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:07 07:32:49",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX7630 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184389",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184389&b=2005/11/cwc/Corey/tinyindex.html",
+    "photographer": "Corey",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:20 09:32:57",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Corey/184389/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:20 09:32:57",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A40",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184390",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184390&b=2005/11/cwc/Corey/tinyindex.html",
+    "photographer": "Corey",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:20 09:33:12",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Corey/184390/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:20 09:33:12",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A40",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184391",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184391&b=2005/11/cwc/Corey/tinyindex.html",
+    "photographer": "Corey",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:20 09:41:36",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Corey/184391/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:20 09:41:36",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A40",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184392",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184392&b=2005/11/cwc/Corey/tinyindex.html",
+    "photographer": "Corey",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:20 09:42:35",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Corey/184392/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:20 09:42:35",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A40",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184393",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184393&b=2005/11/cwc/Corey/tinyindex.html",
+    "photographer": "Corey",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:20 09:54:04",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Corey/184393/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:20 09:54:04",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A40",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184394",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184394&b=2005/11/cwc/Corey/tinyindex.html",
+    "photographer": "Corey",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:20 10:24:03",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Corey/184394/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:20 10:24:03",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A40",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184395",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184395&b=2005/11/cwc/Corey/tinyindex.html",
+    "photographer": "Corey",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:20 10:24:18",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Corey/184395/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:20 10:24:18",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A40",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184396",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184396&b=2005/11/cwc/Corey/tinyindex.html",
+    "photographer": "Corey",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:20 10:24:33",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Corey/184396/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:20 10:24:33",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A40",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184397",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184397&b=2005/11/cwc/Corey/tinyindex.html",
+    "photographer": "Corey",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:20 10:24:48",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Corey/184397/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:20 10:24:48",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A40",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184398",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184398&b=2005/11/cwc/Corey/tinyindex.html",
+    "photographer": "Corey",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:20 10:26:25",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Corey/184398/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:20 10:26:25",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A40",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184399",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184399&b=2005/11/cwc/Corey/tinyindex.html",
+    "photographer": "Corey",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:20 10:27:36",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Corey/184399/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:20 10:27:36",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A40",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184400",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184400&b=2005/11/cwc/Corey/tinyindex.html",
+    "photographer": "Corey",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:20 11:12:26",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Corey/184400/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:20 11:12:26",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A40",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184349",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184349&b=2005/11/cwc/Tedford__Rabble_Rouser_SC/tinyindex.html",
+    "photographer": "Tedford__Rabble_Rouser_SC",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:15 00:08:34",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Tedford__Rabble_Rouser_SC/184349/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:15 00:08:34",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK CX4310 DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184350",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184350&b=2005/11/cwc/Tedford__Rabble_Rouser_SC/tinyindex.html",
+    "photographer": "Tedford__Rabble_Rouser_SC",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:14 23:51:16",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Tedford__Rabble_Rouser_SC/184350/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:14 23:51:16",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK CX4310 DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184351",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184351&b=2005/11/cwc/Tedford__Rabble_Rouser_SC/tinyindex.html",
+    "photographer": "Tedford__Rabble_Rouser_SC",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:15 00:19:25",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Tedford__Rabble_Rouser_SC/184351/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:15 00:19:25",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK CX4310 DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "184352",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=184352&b=2005/11/cwc/Tedford__Rabble_Rouser_SC/tinyindex.html",
+    "photographer": "Tedford__Rabble_Rouser_SC",
+    "date_rally": "2005-11",
+    "date_exif": "2005:12:15 00:12:58",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200511-Tedford__Rabble_Rouser_SC/184352/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:12:15 00:12:58",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK CX4310 DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  }
+]

@@ -1,0 +1,24 @@
+{
+  "url": "http://scoot.net/gallery/2006/07/rimisfittoys/",
+  "slug": "2006/07/rimisfittoys",
+  "title": "Rhode Island of Misfit Toys",
+  "year": 2006,
+  "month": 7,
+  "date_rally": "2006-07",
+  "photo_count": 827,
+  "stories": [],
+  "city": "Narragansett Pier",
+  "state_province": "Rhode Island",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    null
+  ],
+  "related_clubs": [
+    "Scoot"
+  ],
+  "source_confidence": "high",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:53:48Z",
+  "enriched_provider": "Cerebras"
+}

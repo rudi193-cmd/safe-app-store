@@ -1,0 +1,41 @@
+{
+  "app_id": "nasa-archive",
+  "name": "NASA Archive Explorer",
+  "version": "1.0.0",
+  "safe_version": ">=2.0.0",
+  "b17": "247KA",
+  "agent_type": "archive",
+  "description": "Explore and download NASA open datasets — imagery, mission telemetry, earth science — with a local pipeline for private analysis.",
+  "author": "Sean Campbell",
+  "data_streams": [
+    {
+      "id": "query_history",
+      "purpose": "Remember searches you ran this session for quick re-run",
+      "retention": "session",
+      "description": "Search history deleted when session ends"
+    },
+    {
+      "id": "saved_discoveries",
+      "purpose": "Store datasets and images you explicitly saved",
+      "retention": "permanent",
+      "description": "Kept until you delete it — lives in your local data/ folder"
+    }
+  ],
+  "permissions": [
+    "local_llm",
+    "file_read",
+    "file_write",
+    "network_read"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 0.95,
+  "dev_server": {
+    "script": "local_oral_chat.py",
+    "port": "auto (84xx)",
+    "scope": "localhost",
+    "note": "Local dev proxy for the NASA oral-chat Supabase edge function. Not started in production."
+  },
+  "entry_point": "pipeline.main:app",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-nasa-archive"
+}

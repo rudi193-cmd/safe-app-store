@@ -1,0 +1,21 @@
+{
+  "url": "http://scoot.net/gallery/2006/04/toscanorally/",
+  "slug": "2006/04/toscanorally",
+  "title": "7th Scooter Rally Toscano",
+  "year": 2006,
+  "month": 4,
+  "date_rally": "2006-04",
+  "photo_count": 29,
+  "stories": [],
+  "description": "The 7th Scooter Rally Toscano was a scooter rally event",
+  "country": "Italy",
+  "recurring": true,
+  "notable_facts": [
+    "It was the 7th year of the event"
+  ],
+  "related_clubs": [],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:49:11Z",
+  "enriched_provider": "Cerebras2"
+}

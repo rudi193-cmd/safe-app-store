@@ -1,0 +1,19 @@
+{
+  "url": "http://scoot.net/gallery/2008/06/wineride/",
+  "slug": "2008/06/wineride",
+  "title": "Temecula Wine Ride",
+  "year": 2008,
+  "month": 6,
+  "date_rally": "2008-06",
+  "photo_count": 207,
+  "stories": [],
+  "description": "The Temecula Wine Ride was a scooter ride to various wineries, likely involving food, wine, and socializing.",
+  "city": "Temecula",
+  "state_province": "California",
+  "country": "US",
+  "notable_facts": [],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:06:40Z",
+  "enriched_provider": "Cerebras3"
+}

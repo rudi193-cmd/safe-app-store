@@ -1,0 +1,21 @@
+{
+  "url": "http://scoot.net/gallery/2005/05/bellatreffen/",
+  "slug": "2005/05/bellatreffen",
+  "title": "Bella Treffen",
+  "year": 2005,
+  "month": 5,
+  "date_rally": "2005-05",
+  "photo_count": 311,
+  "stories": [],
+  "description": "Scooter rally held in 2005",
+  "city": "Bella",
+  "country": "Germany",
+  "recurring": false,
+  "notable_facts": [
+    "Images available on Scoot.net"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:43:38Z",
+  "enriched_provider": "Novita2"
+}

@@ -1,0 +1,20 @@
+{
+  "url": "http://scoot.net/gallery/2004/08/goteborgrun/",
+  "slug": "2004/08/goteborgrun",
+  "title": "Goteborgrun Race & Run - 2004",
+  "year": 2004,
+  "month": 8,
+  "date_rally": "2004-08",
+  "photo_count": 0,
+  "description": "Annual scooter rally held in Sweden.",
+  "country": "Sweden",
+  "recurring": true,
+  "notable_facts": [
+    "Held in August 2004",
+    "Pictures available on Scoot.net"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:39:24Z",
+  "enriched_provider": "Novita"
+}

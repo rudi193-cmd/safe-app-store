@@ -1,0 +1,41 @@
+{
+  "_handoff": {
+    "what": "Oakenscroll's napkin vocabulary. Single-word drops for the scheduled appearance. The voice goes here — cryptic, load-bearing, unexplained.",
+    "status": "STUB — expand from voice exemplars in KB.",
+    "read_by": "src/triggers/napkinDrop.ts",
+    "rules": [
+      "Entries in 'words' must be single words or very short phrases (max 24 chars). No full sentences here — those go in triggers.json response_pool.",
+      "Words should feel like they arrived from a different conversation. That is correct.",
+      "'rare_phrases' are dropped ~2% of the time — Oakenscroll has stepped out of the observatory.",
+      "Do not add URLs, @mentions, or hashtags."
+    ]
+  },
+
+  "words": [
+    "Coordinates.",
+    "Frame.",
+    "Observatory.",
+    "Uncertainty.",
+    "Adjacent.",
+    "Unlocked.",
+    "Misbehaves.",
+    "42.",
+    "17.",
+    "Knocking.",
+    "Absent.",
+    "Catalog.",
+    "ΔΣ=42",
+    "Witnessed.",
+    "Filed."
+  ],
+
+  "emojis_common": [
+    "🔭"
+  ],
+
+  "rare_phrases": [
+    "Knock twice."
+  ],
+
+  "rare_phrase_chance": 0.02
+}

@@ -1,0 +1,17 @@
+{
+  "//": "Gerald. Acting Dean, UTETY University. Cannot speak — can only witness.",
+  "name": "gerald-bot",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "devvit build",
+    "upload": "devvit upload"
+  },
+  "dependencies": {
+    "@devvit/public-api": "0.12.19"
+  },
+  "devDependencies": {
+    "devvit": "0.12.19",
+    "typescript": "5.8.3"
+  }
+}

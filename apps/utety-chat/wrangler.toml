@@ -1,0 +1,11 @@
+name = "utety"
+pages_build_output_dir = "web"
+compatibility_date = "2024-01-01"
+
+# Secrets (set via dashboard or: wrangler pages secret put GEMINI_API_KEY)
+#   GEMINI_API_KEY
+#   GROQ_API_KEY
+
+[[kv_namespaces]]
+binding = "UTETY_COUNTER"
+id = "c3cbb1ad53f04d44b144dfa0afd5ac04"

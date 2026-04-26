@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2004/06/oregonscooterraid/",
+  "slug": "2004/06/oregonscooterraid",
+  "title": "Oregon Scooter Raid - 2004",
+  "year": 2004,
+  "month": 6,
+  "date_rally": "2004-06",
+  "photo_count": 0,
+  "description": "A scooter rally where participants ride motor scooters primarily for scenic touring, usually 100-200 miles or more.",
+  "city": "null",
+  "state_province": "Oregon",
+  "country": "United States",
+  "recurring": true,
+  "notable_facts": [
+    "The event took place in June 2004."
+  ],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:40:39Z",
+  "enriched_provider": "Cerebras"
+}

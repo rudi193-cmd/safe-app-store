@@ -1,0 +1,18 @@
+{
+  "url": "http://scoot.net/gallery/2007/05/margate/",
+  "slug": "2007/05/margate",
+  "title": "Margate UK Rally",
+  "year": 2007,
+  "month": 5,
+  "date_rally": "2007-05",
+  "photo_count": 134,
+  "stories": [],
+  "description": "The Margate UK Rally appears to be a three-day motor scooter gathering in Margate.",
+  "city": "Margate",
+  "country": "UK",
+  "recurring": false,
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:57:59Z",
+  "enriched_provider": "Cerebras"
+}

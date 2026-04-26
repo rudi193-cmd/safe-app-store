@@ -1,0 +1,115 @@
+---
+import Base from '../layouts/Base.astro';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+const DATA_DIR = join(process.cwd(), '..', 'data');
+
+let patches = [];
+try {
+  const raw = JSON.parse(readFileSync(join(DATA_DIR, 'patches.json'), 'utf-8'));
+  patches = Array.isArray(raw) ? raw : raw.patches || [];
+} catch (e) {}
+
+// Group by year
+const byYear = patches.reduce((acc, p) => {
+  const key = p.year || 'Unknown';
+  if (!acc[key]) acc[key] = [];
+  acc[key].push(p);
+  return acc;
+}, {});
+
+const years = Object.keys(byYear).sort((a, b) => b - a);
+const selectedYear = Astro.url.searchParams.get('year') || 'all';
+const displayYears = selectedYear === 'all' ? years : years.filter(y => y == selectedYear);
+---
+<Base title="Patches — NASA Archive">
+  <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
+    <h1 class="text-2xl font-bold text-[#CC4444] uppercase tracking-widest">Patch Gallery</h1>
+    {years.length > 0 && (
+      <div class="flex gap-2 flex-wrap">
+        <a href="/patches"
+          class={`px-3 py-1 text-xs border ${selectedYear === 'all' ? 'border-[#CC4444] text-[#CC4444]' : 'border-[#444] text-[#666] hover:border-[#CC4444] hover:text-[#CC4444]'}`}>
+          All
+        </a>
+        {years.map(y => (
+          <a href={`/patches?year=${y}`}
+            class={`px-3 py-1 text-xs border ${selectedYear == y ? 'border-[#CC4444] text-[#CC4444]' : 'border-[#444] text-[#666] hover:border-[#CC4444] hover:text-[#CC4444]'}`}>
+            {y}
+          </a>
+        ))}
+      </div>
+    )}
+  </div>
+
+  {patches.length === 0 ? (
+    <div>
+      <p class="text-[#555] text-sm text-center py-16">
+        Patch data loads after the scraper maps the patch gallery.<br />
+        <span class="text-[#444] text-xs mt-2 block">Run <code class="text-[#CC4444]">python scraper/build_data.py</code> once mapping is complete.</span>
+      </p>
+
+      <!-- Visual placeholder grid -->
+      <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 mt-8 opacity-20 pointer-events-none select-none">
+        {Array.from({ length: 24 }).map((_, i) => (
+          <div class="aspect-square border border-[#333] bg-[#111] flex items-center justify-center">
+            <span class="text-[#333] text-xs">✦</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  ) : (
+    <div>
+      {displayYears.map(year => (
+        <div class="mb-10">
+          <h2 class="text-[#888] text-sm uppercase tracking-wider mb-4 flex items-center gap-3">
+            <span class="text-[#CC4444]">◆</span>
+            {year}
+            <span class="text-[#444] font-normal normal-case tracking-normal">
+              {byYear[year].length} patches
+            </span>
+          </h2>
+          <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+            {byYear[year].map(patch => (
+              <a
+                href={patch.r2_url || patch.source_url || '#'}
+                target="_blank"
+                rel="noopener"
+                class="group aspect-square border border-[#222] hover:border-[#CC4444] transition-colors overflow-hidden bg-[#111] relative"
+                title={patch.title || patch.rally || ''}
+              >
+                {patch.r2_url ? (
+                  <img
+                    src={patch.r2_url}
+                    alt={patch.title || ''}
+                    class="w-full h-full object-contain p-1 group-hover:opacity-80 transition-opacity"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div class="w-full h-full flex items-center justify-center">
+                    <span class="text-[#333] text-xs">✦</span>
+                  </div>
+                )}
+                {patch.rally && (
+                  <div class="absolute bottom-0 left-0 right-0 bg-black/80 text-[#666] text-[10px] py-0.5 text-center truncate px-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {patch.rally}
+                  </div>
+                )}
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+
+  <!-- Contribute CTA -->
+  <div class="mt-12 border border-[#333] p-6 text-sm text-[#666]">
+    <h3 class="text-[#f5f0e8] mb-2">Have a patch not in the archive?</h3>
+    <p class="mb-4">Help fill in the gaps — scan or photograph your patch collection and submit it.</p>
+    <a href="/contribute?type=patch"
+      class="border border-[#CC4444] text-[#CC4444] px-4 py-2 text-xs uppercase tracking-wider hover:bg-[#CC4444] hover:text-white transition-colors">
+      Submit a Patch
+    </a>
+  </div>
+</Base>

@@ -1,0 +1,20 @@
+{
+  "url": "http://scoot.net/gallery/2006/08/topsecret/",
+  "slug": "2006/08/topsecret",
+  "title": "Top Secret Rally",
+  "year": 2006,
+  "month": 8,
+  "date_rally": "2006-08",
+  "photo_count": 436,
+  "stories": [],
+  "description": "Information about the Top Secret Rally is limited, but it appears to be a scooter gathering with a focus on photography.",
+  "recurring": false,
+  "notable_facts": [
+    "Featured on scoot.net",
+    "Photography-focused"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:55:15Z",
+  "enriched_provider": "Novita"
+}

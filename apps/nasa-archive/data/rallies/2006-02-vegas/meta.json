@@ -1,0 +1,21 @@
+{
+  "url": "http://scoot.net/gallery/2006/02/vegas/",
+  "slug": "2006/02/vegas",
+  "title": "Las Vegas High Rollers Weekend",
+  "year": 2006,
+  "month": 2,
+  "date_rally": "2006-02",
+  "photo_count": 3672,
+  "stories": [],
+  "city": "Las Vegas",
+  "state_province": "Nevada",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Held in February 2006"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:51:43Z",
+  "enriched_provider": "Novita"
+}

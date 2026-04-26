@@ -1,0 +1,28 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "llmphysics-bot",
+  "permissions": {
+    "reddit": {
+      "enable": true,
+      "scope": "moderator"
+    },
+    "http": {
+      "enable": true,
+      "domains": [
+        "en.wikipedia.org"
+      ]
+    },
+    "redis": true
+  },
+  "blocks": {
+    "entry": "src/main_modular.ts",
+    "triggers": [
+      "onCommentSubmit",
+      "onAppInstall",
+      "onAppUpgrade"
+    ]
+  },
+  "marketingAssets": {
+    "icon": "assets/icon.png"
+  }
+}

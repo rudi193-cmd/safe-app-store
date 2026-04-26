@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Binder — Dept. of Records & Filing, UTETY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inconsolata:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --parchment: #f5f0e8;
+  --parchment-dark: #ebe4d6;
+  --parchment-deep: #ddd5c4;
+  --rust: #8b3a2a;
+  --rust-light: #a04e3c;
+  --gold: #9a7b3c;
+  --gold-light: #c4a456;
+  --ink: #1a1510;
+  --ink-soft: #3d352a;
+  --ink-muted: #6b5e4f;
+  --cream: #faf7f2;
+  --card-border: #d4c9b8;
+  --shadow: rgba(26, 21, 16, 0.08);
+  --shadow-deep: rgba(26, 21, 16, 0.15);
+  --filed-green: #2d6a30;
+  --connect-blue: #2a5a8b;
+}
+
+html { font-size: 16px; }
+body {
+  font-family: 'EB Garamond', Georgia, serif;
+  background: var(--parchment);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+.site-header {
+  background: var(--ink);
+  color: var(--parchment);
+  padding: 0.6rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-portrait {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  object-fit: cover;
+}
+.header-text h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--parchment);
+}
+.header-text p {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.7rem;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.mode-badge {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.65rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.mode-standalone { background: var(--ink-soft); color: var(--gold); }
+.mode-connected { background: var(--filed-green); color: #e8f5e9; }
+.header-link {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.7rem;
+  color: var(--gold);
+  text-decoration: none;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.header-link:hover { color: var(--parchment); }
+
+/* ── Layout ── */
+.app-layout {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 260px;
+  background: var(--parchment-dark);
+  border-right: 1px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.sidebar-section {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--card-border);
+}
+.sidebar-label {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+  margin-bottom: 0.5rem;
+}
+.notebook-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.notebook-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  transition: background 0.15s;
+}
+.notebook-item:hover { background: var(--parchment-deep); }
+.notebook-item.active { background: var(--cream); color: var(--ink); font-weight: 500; }
+.notebook-item .doc-count {
+  margin-left: auto;
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.65rem;
+  color: var(--ink-muted);
+}
+.btn-new-notebook {
+  width: 100%;
+  padding: 0.4rem;
+  margin-top: 0.5rem;
+  background: transparent;
+  border: 1px dashed var(--card-border);
+  border-radius: 4px;
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.7rem;
+  color: var(--ink-muted);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.btn-new-notebook:hover { border-color: var(--rust); color: var(--rust); }
+
+/* Doc list in sidebar */
+.doc-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  cursor: default;
+}
+.doc-item .doc-icon {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.6rem;
+  color: var(--rust);
+  min-width: 28px;
+}
+.doc-item .doc-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.doc-item .doc-chunks {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.6rem;
+  color: var(--ink-muted);
+}
+.doc-item .btn-remove-doc {
+  background: none;
+  border: none;
+  color: var(--ink-muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0 0.2rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.doc-item:hover .btn-remove-doc { opacity: 1; }
+.doc-item .btn-remove-doc:hover { color: var(--rust); }
+
+/* Sidebar actions */
+.sidebar-actions {
+  margin-top: auto;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* ── Main Panel ── */
+.main-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Tabs */
+.tab-bar {
+  display: flex;
+  background: var(--parchment-dark);
+  border-bottom: 1px solid var(--card-border);
+  padding: 0 1rem;
+}
+.tab-btn {
+  padding: 0.6rem 1.2rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tab-btn:hover { color: var(--ink); }
+.tab-btn.active { color: var(--rust); border-bottom-color: var(--rust); }
+
+/* Tab panels */
+.tab-panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+.tab-panel.active { display: flex; }
+
+/* ── Drop Zone ── */
+.drop-zone-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.drop-zone {
+  width: 100%;
+  max-width: 500px;
+  padding: 3rem 2rem;
+  border: 2px dashed var(--card-border);
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--rust);
+  background: var(--cream);
+}
+.drop-zone-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.4;
+}
+.drop-zone-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.1rem;
+  color: var(--ink);
+  margin-bottom: 0.3rem;
+}
+.drop-zone-sub {
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+.drop-zone input[type="file"] { display: none; }
+
+/* Greeting */
+.binder-greeting {
+  max-width: 500px;
+  text-align: center;
+  margin-top: 1.5rem;
+}
+.binder-greeting blockquote {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--rust);
+  margin-bottom: 0.4rem;
+}
+.binder-greeting cite {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.7rem;
+  color: var(--ink-muted);
+}
+
+/* ── Chat Panel ── */
+.chat-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.chat-thread {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.chat-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-muted);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+.msg {
+  max-width: 85%;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+.msg-user {
+  align-self: flex-end;
+  background: var(--ink);
+  color: var(--parchment);
+  border-bottom-right-radius: 2px;
+}
+.msg-binder {
+  align-self: flex-start;
+  background: var(--cream);
+  border: 1px solid var(--card-border);
+  border-bottom-left-radius: 2px;
+}
+.msg-binder .msg-name {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rust);
+  margin-bottom: 0.25rem;
+}
+.chat-input-area {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  gap: 0.5rem;
+  background: var(--cream);
+}
+.chat-input-area input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.95rem;
+  color: var(--ink);
+  outline: none;
+}
+.chat-input-area input::placeholder { color: var(--ink-muted); font-style: italic; }
+
+/* ── Connections Panel ── */
+.connections-wrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+.connections-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--ink-muted);
+  font-style: italic;
+}
+.connection-card {
+  background: var(--cream);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+.connection-card-header {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--connect-blue);
+  margin-bottom: 0.5rem;
+}
+.connection-excerpt {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  padding: 0.5rem 0.75rem;
+  border-left: 2px solid var(--card-border);
+  margin-bottom: 0.4rem;
+}
+.connection-source {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.65rem;
+  color: var(--ink-muted);
+}
+.connection-score {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.6rem;
+  color: var(--gold);
+  float: right;
+}
+
+/* ── Audio Panel ── */
+.audio-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  gap: 1rem;
+}
+.audio-status {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  text-align: center;
+}
+.audio-player-wrap {
+  width: 100%;
+  max-width: 500px;
+}
+.audio-player-wrap audio { width: 100%; }
+.audio-script {
+  width: 100%;
+  max-width: 500px;
+  max-height: 300px;
+  overflow-y: auto;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  background: var(--cream);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 1rem;
+}
+.script-line-a { color: var(--rust); }
+.script-line-b { color: var(--connect-blue); }
+
+/* ── Shared Buttons ── */
+.btn {
+  padding: 0.45rem 1rem;
+  border-radius: 5px;
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+.btn-primary { background: var(--rust); color: var(--parchment); }
+.btn-primary:hover { background: var(--rust-light); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--ink-muted);
+}
+.btn-ghost:hover { border-color: var(--rust); color: var(--rust); }
+
+/* ── Loading dots ── */
+.loading-dots::after { content: ''; animation: dots 1.2s steps(4, end) infinite; }
+@keyframes dots { 0%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} }
+
+/* ── Footer ── */
+.site-footer {
+  text-align: center;
+  padding: 1rem;
+  border-top: 1px solid var(--card-border);
+}
+.consent-notice {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.65rem;
+  color: var(--ink-muted);
+  letter-spacing: 0.04em;
+}
+.footer-credit {
+  font-size: 0.7rem;
+  color: var(--ink-muted);
+  margin-top: 0.25rem;
+}
+.footer-credit a { color: var(--rust); text-decoration: none; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .app-layout { flex-direction: column; }
+  .sidebar { width: 100%; max-height: 200px; border-right: none; border-bottom: 1px solid var(--card-border); }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="site-header">
+  <img src="binder.png" alt="The Binder" class="header-portrait">
+  <div class="header-text">
+    <h1>The Binder</h1>
+    <p>Dept. of Records &amp; Filing &mdash; The Stacks, UTETY</p>
+  </div>
+  <div class="header-right">
+    <span class="mode-badge mode-standalone" id="mode-badge">Standalone</span>
+    <a class="header-link" href="https://utety.pages.dev" target="_blank">UTETY</a>
+  </div>
+</header>
+
+<!-- ── App Layout ── -->
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Notebooks</div>
+      <ul class="notebook-list" id="notebook-list"></ul>
+      <button class="btn-new-notebook" onclick="createNotebook()">+ New Notebook</button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Documents</div>
+      <div id="doc-list"></div>
+    </div>
+    <div class="sidebar-actions">
+      <button class="btn btn-ghost" onclick="downloadNotebook()" style="width:100%">Save Notebook</button>
+      <button class="btn btn-ghost" onclick="forgetAll()" style="width:100%">Forget Everything</button>
+    </div>
+  </aside>
+
+  <!-- Main Panel -->
+  <div class="main-panel">
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="files" onclick="switchTab('files')">Files</button>
+      <button class="tab-btn" data-tab="chat" onclick="switchTab('chat')">Chat</button>
+      <button class="tab-btn" data-tab="connections" onclick="switchTab('connections')">Connections</button>
+      <button class="tab-btn" data-tab="audio" onclick="switchTab('audio')">Audio Overview</button>
+    </div>
+
+    <!-- Files Tab -->
+    <div class="tab-panel active" id="panel-files">
+      <div class="drop-zone-wrap">
+        <div class="drop-zone" id="drop-zone">
+          <div class="drop-zone-icon">&#128451;</div>
+          <div class="drop-zone-title">Drop documents here</div>
+          <div class="drop-zone-sub">PDF, TXT, or Markdown &mdash; processed entirely in your browser</div>
+          <input type="file" id="file-input" multiple accept=".pdf,.txt,.md,.text,.markdown">
+        </div>
+        <div class="binder-greeting" id="greeting">
+          <blockquote>"The connections you discover while filing are not the point &mdash; but they happen anyway, and sometimes they are astonishing."</blockquote>
+          <cite>&mdash; The Binder</cite>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Tab -->
+    <div class="tab-panel" id="panel-chat">
+      <div class="chat-wrap">
+        <div class="chat-thread" id="chat-thread">
+          <div class="chat-empty" id="chat-empty">File something first. Then ask.</div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" id="chat-input" placeholder="Ask about your documents..." autocomplete="off">
+          <button class="btn btn-primary" id="send-btn" onclick="sendChat()">Ask</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connections Tab -->
+    <div class="tab-panel" id="panel-connections">
+      <div class="connections-wrap" id="connections-wrap">
+        <div class="connections-empty" id="connections-empty">
+          File two or more documents. The Binder will note what goes with what.
+        </div>
+      </div>
+    </div>
+
+    <!-- Audio Tab -->
+    <div class="tab-panel" id="panel-audio">
+      <div class="audio-wrap" id="audio-wrap">
+        <div class="audio-status" id="audio-status">
+          File some documents, then generate an audio overview.<br>
+          Two hosts will discuss what you've filed.
+        </div>
+        <button class="btn btn-primary" id="audio-gen-btn" onclick="generateAudio()">Generate Audio Overview</button>
+        <div class="audio-player-wrap" id="audio-player-wrap" style="display:none">
+          <audio id="audio-player" controls></audio>
+        </div>
+        <div class="audio-script" id="audio-script" style="display:none"></div>
+        <button class="btn btn-ghost" id="audio-download-btn" onclick="downloadAudio()" style="display:none">Download Audio</button>
+      </div>
+    </div>
+
+  </div><!-- /main-panel -->
+</div><!-- /app-layout -->
+
+<!-- ── Footer ── -->
+<footer class="site-footer">
+  <p class="consent-notice">Your documents live on your machine. Nothing leaves without your permission. Chunks sent for chat are stripped of paths.</p>
+  <p class="footer-credit"><a href="https://utety.pages.dev">UTETY</a> &mdash; A <a href="https://github.com/rudi193-cmd">SAFE</a> application</p>
+</footer>
+
+<script>
+// ════════════════════════════════════════════
+// IndexedDB
+// ════════════════════════════════════════════
+const DB_NAME = 'binder_db';
+const DB_VERSION = 1;
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('notebooks')) {
+        d.createObjectStore('notebooks', { keyPath: 'id' });
+      }
+      if (!d.objectStoreNames.contains('documents')) {
+        const store = d.createObjectStore('documents', { keyPath: 'id' });
+        store.createIndex('notebookId', 'notebookId', { unique: false });
+      }
+      if (!d.objectStoreNames.contains('chat')) {
+        d.createObjectStore('chat', { keyPath: 'notebookId' });
+      }
+    };
+    req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbPut(store, obj) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).put(obj);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+function dbGet(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbDelete(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+function dbClear(store) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).clear();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+// ════════════════════════════════════════════
+// State
+// ════════════════════════════════════════════
+let notebooks = [];
+let activeNotebookId = null;
+let chatHistory = [];
+let willowConnected = false;
+
+// ════════════════════════════════════════════
+// Init
+// ════════════════════════════════════════════
+async function init() {
+  await openDB();
+  notebooks = await dbGetAll('notebooks');
+  if (notebooks.length === 0) {
+    const nb = { id: genId(), name: 'My Notebook', created: new Date().toISOString() };
+    await dbPut('notebooks', nb);
+    notebooks = [nb];
+  }
+  activeNotebookId = notebooks[0].id;
+  renderNotebooks();
+  await renderDocs();
+  await loadChat();
+  detectWillow();
+}
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+// ════════════════════════════════════════════
+// Willow Detection
+// ════════════════════════════════════════════
+async function detectWillow() {
+  try {
+    const resp = await fetch('http://localhost:8420/api/status', { signal: AbortSignal.timeout(2000) });
+    if (resp.ok) {
+      willowConnected = true;
+      const badge = document.getElementById('mode-badge');
+      badge.textContent = 'Connected to Willow';
+      badge.className = 'mode-badge mode-connected';
+    }
+  } catch { /* standalone */ }
+}
+
+// ════════════════════════════════════════════
+// Notebooks
+// ════════════════════════════════════════════
+function renderNotebooks() {
+  const list = document.getElementById('notebook-list');
+  list.innerHTML = '';
+  for (const nb of notebooks) {
+    const li = document.createElement('li');
+    li.className = 'notebook-item' + (nb.id === activeNotebookId ? ' active' : '');
+    li.innerHTML = `<span>${escHtml(nb.name)}</span>`;
+    li.onclick = () => selectNotebook(nb.id);
+    list.appendChild(li);
+  }
+}
+
+async function selectNotebook(id) {
+  activeNotebookId = id;
+  renderNotebooks();
+  await renderDocs();
+  await loadChat();
+}
+
+async function createNotebook() {
+  const name = prompt('Notebook name:');
+  if (!name) return;
+  const nb = { id: genId(), name, created: new Date().toISOString() };
+  await dbPut('notebooks', nb);
+  notebooks.push(nb);
+  activeNotebookId = nb.id;
+  renderNotebooks();
+  await renderDocs();
+  chatHistory = [];
+  renderChat();
+}
+
+// ════════════════════════════════════════════
+// Document Ingestion
+// ════════════════════════════════════════════
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+async function handleFiles(files) {
+  for (const file of files) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    let fullText = '';
+
+    if (ext === 'pdf') {
+      fullText = await extractPdfText(file);
+    } else if (['txt', 'text', 'md', 'markdown'].includes(ext)) {
+      fullText = await file.text();
+    } else {
+      continue; // skip unsupported
+    }
+
+    if (!fullText.trim()) continue;
+
+    const chunks = chunkText(fullText, file.name);
+    const doc = {
+      id: genId(),
+      notebookId: activeNotebookId,
+      filename: file.name,
+      type: ext,
+      fullText,
+      chunks,
+      dateAdded: new Date().toISOString(),
+    };
+    await dbPut('documents', doc);
+
+    // If connected, also push to Willow
+    if (willowConnected) {
+      pushToWillow(doc).catch(() => {});
+    }
+  }
+  document.getElementById('greeting').style.display = 'none';
+  await renderDocs();
+}
+
+async function extractPdfText(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items.map(item => item.str).join(' ');
+    text += `[Page ${i}]\n${pageText}\n\n`;
+  }
+  return text;
+}
+
+function chunkText(text, filename) {
+  const CHUNK_SIZE = 500;  // ~tokens (words as proxy)
+  const OVERLAP = 50;
+  const words = text.split(/\s+/);
+  const chunks = [];
+  let i = 0;
+  while (i < words.length) {
+    const slice = words.slice(i, i + CHUNK_SIZE);
+    const chunkStr = slice.join(' ');
+    // Detect page number if present
+    const pageMatch = chunkStr.match(/\[Page (\d+)\]/);
+    chunks.push({
+      text: chunkStr,
+      source: filename,
+      page: pageMatch ? parseInt(pageMatch[1]) : null,
+      index: chunks.length,
+    });
+    i += CHUNK_SIZE - OVERLAP;
+  }
+  return chunks;
+}
+
+async function pushToWillow(doc) {
+  try {
+    await fetch('http://localhost:8420/api/binder/ingest-pickup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: doc.filename, content: doc.fullText }),
+    });
+  } catch { /* connected mode best-effort */ }
+}
+
+// ════════════════════════════════════════════
+// Document List
+// ════════════════════════════════════════════
+async function getDocsForNotebook() {
+  const allDocs = await dbGetAll('documents');
+  return allDocs.filter(d => d.notebookId === activeNotebookId);
+}
+
+async function renderDocs() {
+  const docs = await getDocsForNotebook();
+  const list = document.getElementById('doc-list');
+  list.innerHTML = '';
+  for (const doc of docs) {
+    const div = document.createElement('div');
+    div.className = 'doc-item';
+    div.innerHTML = `
+      <span class="doc-icon">${doc.type === 'pdf' ? 'PDF' : 'TXT'}</span>
+      <span class="doc-name" title="${escHtml(doc.filename)}">${escHtml(doc.filename)}</span>
+      <span class="doc-chunks">${doc.chunks.length}ch</span>
+      <button class="btn-remove-doc" onclick="removeDoc('${doc.id}')" title="Remove">&times;</button>
+    `;
+    list.appendChild(div);
+  }
+}
+
+async function removeDoc(id) {
+  await dbDelete('documents', id);
+  await renderDocs();
+}
+
+// ════════════════════════════════════════════
+// TF-IDF Retrieval
+// ════════════════════════════════════════════
+function tokenize(text) {
+  return text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 2);
+}
+
+function tfidfSearch(query, allChunks, topK = 5) {
+  const qTokens = tokenize(query);
+  if (qTokens.length === 0) return allChunks.slice(0, topK);
+
+  // Document frequency
+  const df = {};
+  for (const chunk of allChunks) {
+    const seen = new Set(tokenize(chunk.text));
+    for (const t of seen) df[t] = (df[t] || 0) + 1;
+  }
+  const N = allChunks.length || 1;
+
+  // Score each chunk
+  const scored = allChunks.map(chunk => {
+    const tokens = tokenize(chunk.text);
+    const tf = {};
+    for (const t of tokens) tf[t] = (tf[t] || 0) + 1;
+    let score = 0;
+    for (const qt of qTokens) {
+      if (tf[qt]) {
+        const idf = Math.log(N / (df[qt] || 1));
+        score += (tf[qt] / tokens.length) * idf;
+      }
+    }
+    return { ...chunk, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, topK);
+}
+
+// ════════════════════════════════════════════
+// Chat
+// ════════════════════════════════════════════
+const chatThread = document.getElementById('chat-thread');
+const chatInput = document.getElementById('chat-input');
+const sendBtn = document.getElementById('send-btn');
+
+chatInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+});
+
+async function loadChat() {
+  const saved = await dbGet('chat', activeNotebookId);
+  chatHistory = saved?.history || [];
+  renderChat();
+}
+
+function renderChat() {
+  chatThread.innerHTML = '';
+  const empty = document.getElementById('chat-empty');
+  if (chatHistory.length === 0) {
+    chatThread.innerHTML = '<div class="chat-empty">File something first. Then ask.</div>';
+    return;
+  }
+  for (const msg of chatHistory) {
+    appendChatBubble(msg.role, msg.content, false);
+  }
+  chatThread.scrollTop = chatThread.scrollHeight;
+}
+
+function appendChatBubble(role, content, scroll = true) {
+  // Remove empty placeholder
+  const emptyEl = chatThread.querySelector('.chat-empty');
+  if (emptyEl) emptyEl.remove();
+
+  const div = document.createElement('div');
+  if (role === 'user') {
+    div.className = 'msg msg-user';
+    div.textContent = content;
+  } else {
+    div.className = 'msg msg-binder';
+    div.innerHTML = `<div class="msg-name">The Binder</div>${formatText(content)}`;
+  }
+  chatThread.appendChild(div);
+  if (scroll) chatThread.scrollTop = chatThread.scrollHeight;
+}
+
+async function sendChat() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+
+  chatInput.value = '';
+  sendBtn.disabled = true;
+  appendChatBubble('user', text);
+  chatHistory.push({ role: 'user', content: text });
+
+  // Loading indicator
+  const loader = document.createElement('div');
+  loader.className = 'msg msg-binder';
+  loader.id = 'chat-loading';
+  loader.innerHTML = '<div class="msg-name">The Binder</div><span class="loading-dots">Searching the files</span>';
+  chatThread.appendChild(loader);
+  chatThread.scrollTop = chatThread.scrollHeight;
+
+  // Get all chunks for this notebook
+  const docs = await getDocsForNotebook();
+  const allChunks = docs.flatMap(d => d.chunks);
+
+  // Retrieve relevant chunks
+  const context = tfidfSearch(text, allChunks, 5).map(c => ({
+    text: c.text,
+    source: c.source,
+    page: c.page,
+  }));
+
+  // Build API history (last 10 turns)
+  const apiHistory = chatHistory.slice(0, -1).slice(-10);
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, context, history: apiHistory }),
+    });
+
+    loader.remove();
+
+    if (resp.status === 429) {
+      const fallback = "There's a queue at the filing cabinet. Come back in a moment.";
+      appendChatBubble('assistant', fallback);
+      chatHistory.push({ role: 'assistant', content: fallback });
+    } else if (!resp.ok) {
+      const fallback = "Something's jammed in the filing mechanism. Try again.";
+      appendChatBubble('assistant', fallback);
+      chatHistory.push({ role: 'assistant', content: fallback });
+    } else {
+      const data = await resp.json();
+      const reply = data.response || "I seem to have misfiled my own response. Ask again.";
+      appendChatBubble('assistant', reply);
+      chatHistory.push({ role: 'assistant', content: reply });
+    }
+  } catch {
+    loader.remove();
+    const fallback = "Connection interrupted. The filing continues regardless.";
+    appendChatBubble('assistant', fallback);
+    chatHistory.push({ role: 'assistant', content: fallback });
+  }
+
+  // Save chat
+  await dbPut('chat', { notebookId: activeNotebookId, history: chatHistory });
+  sendBtn.disabled = false;
+  chatInput.focus();
+}
+
+// ════════════════════════════════════════════
+// Connections (Phase 2)
+// ════════════════════════════════════════════
+async function findConnections() {
+  const docs = await getDocsForNotebook();
+  if (docs.length < 2) return [];
+
+  // If connected to Willow, use its engine
+  if (willowConnected) {
+    try {
+      const resp = await fetch('http://localhost:8420/api/binder/connections/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notebook_id: activeNotebookId }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.connections?.length > 0) return data.connections;
+      }
+    } catch { /* fall through to client-side */ }
+  }
+
+  // Client-side: cross-document TF-IDF similarity
+  const connections = [];
+  for (let i = 0; i < docs.length; i++) {
+    for (let j = i + 1; j < docs.length; j++) {
+      const chunksA = docs[i].chunks;
+      const chunksB = docs[j].chunks;
+      for (const a of chunksA) {
+        for (const b of chunksB) {
+          const score = chunkSimilarity(a.text, b.text);
+          if (score > 0.15) {
+            connections.push({
+              docA: docs[i].filename, pageA: a.page, textA: a.text.slice(0, 150),
+              docB: docs[j].filename, pageB: b.page, textB: b.text.slice(0, 150),
+              score: Math.round(score * 100) / 100,
+            });
+          }
+        }
+      }
+    }
+  }
+  connections.sort((a, b) => b.score - a.score);
+  return connections.slice(0, 20);
+}
+
+function chunkSimilarity(textA, textB) {
+  const tokA = tokenize(textA);
+  const tokB = tokenize(textB);
+  if (tokA.length === 0 || tokB.length === 0) return 0;
+  const setA = new Set(tokA);
+  const setB = new Set(tokB);
+  let overlap = 0;
+  for (const w of setA) { if (setB.has(w)) overlap++; }
+  return overlap / Math.sqrt(setA.size * setB.size);
+}
+
+async function renderConnections() {
+  const wrap = document.getElementById('connections-wrap');
+  const empty = document.getElementById('connections-empty');
+  wrap.innerHTML = '';
+
+  const docs = await getDocsForNotebook();
+  if (docs.length < 2) {
+    wrap.innerHTML = '<div class="connections-empty">File two or more documents. The Binder will note what goes with what.</div>';
+    return;
+  }
+
+  wrap.innerHTML = '<div class="connections-empty"><span class="loading-dots">The Binder is cross-referencing</span></div>';
+  const connections = await findConnections();
+
+  wrap.innerHTML = '';
+  if (connections.length === 0) {
+    wrap.innerHTML = '<div class="connections-empty">Nothing filed here connects to anything else filed here. Yet.</div>';
+    return;
+  }
+
+  const header = document.createElement('div');
+  header.style.cssText = 'padding:0.5rem 0;font-family:Inconsolata,monospace;font-size:0.7rem;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;';
+  header.textContent = `The Binder found ${connections.length} connection${connections.length > 1 ? 's' : ''} while filing`;
+  wrap.appendChild(header);
+
+  for (const c of connections) {
+    const card = document.createElement('div');
+    card.className = 'connection-card';
+    card.innerHTML = `
+      <div class="connection-card-header">Connection <span class="connection-score">${c.score}</span></div>
+      <div class="connection-excerpt">${escHtml(c.textA)}...</div>
+      <div class="connection-source">${escHtml(c.docA)}${c.pageA ? ' p.' + c.pageA : ''}</div>
+      <div style="text-align:center;color:var(--gold);font-size:0.8rem;margin:0.3rem 0;">&#8597;</div>
+      <div class="connection-excerpt">${escHtml(c.textB)}...</div>
+      <div class="connection-source">${escHtml(c.docB)}${c.pageB ? ' p.' + c.pageB : ''}</div>
+    `;
+    wrap.appendChild(card);
+  }
+}
+
+// ════════════════════════════════════════════
+// Audio Overview (Phase 3)
+// ════════════════════════════════════════════
+let audioBlob = null;
+
+async function generateAudio() {
+  const docs = await getDocsForNotebook();
+  if (docs.length === 0) {
+    document.getElementById('audio-status').textContent = 'Nothing to overview. File some documents first.';
+    return;
+  }
+
+  const genBtn = document.getElementById('audio-gen-btn');
+  genBtn.disabled = true;
+  document.getElementById('audio-status').innerHTML = '<span class="loading-dots">Generating script</span>';
+
+  // Build summaries (first 300 words of each doc)
+  const summaries = docs.map(d => `"${d.filename}":\n${d.fullText.split(/\s+/).slice(0, 300).join(' ')}`).join('\n\n---\n\n');
+
+  const scriptPrompt = `You are writing a script for a 2-3 minute audio overview. Two hosts discuss the following documents. Host A (curious, asks questions) and Host B (knowledgeable, explains). Format each line as "A: ..." or "B: ...". Keep it conversational and substantive. Cover the key points from each document.\n\nDocuments:\n${summaries}`;
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: scriptPrompt,
+        context: [],
+        history: [],
+      }),
+    });
+
+    if (!resp.ok) throw new Error('Script generation failed');
+    const data = await resp.json();
+    const script = data.response || '';
+
+    // Parse script into lines
+    const lines = script.split('\n').filter(l => /^[AB]:/.test(l.trim()));
+    if (lines.length === 0) {
+      document.getElementById('audio-status').textContent = 'Script generation produced no dialogue. Try again.';
+      genBtn.disabled = false;
+      return;
+    }
+
+    // Show script
+    const scriptEl = document.getElementById('audio-script');
+    scriptEl.style.display = 'block';
+    scriptEl.innerHTML = lines.map(l => {
+      const speaker = l.trim().charAt(0);
+      const cls = speaker === 'A' ? 'script-line-a' : 'script-line-b';
+      return `<div class="${cls}">${escHtml(l.trim())}</div>`;
+    }).join('');
+
+    document.getElementById('audio-status').innerHTML = '<span class="loading-dots">Synthesizing audio</span>';
+
+    // TTS
+    if (willowConnected) {
+      await synthesizeViaWillow(lines);
+    } else {
+      await synthesizeViaBrowser(lines);
+    }
+
+    genBtn.disabled = false;
+  } catch (err) {
+    document.getElementById('audio-status').textContent = 'Audio generation failed: ' + err.message;
+    genBtn.disabled = false;
+  }
+}
+
+async function synthesizeViaWillow(lines) {
+  const audioChunks = [];
+  for (const line of lines) {
+    const speaker = line.trim().charAt(0);
+    const text = line.trim().slice(2).trim();
+    try {
+      const resp = await fetch('http://localhost:8420/api/tts/speak', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voice: speaker === 'A' ? 'voice1' : 'voice2', tier: 'local' }),
+      });
+      if (resp.ok) {
+        const chunk = await resp.arrayBuffer();
+        audioChunks.push(chunk);
+      }
+    } catch { /* skip line */ }
+  }
+
+  if (audioChunks.length > 0) {
+    audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+    const url = URL.createObjectURL(audioBlob);
+    const player = document.getElementById('audio-player');
+    player.src = url;
+    document.getElementById('audio-player-wrap').style.display = 'block';
+    document.getElementById('audio-download-btn').style.display = '';
+    document.getElementById('audio-status').textContent = 'Audio overview ready.';
+  } else {
+    // Fallback to browser
+    await synthesizeViaBrowser(lines);
+  }
+}
+
+async function synthesizeViaBrowser(lines) {
+  document.getElementById('audio-status').textContent = 'Playing audio via browser speech...';
+
+  const synth = window.speechSynthesis;
+  const voices = synth.getVoices();
+  // Pick two different voices
+  const voiceA = voices.find(v => v.lang.startsWith('en') && v.name.includes('Female')) || voices.find(v => v.lang.startsWith('en')) || voices[0];
+  const voiceB = voices.find(v => v.lang.startsWith('en') && v !== voiceA) || voices[1] || voiceA;
+
+  for (const line of lines) {
+    const speaker = line.trim().charAt(0);
+    const text = line.trim().slice(2).trim();
+    if (!text) continue;
+
+    await new Promise((resolve) => {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.voice = speaker === 'A' ? voiceA : voiceB;
+      utter.rate = 0.95;
+      utter.pitch = speaker === 'A' ? 1.1 : 0.9;
+      utter.onend = resolve;
+      utter.onerror = resolve;
+      synth.speak(utter);
+    });
+  }
+
+  document.getElementById('audio-status').textContent = 'Browser audio playback complete. (For downloadable audio, connect to Willow.)';
+}
+
+function downloadAudio() {
+  if (!audioBlob) return;
+  const url = URL.createObjectURL(audioBlob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `binder-overview-${new Date().toISOString().slice(0, 10)}.wav`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ════════════════════════════════════════════
+// Tabs
+// ════════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab));
+
+  if (tab === 'connections') renderConnections();
+  if (tab === 'chat') chatInput.focus();
+}
+
+// ════════════════════════════════════════════
+// Save / Forget
+// ════════════════════════════════════════════
+async function downloadNotebook() {
+  const docs = await getDocsForNotebook();
+  const nb = notebooks.find(n => n.id === activeNotebookId);
+  const payload = {
+    exported: new Date().toISOString(),
+    notebook: nb?.name || 'Unknown',
+    documents: docs.map(d => ({ filename: d.filename, type: d.type, chunks: d.chunks.length, dateAdded: d.dateAdded })),
+    chat: chatHistory,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `binder-${(nb?.name || 'notebook').replace(/\s+/g, '-')}-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function forgetAll() {
+  if (!confirm('Clear ALL notebooks, documents, and chat history? This cannot be undone.')) return;
+  await dbClear('notebooks');
+  await dbClear('documents');
+  await dbClear('chat');
+  notebooks = [];
+  activeNotebookId = null;
+  chatHistory = [];
+  // Re-init with fresh notebook
+  const nb = { id: genId(), name: 'My Notebook', created: new Date().toISOString() };
+  await dbPut('notebooks', nb);
+  notebooks = [nb];
+  activeNotebookId = nb.id;
+  renderNotebooks();
+  await renderDocs();
+  renderChat();
+  document.getElementById('greeting').style.display = '';
+}
+
+// ════════════════════════════════════════════
+// Utilities
+// ════════════════════════════════════════════
+function escHtml(s) {
+  if (!s) return '';
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function formatText(text) {
+  if (!text) return '';
+  return escHtml(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code style="background:var(--parchment-dark);padding:0.1em 0.3em;border-radius:3px;font-family:Inconsolata,monospace;font-size:0.85em;">$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+// ════════════════════════════════════════════
+// Boot
+// ════════════════════════════════════════════
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+init();
+</script>
+</body>
+</html>

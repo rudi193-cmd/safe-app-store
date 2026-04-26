@@ -1,0 +1,158 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Your Profile — NASA Archive">
+  <div id="auth-guard" class="hidden">
+    <div class="max-w-2xl mx-auto py-16">
+
+      <!-- Header -->
+      <h1 class="text-2xl font-bold text-[#CC4444] uppercase tracking-widest mb-1">Your Profile</h1>
+      <p class="text-[#444] text-sm mb-10">Everything we know about you — editable, deletable, yours.</p>
+
+      <!-- Profile Form -->
+      <section class="mb-12">
+        <h2 class="text-xs uppercase tracking-widest text-[#666] mb-4">Identity</h2>
+        <div class="space-y-3">
+          <input id="display-name" type="text" placeholder="Display name (how others see you)"
+            class="w-full bg-transparent border border-[#333] px-4 py-3 text-sm text-[#f5f0e8] placeholder-[#444] focus:outline-none focus:border-[#CC4444]" />
+          <div class="flex gap-3">
+            <input id="home-city" type="text" placeholder="City"
+              class="flex-1 bg-transparent border border-[#333] px-4 py-3 text-sm text-[#f5f0e8] placeholder-[#444] focus:outline-none focus:border-[#CC4444]" />
+            <input id="home-state" type="text" placeholder="State" maxlength="2"
+              class="w-24 bg-transparent border border-[#333] px-4 py-3 text-sm text-[#f5f0e8] placeholder-[#444] focus:outline-none focus:border-[#CC4444] uppercase" />
+          </div>
+          <input id="riding-since" type="number" placeholder="Scooting since (year)"
+            class="w-full bg-transparent border border-[#333] px-4 py-3 text-sm text-[#f5f0e8] placeholder-[#444] focus:outline-none focus:border-[#CC4444]" />
+          <textarea id="bio" placeholder="A few words about you (optional)" rows="3"
+            class="w-full bg-transparent border border-[#333] px-4 py-3 text-sm text-[#f5f0e8] placeholder-[#444] focus:outline-none focus:border-[#CC4444] resize-none"></textarea>
+
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input id="public-profile" type="checkbox"
+              class="w-4 h-4 border border-[#333] bg-transparent accent-[#CC4444]" />
+            <span class="text-sm text-[#666]">Make my profile and rally history public</span>
+          </label>
+
+          <button id="save-profile"
+            class="border border-[#CC4444] text-[#CC4444] px-6 py-2 text-sm uppercase tracking-wider hover:bg-[#CC4444] hover:text-white transition-colors">
+            Save
+          </button>
+          <span id="save-message" class="ml-3 text-xs text-[#666] hidden"></span>
+        </div>
+      </section>
+
+      <!-- Rally History -->
+      <section class="mb-12">
+        <h2 class="text-xs uppercase tracking-widest text-[#666] mb-4">Your Rallies</h2>
+        <div id="attended-list" class="space-y-2 mb-6">
+          <p class="text-[#444] text-sm">Loading...</p>
+        </div>
+
+        <h3 class="text-xs uppercase tracking-widest text-[#555] mb-3">Planning to attend</h3>
+        <div id="planning-list" class="space-y-2">
+          <p class="text-[#444] text-sm">Loading...</p>
+        </div>
+      </section>
+
+      <!-- Sign Out -->
+      <section>
+        <button id="sign-out"
+          class="border border-[#333] text-[#555] px-6 py-2 text-sm uppercase tracking-wider hover:border-[#CC4444] hover:text-[#CC4444] transition-colors">
+          Sign Out
+        </button>
+      </section>
+    </div>
+  </div>
+
+  <!-- Not signed in -->
+  <div id="no-auth" class="hidden max-w-sm mx-auto py-16 text-center">
+    <p class="text-[#666] text-sm mb-4">Sign in to view your profile and rally history.</p>
+    <a href="/login" class="border border-[#CC4444] text-[#CC4444] px-6 py-2 text-sm uppercase tracking-wider hover:bg-[#CC4444] hover:text-white transition-colors">
+      Sign In
+    </a>
+  </div>
+</Base>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  async function init() {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      document.getElementById('no-auth')!.classList.remove('hidden');
+      return;
+    }
+
+    document.getElementById('auth-guard')!.classList.remove('hidden');
+    const userId = session.user.id;
+
+    // Load profile
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (profile) {
+      (document.getElementById('display-name') as HTMLInputElement).value = profile.display_name || '';
+      (document.getElementById('home-city') as HTMLInputElement).value = profile.home_city || '';
+      (document.getElementById('home-state') as HTMLInputElement).value = profile.home_state || '';
+      (document.getElementById('riding-since') as HTMLInputElement).value = profile.riding_since || '';
+      (document.getElementById('bio') as HTMLTextAreaElement).value = profile.bio || '';
+      (document.getElementById('public-profile') as HTMLInputElement).checked = profile.public_profile || false;
+    }
+
+    // Save profile
+    document.getElementById('save-profile')!.addEventListener('click', async () => {
+      const msg = document.getElementById('save-message')!;
+      const { error } = await supabase.from('user_profiles').upsert({
+        id: userId,
+        display_name: (document.getElementById('display-name') as HTMLInputElement).value || null,
+        home_city: (document.getElementById('home-city') as HTMLInputElement).value || null,
+        home_state: (document.getElementById('home-state') as HTMLInputElement).value?.toUpperCase() || null,
+        riding_since: parseInt((document.getElementById('riding-since') as HTMLInputElement).value) || null,
+        bio: (document.getElementById('bio') as HTMLTextAreaElement).value || null,
+        public_profile: (document.getElementById('public-profile') as HTMLInputElement).checked,
+        updated_at: new Date().toISOString(),
+      });
+      msg.textContent = error ? error.message : 'Saved.';
+      msg.className = `ml-3 text-xs ${error ? 'text-[#CC4444]' : 'text-[#888]'}`;
+      msg.classList.remove('hidden');
+    });
+
+    // Load rally attendance
+    const { data: attendance } = await supabase
+      .from('user_rally_attendance')
+      .select('rally_slug, status, year_attended')
+      .eq('user_id', userId)
+      .order('year_attended', { ascending: false });
+
+    function renderRallyItem(entry: { rally_slug: string; status: string; year_attended?: number }) {
+      const label = entry.rally_slug.replace(/-/g, ' ');
+      const year = entry.year_attended ? ` (${entry.year_attended})` : '';
+      return `<a href="/rally/${entry.rally_slug}"
+        class="block border border-[#222] px-4 py-3 text-sm text-[#f5f0e8] hover:border-[#CC4444] transition-colors">
+        ${label}${year}
+      </a>`;
+    }
+
+    const attended = (attendance || []).filter(a => a.status === 'attended');
+    const planning = (attendance || []).filter(a => a.status === 'planning');
+
+    document.getElementById('attended-list')!.innerHTML = attended.length
+      ? attended.map(renderRallyItem).join('')
+      : '<p class="text-[#444] text-sm">No rallies marked yet. Browse <a href="/rallies" class="text-[#CC4444]">rallies</a> and mark the ones you attended.</p>';
+
+    document.getElementById('planning-list')!.innerHTML = planning.length
+      ? planning.map(renderRallyItem).join('')
+      : '<p class="text-[#444] text-sm">None yet.</p>';
+
+    // Sign out
+    document.getElementById('sign-out')!.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = '/';
+    });
+  }
+
+  init();
+</script>

@@ -1,0 +1,17 @@
+{
+  "//": "Version: 0.7.24",
+  "name": "llmphysics-bot",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "devvit build",
+    "upload": "devvit upload"
+  },
+  "dependencies": {
+    "@devvit/public-api": "0.12.19"
+  },
+  "devDependencies": {
+    "devvit": "0.12.19",
+    "typescript": "5.8.3"
+  }
+}

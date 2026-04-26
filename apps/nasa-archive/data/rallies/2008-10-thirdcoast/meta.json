@@ -1,0 +1,26 @@
+{
+  "url": "http://scoot.net/gallery/2008/10/thirdcoast/",
+  "slug": "2008/10/thirdcoast",
+  "title": "Third Coast Rally",
+  "year": 2008,
+  "month": 10,
+  "date_rally": "2008-10",
+  "photo_count": 93,
+  "stories": [],
+  "description": "Third Coast Rally was a scooter rally that took place on the Gulf Coast of North America in 2008.",
+  "hosting_club": "null",
+  "city": "null",
+  "state_province": "null",
+  "country": "null",
+  "recurring": false,
+  "notable_facts": [
+    "Rally took place in October 2008"
+  ],
+  "related_clubs": [
+    "null"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:06:53Z",
+  "enriched_provider": "Cerebras2"
+}

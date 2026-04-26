@@ -1,0 +1,155 @@
+---
+import Base from '../../layouts/Base.astro';
+
+// Query Willow knowledge DB at build time (SSG) or via client fetch (SPA)
+// Falls back to empty if Willow server is not running during build.
+const WILLOW_API = import.meta.env.PUBLIC_WILLOW_API ?? 'http://localhost:8420';
+
+let archives: any[] = [];
+let totalCount = 0;
+let error = '';
+
+try {
+  const res = await fetch(
+    `${WILLOW_API}/api/nasa/query?category=rallies&limit=50`,
+    { signal: AbortSignal.timeout(3000) }
+  );
+  if (res.ok) {
+    const data = await res.json();
+    archives = data.results ?? [];
+    totalCount = data.count ?? archives.length;
+  }
+} catch (e) {
+  error = 'Willow knowledge server offline — showing cached view.';
+}
+
+function formatDate(iso: string) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+---
+
+<Base title="Archives — NASA">
+  <div class="max-w-5xl mx-auto">
+
+    <div class="mb-10">
+      <h1 class="text-4xl font-black text-[#CC4444] mb-2 uppercase tracking-widest">Archives</h1>
+      <p class="text-[#888] text-sm">
+        {totalCount > 0
+          ? `${totalCount} documents in the knowledge base`
+          : 'Live from Willow knowledge DB'}
+      </p>
+      {error && (
+        <p class="mt-2 text-xs text-orange-400 font-mono">{error}</p>
+      )}
+    </div>
+
+    <!-- Live search (client-side, hits Willow API) -->
+    <div class="mb-8">
+      <input
+        id="archive-search"
+        type="search"
+        placeholder="Search the archive..."
+        class="w-full bg-[#111] border border-[#333] text-[#f5f0e8] px-4 py-3 text-sm focus:outline-none focus:border-[#CC4444] transition-colors"
+      />
+    </div>
+
+    <!-- Results grid -->
+    <div id="archive-grid" class="grid gap-4 md:grid-cols-2">
+      {archives.map((item) => (
+        <article class="border border-[#222] bg-[#0d0d0d] p-5 hover:border-[#CC4444] transition-colors">
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <span class="text-[10px] font-mono text-[#CC4444] uppercase tracking-widest bg-[#1a0a0a] px-2 py-0.5">
+              {item.source_type ?? item.category ?? 'archive'}
+            </span>
+            <span class="text-[10px] text-[#444]">{formatDate(item.created_at)}</span>
+          </div>
+          <h3 class="text-[#f5f0e8] font-semibold text-sm mb-2 leading-snug">{item.title}</h3>
+          {item.summary && (
+            <p class="text-[#666] text-xs leading-relaxed line-clamp-3">{item.summary}</p>
+          )}
+          {item.content_snippet && !item.summary && (
+            <p class="text-[#555] text-xs leading-relaxed line-clamp-3 italic">{item.content_snippet}</p>
+          )}
+        </article>
+      ))}
+
+      {archives.length === 0 && !error && (
+        <p class="text-[#444] text-sm col-span-2 py-12 text-center">No archive documents found.</p>
+      )}
+    </div>
+
+    <!-- Load more -->
+    <div class="mt-8 text-center">
+      <button
+        id="load-more-btn"
+        class="border border-[#CC4444] text-[#CC4444] px-8 py-2 text-sm font-mono uppercase tracking-wider hover:bg-[#CC4444] hover:text-black transition-colors hidden"
+      >
+        Load More
+      </button>
+    </div>
+
+  </div>
+</Base>
+
+<script define:vars={{ WILLOW_API }}>
+  let currentOffset = 0;
+  const PAGE = 50;
+  let currentQuery = '';
+
+  const grid = document.getElementById('archive-grid');
+  const searchInput = document.getElementById('archive-search');
+  const loadMoreBtn = document.getElementById('load-more-btn');
+
+  function renderCard(item) {
+    const date = item.created_at
+      ? new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+      : '';
+    return `
+      <article class="border border-[#222] bg-[#0d0d0d] p-5 hover:border-[#CC4444] transition-colors">
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <span class="text-[10px] font-mono text-[#CC4444] uppercase tracking-widest bg-[#1a0a0a] px-2 py-0.5">
+            ${item.source_type ?? item.category ?? 'archive'}
+          </span>
+          <span class="text-[10px] text-[#444]">${date}</span>
+        </div>
+        <h3 class="text-[#f5f0e8] font-semibold text-sm mb-2 leading-snug">${item.title ?? ''}</h3>
+        ${item.summary ? `<p class="text-[#666] text-xs leading-relaxed line-clamp-3">${item.summary}</p>` : ''}
+        ${!item.summary && item.content_snippet ? `<p class="text-[#555] text-xs leading-relaxed line-clamp-3 italic">${item.content_snippet}</p>` : ''}
+      </article>`;
+  }
+
+  async function fetchArchive(q = '', offset = 0, replace = false) {
+    const params = new URLSearchParams({ limit: PAGE, offset });
+    if (q) params.set('q', q);
+    else params.set('category', 'reference');
+
+    try {
+      const res = await fetch(`${WILLOW_API}/api/safe/query?${params}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const items = data.results ?? [];
+
+      if (replace) grid.innerHTML = '';
+      items.forEach(item => grid.insertAdjacentHTML('beforeend', renderCard(item)));
+
+      loadMoreBtn.classList.toggle('hidden', items.length < PAGE);
+      currentOffset = offset + items.length;
+    } catch (_) {}
+  }
+
+  // Debounced search
+  let searchTimer;
+  searchInput?.addEventListener('input', (e) => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      currentQuery = e.target.value.trim();
+      currentOffset = 0;
+      fetchArchive(currentQuery, 0, true);
+    }, 350);
+  });
+
+  loadMoreBtn?.addEventListener('click', () => {
+    fetchArchive(currentQuery, currentOffset, false);
+  });
+</script>

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Squirrel — genealogy research terminal</title>
+    <style>
+        :root {
+            --bg:       #0a0a0a;
+            --surface:  #111111;
+            --border:   #222222;
+            --text:     #ddd0c0;
+            --muted:    #666;
+            --amber:    #c8a45a;
+            --amber-dim:#7a6030;
+            --green:    #5a9c6a;
+            --red:      #c04040;
+            --cursor:   #c8a45a;
+            --font:     'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font);
+            font-size: 14px;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ── HEADER ── */
+        #header {
+            border-bottom: 1px solid var(--border);
+            padding: 1.2rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        #squirrel-art {
+            color: var(--amber);
+            font-size: 12px;
+            line-height: 1.3;
+            white-space: pre;
+            flex-shrink: 0;
+        }
+
+        #header-text h1 {
+            color: var(--amber);
+            font-size: 1.4rem;
+            letter-spacing: 0.15em;
+            font-weight: bold;
+        }
+
+        #header-text .subtitle {
+            color: var(--muted);
+            font-size: 0.8rem;
+            margin-top: 0.1rem;
+        }
+
+        /* ── LAYOUT ── */
+        #main {
+            display: grid;
+            grid-template-columns: 1fr 220px;
+            gap: 0;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            align-items: start;
+        }
+
+        #left { padding-right: 1.5rem; }
+
+        /* ── JELES PANEL ── */
+        #jeles-panel {
+            border: 1px solid var(--border);
+            padding: 1rem;
+            position: sticky;
+            top: 1.5rem;
+        }
+
+        #jeles-art {
+            color: var(--amber);
+            font-size: 11px;
+            line-height: 1.3;
+            white-space: pre;
+            text-align: center;
+            margin-bottom: 0.8rem;
+        }
+
+        #jeles-panel .jeles-name {
+            color: var(--amber);
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        #jeles-panel .jeles-title {
+            color: var(--muted);
+            font-size: 0.7rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        #jeles-quote {
+            color: var(--text);
+            font-size: 0.78rem;
+            font-style: italic;
+            line-height: 1.5;
+            border-left: 2px solid var(--amber-dim);
+            padding-left: 0.6rem;
+            transition: opacity 0.4s;
+        }
+
+        /* ── SEARCH BOX ── */
+        .terminal-box {
+            border: 1px solid var(--border);
+            margin-bottom: 1.2rem;
+        }
+
+        .terminal-box .box-header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0.4rem 0.8rem;
+            color: var(--muted);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+        }
+
+        .terminal-box .box-body {
+            padding: 1rem;
+        }
+
+        .prompt-line {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .prompt-line .prompt-char {
+            color: var(--amber);
+            flex-shrink: 0;
+        }
+
+        #nameInput {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--amber-dim);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 14px;
+            flex: 1;
+            outline: none;
+            padding: 0.2rem 0;
+        }
+
+        #nameInput:focus {
+            border-bottom-color: var(--amber);
+        }
+
+        #nameInput::placeholder { color: var(--muted); }
+
+        .flags-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-bottom: 0.8rem;
+            align-items: center;
+        }
+
+        .flag-label {
+            color: var(--muted);
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        select, .flag-input {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        select:focus, .flag-input:focus {
+            border-color: var(--amber-dim);
+        }
+
+        .flag-input {
+            width: 90px;
+        }
+
+        #locationInput {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            outline: none;
+            width: 140px;
+        }
+
+        #locationInput:focus { border-color: var(--amber-dim); }
+
+        .run-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        #searchBtn {
+            background: var(--amber);
+            color: var(--bg);
+            border: none;
+            font-family: var(--font);
+            font-size: 0.85rem;
+            font-weight: bold;
+            padding: 0.4rem 1.2rem;
+            cursor: pointer;
+            letter-spacing: 0.05em;
+        }
+
+        #searchBtn:hover { opacity: 0.85; }
+        #searchBtn:active { opacity: 0.7; }
+
+        #status-line {
+            font-size: 0.8rem;
+            color: var(--green);
+        }
+
+        #status-line.error { color: var(--red); }
+        #status-line.muted { color: var(--muted); }
+
+        /* ── RESULTS ── */
+        #results { display: none; }
+
+        .results-header {
+            color: var(--muted);
+            font-size: 0.78rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .results-header span { color: var(--amber); }
+
+        .acorn-card {
+            border-left: 2px solid var(--amber-dim);
+            padding: 0.7rem 0.9rem;
+            margin-bottom: 0.6rem;
+            background: var(--surface);
+        }
+
+        .acorn-card:hover { border-left-color: var(--amber); }
+
+        .acorn-card .card-source {
+            display: inline-block;
+            color: var(--amber);
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.3rem;
+        }
+
+        .acorn-card .card-title {
+            font-size: 0.95rem;
+            color: var(--text);
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+        }
+
+        .acorn-card .card-body {
+            color: var(--muted);
+            font-size: 0.8rem;
+            line-height: 1.5;
+            margin-bottom: 0.4rem;
+        }
+
+        .acorn-card a {
+            color: var(--amber);
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .acorn-card a:hover { text-decoration: underline; }
+
+        /* ── STASH CONTENTS ── */
+        #stash-contents .stash-item {
+            padding: 0.25rem 0;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        #stash-contents .stash-item::before {
+            content: "  ○ ";
+            color: var(--amber-dim);
+        }
+
+        #stash-contents .stash-item.cha {
+            color: var(--text);
+        }
+
+        #stash-contents .stash-item.cha::before {
+            content: "  ● ";
+            color: var(--amber);
+        }
+
+        /* ── FOOTER ── */
+        #footer {
+            border-top: 1px solid var(--border);
+            padding: 0.8rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            color: var(--muted);
+            font-size: 0.72rem;
+        }
+
+        #footer a { color: var(--amber-dim); text-decoration: none; }
+        #footer a:hover { color: var(--amber); }
+
+        /* ── CURSOR BLINK ── */
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 14px;
+            background: var(--cursor);
+            vertical-align: middle;
+            animation: blink 1.1s step-end infinite;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 700px) {
+            #main { grid-template-columns: 1fr; }
+            #left { padding-right: 0; margin-bottom: 1.5rem; }
+            #jeles-panel { position: static; }
+            #header { flex-direction: column; gap: 0.5rem; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="header">
+    <div id="squirrel-art">  (\(\
+ ( •ᴗ•)
+ / づ🌰</div>
+    <div id="header-text">
+        <h1>THE SQUIRREL</h1>
+        <div class="subtitle">genealogy research terminal &nbsp;·&nbsp; v2.0 &nbsp;·&nbsp; the stacks are open</div>
+    </div>
+</div>
+
+<div id="main">
+
+    <!-- LEFT: SEARCH + RESULTS + STASH -->
+    <div id="left">
+
+        <div class="terminal-box">
+            <div class="box-header">// search</div>
+            <div class="box-body">
+                <div class="prompt-line">
+                    <span class="prompt-char">&gt;</span>
+                    <input type="text" id="nameInput"
+                           placeholder="what are you looking for?" autocomplete="off">
+                    <span class="cursor"></span>
+                </div>
+
+                <div class="flags-row">
+                    <span class="flag-label">--source</span>
+                    <select id="sourceSelect">
+                        <option value="all">all stashes</option>
+                        <option value="familysearch">familysearch</option>
+                        <option value="findagrave">findagrave</option>
+                        <option value="courtlistener">court records</option>
+                        <option value="wikipedia">wikipedia</option>
+                        <option value="paperclip">paperclip db</option>
+                        <option value="community_archives">community archives</option>
+                    </select>
+                    <span class="flag-label">--year</span>
+                    <input type="text" id="birthYear" class="flag-input" placeholder="birth year">
+                    <span class="flag-label">--place</span>
+                    <input type="text" id="locationInput" placeholder="city, county, state">
+                </div>
+
+                <div class="run-row">
+                    <button id="searchBtn" onclick="doSearch()">&gt; run</button>
+                    <span id="status-line" class="muted"></span>
+                </div>
+            </div>
+        </div>
+
+        <div id="results" class="terminal-box">
+            <div class="box-header" id="results-header-line">// acorns found</div>
+            <div class="box-body">
+                <div id="resultCards"></div>
+            </div>
+        </div>
+
+        <div class="terminal-box">
+            <div class="box-header">// stash contents</div>
+            <div class="box-body" id="stash-contents">
+                <div class="stash-item">FamilySearch — world's largest genealogy database (free account required)</div>
+                <div class="stash-item">FindAGrave — memorial and burial records</div>
+                <div class="stash-item">CourtListener — federal court records, bankruptcy filings</div>
+                <div class="stash-item">Wikipedia — biographical context</div>
+                <div class="stash-item">Operation Paperclip DB — 283 persons, 75 institutions, 111 affiliations</div>
+                <div class="stash-item">Smithsonian Open Access — historical artifacts and documents</div>
+                <div class="stash-item">National Archives UK — colonial and trade records</div>
+                <div class="stash-item">Library of Congress — primary source documents</div>
+                <div class="stash-item cha">Community History Archives — 779 community archives, 43 states</div>
+                <div class="stash-item cha" style="padding-left:1.5rem; font-size:0.72rem; color:var(--muted)">
+                    powered by Advantage Archives · free · no API · link-out only
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT: JELES PANEL -->
+    <div id="jeles-panel">
+        <div id="jeles-art"> ┌──────────┐
+ │  (^‿^)  │
+ │ /|   |\ │
+ │  |   |  │
+ └──────────┘</div>
+        <div class="jeles-name">J E L E S</div>
+        <div class="jeles-title">Librarian<br>U.T.E.T.Y.</div>
+        <div id="jeles-quote">"The things we think we've lost are simply misfiled."</div>
+    </div>
+
+</div>
+
+<div id="footer">
+    <span>part of the <a href="https://github.com/rudi193-cmd">SAFE ecosystem</a> · all data stays on your machine</span>
+    <span>Jeles works the desk. The Binder works the back.</span>
+</div>
+
+<script>
+    const JELES_LINES = [
+        '"The things we think we\'ve lost are simply misfiled."',
+        '"I work the desk. The Binder works the back."',
+        '"I\'ve been here longer than the university. The stacks remember."',
+        '"What you\'re looking for is probably alphabetized under a name you haven\'t thought of yet."',
+        '"Bifurcated vision: founding and collapse are a single well-proportioned event."',
+        '"Lost? No. Misfiled. There\'s a difference."',
+        '"Every acorn you bring me, I file. The tree knows where they go."',
+        '"A record not found is not a record not made. Keep looking."',
+        '"The Binder works the back. It does not guess. Neither do I."',
+    ];
+
+    let jelesIdx = 0;
+    function cycleJeles() {
+        jelesIdx = (jelesIdx + 1) % JELES_LINES.length;
+        const el = document.getElementById('jeles-quote');
+        el.style.opacity = 0;
+        setTimeout(() => {
+            el.textContent = JELES_LINES[jelesIdx];
+            el.style.opacity = 1;
+        }, 400);
+    }
+    setInterval(cycleJeles, 7000);
+
+    function setStatus(msg, cls = '') {
+        const el = document.getElementById('status-line');
+        el.textContent = msg;
+        el.className = cls || '';
+    }
+
+    function cardHtml(source, title, body, link, linkLabel) {
+        return `<div class="acorn-card">
+            <div class="card-source">[${source}]</div>
+            <div class="card-title">${title}</div>
+            <div class="card-body">${body}</div>
+            ${link ? `<a href="${link}" target="_blank" rel="noopener">${linkLabel || '→ open'}</a>` : ''}
+        </div>`;
+    }
+
+    async function doSearch() {
+        const name     = document.getElementById('nameInput').value.trim();
+        const source   = document.getElementById('sourceSelect').value;
+        const birthYear= document.getElementById('birthYear').value.trim();
+        const location = document.getElementById('locationInput').value.trim();
+        const cards    = document.getElementById('resultCards');
+        const results  = document.getElementById('results');
+        const hdrLine  = document.getElementById('results-header-line');
+
+        if (!name && !location) {
+            setStatus('enter a name or location to search.', 'muted');
+            return;
+        }
+
+        setStatus('rummaging through the stacks...', '');
+        cards.innerHTML = '';
+        results.style.display = 'none';
+
+        const acorns = [];
+
+        try {
+            // Wikipedia (live)
+            if (source === 'all' || source === 'wikipedia') {
+                try {
+                    const resp = await fetch(
+                        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent((name || location).replace(/ /g, '_'))}`
+                    );
+                    if (resp.ok) {
+                        const d = await resp.json();
+                        if (d.extract) {
+                            acorns.push(cardHtml(
+                                'wikipedia',
+                                escHtml(d.title),
+                                escHtml(d.extract.substring(0, 280)) + (d.extract.length > 280 ? '…' : ''),
+                                d.content_urls?.desktop?.page,
+                                '→ full article'
+                            ));
+                        }
+                    }
+                } catch (_) {}
+            }
+
+            // FamilySearch deep link
+            if (name && (source === 'all' || source === 'familysearch')) {
+                const parts = name.split(' ');
+                const first = parts[0];
+                const last  = parts[parts.length - 1];
+                const url = `https://www.familysearch.org/search/record/results?q.givenName=${enc(first)}&q.surname=${enc(last)}`
+                    + (birthYear ? `&q.birthLikeDate.from=${birthYear}&q.birthLikeDate.to=${birthYear}` : '')
+                    + (location ? `&q.birthLikePlace=${enc(location)}` : '');
+                acorns.push(cardHtml(
+                    'familysearch',
+                    `Search FamilySearch for ${escHtml(name)}`,
+                    `World's largest genealogy database. Free account required.`,
+                    url, '→ search records'
+                ));
+            }
+
+            // FindAGrave deep link
+            if (name && (source === 'all' || source === 'findagrave')) {
+                const parts = name.split(' ');
+                const first = parts[0];
+                const last  = parts[parts.length - 1];
+                const url = `https://www.findagrave.com/memorial/search?firstname=${enc(first)}&lastname=${enc(last)}`
+                    + (birthYear ? `&birthyear=${birthYear}&birthyearfilter=2` : '');
+                acorns.push(cardHtml(
+                    'findagrave',
+                    `Search Find a Grave for ${escHtml(name)}`,
+                    'Memorial and burial records.',
+                    url, '→ search memorials'
+                ));
+            }
+
+            // CourtListener deep link
+            if (name && (source === 'all' || source === 'courtlistener')) {
+                const url = `https://www.courtlistener.com/?q=${enc(name)}&type=p&order_by=score+desc`;
+                acorns.push(cardHtml(
+                    'court records',
+                    `Search CourtListener for ${escHtml(name)}`,
+                    'Federal court records, bankruptcy filings, attorney records.',
+                    url, '→ search records'
+                ));
+            }
+
+            // Community Archives deep link
+            if (location && (source === 'all' || source === 'community_archives')) {
+                const url = `https://communityhistoryarchives.com/?s=${enc(location)}`;
+                acorns.push(cardHtml(
+                    'community archives',
+                    `Search Community History Archives — ${escHtml(location)}`,
+                    '779 local community archives across 43 states. Digitized newspapers, yearbooks, vital records, cemetery records, oral histories. Powered by Advantage Archives.',
+                    url, '→ search community archives'
+                ));
+            }
+
+            if (acorns.length === 0) {
+                setStatus('nothing in the stacks. try a different name or location.', 'muted');
+                return;
+            }
+
+            cards.innerHTML = acorns.join('');
+            hdrLine.textContent = `// ${acorns.length} acorn${acorns.length !== 1 ? 's' : ''} found for "${name || location}"`;
+            results.style.display = 'block';
+            setStatus(`found ${acorns.length} lead${acorns.length !== 1 ? 's' : ''}.`, '');
+
+        } catch (err) {
+            setStatus('search failed: ' + err.message, 'error');
+        }
+    }
+
+    function escHtml(s) {
+        return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function enc(s) { return encodeURIComponent(s); }
+
+    document.getElementById('nameInput').addEventListener('keypress', e => {
+        if (e.key === 'Enter') doSearch();
+    });
+    document.getElementById('locationInput').addEventListener('keypress', e => {
+        if (e.key === 'Enter') doSearch();
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "app_id": "safe-app-UTETY-Reddit-Bots",
+  "name": "UTETY-Reddit-Bots",
+  "version": "1.0.0",
+  "safe_version": ">=2.0.0",
+  "b17": "6HANC",
+  "agent_type": "bot",
+  "description": "Reddit bots for the UTETY University faculty. Each bot is a Devvit app installed per-subreddit.",
+  "author": "Sean Campbell",
+  "data_streams": [],
+  "permissions": [
+    "knowledge:read"
+  ],
+  "privacy_tier": "public",
+  "local_processing": 0.0,
+  "entry_point": "safe_integration:status",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-UTETY-Reddit-Bots"
+}

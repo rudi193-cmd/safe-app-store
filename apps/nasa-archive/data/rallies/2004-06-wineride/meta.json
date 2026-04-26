@@ -1,0 +1,24 @@
+{
+  "url": "http://scoot.net/gallery/2004/06/wineride/",
+  "slug": "2004/06/wineride",
+  "title": "Temecula Wine Country Ride - 2004",
+  "year": 2004,
+  "month": 6,
+  "date_rally": "2004-06",
+  "photo_count": 0,
+  "description": "Annual ride through wine country in Temecula, California.",
+  "city": "Temecula",
+  "state_province": "California",
+  "country": "US",
+  "recurring": true,
+  "notable_facts": [
+    "Organized ride through wine country"
+  ],
+  "related_clubs": [
+    "Scoot.net (community of scooter enthusiasts)"
+  ],
+  "source_confidence": "high",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:42:28Z",
+  "enriched_provider": "Novita2"
+}

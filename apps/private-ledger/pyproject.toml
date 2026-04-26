@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-private-ledger"
+version = "0.1.0"
+description = "Local personal budgeting companion — fully private, no cloud sync, paired with Public Ledger."
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.28.0",
+]

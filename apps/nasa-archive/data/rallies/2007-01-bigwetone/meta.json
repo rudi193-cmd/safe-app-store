@@ -1,0 +1,23 @@
+{
+  "url": "http://scoot.net/gallery/2007/01/bigwetone/",
+  "slug": "2007/01/bigwetone",
+  "title": "The Big Wet One",
+  "year": 2007,
+  "month": 1,
+  "date_rally": "2007-01",
+  "photo_count": 150,
+  "stories": [],
+  "description": "The Big Wet One was a scooter rally sponsored by Scoot.net, held in rainy conditions, and focused on scooter enthusiasts.",
+  "city": "Tacoma",
+  "state_province": "Washington",
+  "country": "US",
+  "recurring": true,
+  "notable_facts": [
+    "Rainy weather was a notable aspect of the event"
+  ],
+  "related_clubs": [],
+  "source_confidence": "high",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:01:00Z",
+  "enriched_provider": "Novita"
+}

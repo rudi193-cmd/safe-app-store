@@ -1,0 +1,34 @@
+{
+  "app_id": "vision-board",
+  "name": "Vision Board",
+  "version": "1.0.0",
+  "safe_version": ">=2.0.0",
+  "b17": "91HH8",
+  "agent_type": "tool",
+  "description": "Visual goal and intention tracking. Pin images, set categories, and build a private vision board — no cloud, no account.",
+  "author": "Sean Campbell",
+  "data_streams": [
+    {
+      "id": "board_state",
+      "purpose": "Saved pins, categories, and layout",
+      "retention": "permanent",
+      "description": "Stored locally in your data folder"
+    }
+  ],
+  "permissions": [
+    "file_read",
+    "file_write"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "dev_server": {
+    "env_var": "VISION_BOARD_DEV_SERVER",
+    "port_env": "VISION_BOARD_PORT",
+    "port_default": 8423,
+    "scope": "localhost",
+    "note": "Local development only. Not started in production."
+  },
+  "entry_point": "backend/main.py",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-vision-board"
+}

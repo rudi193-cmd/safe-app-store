@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/vegas2001/",
+  "slug": "vegas2001",
+  "title": "Las Vegas High Rollers Weekend - 2001",
+  "year": 2001,
+  "month": null,
+  "date_rally": "2001-??",
+  "photo_count": 202,
+  "stories": [],
+  "lat": 36.167426,
+  "lng": -115.148413,
+  "city": "Las Vegas",
+  "state_province": "Nevada",
+  "country": "USA",
+  "recurring": false,
+  "notable_facts": [],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:24:45Z",
+  "enriched_provider": "Novita2"
+}

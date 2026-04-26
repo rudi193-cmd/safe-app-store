@@ -1,0 +1,20 @@
+{
+  "url": "http://scoot.net/gallery/2001/08/isleofwight/",
+  "slug": "2001/08/isleofwight",
+  "title": "Isle of Wight 2001",
+  "year": 2001,
+  "month": 8,
+  "date_rally": "2001-08",
+  "photo_count": 0,
+  "lat": 50.671048,
+  "lng": -1.332711,
+  "description": "The Isle of Wight 2001 was a scooter rally held in August 2001.",
+  "city": "Isle of Wight",
+  "country": "UK",
+  "recurring": false,
+  "notable_facts": [],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:24:36Z",
+  "enriched_provider": "Novita"
+}

@@ -1,0 +1,35 @@
+{
+  "app_id": "dating-wellbeing",
+  "name": "Dating Wellbeing Analyzer",
+  "version": "1.0.0",
+  "safe_version": ">=2.0.0",
+  "b17": "2NCAL",
+  "agent_type": "tool",
+  "description": "Privacy-first dating profile analysis with red flag detection and pattern learning",
+  "author": "Sean Campbell",
+  "data_streams": [
+    {
+      "id": "profiles",
+      "purpose": "Analyze dating profiles from screenshots or text",
+      "retention": "session",
+      "description": "Profile data deleted after session ends unless explicitly saved"
+    },
+    {
+      "id": "patterns",
+      "purpose": "Learn your personal red flag patterns and preferences",
+      "retention": "permanent",
+      "description": "Stores anonymized pattern data to improve future analyses"
+    }
+  ],
+  "permissions": [
+    "local_llm",
+    "image_ocr",
+    "pattern_storage",
+    "file_read"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 0.96,
+  "entry_point": "dating_wellbeing.main:app",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-dating-wellbeing"
+}

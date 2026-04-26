@@ -1,0 +1,20 @@
+{
+  "url": "http://scoot.net/gallery/2007/09/kernloop/",
+  "slug": "2007/09/kernloop",
+  "title": "Killer Kern Loop 2",
+  "year": 2007,
+  "month": 9,
+  "date_rally": "2007-09",
+  "photo_count": 337,
+  "stories": [],
+  "description": "Information on the 2007 Killer Kern Loop 2 scooter rally.",
+  "recurring": false,
+  "notable_facts": [
+    "This is referenced on the Scoot.net website",
+    "Held in September 2007"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:57:44Z",
+  "enriched_provider": "Cerebras"
+}

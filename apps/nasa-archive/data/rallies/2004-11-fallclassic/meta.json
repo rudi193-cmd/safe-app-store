@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2004/11/fallclassic/",
+  "slug": "2004/11/fallclassic",
+  "title": "Tucson/Nogales Fall Classic - 2004",
+  "year": 2004,
+  "month": 11,
+  "date_rally": "2004-11",
+  "photo_count": 280,
+  "stories": [],
+  "description": "The Tucson/Nogales Fall Classic was a scooter rally held in the fall.",
+  "city": "Tucson",
+  "state_province": "Arizona",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Located near the US-Mexico border"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:42:45Z",
+  "enriched_provider": "Novita2"
+}
