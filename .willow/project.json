@@ -1,0 +1,9 @@
+{
+  "name": "safe-app-store",
+  "b17": "SAPS1",
+  "agent": "store-agent",
+  "description": "Local-first SAFE app monorepo and catalog. The app store.",
+  "store_root": ".willow/store",
+  "created": "2026-04-26",
+  "willow_version": "1.9"
+}

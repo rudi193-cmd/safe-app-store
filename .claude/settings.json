@@ -1,0 +1,32 @@
+{
+  "env": {
+    "WILLOW_AGENT_NAME": "store-agent",
+    "WILLOW_PG_DB": "willow_19",
+    "WILLOW_PG_USER": "sean-campbell",
+    "WILLOW_STORE_ROOT": "/home/sean-campbell/github/safe-app-store/.willow/store",
+    "WILLOW_MCP_BIN": "/home/sean-campbell/github/willow-1.9/willow.sh"
+  },
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "mcp__willow__willow_status",
+      "mcp__willow__willow_knowledge_search",
+      "mcp__willow__store_get",
+      "mcp__willow__store_list",
+      "mcp__willow__store_put",
+      "mcp__willow__store_update",
+      "mcp__willow__store_search"
+    ],
+    "defaultMode": "default"
+  },
+  "mcpServers": {
+    "willow": {
+      "command": "/home/sean-campbell/github/willow-1.9/willow.sh"
+    }
+  }
+}
