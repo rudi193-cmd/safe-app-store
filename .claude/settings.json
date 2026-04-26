@@ -1,10 +1,9 @@
 {
   "env": {
-    "WILLOW_AGENT_NAME": "store-agent",
+    "WILLOW_AGENT_NAME": "vishwakarma",
     "WILLOW_PG_DB": "willow_19",
     "WILLOW_PG_USER": "sean-campbell",
-    "WILLOW_STORE_ROOT": "/home/sean-campbell/github/safe-app-store/.willow/store",
-    "WILLOW_MCP_BIN": "/home/sean-campbell/github/willow-1.9/willow.sh"
+    "WILLOW_STORE_ROOT": "/home/sean-campbell/github/safe-app-store/.willow/store"
   },
   "permissions": {
     "allow": [
@@ -15,18 +14,34 @@
       "Glob",
       "Grep",
       "mcp__willow__willow_status",
+      "mcp__willow__willow_handoff_latest",
       "mcp__willow__willow_knowledge_search",
+      "mcp__willow__willow_knowledge_ingest",
+      "mcp__willow__willow_journal",
+      "mcp__willow__willow_task_submit",
+      "mcp__willow__willow_task_status",
+      "mcp__willow__willow_task_list",
+      "mcp__willow__willow_chat",
+      "mcp__willow__willow_reload",
+      "mcp__willow__willow_base17",
+      "mcp__willow__willow_ratify",
+      "mcp__willow__willow_handoff_rebuild",
+      "mcp__willow__willow_handoff_search",
+      "mcp__willow__willow_system_status",
+      "mcp__willow__willow_agents",
+      "mcp__willow__willow_query",
       "mcp__willow__store_get",
       "mcp__willow__store_list",
       "mcp__willow__store_put",
       "mcp__willow__store_update",
-      "mcp__willow__store_search"
+      "mcp__willow__store_delete",
+      "mcp__willow__store_search",
+      "mcp__willow__store_search_all",
+      "mcp__willow__store_add_edge",
+      "mcp__willow__store_edges_for",
+      "mcp__willow__store_stats",
+      "mcp__willow__store_audit"
     ],
     "defaultMode": "default"
-  },
-  "mcpServers": {
-    "willow": {
-      "command": "/home/sean-campbell/github/willow-1.9/willow.sh"
-    }
   }
 }
