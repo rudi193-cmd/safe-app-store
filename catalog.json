@@ -1,0 +1,16 @@
+{
+  "version": "1.0",
+  "store": "SAFE App Store",
+  "description": "Local-first apps built on the SAFE framework. No ports. No servers. Yours to keep.",
+  "apps": [
+    {
+      "id": "story-timeline",
+      "name": "Story Timeline",
+      "description": "Track events, characters, and locations across a narrative timeline. Free alternative to $70 timeline tools.",
+      "author": "Professor Oakenscroll",
+      "status": "beta",
+      "path": "apps/story-timeline",
+      "tags": ["writing", "fiction", "timeline", "characters"]
+    }
+  ]
+}

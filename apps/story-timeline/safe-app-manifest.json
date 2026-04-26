@@ -1,0 +1,10 @@
+{
+  "name": "story-timeline",
+  "version": "0.1.0",
+  "description": "Track events, characters, and locations across a narrative timeline.",
+  "author": "Professor Oakenscroll / hanuman",
+  "entry_point": "safe_integration:status",
+  "permissions": ["filesystem_write"],
+  "local": true,
+  "b17": "STLN1"
+}
