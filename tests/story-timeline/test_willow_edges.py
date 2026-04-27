@@ -2,15 +2,20 @@ import json
 import os
 import sys
 import pytest
+from pathlib import Path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../apps/story-timeline"))
 
 TEST_UUID = "test-user-0000"
 
+_WILLOW_CORE_PATH = str(
+    Path(__file__).parents[5] / "willow-1.9" / "core"
+)
+
 @pytest.fixture()
 def edges(tmp_path, monkeypatch):
     monkeypatch.setenv("WILLOW_STORE_ROOT", str(tmp_path / "willow"))
-    monkeypatch.setenv("WILLOW_CORE", "/home/sean-campbell/github/willow-1.9/core")
+    monkeypatch.setenv("WILLOW_CORE", _WILLOW_CORE_PATH)
     import willow_edges
     import importlib
     importlib.reload(willow_edges)

@@ -46,7 +46,8 @@ def _get_store():
         _STORE = WillowStore()
         _WILLOW_AVAILABLE = True
         return _STORE
-    except Exception:
+    except Exception as e:
+        sys.stderr.write(f"[willow_edges] store init failed: {e}\n")
         _STORE = None
         _WILLOW_AVAILABLE = False
         return None
@@ -76,8 +77,12 @@ def add_edge(from_id: str, to_id: str, relation: str,
         "relation": relation,
         "context": context,
     }
-    store.put(_collection(uuid), record, record_id=edge_id)
-    return edge_id
+    try:
+        store.put(_collection(uuid), record, record_id=edge_id)
+        return edge_id
+    except Exception as e:
+        sys.stderr.write(f"[willow_edges] add_edge failed: {e}\n")
+        return None
 
 
 def edges_for(node_id: str, uuid: Optional[str] = None) -> list[dict]:
@@ -153,6 +158,7 @@ def reconcile_orphans(valid_node_ids: list[str], uuid: Optional[str] = None) -> 
             conn.commit()
         finally:
             conn.close()
-    except Exception:
-        pass
+    except Exception as e:
+        sys.stderr.write(f"[willow_edges] reconcile error: {e}\n")
+        return removed
     return removed
