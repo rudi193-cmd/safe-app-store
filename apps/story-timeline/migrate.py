@@ -28,7 +28,25 @@ def needs_migration() -> bool:
         tables = {row[0] for row in conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table'"
         ).fetchall()}
-        return "events" in tables and "nodes" not in tables
+        if "events" not in tables:
+            return False
+        # Check whether there are any unmigrated events (not yet converted to nodes)
+        event_ids = [row[0] for row in conn.execute(
+            "SELECT id FROM events"
+        ).fetchall()]
+        if not event_ids:
+            return False
+        if "nodes" not in tables:
+            return True
+        # nodes table exists — check for events without corresponding migrated nodes
+        for eid in event_ids:
+            node_id = f"migrated-event-{eid}"
+            exists = conn.execute(
+                "SELECT 1 FROM nodes WHERE id = ?", (node_id,)
+            ).fetchone()
+            if not exists:
+                return True
+        return False
     finally:
         conn.close()
 
