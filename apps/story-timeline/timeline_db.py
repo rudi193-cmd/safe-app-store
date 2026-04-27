@@ -18,10 +18,10 @@ DB_PATH = Path(
 )
 
 
-def _conn() -> sqlite3.Connection:
+def _init_db() -> None:
+    """Initialize the database schema at module import time."""
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(DB_PATH))
-    conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("""
         CREATE TABLE IF NOT EXISTS nodes (
@@ -33,83 +33,121 @@ def _conn() -> sqlite3.Connection:
         )
     """)
     conn.commit()
+    conn.close()
+
+
+# Initialize database schema at module import time
+_init_db()
+
+
+def _conn() -> sqlite3.Connection:
+    """Create and return a new database connection."""
+    conn = sqlite3.connect(str(DB_PATH))
+    conn.row_factory = sqlite3.Row
     return conn
 
 
 def add_node(type_: str, fields: dict) -> str:
     node_id = str(uuid.uuid4())
     conn = _conn()
-    conn.execute(
-        "INSERT INTO nodes (id, type, fields) VALUES (?, ?, ?)",
-        (node_id, type_, json.dumps(fields))
-    )
-    conn.commit()
-    conn.close()
-    return node_id
+    try:
+        conn.execute(
+            "INSERT INTO nodes (id, type, fields) VALUES (?, ?, ?)",
+            (node_id, type_, json.dumps(fields))
+        )
+        conn.commit()
+        return node_id
+    finally:
+        conn.close()
 
 
 def get_node(node_id: str) -> Optional[dict]:
     conn = _conn()
-    row = conn.execute("SELECT * FROM nodes WHERE id = ?", (node_id,)).fetchone()
-    conn.close()
-    return dict(row) if row else None
+    try:
+        row = conn.execute("SELECT * FROM nodes WHERE id = ?", (node_id,)).fetchone()
+        if not row:
+            return None
+        node = dict(row)
+        node["fields"] = json.loads(node["fields"])
+        return node
+    finally:
+        conn.close()
 
 
 def get_nodes(type_: Optional[str] = None) -> list[dict]:
     conn = _conn()
-    if type_:
-        rows = conn.execute(
-            "SELECT * FROM nodes WHERE type = ? ORDER BY created ASC", (type_,)
-        ).fetchall()
-    else:
-        rows = conn.execute(
-            "SELECT * FROM nodes ORDER BY created ASC"
-        ).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    try:
+        if type_:
+            rows = conn.execute(
+                "SELECT * FROM nodes WHERE type = ? ORDER BY created ASC", (type_,)
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM nodes ORDER BY created ASC"
+            ).fetchall()
+        nodes = [dict(r) for r in rows]
+        for node in nodes:
+            node["fields"] = json.loads(node["fields"])
+        return nodes
+    finally:
+        conn.close()
 
 
 def update_node(node_id: str, fields: dict) -> bool:
     now = datetime.now().isoformat()
     conn = _conn()
-    cur = conn.execute(
-        "UPDATE nodes SET fields = ?, updated = ? WHERE id = ?",
-        (json.dumps(fields), now, node_id)
-    )
-    conn.commit()
-    conn.close()
-    return cur.rowcount > 0
+    try:
+        cur = conn.execute(
+            "UPDATE nodes SET fields = ?, updated = ? WHERE id = ?",
+            (json.dumps(fields), now, node_id)
+        )
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
 
 
 def delete_node(node_id: str) -> bool:
     conn = _conn()
-    cur = conn.execute("DELETE FROM nodes WHERE id = ?", (node_id,))
-    conn.commit()
-    conn.close()
-    return cur.rowcount > 0
+    try:
+        cur = conn.execute("DELETE FROM nodes WHERE id = ?", (node_id,))
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
 
 
 def search_nodes(query: str) -> list[dict]:
     conn = _conn()
-    rows = conn.execute(
-        "SELECT * FROM nodes WHERE lower(fields) LIKE lower(?) OR lower(type) LIKE lower(?)",
-        (f"%{query}%", f"%{query}%")
-    ).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    try:
+        # Searches the serialized JSON string — key names and values are both matched
+        rows = conn.execute(
+            "SELECT * FROM nodes WHERE lower(fields) LIKE lower(?) OR lower(type) LIKE lower(?)",
+            (f"%{query}%", f"%{query}%")
+        ).fetchall()
+        nodes = [dict(r) for r in rows]
+        for node in nodes:
+            node["fields"] = json.loads(node["fields"])
+        return nodes
+    finally:
+        conn.close()
 
 
 def get_types() -> list[str]:
     conn = _conn()
-    rows = conn.execute(
-        "SELECT DISTINCT type FROM nodes ORDER BY type"
-    ).fetchall()
-    conn.close()
-    return [r[0] for r in rows]
+    try:
+        rows = conn.execute(
+            "SELECT DISTINCT type FROM nodes ORDER BY type"
+        ).fetchall()
+        return [r[0] for r in rows]
+    finally:
+        conn.close()
 
 
 def get_all_node_ids() -> list[str]:
     conn = _conn()
-    rows = conn.execute("SELECT id FROM nodes").fetchall()
-    conn.close()
-    return [r[0] for r in rows]
+    try:
+        rows = conn.execute("SELECT id FROM nodes").fetchall()
+        return [r[0] for r in rows]
+    finally:
+        conn.close()

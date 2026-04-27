@@ -23,14 +23,14 @@ def test_add_and_get_node(db):
     node_id = db.add_node(type_="character", fields={"name": "Alice", "age": "30"})
     node = db.get_node(node_id)
     assert node["type"] == "character"
-    assert json.loads(node["fields"])["name"] == "Alice"
+    assert node["fields"]["name"] == "Alice"
 
 def test_get_nodes_by_type(db):
     db.add_node(type_="character", fields={"name": "Alice"})
     db.add_node(type_="location", fields={"name": "Castle"})
     chars = db.get_nodes(type_="character")
     assert len(chars) == 1
-    assert json.loads(chars[0]["fields"])["name"] == "Alice"
+    assert chars[0]["fields"]["name"] == "Alice"
 
 def test_get_all_nodes(db):
     db.add_node(type_="character", fields={"name": "Alice"})
@@ -42,7 +42,7 @@ def test_update_node(db):
     node_id = db.add_node(type_="character", fields={"name": "Alice"})
     db.update_node(node_id, fields={"name": "Alice Liddell", "age": "10"})
     node = db.get_node(node_id)
-    assert json.loads(node["fields"])["name"] == "Alice Liddell"
+    assert node["fields"]["name"] == "Alice Liddell"
 
 def test_delete_node(db):
     node_id = db.add_node(type_="character", fields={"name": "Temp"})
@@ -54,7 +54,7 @@ def test_search_nodes(db):
     db.add_node(type_="character", fields={"name": "Frodo", "role": "hobbit"})
     results = db.search_nodes("wizard")
     assert len(results) == 1
-    assert json.loads(results[0]["fields"])["name"] == "Gandalf"
+    assert results[0]["fields"]["name"] == "Gandalf"
 
 def test_get_types(db):
     db.add_node(type_="character", fields={})
