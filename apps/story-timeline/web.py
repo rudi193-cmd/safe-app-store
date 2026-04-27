@@ -376,7 +376,7 @@ class TimelineHTTPServer:
 
     def __init__(self, port: int = 8765):
         self.port = port
-        self._server = _ReusingHTTPServer(("", port), _Handler)
+        self._server = _ReusingHTTPServer(("127.0.0.1", port), _Handler)
 
     def start(self):
         """Blocking — call from a daemon thread."""

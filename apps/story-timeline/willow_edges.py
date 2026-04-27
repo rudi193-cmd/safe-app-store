@@ -14,30 +14,32 @@ from typing import Optional
 
 _STORE = None
 _WILLOW_AVAILABLE = False
+_WILLOW_INIT_FAILED = False
 _WILLOW_CORE_LAST = None
 
 def _get_store():
     """Lazy-load and cache WillowStore. Re-initializes if WILLOW_CORE changes."""
-    global _STORE, _WILLOW_AVAILABLE, _WILLOW_CORE_LAST
+    global _STORE, _WILLOW_AVAILABLE, _WILLOW_INIT_FAILED, _WILLOW_CORE_LAST
 
     willow_core = os.environ.get(
         "WILLOW_CORE",
         str(Path.home() / "github" / "willow-1.9" / "core")
     )
 
-    # If WILLOW_CORE changed, reset cache and remove from sys.modules/sys.path to force re-initialization
+    # If WILLOW_CORE changed, reset cache to allow re-initialization
     if willow_core != _WILLOW_CORE_LAST:
         _WILLOW_CORE_LAST = willow_core
         _STORE = None
         _WILLOW_AVAILABLE = False
-        # Remove cached module and clean sys.path
+        _WILLOW_INIT_FAILED = False
         if 'willow_store' in sys.modules:
             del sys.modules['willow_store']
-        # Remove old willow paths from sys.path
         sys.path = [p for p in sys.path if 'willow' not in p.lower()]
 
     if _WILLOW_AVAILABLE:
         return _STORE
+    if _WILLOW_INIT_FAILED:
+        return None  # don't retry a permanently failed init
 
     try:
         if willow_core not in sys.path:
@@ -50,6 +52,7 @@ def _get_store():
         sys.stderr.write(f"[willow_edges] store init failed: {e}\n")
         _STORE = None
         _WILLOW_AVAILABLE = False
+        _WILLOW_INIT_FAILED = True
         return None
 
 
