@@ -367,13 +367,16 @@ class _Handler(BaseHTTPRequestHandler):
             self._send_json({"error": "not found"}, status=404)
 
 
+class _ReusingHTTPServer(HTTPServer):
+    allow_reuse_address = True
+
+
 class TimelineHTTPServer:
-    """Thin wrapper around socketserver.TCPServer."""
+    """Thin wrapper around HTTPServer."""
 
     def __init__(self, port: int = 8765):
         self.port = port
-        socketserver.TCPServer.allow_reuse_address = True
-        self._server = HTTPServer(("", port), _Handler)
+        self._server = _ReusingHTTPServer(("", port), _Handler)
 
     def start(self):
         """Blocking — call from a daemon thread."""
@@ -389,7 +392,7 @@ def _set_user_uuid(uuid: Optional[str]) -> None:
     _USER_UUID = uuid
 
 
-def run_web(port: int = 8765, open_browser: bool = True) -> None:
+def run_web(port: int = 8765, open_browser: bool = True) -> "TimelineHTTPServer":
     """Start the HTTP server in a background thread and optionally open browser."""
     srv = TimelineHTTPServer(port=port)
     t = threading.Thread(target=srv.start, daemon=True)

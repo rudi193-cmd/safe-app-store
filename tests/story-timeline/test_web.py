@@ -23,7 +23,12 @@ def server(tmp_path, monkeypatch):
     srv = web.TimelineHTTPServer(port=19876)
     t = threading.Thread(target=srv.start, daemon=True)
     t.start()
-    time.sleep(0.3)
+    for _ in range(20):
+        try:
+            urllib.request.urlopen("http://localhost:19876/")
+            break
+        except OSError:
+            time.sleep(0.05)
     yield srv
     srv.stop()
 
