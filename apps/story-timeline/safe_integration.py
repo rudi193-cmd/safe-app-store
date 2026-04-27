@@ -15,29 +15,43 @@ from typing import Optional
 
 _IDENTITY_PATH = Path.home() / ".willow" / "user_identity.json"
 
+_WILLOW_STORE = None
+_WILLOW_CORE_LAST = None
 
-def _init_willow():
-    """Initialize Willow store, handling missing/broken WILLOW_CORE gracefully."""
-    _WILLOW_CORE = os.environ.get(
+
+def _get_store():
+    """Lazy-load and cache WillowStore. Re-initializes if WILLOW_CORE changed."""
+    global _WILLOW_STORE, _WILLOW_CORE_LAST
+
+    willow_core = os.environ.get(
         "WILLOW_CORE",
         str(Path.home() / "github" / "willow-1.9" / "core")
     )
-    
-    if not Path(_WILLOW_CORE).exists():
-        return None, False
-    
-    if _WILLOW_CORE not in sys.path:
-        sys.path.insert(0, _WILLOW_CORE)
-    
+
+    # If WILLOW_CORE changed, reset cache and remove from sys.modules/sys.path to force re-initialization
+    if willow_core != _WILLOW_CORE_LAST:
+        _WILLOW_CORE_LAST = willow_core
+        _WILLOW_STORE = None
+        # Remove cached module and clean sys.path
+        if 'willow_store' in sys.modules:
+            del sys.modules['willow_store']
+        # Remove old willow paths from sys.path
+        sys.path = [p for p in sys.path if 'willow' not in p.lower()]
+
+    if _WILLOW_STORE is not None:
+        return _WILLOW_STORE
+
     try:
+        if willow_core not in sys.path:
+            sys.path.insert(0, willow_core)
         from willow_store import WillowStore
-        return WillowStore(), True
+        store_root = os.environ.get("WILLOW_STORE_ROOT")
+        _WILLOW_STORE = WillowStore(root=store_root) if store_root else WillowStore()
+        return _WILLOW_STORE
     except Exception as e:
         sys.stderr.write(f"[safe_integration] store init failed: {e}\n")
-        return None, False
-
-
-_STORE, _WILLOW_AVAILABLE = _init_willow()
+        _WILLOW_STORE = None
+        return None
 
 
 def get_user_uuid() -> Optional[str]:
@@ -49,21 +63,23 @@ def get_user_uuid() -> Optional[str]:
 
 
 def write_session_composite(stats: dict, uuid: str) -> bool:
-    if not _WILLOW_AVAILABLE or not uuid:
+    store = _get_store()
+    if not store or not uuid:
         return False
     safe_uuid = re.sub(r"[^a-zA-Z0-9_\-]", "-", uuid)
     collection = f"user-{safe_uuid}/story-timeline/atoms"
-    atom_id = f"session-{datetime.now().strftime('%Y%m%dT%H%M%S')}"
+    now = datetime.now()
+    atom_id = f"session-{now.strftime('%Y%m%dT%H%M%S')}"
     record = {
         "id": atom_id,
         "type": "session_composite",
         "app_id": "story-timeline",
         "user_uuid": uuid,
-        "created_at": datetime.now().isoformat(),
+        "created_at": now.isoformat(),
         **stats,
     }
     try:
-        _STORE.put(collection, record, record_id=atom_id)
+        store.put(collection, record, record_id=atom_id)
         return True
     except Exception as e:
         sys.stderr.write(f"[safe_integration] write_session_composite failed: {e}\n")

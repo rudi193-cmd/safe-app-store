@@ -13,8 +13,7 @@ def si(monkeypatch, tmp_path):
         Path(__file__).parents[5] / "willow-1.9" / "core"
     ))
     import safe_integration
-    import importlib
-    importlib.reload(safe_integration)
+    safe_integration._WILLOW_STORE = None
     return safe_integration
 
 
@@ -39,8 +38,7 @@ def test_get_user_uuid_returns_none_on_malformed_json(si, tmp_path, monkeypatch)
 
 def test_write_session_composite_succeeds(si, tmp_path, monkeypatch):
     monkeypatch.setenv("WILLOW_STORE_ROOT", str(tmp_path / "willow"))
-    import importlib
-    importlib.reload(si)
+    si._WILLOW_STORE = None
     stats = {
         "nodes_created": 3,
         "edges_created": 2,
@@ -54,7 +52,7 @@ def test_write_session_composite_succeeds(si, tmp_path, monkeypatch):
 def test_write_session_composite_noop_without_willow(tmp_path, monkeypatch):
     monkeypatch.setenv("WILLOW_CORE", str(tmp_path / "nonexistent"))
     import safe_integration
-    import importlib
-    importlib.reload(safe_integration)
+    safe_integration._WILLOW_STORE = None
+    safe_integration._WILLOW_CORE_LAST = None
     result = safe_integration.write_session_composite(stats={}, uuid="test-uuid")
     assert result is False
