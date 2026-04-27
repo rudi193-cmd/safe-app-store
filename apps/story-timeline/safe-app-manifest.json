@@ -1,10 +1,31 @@
 {
   "name": "story-timeline",
-  "version": "0.1.0",
-  "description": "Track events, characters, and locations across a narrative timeline.",
-  "author": "Professor Oakenscroll / hanuman",
-  "entry_point": "safe_integration:status",
-  "permissions": ["filesystem_write"],
+  "version": "2.0.0",
+  "description": "Open node graph writing tool. Any entity type, user-defined. Local, private, Willow-integrated.",
+  "author": "Professor Oakenscroll / Vishwakarma",
+  "entry_point": "app.py",
+  "permissions": [
+    "filesystem_write",
+    "store_read",
+    "store_write",
+    "store_add_edge",
+    "store_edges_for"
+  ],
+  "sap_scope": "user-{uuid}/story-timeline/**",
+  "exposes": {
+    "atoms": {
+      "path": "user-{uuid}/story-timeline/atoms/",
+      "access": "read",
+      "requires_user_approval": true,
+      "description": "Session composite atoms — writing activity summary"
+    }
+  },
   "local": true,
-  "b17": "STLN1"
+  "surfaces": ["tui", "web"],
+  "dependencies": {
+    "user_identity_json": "required — provisioned by willow-seed",
+    "norn_pass_scope": "optional — needed for reflection/insight passes",
+    "cross_app_sap_spec": "optional — needed for cross-app atom reads"
+  },
+  "b17": "STLN2"
 }
