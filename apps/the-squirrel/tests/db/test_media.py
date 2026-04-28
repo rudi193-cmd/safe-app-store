@@ -2,10 +2,13 @@ import pytest
 from db import get_connection, release_connection
 import db.media as media_db
 import db.persons as persons_db
+import db.events as events_db
 
 @pytest.fixture
 def conn():
     c = get_connection()
+    persons_db.init_schema(c)
+    events_db.init_schema(c)
     media_db.init_schema(c)
     yield c
     c.cursor().execute("DELETE FROM the_squirrel.media WHERE caption LIKE 'TEST%'")

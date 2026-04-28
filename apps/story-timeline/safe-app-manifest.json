@@ -13,13 +13,14 @@
   ],
   "sap_scope": "user-{uuid}/story-timeline/**",
   "exposes": {
-    "atoms": {
+    "session_composite": {
       "path": "user-{uuid}/story-timeline/atoms/",
       "access": "read",
       "requires_user_approval": true,
-      "description": "Session composite atoms — writing activity summary"
+      "description": "Session composite atoms — writing activity summary (nodes created, edges made, entity types used)"
     }
   },
+  "reads_from": {},
   "local": true,
   "surfaces": ["tui", "web"],
   "dependencies": {

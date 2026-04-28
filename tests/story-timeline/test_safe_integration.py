@@ -7,13 +7,36 @@ from pathlib import Path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../apps/story-timeline"))
 
 
+class _MockSoilClient:
+    """In-memory SoilClient for tests — no MCP server required."""
+    _available = True
+
+    def __init__(self):
+        self._store: dict[str, dict] = {}
+
+    def put(self, collection, record, record_id=None):
+        key = record_id or record.get("id")
+        self._store[key] = dict(record)
+        return key
+
+    def list(self, collection):
+        return list(self._store.values())
+
+    def delete(self, collection, record_id):
+        if record_id in self._store:
+            del self._store[record_id]
+            return True
+        return False
+
+
 @pytest.fixture()
-def si(monkeypatch, tmp_path):
-    monkeypatch.setenv("WILLOW_CORE", str(
-        Path(__file__).parents[5] / "willow-1.9" / "core"
-    ))
+def si():
     import safe_integration
-    safe_integration._WILLOW_STORE = None
+    import importlib
+    importlib.reload(safe_integration)
+    mock = _MockSoilClient()
+    safe_integration._CLIENT = mock
+    safe_integration._CLIENT_INIT_FAILED = False
     return safe_integration
 
 
@@ -36,9 +59,7 @@ def test_get_user_uuid_returns_none_on_malformed_json(si, tmp_path, monkeypatch)
     assert si.get_user_uuid() is None
 
 
-def test_write_session_composite_succeeds(si, tmp_path, monkeypatch):
-    monkeypatch.setenv("WILLOW_STORE_ROOT", str(tmp_path / "willow"))
-    si._WILLOW_STORE = None
+def test_write_session_composite_succeeds(si):
     stats = {
         "nodes_created": 3,
         "edges_created": 2,
@@ -49,10 +70,11 @@ def test_write_session_composite_succeeds(si, tmp_path, monkeypatch):
     assert result is True
 
 
-def test_write_session_composite_noop_without_willow(tmp_path, monkeypatch):
-    monkeypatch.setenv("WILLOW_CORE", str(tmp_path / "nonexistent"))
+def test_write_session_composite_noop_without_willow(monkeypatch):
     import safe_integration
-    safe_integration._WILLOW_STORE = None
-    safe_integration._WILLOW_CORE_LAST = None
+    import importlib
+    importlib.reload(safe_integration)
+    safe_integration._CLIENT = None
+    safe_integration._CLIENT_INIT_FAILED = True
     result = safe_integration.write_session_composite(stats={}, uuid="test-uuid")
     assert result is False

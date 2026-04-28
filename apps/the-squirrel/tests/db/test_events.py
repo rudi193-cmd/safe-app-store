@@ -6,6 +6,7 @@ import db.persons as persons_db
 @pytest.fixture
 def conn():
     c = get_connection()
+    persons_db.init_schema(c)
     events_db.init_schema(c)
     yield c
     c.cursor().execute("DELETE FROM the_squirrel.events WHERE notes LIKE 'TEST%'")

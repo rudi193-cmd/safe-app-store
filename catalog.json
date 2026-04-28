@@ -103,8 +103,8 @@
     {
       "id": "genealogy",
       "name": "Genealogy",
-      "description": "Local-first family tree and genealogy research.",
-      "status": "beta",
+      "description": "Local-first family tree and genealogy research. Merged into the-squirrel.",
+      "status": "archived",
       "path": "apps/genealogy",
       "tags": ["family", "history", "local"]
     },

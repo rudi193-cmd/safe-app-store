@@ -56,19 +56,37 @@ def test_boot_sequence_no_migration_for_v2_db(tmp_path, monkeypatch):
     assert result["migrated"] == 0
 
 
+class _MockSoilClient:
+    _available = True
+
+    def __init__(self):
+        self._store: dict = {}
+
+    def put(self, collection, record, record_id=None):
+        key = record_id or record.get("id")
+        self._store[key] = dict(record)
+        return key
+
+    def list(self, collection):
+        return list(self._store.values())
+
+    def delete(self, collection, record_id):
+        if record_id in self._store:
+            del self._store[record_id]
+            return True
+        return False
+
+
 def test_boot_sequence_reconciles_edges(tmp_path, monkeypatch):
     monkeypatch.setenv("STORY_TIMELINE_DB", str(tmp_path / "edges.db"))
-    monkeypatch.setenv("WILLOW_STORE_ROOT", str(tmp_path / "willow"))
-    from pathlib import Path
-    monkeypatch.setenv("WILLOW_CORE", str(
-        Path(__file__).parents[5] / "willow-1.9" / "core"
-    ))
     import migrate, timeline_db, willow_edges
     import importlib
     importlib.reload(migrate)
     importlib.reload(timeline_db)
     importlib.reload(willow_edges)
-    willow_edges._WILLOW_STORE = None
+    mock = _MockSoilClient()
+    willow_edges._CLIENT = mock
+    willow_edges._CLIENT_INIT_FAILED = False
 
     node_id = timeline_db.add_node(type_="character", fields={"name": "Real"})
     willow_edges.add_edge(node_id, "ghost-id", "knows", uuid="boot-test-uuid")

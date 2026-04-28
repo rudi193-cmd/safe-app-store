@@ -40,7 +40,25 @@
       "mcp__willow__store_add_edge",
       "mcp__willow__store_edges_for",
       "mcp__willow__store_stats",
-      "mcp__willow__store_audit"
+      "mcp__willow__store_audit",
+      "mcp__willow__jeles_fetch",
+      "mcp__willow__jeles_sources",
+      "mcp__grove__grove_get_history",
+      "mcp__grove__grove_send_message",
+      "mcp__grove__grove_watch_all",
+      "mcp__grove__grove_watch",
+      "mcp__grove__grove_list_channels",
+      "mcp__grove__grove_search",
+      "mcp__grove__grove_bus_send",
+      "mcp__grove__grove_heartbeat",
+      "mcp__grove__grove_ack",
+      "mcp__grove__grove_reply",
+      "mcp__grove__grove_flag",
+      "mcp__grove__grove_flagged",
+      "mcp__grove__grove_unflag",
+      "mcp__grove__grove_get_thread",
+      "mcp__grove__grove_get_identity",
+      "mcp__grove__grove_bus_receive"
     ],
     "defaultMode": "default"
   }

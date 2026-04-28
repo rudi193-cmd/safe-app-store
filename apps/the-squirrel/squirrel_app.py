@@ -354,6 +354,7 @@ def _render_stash(conn) -> str:
 
 def _render_sources(conn, q: str = "") -> str:
     import db.sources as sources_db
+    sources_db.init_schema(conn)
     search_form = (
         f'<form class="sources-search" action="/sources" method="get">'
         f'<input type="text" name="q" value="{_html.escape(q)}" '

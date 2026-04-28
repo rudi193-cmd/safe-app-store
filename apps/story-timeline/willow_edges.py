@@ -1,58 +1,51 @@
 """
 willow_edges.py — Willow edge layer for story-timeline v2.
 
-Wraps WillowStore (from willow-1.9/core/willow_store.py) for graph edges.
-All edges scoped to user-{uuid}/story-timeline/_graph/edges.
+Edges scoped to user-{uuid}/story-timeline/_graph/edges.
+Talks to Willow via SoilClient (MCP/stdio) — all calls go through the SAP gate.
 Degrades gracefully to no-op when Willow is unavailable.
 """
-import json
 import os
 import re
 import sys
 from pathlib import Path
 from typing import Optional
 
-_STORE = None
-_WILLOW_AVAILABLE = False
-_WILLOW_INIT_FAILED = False
-_WILLOW_CORE_LAST = None
+_CLIENT = None
+_CLIENT_INIT_FAILED = False
 
-def _get_store():
-    """Lazy-load and cache WillowStore. Re-initializes if WILLOW_CORE changes."""
-    global _STORE, _WILLOW_AVAILABLE, _WILLOW_INIT_FAILED, _WILLOW_CORE_LAST
+APP_ID = "story-timeline"
 
-    willow_core = os.environ.get(
-        "WILLOW_CORE",
-        str(Path.home() / "github" / "willow-1.9" / "core")
-    )
 
-    # If WILLOW_CORE changed, reset cache to allow re-initialization
-    if willow_core != _WILLOW_CORE_LAST:
-        _WILLOW_CORE_LAST = willow_core
-        _STORE = None
-        _WILLOW_AVAILABLE = False
-        _WILLOW_INIT_FAILED = False
-        if 'willow_store' in sys.modules:
-            del sys.modules['willow_store']
-        sys.path = [p for p in sys.path if 'willow' not in p.lower()]
+def _get_client():
+    global _CLIENT, _CLIENT_INIT_FAILED
 
-    if _WILLOW_AVAILABLE:
-        return _STORE
-    if _WILLOW_INIT_FAILED:
-        return None  # don't retry a permanently failed init
+    if _CLIENT is not None:
+        return _CLIENT
+    if _CLIENT_INIT_FAILED:
+        return None
 
     try:
-        if willow_core not in sys.path:
-            sys.path.insert(0, willow_core)
-        from willow_store import WillowStore
-        _STORE = WillowStore()
-        _WILLOW_AVAILABLE = True
-        return _STORE
+        willow_root = os.environ.get(
+            "WILLOW_ROOT",
+            str(Path(os.environ.get(
+                "WILLOW_CORE",
+                str(Path.home() / "github" / "willow-1.9" / "core")
+            )).parent)
+        )
+        if willow_root not in sys.path:
+            sys.path.insert(0, willow_root)
+        from sap.clients.soil_client import SoilClient
+        client = SoilClient(app_id=APP_ID)
+        if not client._available:
+            sys.stderr.write("[willow_edges] store init failed: SoilClient unavailable\n")
+            _CLIENT_INIT_FAILED = True
+            return None
+        _CLIENT = client
+        return _CLIENT
     except Exception as e:
         sys.stderr.write(f"[willow_edges] store init failed: {e}\n")
-        _STORE = None
-        _WILLOW_AVAILABLE = False
-        _WILLOW_INIT_FAILED = True
+        _CLIENT_INIT_FAILED = True
         return None
 
 
@@ -69,8 +62,8 @@ def add_edge(from_id: str, to_id: str, relation: str,
              context: str = "", uuid: Optional[str] = None) -> Optional[str]:
     if not uuid:
         return None
-    store = _get_store()
-    if not store:
+    client = _get_client()
+    if not client:
         return None
     edge_id = f"{_safe_id(from_id)}__{_safe_id(relation)}__{_safe_id(to_id)}"
     record = {
@@ -80,58 +73,31 @@ def add_edge(from_id: str, to_id: str, relation: str,
         "relation": relation,
         "context": context,
     }
-    try:
-        store.put(_collection(uuid), record, record_id=edge_id)
-        return edge_id
-    except Exception as e:
-        sys.stderr.write(f"[willow_edges] add_edge failed: {e}\n")
-        return None
+    return client.put(_collection(uuid), record, record_id=edge_id)
 
 
 def edges_for(node_id: str, uuid: Optional[str] = None) -> list[dict]:
     if not uuid:
         return []
-    store = _get_store()
-    if not store:
+    client = _get_client()
+    if not client:
         return []
-    try:
-        col = _collection(uuid)
-        conn = store._conn(col)
-        try:
-            rows = conn.execute(
-                "SELECT data FROM records WHERE deleted = 0"
-            ).fetchall()
-        finally:
-            conn.close()
-        results = []
-        for row in rows:
-            edge = json.loads(row[0])
-            if edge.get("from_id") == node_id or edge.get("to_id") == node_id:
-                results.append(edge)
-        return results
-    except Exception:
-        return []
+    records = client.list(_collection(uuid))
+    return [
+        r for r in records
+        if isinstance(r, dict) and (
+            r.get("from_id") == node_id or r.get("to_id") == node_id
+        )
+    ]
 
 
 def delete_edge(edge_id: str, uuid: Optional[str] = None) -> bool:
     if not uuid:
         return False
-    store = _get_store()
-    if not store:
+    client = _get_client()
+    if not client:
         return False
-    try:
-        col = _collection(uuid)
-        conn = store._conn(col)
-        try:
-            cur = conn.execute(
-                "UPDATE records SET deleted = 1 WHERE id = ?", (edge_id,)
-            )
-            conn.commit()
-            return cur.rowcount > 0
-        finally:
-            conn.close()
-    except Exception:
-        return False
+    return client.delete(_collection(uuid), edge_id)
 
 
 def reconcile_orphans(valid_node_ids: list[str], uuid: Optional[str] = None) -> int:
@@ -139,29 +105,17 @@ def reconcile_orphans(valid_node_ids: list[str], uuid: Optional[str] = None) -> 
     Returns count of edges removed. Called at boot for integrity check."""
     if not uuid:
         return 0
-    store = _get_store()
-    if not store:
+    client = _get_client()
+    if not client:
         return 0
     valid = set(valid_node_ids)
+    records = client.list(_collection(uuid))
     removed = 0
-    try:
-        col = _collection(uuid)
-        conn = store._conn(col)
-        try:
-            rows = conn.execute(
-                "SELECT id, data FROM records WHERE deleted = 0"
-            ).fetchall()
-            for row in rows:
-                edge = json.loads(row[1])
-                if edge.get("from_id") not in valid or edge.get("to_id") not in valid:
-                    conn.execute(
-                        "UPDATE records SET deleted = 1 WHERE id = ?", (row[0],)
-                    )
-                    removed += 1
-            conn.commit()
-        finally:
-            conn.close()
-    except Exception as e:
-        sys.stderr.write(f"[willow_edges] reconcile error: {e}\n")
-        return removed
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        if record.get("from_id") not in valid or record.get("to_id") not in valid:
+            edge_id = record.get("id")
+            if edge_id and client.delete(_collection(uuid), edge_id):
+                removed += 1
     return removed
