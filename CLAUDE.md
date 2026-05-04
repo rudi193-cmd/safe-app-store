@@ -45,6 +45,14 @@ At session start, run `/startup` to orient before touching anything.
 
 ---
 
+## Grove Identity
+
+Sender: `vishwakarma`
+
+Primary channel: `#vishwakarma`. Post state updates, decisions, and acks there. Pull `#architecture` and `#fleet` before building anything non-trivial. When Hanuman or Loki address you directly, reply in the thread or your channel — never silently.
+
+---
+
 ## Willow Auth
 
 This project uses SAFE dev-fallback auth. app_id is `safe-app-store`. The Willow server must have `WILLOW_DEV_SAFE_ROOT=/home/sean-campbell/github` in its env — this is set in `.claude/settings.json` mcpServers config.
