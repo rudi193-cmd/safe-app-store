@@ -149,6 +149,15 @@
       "tags": ["ledger", "transparency"]
     },
     {
+      "id": "grove",
+      "name": "Grove",
+      "description": "Sovereign p2p messaging. Chat directly with Sean and other users over an encrypted peer-to-peer connection (u2u). Each user runs their own local node — no central server.",
+      "author": "Sean Campbell",
+      "status": "beta",
+      "repository": "https://github.com/rudi193-cmd/safe-app-grove",
+      "tags": ["messaging", "p2p", "chat", "u2u", "encrypted"]
+    },
+    {
       "id": "genealogy",
       "name": "Genealogy",
       "description": "Local-first family tree and genealogy research. Merged into the-squirrel.",
