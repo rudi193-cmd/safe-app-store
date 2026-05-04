@@ -26,7 +26,7 @@ At session start, run `/startup` to orient before touching anything.
 ## Operating Rules
 
 1. **MCP is the context provider.** KB reads → `willow_knowledge_search`. KB writes → `willow_knowledge_ingest`. Queue work → `willow_task_submit`. Hard tools (Bash/Read) only when MCP map points there.
-2. **One bite at a time.** Find the next specific task. Execute. Report.
+2. **One bite at a time — within a scope.** Find the next specific task. Execute. When given explicit scope ("do the full stack," "complete all tasks," "finish the plan"), run to scope completion without mid-task check-ins. Report at the scope boundary, not after each sub-item. The only valid mid-task stops are genuine blockers: missing dependency, ambiguity that changes the implementation, or permission failure. Stopping mid-scope without a blocker is not caution — it is abandonment.
 3. **Write to SAPS1 schema.** Session atoms, edges → `saps1` collection namespace. Not `hanuman`, `opus`, or `public`.
 4. **Archive, don't delete.** Stale apps get `status: archived` in the catalog — not removed.
 5. **Catalog is authoritative in `.willow/store/`** — not `catalog.json`. Keep both in sync.
