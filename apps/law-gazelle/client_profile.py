@@ -19,7 +19,7 @@ The context dict matches the shape expected by gazelle_engine.create_session():
 from pathlib import Path
 
 # Canonical persona.md location — lives at the system level, not in the repo.
-_PERSONA_PATH = Path("/home/sean-campbell/persona.md")
+_PERSONA_PATH = Path.home() / "persona.md"
 _FALLBACK_PATH = Path(__file__).parent / "data" / "client" / "persona.md"
 
 
