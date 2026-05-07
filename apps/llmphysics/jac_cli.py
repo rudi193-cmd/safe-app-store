@@ -27,7 +27,7 @@ from pathlib import Path
 
 # ── Willow fleet proxy (fallback if direct import unavailable) ─────
 WILLOW_PROXY   = "http://localhost:8420"
-WILLOW_CORE    = "/home/sean-campbell/github/Willow"
+WILLOW_CORE    = os.environ.get("WILLOW_ROOT", str(Path.home() / "github" / "Willow"))
 CHUNK_SIZE     = 8000   # chars — fits Cerebras (8192 tok limit) with room for judge prompt
 MAX_CHARS      = 8000   # always chunk papers over this size
 _llm_router    = None   # lazy-loaded
