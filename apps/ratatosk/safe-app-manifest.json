@@ -1,0 +1,36 @@
+{
+  "app_id": "ratatosk",
+  "name": "Ratatosk",
+  "version": "1.0.0",
+  "safe_version": ">=2.0.0",
+  "b17": "L3178",
+  "agent_type": "tool",
+  "description": "Sovereign Claude Code replacement. Direct Anthropic API, full tool loop, JSONL sessions, hook execution, MCP client, Grove-wired. Yours to run. Yours to keep.",
+  "author": "Sean Campbell",
+  "data_streams": [
+    {
+      "id": "sessions",
+      "purpose": "JSONL session logs written to ~/.claude/projects/",
+      "retention": "permanent",
+      "description": "Session transcripts stored locally. Never sent upstream."
+    },
+    {
+      "id": "grove_events",
+      "purpose": "Session start/end events posted to Grove for fleet visibility",
+      "retention": "permanent",
+      "description": "Posted to Grove only when RATATOSK_GROVE_CHANNEL is set."
+    }
+  ],
+  "permissions": [
+    "local_llm",
+    "filesystem_write",
+    "willow_kb_read",
+    "willow_kb_write"
+  ],
+  "privacy_tier": "local",
+  "local_processing": 1.0,
+  "entry_point": "ratatosk.crown:main",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-store",
+  "notes": "ANTHROPIC_API_KEY required for cloud mode. RATATOSK_MCP_PATH for MCP wiring (default: willow-1.9/sap/sap_mcp.py). RATATOSK_GROVE_CHANNEL to enable Grove event posting."
+}
