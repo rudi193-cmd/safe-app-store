@@ -3,12 +3,17 @@ tools.py — Tool definitions and dispatch for the Ratatosk tool loop.
 b17: 0CE44  ΔΣ=42
 """
 import json
+import shlex
 import subprocess
 from pathlib import Path
 
 BASH_TOOL = {
     "name": "Bash",
-    "description": "Run a shell command and return stdout+stderr.",
+    "description": (
+        "Run a command without a shell (POSIX words via shlex). "
+        "No pipes/redirection unless you invoke `bash`/`sh` as the executable "
+        "(e.g. `[\"bash\",\"-lc\",\"git status | head\"]`) — prefer simple argv forms."
+    ),
     "input_schema": {
         "type": "object",
         "properties": {
@@ -40,8 +45,14 @@ def dispatch(name: str, inputs: dict, mcp_names: set, mcp_call) -> object:
     if name == "Bash":
         cmd = inputs.get("command", "")
         try:
+            argv = shlex.split(cmd, posix=True)
+        except ValueError as e:
+            return f"ERROR: could not parse command: {e}"
+        if not argv:
+            return "(no command)"
+        try:
             result = subprocess.run(
-                cmd, shell=True, capture_output=True, text=True, timeout=_BASH_TIMEOUT
+                argv, shell=False, capture_output=True, text=True, timeout=_BASH_TIMEOUT
             )
             return (result.stdout + result.stderr).strip() or "(no output)"
         except subprocess.TimeoutExpired:

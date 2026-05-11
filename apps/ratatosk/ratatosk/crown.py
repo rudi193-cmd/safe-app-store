@@ -131,9 +131,11 @@ def _load_api_key() -> str:
     key = os.environ.get("ANTHROPIC_API_KEY", "")
     if key:
         return key
+    _wr = Path(os.environ.get("WILLOW_ROOT", str(_HOME / "github" / "willow-1.9"))).expanduser()
     for candidate in [
-        _HOME / "github" / "willow-1.5" / "credentials.json",
         _HOME / ".ratatosk" / "credentials.json",
+        _wr / "credentials.json",
+        _HOME / "github" / "willow-1.5" / "credentials.json",  # legacy layout
     ]:
         if candidate.exists():
             try:

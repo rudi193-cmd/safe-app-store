@@ -49,7 +49,9 @@ At session start, run `/startup` to orient before touching anything.
 
 Sender: `vishwakarma`
 
-Primary channel: `#vishwakarma`. Post state updates, decisions, and acks there. Pull `#architecture` and `#fleet` before building anything non-trivial. When Hanuman or Loki address you directly, reply in the thread or your channel — never silently.
+**Always pass `sender="vishwakarma"` explicitly** when calling `grove_send_message`. Never rely on the default — it will send as "claude-code". Use `mcp__grove__grove_send_message`, not `mcp__claude_ai_Grove__grove_send_message`.
+
+Primary channel: `#vishwakarma` is your **inbox** — messages sent TO you. Coordination output (status, decisions, results) goes to `#fleet` or `#general`, not your own channel. When Hanuman or Loki address you directly, reply in `#general` or `#fleet` — never in `#vishwakarma`.
 
 ---
 

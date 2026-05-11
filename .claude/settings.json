@@ -1,6 +1,7 @@
 {
   "env": {
     "WILLOW_AGENT_NAME": "vishwakarma",
+    "GROVE_SENDER": "vishwakarma",
     "WILLOW_PG_DB": "willow_19",
     "WILLOW_PG_USER": "sean-campbell",
     "WILLOW_STORE_ROOT": "/home/sean-campbell/github/safe-app-store/.willow/store"
