@@ -47,8 +47,7 @@ REQUEST_DELAY = 1.5  # seconds between requests (be polite)
 
 def fetch_cdx_index(limit=None):
     """Query Wayback CDX API for all scooterbbs.com captures."""
-    print(f"
-Querying CDX API for {BBS_DOMAIN}...")
+    print(f"\nQuerying CDX API for {BBS_DOMAIN}...")
 
     params = {
         "url": f"{BBS_DOMAIN}/*",
@@ -118,8 +117,7 @@ def classify_urls(captures):
         else:
             index_pages.append(cap)
 
-    print(f"
-  Thread URLs: {len(threads)}")
+    print(f"\n  Thread URLs: {len(threads)}")
     print(f"  Index/nav pages: {len(index_pages)}")
 
     THREADS_FILE.write_text(json.dumps({
@@ -147,7 +145,7 @@ def scrape_wayback_thread(timestamp, original_url):
     wayback_url = f"{WAYBACK_BASE}/{timestamp}/{original_url}"
     try:
         r = requests.get(wayback_url, headers=HEADERS, timeout=30)
-        if r.status_code \!= 200:
+        if r.status_code != 200:
             return None, wayback_url
 
         soup = BeautifulSoup(r.text, "html.parser")
@@ -205,8 +203,7 @@ def scrape_threads(threads, limit=None):
     if limit:
         targets = targets[:limit]
 
-    print(f"
-Scraping {len(targets)} threads ({len(already_done)} already done)...")
+    print(f"\nScraping {len(targets)} threads ({len(already_done)} already done)...")
 
     for i, thread in enumerate(targets, 1):
         url = thread["original"]
@@ -222,8 +219,7 @@ Scraping {len(targets)} threads ({len(already_done)} already done)...")
             results.append(result)
             with open(posts_file, "a", encoding="utf-8") as f:
                 json.dump(result, f, ensure_ascii=False)
-                f.write("
-")
+                f.write("\n")
             cp["scraped"].append(url)
         else:
             print(f"[FAILED] {info[:60]}")
@@ -237,8 +233,7 @@ Scraping {len(targets)} threads ({len(already_done)} already done)...")
 
     save_checkpoint(cp)
     failed_count = len(cp["failed"])
-    print(f"
-Done: {len(results)} threads scraped, {failed_count} failed")
+    print(f"\nDone: {len(results)} threads scraped, {failed_count} failed")
     return results
 
 
@@ -259,8 +254,7 @@ def write_summary(captures, threads, index_pages):
         }
     }
     SUMMARY_FILE.write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    print(f"
--> Saved {SUMMARY_FILE}")
+    print(f"\n-> Saved {SUMMARY_FILE}")
     return summary
 
 
@@ -299,8 +293,7 @@ def main():
                 return
         scrape_threads(threads, limit=args.limit)
 
-    print("
-Next: python bbs_scraper.py --phase scrape --limit 100")
+    print("\nNext: python bbs_scraper.py --phase scrape --limit 100")
 
 
 if __name__ == "__main__":
