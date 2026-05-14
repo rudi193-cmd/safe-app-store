@@ -9,14 +9,16 @@ DB connection follows Willow's core/db.py pattern (psycopg2, pooled).
 """
 
 import os
-import sys
 import threading
 from datetime import datetime
 from typing import Optional, List, Dict, Any, Tuple
 
-# Import 23-cubed lattice constants from Willow
-sys.path.insert(0, "/home/sean-campbell/willow-1.5/core")
-from user_lattice import DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE
+# 23-cubed lattice constants (from Willow user_lattice.py)
+DOMAINS = frozenset({'biography', 'geography', 'genealogy', 'culture', 'migration'})
+TEMPORAL_STATES = frozenset({'past', 'present', 'future', 'unknown'})
+DEPTH_MIN = 1
+DEPTH_MAX = 23
+LATTICE_SIZE = 23
 
 # ---------------------------------------------------------------------------
 # Connection
