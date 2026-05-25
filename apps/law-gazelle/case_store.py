@@ -179,6 +179,13 @@ def sync_cases(source: Path | str = DEFAULT_SOURCE) -> dict:
     if not letter_found:
         optional_missing.append(LETTER_GLOB)
 
+    stale: list[str] = []
+    for case_key, filename in CASE_DBS.items():
+        src = source / filename
+        dest = CASES_DIR / filename
+        if src.exists() and dest.exists() and src.stat().st_mtime > dest.stat().st_mtime:
+            stale.append(filename)
+
     return {
         "source": str(source),
         "dest": str(CASES_DIR),
@@ -186,6 +193,7 @@ def sync_cases(source: Path | str = DEFAULT_SOURCE) -> dict:
         "skipped": skipped,
         "missing": missing,
         "optional_missing": optional_missing,
+        "stale": stale,
         "artifacts": [a["name"] for a in list_artifacts()],
     }
 
@@ -709,6 +717,26 @@ def get_artifact_detail(name: str) -> dict | None:
     return None
 
 
+def get_checklist_item_detail(doc_type: str) -> dict | None:
+    rows = _query(
+        "bankruptcy",
+        "SELECT * FROM document_checklist WHERE doc_type = ?",
+        (doc_type,),
+    )
+    if not rows:
+        return None
+    item = rows[0]
+    return {
+        "type": "checklist_item",
+        "source_db": "bankruptcy",
+        "item_type": "checklist_item",
+        "item_id": doc_type,
+        "checklist_item": item,
+        "notes": gazelle_state.list_notes("bankruptcy", "checklist_item", doc_type),
+        "overlay": gazelle_state.get_status("bankruptcy", "checklist_item", doc_type),
+    }
+
+
 def get_item_detail(source_db: str, item_type: str, item_id: str) -> dict | None:
     if item_type == "atom":
         return get_atom_detail(item_id, source_db=source_db)
@@ -749,6 +777,8 @@ def get_item_detail(source_db: str, item_type: str, item_id: str) -> dict | None
         return get_session_decision_detail(item_id)
     if item_type == "artifact":
         return get_artifact_detail(item_id)
+    if item_type == "checklist_item":
+        return get_checklist_item_detail(item_id)
     return None
 
 
@@ -926,6 +956,15 @@ def format_detail_text(detail: dict | None) -> str:
             "",
             "## Would Change",
             d.get("would_change") or "(none)",
+        ])
+    elif t == "checklist_item":
+        c = detail["checklist_item"]
+        lines.extend([
+            f"# {c.get('doc_type')}",
+            "",
+            f"**Status:** {c.get('status') or '—'} | **Priority:** {c.get('priority') or '—'}",
+            "",
+            c.get("description") or "",
         ])
     elif t == "artifact":
         a = detail["artifact"]

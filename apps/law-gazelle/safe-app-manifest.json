@@ -5,7 +5,7 @@
   "safe_version": ">=2.0.0",
   "b17": "E472A",
   "agent_type": "tool",
-  "description": "Legal reference tool \u2014 statute search, case summaries, plain-language explainers from verified sources.",
+  "description": "Case command center for Sean's active legal matters \u2014 coparent (D-000-DM-0000-00000), bankruptcy (Ch.7), workers comp (WCA 00-00000). Syncs canonical Nest databases, surfaces urgent queue and deadlines, tracks sidecar state, and exposes an MCP surface for LLM legal sessions.",
   "author": "Sean Campbell",
   "data_streams": [
     {
@@ -28,13 +28,13 @@
     }
   ],
   "permissions": [
-    "cloud_llm_free",
     "file_read",
+    "file_write_sidecar",
     "pattern_storage"
   ],
   "privacy_tier": "client_only",
   "local_processing": 0.96,
-  "entry_point": "safe_integration:status",
+  "entry_point": "app:main",
   "license": "MIT",
   "repository": "https://github.com/rudi193-cmd/safe-app-law-gazelle"
 }
