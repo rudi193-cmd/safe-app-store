@@ -1100,6 +1100,36 @@ def workers_comp_overview() -> dict | None:
     return overview
 
 
+def briefing_packet(include_session: bool = False) -> dict:
+    """Single-call LLM briefing: urgent queue + milestones + cross-case overview.
+
+    Returns a compact dict suitable for passing directly to an agent context.
+    Does NOT call format_detail_text — returns raw dicts for the agent to reason over.
+    For item drill-down use get_item_detail(source_db, item_type, item_id).
+    """
+    queue = urgent_queue(show_resolved=False)
+    banner = milestone_banner()
+    ms = milestones()
+    cross = cross_case_overview()
+
+    packet: dict = {
+        "generated_at": datetime.now().isoformat(),
+        "milestone_banner": banner,
+        "milestones": ms,
+        "urgent_count": len(queue),
+        "urgent": queue,
+        "cross_case": {
+            "intersections": cross.get("intersections", []),
+            "related_atoms": cross.get("related_atoms", []),
+        },
+    }
+
+    if include_session:
+        packet["session"] = session_overview()
+
+    return packet
+
+
 def workers_comp_atoms(status: str = "open", limit: int = 50) -> list[dict]:
     if not db_exists("workers_comp"):
         return []
