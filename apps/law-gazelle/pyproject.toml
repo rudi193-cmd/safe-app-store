@@ -9,4 +9,5 @@ description = "Legal reference tool — statute search, case summaries, plain-la
 requires-python = ">=3.10"
 dependencies = [
     "requests>=2.28.0",
+    "textual>=0.47.0",
 ]

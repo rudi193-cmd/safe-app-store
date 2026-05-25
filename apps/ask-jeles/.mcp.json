@@ -1,12 +1,16 @@
 {
   "mcpServers": {
     "willow": {
-      "command": "/home/sean-campbell/github/willow-1.7/willow.sh",
+      "type": "stdio",
+      "command": "bash",
+      "args": [
+        "/home/sean-campbell/willow-2.0/sap/unified_mcp.sh"
+      ],
       "env": {
-        "WILLOW_STORE_ROOT": "/home/sean-campbell/.willow/store",
-        "WILLOW_PG_DB": "willow",
-        "WILLOW_PG_USER": "sean-campbell",
-        "WILLOW_HANDOFF_DB": "/home/sean-campbell/Ashokoa/agents/hanuman/index/haumana_handoffs/handoffs.db"
+        "WILLOW_AGENT_NAME": "ask-jeles",
+        "WILLOW_GROVE_ROOT": "/home/sean-campbell/github/safe-app-willow-grove",
+        "WILLOW_PG_DB": "willow_20",
+        "WILLOW_SAFE_ROOT": "/home/sean-campbell/SAFE/Applications"
       }
     }
   }
