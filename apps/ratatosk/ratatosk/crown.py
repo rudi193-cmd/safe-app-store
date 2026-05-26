@@ -94,6 +94,34 @@ def _load_system_prompt(persona: str | None) -> str:
     return "\n\n---\n\n".join(parts) if parts else "You are Ratatosk. ΔΣ=42"
 
 
+# ─── Boot context ─────────────────────────────────────────────────────────────
+
+def _load_boot_context(agent: str) -> str:
+    """Read latest handoff from disk. Returns compact 3-line banner or ''."""
+    handoff_dir = Path.home() / ".willow" / "handoffs" / agent
+    if not handoff_dir.exists():
+        return ""
+    files = sorted(handoff_dir.glob("session_handoff-*.md"), reverse=True)
+    if not files:
+        return ""
+    try:
+        text = files[0].read_text(encoding="utf-8")
+        next_bite = ""
+        for line in text.splitlines():
+            if line.startswith("Q17:"):
+                next_bite = line[4:].strip()
+                break
+        threads = text.count("**[OPEN]")
+        lines = [f"  [handoff] {files[0].name}"]
+        if threads:
+            lines.append(f"  open: {threads} threads")
+        if next_bite:
+            lines.append(f"  next: {next_bite}")
+        return "\n".join(lines)
+    except Exception:
+        return ""
+
+
 # ─── Persona gate ─────────────────────────────────────────────────────────────
 
 def _persona_gate(preselect: str | None = None) -> str:
@@ -252,6 +280,11 @@ def main() -> None:
     persona_label = f"  [persona:{args.persona}]" if args.persona else ""
     print(f"\nRatatosk  b17:L3178  [{model}]  [{trust_label}]{persona_label}  session:{writer.session_id[:8]}…")
     print("Type /exit, /status, /clear.\n")
+
+    boot_ctx = _load_boot_context(os.environ.get("WILLOW_AGENT_NAME", "hanuman"))
+    if boot_ctx:
+        print(boot_ctx)
+        print()
 
     while True:
         try:
