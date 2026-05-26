@@ -27,7 +27,7 @@ from ratatosk import grove as _grove
 # ─── Paths ────────────────────────────────────────────────────────────────────
 
 _HOME = Path.home()
-_WILLOW_ROOT = Path(os.environ.get("WILLOW_ROOT", str(_HOME / "github" / "willow-1.9")))
+_WILLOW_ROOT = Path(os.environ.get("WILLOW_ROOT", str(_HOME / "willow-2.0")))
 
 _PERSONA_SEARCH = [
     _WILLOW_ROOT / "willow" / "fylgja" / "personas",
@@ -92,6 +92,48 @@ def _load_system_prompt(persona: str | None) -> str:
             if content:
                 parts.append(f"# {p}\n\n{content}")
     return "\n\n---\n\n".join(parts) if parts else "You are Ratatosk. ΔΣ=42"
+
+
+# ─── Persona gate ─────────────────────────────────────────────────────────────
+
+def _persona_gate(preselect: str | None = None) -> str:
+    """
+    Show picker, block until user confirms or selects.
+    Returns persona context string to prepend to the system prompt.
+    Hard stop — every session must cross this gate.
+    """
+    willow_root = str(_WILLOW_ROOT)
+    if willow_root not in sys.path:
+        sys.path.insert(0, willow_root)
+    try:
+        from willow.fylgja import persona as _p
+    except ImportError as e:
+        print(f"  [persona] unavailable ({e}) — skipping gate", flush=True)
+        return ""
+
+    if preselect:
+        _p.set_active_persona(preselect)
+
+    print()
+    print(_p.render_picker(_p.active_persona()))
+    print()
+    try:
+        raw = input("  ▷ confirm or pick: ").strip()
+    except (EOFError, KeyboardInterrupt):
+        raw = ""
+
+    if raw:
+        choice = _p.parse_selection(raw)
+        if choice and choice != "__create__":
+            _p.set_active_persona(choice)
+
+    active = _p.active_persona()
+    if active and active != "none":
+        ctx = _p.load_persona(active)
+        if ctx:
+            print(f"  [persona:{active}] loaded", flush=True)
+            return ctx
+    return ""
 
 
 # ─── Hooks ────────────────────────────────────────────────────────────────────
@@ -196,7 +238,10 @@ def main() -> None:
             print(f"  [mcp] FAILED: {e} — continuing without MCP tools", flush=True)
 
     all_tools = _tools.BASE_TOOLS + mcp_extra_tools
-    system_prompt = _load_system_prompt(args.persona)
+    persona_context = _persona_gate(args.persona if args.persona else None)
+    system_prompt = _load_system_prompt(None)
+    if persona_context:
+        system_prompt = persona_context + "\n\n---\n\n" + system_prompt
     writer = _session.SessionWriter(cwd=str(Path.cwd()))
     history: list[dict] = []
 

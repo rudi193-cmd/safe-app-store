@@ -10,7 +10,7 @@ from pathlib import Path
 
 _DEFAULT_SAP_MCP = str(
     Path(os.environ.get("RATATOSK_MCP_PATH",
-         str(Path.home() / "github" / "willow-1.9" / "sap" / "sap_mcp.py")))
+         str(Path.home() / "willow-2.0" / "sap" / "sap_mcp.py")))
 )
 
 _mcp_session = None

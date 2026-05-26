@@ -35,7 +35,47 @@ READ_TOOL = {
     },
 }
 
-BASE_TOOLS = [BASH_TOOL, READ_TOOL]
+WRITE_TOOL = {
+    "name": "Write",
+    "description": "Write content to a file. Creates parent directories if needed. Overwrites existing content.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "file_path": {"type": "string", "description": "Absolute path to the file"},
+            "content": {"type": "string", "description": "Content to write"},
+        },
+        "required": ["file_path", "content"],
+    },
+}
+
+EDIT_TOOL = {
+    "name": "Edit",
+    "description": "Replace old_string with new_string in a file. Fails if old_string not found or matches more than once.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "file_path": {"type": "string"},
+            "old_string": {"type": "string"},
+            "new_string": {"type": "string"},
+        },
+        "required": ["file_path", "old_string", "new_string"],
+    },
+}
+
+GLOB_TOOL = {
+    "name": "Glob",
+    "description": "List files matching a glob pattern. Returns newline-separated paths.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "pattern": {"type": "string", "description": "Glob pattern, e.g. src/**/*.py"},
+            "cwd": {"type": "string", "description": "Base directory (default: current working dir)"},
+        },
+        "required": ["pattern"],
+    },
+}
+
+BASE_TOOLS = [BASH_TOOL, READ_TOOL, WRITE_TOOL, EDIT_TOOL, GLOB_TOOL]
 
 _MAX_READ = 4000
 _BASH_TIMEOUT = 60
@@ -64,6 +104,43 @@ def dispatch(name: str, inputs: dict, mcp_names: set, mcp_call) -> object:
         path = inputs.get("file_path", "") or inputs.get("path", "")
         try:
             return Path(path).read_text(encoding="utf-8", errors="replace")[:_MAX_READ]
+        except Exception as e:
+            return f"ERROR: {e}"
+
+    if name == "Write":
+        path = inputs.get("file_path", "")
+        content = inputs.get("content", "")
+        try:
+            p = Path(path)
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(content, encoding="utf-8")
+            return f"Written {len(content)} chars to {path}"
+        except Exception as e:
+            return f"ERROR: {e}"
+
+    if name == "Edit":
+        path = inputs.get("file_path", "")
+        old = inputs.get("old_string", "")
+        new = inputs.get("new_string", "")
+        try:
+            text = Path(path).read_text(encoding="utf-8")
+            count = text.count(old)
+            if count == 0:
+                return f"ERROR: old_string not found in {path}"
+            if count > 1:
+                return f"ERROR: old_string matches {count} times — must be unique"
+            Path(path).write_text(text.replace(old, new, 1), encoding="utf-8")
+            return f"Edited {path}"
+        except Exception as e:
+            return f"ERROR: {e}"
+
+    if name == "Glob":
+        import glob as _glob
+        pattern = inputs.get("pattern", "")
+        cwd = inputs.get("cwd", "") or str(Path.cwd())
+        try:
+            matches = sorted(_glob.glob(pattern, root_dir=cwd, recursive=True))
+            return "\n".join(matches) if matches else "(no matches)"
         except Exception as e:
             return f"ERROR: {e}"
 
