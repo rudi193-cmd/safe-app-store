@@ -4,13 +4,11 @@
       "type": "stdio",
       "command": "bash",
       "args": [
-        "/home/sean-campbell/willow-2.0/sap/unified_mcp.sh"
+        "-lc",
+        "exec \"${WILLOW_ROOT:-$HOME/github/willow-2.0}/sap/unified_mcp.sh\""
       ],
       "env": {
-        "WILLOW_AGENT_NAME": "ask-jeles",
-        "WILLOW_GROVE_ROOT": "/home/sean-campbell/github/safe-app-willow-grove",
-        "WILLOW_PG_DB": "willow_20",
-        "WILLOW_SAFE_ROOT": "/home/sean-campbell/SAFE/Applications"
+        "WILLOW_AGENT_NAME": "ask-jeles"
       }
     }
   }
