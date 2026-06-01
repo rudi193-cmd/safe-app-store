@@ -37,7 +37,9 @@ jobs:
           pip install -e ".[dev]"
 
       - name: Compile
-        run: python -m py_compile askjeles/*.py safe_integration.py app.py
+        run: |
+          python -m compileall -q askjeles
+          python -m py_compile safe_integration.py app.py
 
       - name: CLI help
         run: ask-jeles --help
