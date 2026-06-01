@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 
 _STORE_ROOT = os.path.join(os.path.expanduser("~"), ".willow", "store")
 _STORE_ROOT = os.environ.get("WILLOW_STORE_ROOT", _STORE_ROOT)
-APP_ID = "safe-app-ask-jeles"
+APP_ID = "ask-jeles"
 
 _session_id = str(uuid.uuid4())
 _APP_DATA = Path(os.path.expanduser("~")) / ".willow" / "apps" / APP_ID
@@ -101,6 +101,13 @@ APP_STREAMS = [
         "retention": "permanent",
         "required": False,
         "prompt": "May I deposit search findings into your local Binder when you choose to save them?"
+    },
+    {
+        "stream_id": "learning_events",
+        "purpose": "Capture small learning-event summaries for later pedagogical review",
+        "retention": "session_consented",
+        "required": False,
+        "prompt": "May I capture learning events for this session when you turn learning on?"
     }
 ]
 
