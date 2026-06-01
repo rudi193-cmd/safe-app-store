@@ -18,7 +18,10 @@ from safe_integration import SAFESession
 # SAP gate — dev server only
 try:
     import sys as _sys
-    _sys.path.insert(0, "/home/sean-campbell/github/willow-1.7")
+    from pathlib import Path as _Path
+    import os as _os
+    _willow_root = _Path(_os.environ.get("WILLOW_ROOT", str(_Path.home() / "github" / "willow-1.9")))
+    _sys.path.insert(0, str(_willow_root))
     from sap.core.gate import authorized as _sap_authorized
 except ImportError:
     from pathlib import Path as _Path
