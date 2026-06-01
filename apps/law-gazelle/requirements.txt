@@ -1,1 +1,2 @@
 requests
+textual>=0.47.0

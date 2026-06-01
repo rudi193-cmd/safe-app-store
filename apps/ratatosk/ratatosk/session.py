@@ -1,0 +1,54 @@
+"""
+session.py — JSONL session writer, compatible with session_reader.py format.
+b17: 2CB01  ΔΣ=42
+"""
+import json
+import os
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+
+_SESSION_DIR_ENV = "RATATOSK_SESSION_DIR"
+_DEFAULT_SESSION_DIR = Path.home() / ".claude" / "projects" / "-home-sean-campbell-willow-2-0"
+
+VERSION = "ratatosk-1.0"
+
+
+def _session_dir() -> Path:
+    d = Path(os.environ.get(_SESSION_DIR_ENV, str(_DEFAULT_SESSION_DIR)))
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+class SessionWriter:
+    def __init__(self, cwd: str = ""):
+        self.session_id = str(uuid.uuid4())
+        self.cwd = cwd or str(Path.cwd())
+        self.path = _session_dir() / f"{self.session_id}.jsonl"
+        self._last_uuid: str | None = None
+
+    def _entry(self, etype: str, **extra) -> dict:
+        entry_uuid = str(uuid.uuid4())
+        entry = {
+            "uuid": entry_uuid,
+            "parentUuid": self._last_uuid,
+            "type": etype,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "isSidechain": False,
+            "sessionId": self.session_id,
+            "cwd": self.cwd,
+            "version": VERSION,
+        }
+        entry.update(extra)
+        return entry
+
+    def write(self, entry: dict) -> None:
+        with open(self.path, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(entry) + "\n")
+        self._last_uuid = entry["uuid"]
+
+    def write_user(self, text: str) -> None:
+        self.write(self._entry("user", message={"role": "user", "content": text}))
+
+    def write_assistant(self, text: str) -> None:
+        self.write(self._entry("assistant", message={"role": "assistant", "content": text}))
