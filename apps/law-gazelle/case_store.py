@@ -179,6 +179,14 @@ def sync_cases(source: Path | str = DEFAULT_SOURCE) -> dict:
     if not letter_found:
         optional_missing.append(LETTER_GLOB)
 
+    nest_drafts = source / "drafts"
+    if nest_drafts.is_dir():
+        cases_drafts = CASES_DIR / "drafts"
+        cases_drafts.mkdir(parents=True, exist_ok=True)
+        for draft_src in sorted(nest_drafts.iterdir()):
+            if draft_src.is_file() and draft_src.suffix.lower() in (".md", ".txt", ".html"):
+                _copy_if_updated(draft_src, cases_drafts / draft_src.name, copied, skipped)
+
     stale: list[str] = []
     for case_key, filename in CASE_DBS.items():
         src = source / filename
@@ -229,7 +237,21 @@ def list_artifacts() -> list[dict]:
             "path": str(path),
             "size_kb": round(stat.st_size / 1024, 1),
             "modified": date.fromtimestamp(stat.st_mtime).isoformat(),
+            "kind": "letter",
         })
+    drafts_dir = CASES_DIR / "drafts"
+    if drafts_dir.exists():
+        for path in sorted(drafts_dir.glob("*")):
+            if path.suffix.lower() not in (".md", ".txt", ".html"):
+                continue
+            stat = path.stat()
+            artifacts.append({
+                "name": path.name,
+                "path": str(path),
+                "size_kb": round(stat.st_size / 1024, 1),
+                "modified": date.fromtimestamp(stat.st_mtime).isoformat(),
+                "kind": "draft",
+            })
     return artifacts
 
 
@@ -1137,6 +1159,183 @@ def workers_comp_overview() -> dict | None:
         rows = _query("workers_comp", f"SELECT * FROM {table} LIMIT 25")
         overview[table] = rows
     return overview
+
+
+def schedule_atoms(status: str = "open", limit: int = 50) -> list[dict]:
+    """Open atoms in the schedule domain, priority ordered."""
+    return _query(
+        "coparent",
+        """
+        SELECT atom_id, type, priority, domain, title, action_required, status, body, legal_ref
+        FROM atoms
+        WHERE status = ? AND domain = 'schedule'
+        ORDER BY
+            CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
+            id
+        LIMIT ?
+        """,
+        (status, limit),
+    )
+
+
+def schedule_plan_citations() -> list[dict]:
+    """Parenting-plan sections most relevant to schedule proposals."""
+    return _query(
+        "coparent",
+        """
+        SELECT * FROM plan_citations
+        WHERE section LIKE 'II.%'
+           OR section LIKE 'V.%'
+           OR section LIKE 'IV.A.%'
+           OR section LIKE 'VI.%'
+        ORDER BY section, clause
+        """,
+    )
+
+
+def schedule_response_packet(include_resolved: bool = False) -> dict:
+    """Briefing for the May 30 schedule letter response — atoms, citations, deadline.
+
+    Returns raw dicts (not markdown). Use format_schedule_response_text() for drafting export.
+    """
+    meta = load_coparent_meta()
+    deadlines = meta.get("response_deadlines") or {}
+    schedule_due = deadlines.get("schedule")
+    days = _days_until(schedule_due) if schedule_due else None
+
+    atom_details: list[dict] = []
+    for row in schedule_atoms(status="open"):
+        atom_id = row["atom_id"]
+        if not include_resolved:
+            if gazelle_state.effective_resolved("coparent", "atom", atom_id, row.get("status")):
+                continue
+            if gazelle_state.is_snoozed("coparent", "atom", atom_id):
+                continue
+        detail = get_atom_detail(atom_id, source_db="coparent")
+        if detail:
+            atom_details.append(detail)
+
+    citations = schedule_plan_citations()
+    per_atom_citations: list[dict] = []
+    for detail in atom_details:
+        per_atom_citations.extend(detail.get("plan_citations") or [])
+    all_citations = _dedupe_rows(citations + per_atom_citations, "id")
+
+    letter = next((a for a in list_artifacts() if "Letter" in a.get("name", "")), None)
+
+    return {
+        "kind": "schedule_response",
+        "generated_at": datetime.now().isoformat(),
+        "case_number": meta.get("case") or "D-000-DM-0000-00000",
+        "jurisdiction": meta.get("jurisdiction"),
+        "governing_docs": meta.get("governing_docs") or [],
+        "letter_sent": meta.get("letter_sent"),
+        "session_date": meta.get("session_date"),
+        "deadline": {
+            "key": "schedule",
+            "title": "Schedule proposals (letter response)",
+            "date": schedule_due,
+            "days_until": days,
+            "overdue": days is not None and days < 0,
+        },
+        "letter_artifact": letter,
+        "atom_count": len(atom_details),
+        "atoms": atom_details,
+        "plan_citations": all_citations,
+        "proposals": [
+            {
+                "atom_id": d["atom"]["atom_id"],
+                "priority": d["atom"].get("priority"),
+                "title": d["atom"].get("title"),
+                "action_required": d["atom"].get("action_required"),
+                "legal_ref": d["atom"].get("legal_ref"),
+            }
+            for d in atom_details
+        ],
+    }
+
+
+def format_schedule_response_text(packet: dict | None) -> str:
+    """Markdown briefing for drafting the schedule response letter."""
+    if not packet:
+        return "Schedule response packet unavailable."
+
+    lines: list[str] = [
+        "# Schedule Response Briefing",
+        "",
+        f"**Case:** {packet.get('case_number')}",
+        f"**Jurisdiction:** {packet.get('jurisdiction') or '—'}",
+        f"**Letter sent:** {packet.get('letter_sent') or '—'}",
+        "",
+    ]
+
+    dl = packet.get("deadline") or {}
+    days = dl.get("days_until")
+    days_s = f"{days} days" if days is not None else "—"
+    if dl.get("overdue"):
+        days_s = f"OVERDUE ({days}d)"
+    lines.extend([
+        f"**Response due:** {dl.get('date') or '—'} ({days_s}) — {dl.get('title') or 'schedule'}",
+        "",
+    ])
+
+    if packet.get("governing_docs"):
+        lines.append("**Governing documents:** " + ", ".join(packet["governing_docs"]))
+        lines.append("")
+
+    if packet.get("letter_artifact"):
+        art = packet["letter_artifact"]
+        lines.extend([
+            f"**Sent letter artifact:** {art.get('name')} ({art.get('path')})",
+            "",
+        ])
+
+    lines.extend([
+        "## Proposals to Address",
+        "",
+        "| ID | Priority | Proposal |",
+        "|---|---|---|",
+    ])
+    for p in packet.get("proposals") or []:
+        action = (p.get("action_required") or p.get("title") or "").replace("|", "/")
+        lines.append(
+            f"| {p.get('atom_id')} | {p.get('priority')} | {action[:120]} |"
+        )
+    lines.append("")
+
+    for detail in packet.get("atoms") or []:
+        lines.append(format_detail_text(detail))
+        lines.append("\n---\n")
+
+    citations = packet.get("plan_citations") or []
+    if citations:
+        lines.extend(["## Parenting Plan Citations (reference)", ""])
+        for pc in citations:
+            section = pc.get("section") or ""
+            clause = pc.get("clause") or ""
+            text = (pc.get("verbatim_text") or "").strip()
+            header = f"**{section}**"
+            if clause:
+                header += f" — {clause}"
+            lines.append(header)
+            if text:
+                lines.append(f"> {text[:500]}")
+            lines.append("")
+
+    lines.extend([
+        "## Drafting checklist",
+        "",
+        "- [ ] Thursday exchange time (ATM-001)",
+        "- [ ] Friday summer coverage through school restart (ATM-002)",
+        "- [ ] Friday morning drop-off year-round (ATM-003)",
+        "- [ ] Friday afternoon pickup gap (ATM-004)",
+        "- [ ] Alternating Tuesday visits — confirm or modify (ATM-005)",
+        "- [ ] Summer vacation weeks (ATM-019)",
+        "- [ ] All changes agreed in writing per §VIII / stipulated order",
+        "",
+    ])
+
+    return "\n".join(lines).strip()
 
 
 def briefing_packet(include_session: bool = False) -> dict:

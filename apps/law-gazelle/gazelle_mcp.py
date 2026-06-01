@@ -9,6 +9,9 @@ Tools exposed:
   gazelle_detail    — drill-down on a single item
   gazelle_note      — add a note to the sidecar
   gazelle_resolve   — mark an item resolved in the sidecar
+  gazelle_schedule  — schedule response packet (May 30 letter)
+  gazelle_draft     — document drafting context + template
+  gazelle_save      — save LLM-produced document to Nest
 
 b17: LGMCP1  ΔΣ=42
 
@@ -27,6 +30,7 @@ _HERE = Path(__file__).parent
 sys.path.insert(0, str(_HERE))
 
 import case_store
+import document_store
 import gazelle_state
 
 # ── Tool definitions ──────────────────────────────────────────────────────────
@@ -133,6 +137,84 @@ _TOOLS = [
             "required": ["source_db", "item_type", "item_id"],
         },
     },
+    {
+        "name": "gazelle_schedule",
+        "description": (
+            "Return the schedule response briefing packet for the May 30 letter deadline: "
+            "open schedule-domain atoms (ATM-001 etc.), parenting plan citations, deadline, "
+            "and proposal summary. Use before drafting schedule proposals."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "format": {
+                    "type": "string",
+                    "enum": ["json", "markdown"],
+                    "description": "Return raw dict fields (json) or drafting markdown (markdown). Default markdown.",
+                },
+                "include_resolved": {
+                    "type": "boolean",
+                    "description": "Include sidecar-resolved schedule atoms (default false).",
+                },
+            },
+            "required": [],
+        },
+    },
+    {
+        "name": "gazelle_draft",
+        "description": (
+            "Get full drafting context for the LLM to produce a legal document: "
+            "case parties, deadline, relevant atoms, structure template, and writing instructions. "
+            "After authoring, call gazelle_save with the final body."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "doc_type": {
+                    "type": "string",
+                    "enum": ["schedule_response", "letter_all_other", "general"],
+                    "description": "Document type to draft.",
+                },
+                "format": {
+                    "type": "string",
+                    "enum": ["json", "markdown"],
+                    "description": "Return structured dict (json) or LLM-ready markdown briefing (markdown). Default markdown.",
+                },
+                "atom_ids": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Optional explicit atom IDs; otherwise auto-selected by doc_type.",
+                },
+            },
+            "required": ["doc_type"],
+        },
+    },
+    {
+        "name": "gazelle_save",
+        "description": (
+            "Save an LLM-authored document to ~/Desktop/Nest/drafts/ (canonical). "
+            "Use after gazelle_draft — pass the final letter body as markdown or plain text."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "filename": {
+                    "type": "string",
+                    "description": "e.g. Campbell_schedule_response_2026-05-30.md",
+                },
+                "body": {
+                    "type": "string",
+                    "description": "Full document content.",
+                },
+                "dest": {
+                    "type": "string",
+                    "enum": ["nest", "cases"],
+                    "description": "nest = ~/Desktop/Nest/drafts (default). cases = local sync copy only.",
+                },
+            },
+            "required": ["filename", "body"],
+        },
+    },
 ]
 
 # ── Dispatch ───────────────────────────────────────────────────────────────────
@@ -170,6 +252,40 @@ def _dispatch(name: str, args: dict) -> Any:
             args["source_db"], args["item_type"], args["item_id"]
         )
         return {"ok": True, "message": "Marked resolved in sidecar."}
+
+    if name == "gazelle_schedule":
+        packet = case_store.schedule_response_packet(
+            include_resolved=args.get("include_resolved", False)
+        )
+        if args.get("format", "markdown") == "json":
+            return packet
+        return {
+            "markdown": case_store.format_schedule_response_text(packet),
+            "atom_count": packet.get("atom_count"),
+            "deadline": packet.get("deadline"),
+        }
+
+    if name == "gazelle_draft":
+        ctx = document_store.draft_context(
+            args["doc_type"],
+            atom_ids=args.get("atom_ids"),
+        )
+        if ctx.get("error"):
+            return ctx
+        if args.get("format", "markdown") == "json":
+            return ctx
+        return {
+            "markdown": document_store.format_draft_context_markdown(ctx),
+            "doc_type": args["doc_type"],
+            "atom_ids": ctx.get("atom_ids"),
+        }
+
+    if name == "gazelle_save":
+        return document_store.save_document(
+            args["filename"],
+            args["body"],
+            dest=args.get("dest", "nest"),
+        )
 
     return {"error": f"Unknown tool: {name}"}
 
