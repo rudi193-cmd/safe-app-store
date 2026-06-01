@@ -121,6 +121,7 @@ The demo links use `example.invalid` and are placeholders; the point is to show 
 | --- | --- |
 | `Enter` / `o` | Open selected result |
 | `a` | Ask Jeles to synthesize the current result set |
+| `v` / `Ctrl+V` | Verify the selected result against trusted public sources |
 | `Ctrl+T` | Open a topic quiz overlay from the current search |
 | `m` | Open MCP drawer — discover servers, connect for session, confirm tool calls |
 | `Ctrl+L` | Toggle session-only learning capture |

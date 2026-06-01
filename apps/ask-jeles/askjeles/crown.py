@@ -63,6 +63,30 @@ _SYSTEM_PROMPT = (
     "'The trusted sources do not contain this answer.'"
 )
 
+
+def _verify_candidate(hit: Optional[dict[str, Any]], query: str = "") -> dict[str, Any]:
+    """Build the entity payload used by CLI/TUI verification."""
+    title = ""
+    if hit:
+        title = str(hit.get("title") or "").strip()
+    name = title or (query or "").strip()
+    return {"id": 0, "name": name, "type": "", "description": "", "mentions": 1}
+
+
+def _verify_result_message(result: Any) -> tuple[str, str]:
+    """Return (message, severity) for Textual notifications."""
+    if getattr(result, "skipped", False):
+        reason = getattr(result, "skip_reason", "") or "not verifiable"
+        return f"Verify skipped: {getattr(result, 'name', '')} ({reason})", "warning"
+    if getattr(result, "verified", False):
+        sources = getattr(result, "sources", []) or []
+        source = (sources[0].get("title") or sources[0].get("url")) if sources else "public source"
+        return (
+            f"Verified {getattr(result, 'name', '')}: {getattr(result, 'confidence', 'low')} via {source}",
+            "information",
+        )
+    return f"Could not verify {getattr(result, 'name', '')} from trusted public sources.", "warning"
+
 _DEMO_QUERY = "Vespa scooters"
 _DEMO_PAYLOAD: dict[str, Any] = {
     "query": _DEMO_QUERY,
@@ -232,8 +256,9 @@ def _build_tui(*, demo: bool = False):
             Binding("enter", "open_hit", "Open", show=False),
             Binding("o", "open_hit", "Open"),
             Binding("a", "synthesize", "Synthesize"),
+            Binding("v", "verify", "Verify"),
             Binding("ctrl+s", "save", "Save"),
-            Binding("ctrl+v", "verify", "Verify"),
+            Binding("ctrl+v", "verify", "Verify", show=False),
             Binding("ctrl+t", "trivia", "Trivia"),
             Binding("ctrl+l", "learning_toggle", "Learning"),
             Binding("m", "mcp_drawer", "MCP"),
@@ -261,7 +286,7 @@ def _build_tui(*, demo: bool = False):
             yield LoadingIndicator(id="loading")
             yield ListView(id="hits-list")
             yield Static(
-                "[bold]Enter/o[/bold] open  [bold]a[/bold] synthesize  [bold]Ctrl+T[/bold] topic quiz  "
+                "[bold]Enter/o[/bold] open  [bold]a[/bold] synthesize  [bold]v[/bold] verify  [bold]Ctrl+T[/bold] topic quiz  "
                 "[bold]m[/bold] MCP drawer  [bold]Ctrl+L[/bold] learning  [dim]Ctrl+S save · Ctrl+N new[/dim]",
                 id="preview",
                 markup=True,
@@ -421,7 +446,7 @@ def _build_tui(*, demo: bool = False):
             snippet = escape((hit.get("snippet") or "(no preview)")[:500])
             host = escape(hit.get("hostname") or "")
             preview = self.query_one("#preview", Static)
-            preview.update(f"[dim]{host}[/dim]\n{snippet}\n[dim]Enter · o[/dim] open  [dim]a[/dim] synthesize")
+            preview.update(f"[dim]{host}[/dim]\n{snippet}\n[dim]Enter · o[/dim] open  [dim]a[/dim] synthesize  [dim]v[/dim] verify")
 
         def _show_answer(self, answer: str) -> None:
             from rich.text import Text
@@ -510,7 +535,7 @@ def _build_tui(*, demo: bool = False):
             self.query_one("#query-input", Input).value = ""
             self.query_one("#hits-list", ListView).clear()
             self.query_one("#preview", Static).update(
-                "[bold]Enter/o[/bold] open  [bold]a[/bold] synthesize  [bold]Ctrl+T[/bold] topic quiz  "
+                "[bold]Enter/o[/bold] open  [bold]a[/bold] synthesize  [bold]v[/bold] verify  [bold]Ctrl+T[/bold] topic quiz  "
                 "[bold]m[/bold] MCP drawer  [bold]Ctrl+L[/bold] learning  [dim]Ctrl+S save · Ctrl+N new[/dim]"
             )
             self.query_one("#answer", Static).update("")
@@ -571,10 +596,25 @@ def _build_tui(*, demo: bool = False):
             if not _PRISM_AVAILABLE:
                 self.notify("prism not available", severity="warning")
                 return
-            self.notify(
-                "Verify: python -m askjeles.crown --batch  (needs Willow verify-feed API)",
-                severity="information",
-            )
+            hit = self._selected_hit()
+            query = self.query_one("#query-input", Input).value.strip() or self._last_query
+            candidate = _verify_candidate(hit, query)
+            if not candidate["name"]:
+                self.notify("Search or type an entity to verify.", severity="warning")
+                return
+            self._run_verify(candidate)
+
+        @work(exclusive=True, thread=True)
+        def _run_verify(self, candidate: dict[str, Any]) -> None:
+            self.call_from_thread(self._set_loading, True)
+            try:
+                result = verify_entity(candidate)
+                message, severity = _verify_result_message(result)
+            except Exception as exc:
+                message = f"Verify failed: {exc}"
+                severity = "error"
+            self.call_from_thread(self._set_loading, False)
+            self.call_from_thread(self.notify, message, severity=severity, timeout=8)
 
         def action_mcp_drawer(self) -> None:
             from askjeles.overlays import McpDrawerModal
@@ -685,8 +725,16 @@ def main() -> None:
         serve_main()
         return
 
+    if args.batch and not _PRISM_AVAILABLE:
+        print("prism verifier is not available in this install", flush=True)
+        raise SystemExit(1)
+
+    if args.verify and not _PRISM_AVAILABLE:
+        print("prism verifier is not available in this install", flush=True)
+        raise SystemExit(1)
+
     if args.batch and _PRISM_AVAILABLE:
-        summary = verify_batch(limit=args.limit, dry_run=args.dry_run)
+        summary = verify_batch(willow_url=args.willow_url, limit=args.limit, dry_run=args.dry_run)
         print(summary)
         return
 
