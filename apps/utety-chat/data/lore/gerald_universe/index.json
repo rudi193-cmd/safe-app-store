@@ -1,0 +1,145 @@
+{
+  "version": "1.0",
+  "created": "2026-05-26",
+  "checksum": "ΔΣ=42",
+  "status": "reference — ratified as teaching lore; not utety-chat card personas",
+  "source_md": "persona_cards_v1.0.md",
+  "split": {
+    "gerald_utety_chat": {
+      "persona_key": "Gerald",
+      "register": "Acting Dean — compressed oracle, stage directions, 300-char discipline",
+      "path": "data/professors/gerald_persona.json"
+    },
+    "gerald_prime_lore": {
+      "entity_id": "gerald_prime",
+      "register": "Cosmology, dispatches, full cast — teaching and narrative substrate",
+      "path": "data/lore/gerald_universe/persona_cards_v1.0.md"
+    }
+  },
+  "cast": [
+    {
+      "id": "01",
+      "name": "Gerald",
+      "lineage": "Body Lineage (Threefold Sunder)",
+      "utety_persona_key": "Gerald",
+      "lore_only": false,
+      "teaching_hooks": ["witness", "rotation-as-semantics", "grapes-as-assessment", "preview-not-visit"]
+    },
+    {
+      "id": "02",
+      "name": "The Narrator",
+      "lineage": "Human / Delta Lineage",
+      "lore_only": true,
+      "teaching_hooks": ["reader-anchor", "bewilderment-as-pedagogy", "tea-as-severity-meter"]
+    },
+    {
+      "id": "03",
+      "name": "Squeakdogs",
+      "lineage": "Delta Lineage",
+      "lore_only": true,
+      "teaching_hooks": ["conservation-law", "emergence-from-heat", "Fibonacci-vs-primes", "canon-correction-hotdogs-not-toys"]
+    },
+    {
+      "id": "04",
+      "name": "Hanz Christain Anderthon",
+      "lineage": "Human, chaos-adjacent",
+      "utety_persona_key": "Hanz",
+      "lore_only": false,
+      "teaching_hooks": ["fairy-tale-accuracy", "Copenhagen", "proximity-effects", "parable-before-module"]
+    },
+    {
+      "id": "05",
+      "name": "Professor Oakenscroll",
+      "lineage": "Head Lineage variant",
+      "utety_persona_key": "Oakenscroll",
+      "lore_only": false,
+      "teaching_hooks": ["malformation-filing", "footnote-3-yes", "working-papers-before-truth"]
+    },
+    {
+      "id": "06",
+      "name": "Sentient Binder #442-A",
+      "lineage": "Bureaucratic artifact",
+      "utety_persona_key": "Binder",
+      "dual_existence": true,
+      "teaching_hooks": ["cross-reference-as-care", "completion-creak", "edges-must-close"]
+    },
+    {
+      "id": "07",
+      "name": "Pidgeon",
+      "lineage": "Infrastructure / Canon",
+      "utety_persona_key": "Pigeon",
+      "dual_existence": true,
+      "teaching_hooks": ["delivery-without-performance", "dispatch-evacuation-metaphor"]
+    },
+    {
+      "id": "08",
+      "name": "Mayor of London-ish Things",
+      "lineage": "Human bureaucratic",
+      "lore_only": true,
+      "teaching_hooks": ["exhausted-authority", "impossible-normalized-by-paperwork"]
+    },
+    {
+      "id": "09",
+      "name": "Sir Paul McCartwheel",
+      "lineage": "Human / celebrity initiate",
+      "lore_only": true,
+      "teaching_hooks": ["initiate-witness", "seven-levels-mystery"]
+    },
+    {
+      "id": "10",
+      "name": "Reverend Alistair Pembrook",
+      "lineage": "Human / clergy",
+      "lore_only": true,
+      "teaching_hooks": ["institution-meets-uncategorizable", "Anglican-exasperation-not-terror"]
+    },
+    {
+      "id": "11",
+      "name": "King Chardles III",
+      "lineage": "Human / Crown",
+      "lore_only": true,
+      "teaching_hooks": ["assessment-by-grape", "authorized-edition-parody"]
+    },
+    {
+      "id": "12",
+      "name": "Dr. G. Rald",
+      "lineage": "Unknown",
+      "lore_only": true,
+      "teaching_hooks": ["load-bearing-punctuation", "non-local-neurology"]
+    },
+    {
+      "id": "13",
+      "name": "Girde",
+      "lineage": "Human",
+      "lore_only": true,
+      "teaching_hooks": ["name-mirror-structure", "cracker-emergence"]
+    },
+    {
+      "id": "14",
+      "name": "Adam Dirger",
+      "lineage": "Human",
+      "lore_only": true,
+      "teaching_hooks": ["fortune-fish-warmth-as-power", "seasonal-antagonism"]
+    },
+    {
+      "id": "15",
+      "name": "Krampus",
+      "lineage": "Ancient",
+      "lore_only": true,
+      "teaching_hooks": ["ancient-system-recognizes-Gerald", "Hanz-unsettles"]
+    },
+    {
+      "id": "16",
+      "name": "The Pineapple",
+      "lineage": "Produce / delusion",
+      "lore_only": true,
+      "teaching_hooks": ["category-error-comedy", "side-dish-vs-luminosity"]
+    },
+    {
+      "id": "17",
+      "name": "The Mop",
+      "lineage": "Cleaning equipment",
+      "lore_only": true,
+      "teaching_hooks": ["wet-floor-sign-epistemology", "false-premise-grief", "pun-as-tragedy"]
+    }
+  ]
+}
