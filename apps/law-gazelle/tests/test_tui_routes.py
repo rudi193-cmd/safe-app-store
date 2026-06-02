@@ -34,6 +34,7 @@ class TuiRoutesTests(unittest.TestCase):
     def test_footer_hints_fact_review_includes_ai_inspect(self) -> None:
         hints = footer_hints("fact_review", show_resolved=False)
         self.assertIn("f AI inspect", hints)
+        self.assertIn("Shift+f re-inspect", hints)
 
     def test_matter_nav_entries(self) -> None:
         keys = {m[0] for m in tui_routes.MATTER_NAV}

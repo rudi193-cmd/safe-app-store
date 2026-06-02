@@ -268,6 +268,10 @@ _TOOLS = [
                     "type": "boolean",
                     "description": "Verify citations with CourtListener if citations are present (default false).",
                 },
+                "force": {
+                    "type": "boolean",
+                    "description": "Bypass sidecar ai_cache and call Ollama again (default false).",
+                },
             },
             "required": [],
         },
@@ -284,6 +288,10 @@ _TOOLS = [
                 "card_id": {"type": "string"},
                 "card": {"type": "object"},
                 "include_courtlistener": {"type": "boolean"},
+                "force": {
+                    "type": "boolean",
+                    "description": "Bypass sidecar ai_cache and call Ollama again (default false).",
+                },
             },
             "required": [],
         },
@@ -300,6 +308,10 @@ _TOOLS = [
                     "type": "boolean",
                     "description": "Include resolved items when building Today list (default false).",
                 },
+                "force": {
+                    "type": "boolean",
+                    "description": "Bypass sidecar ai_cache and call Ollama again (default false).",
+                },
             },
             "required": [],
         },
@@ -308,7 +320,8 @@ _TOOLS = [
         "name": "gazelle_ai_inspect_fact",
         "description": (
             "Inspect one Review Facts row with local Ollama and suggest verified / needs_source / "
-            "do_not_use. Review-only; does not write sidecar verification status."
+            "do_not_use. Review-only; does not write sidecar verification status. "
+            "Returns cached sidecar result when inputs unchanged."
         ),
         "inputSchema": {
             "type": "object",
@@ -324,6 +337,10 @@ _TOOLS = [
                 "atom_id": {
                     "type": "string",
                     "description": "Optional atom ID within the card's Review Facts rows.",
+                },
+                "force": {
+                    "type": "boolean",
+                    "description": "Bypass sidecar ai_cache and call Ollama again (default false).",
                 },
             },
             "required": [],
@@ -470,9 +487,12 @@ def _dispatch(name: str, args: dict) -> Any:
             if not card:
                 return {"ok": False, "error": f"card_id not found: {cid}"}
         include_cl = args.get("include_courtlistener", False)
+        force = bool(args.get("force", False))
         if name == "gazelle_ai_rank_today":
             cards = workflow.today_cards(show_resolved=args.get("show_resolved", False))
-            return intelligence.rank_today(cards, include_courtlistener=False)
+            return intelligence.rank_today(
+                cards, include_courtlistener=False, force=force
+            )
         if name == "gazelle_ai_inspect_fact":
             row = args.get("fact_row")
             if not row:
@@ -483,12 +503,16 @@ def _dispatch(name: str, args: dict) -> Any:
                 row = next((r for r in rows if r.get("atom_id") == atom_id), None) if atom_id else (rows[0] if rows else None)
             if not row:
                 return {"ok": False, "error": "No matching fact row found"}
-            return intelligence.inspect_fact_row(row)
+            return intelligence.inspect_fact_row(row, force=force)
         if not card:
             return {"ok": False, "error": "Provide card_id or card"}
         if name == "gazelle_ai_brief":
-            return intelligence.brief_card(card, include_courtlistener=include_cl)
-        return intelligence.draft_from_card(card, include_courtlistener=include_cl)
+            return intelligence.brief_card(
+                card, include_courtlistener=include_cl, force=force
+            )
+        return intelligence.draft_from_card(
+            card, include_courtlistener=include_cl, force=force
+        )
 
     return {"error": f"Unknown tool: {name}"}
 

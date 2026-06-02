@@ -78,7 +78,10 @@ def footer_hints(route: str, *, show_resolved: bool) -> str:
     if route == "packet":
         return "Esc back to action deck · " + base
     if route == "fact_review":
-        return "f AI inspect · 1 verified · 2 needs source · 3 do not use · Esc back"
+        return (
+            "f AI inspect (cached) · Shift+f re-inspect · "
+            "1 verified · 2 needs source · 3 do not use · Esc back"
+        )
     if route == "activity":
         return "u today · m matters · d drafts · s session · Esc back"
     if route == "matters":

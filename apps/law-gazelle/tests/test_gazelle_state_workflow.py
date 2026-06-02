@@ -55,6 +55,31 @@ class GazelleStateWorkflowTests(unittest.TestCase):
         types = [e["event_type"] for e in gazelle_state.list_activity(limit=10)]
         self.assertIn("resolved", types)
 
+    def test_ai_cache_roundtrip_and_verification_clears_inspect(self) -> None:
+        key = gazelle_state.ai_cache_key("ai_fact_inspect", "coparent:ATM-010")
+        fp = "abc123"
+        gazelle_state.put_ai_cache(
+            key,
+            "ai_fact_inspect",
+            "cached body",
+            fingerprint=fp,
+            source_db="coparent",
+            item_type="atom",
+            item_id="ATM-010",
+        )
+        hit = gazelle_state.get_ai_cache(key, fingerprint=fp)
+        self.assertIsNotNone(hit)
+        assert hit is not None
+        self.assertEqual(hit["body"], "cached body")
+
+        gazelle_state.set_fact_verification("coparent", "atom", "ATM-010", "verified")
+        miss = gazelle_state.get_ai_cache(
+            key, fingerprint=gazelle_state.fingerprint_payload({"verification": "verified"})
+        )
+        self.assertIsNone(miss)
+        cleared = gazelle_state.get_ai_cache(key)
+        self.assertIsNone(cleared)
+
 
 if __name__ == "__main__":
     unittest.main()

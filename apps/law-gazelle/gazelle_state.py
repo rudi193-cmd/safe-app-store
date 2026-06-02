@@ -6,10 +6,13 @@ Tracks resolutions, notes, and snoozes without modifying Nest SQLite files.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import sqlite3
 from datetime import date, datetime, timezone
 from pathlib import Path
+from typing import Any
 
 APP_ID = "law-gazelle"
 APP_DATA = Path(os.environ.get("APP_DATA", Path.home() / ".willow" / "apps" / APP_ID))
@@ -63,6 +66,17 @@ CREATE TABLE IF NOT EXISTS matter_stage (
     stage       TEXT NOT NULL,
     updated_at  TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS ai_cache (
+    cache_key         TEXT PRIMARY KEY,
+    event_type        TEXT NOT NULL,
+    source_db         TEXT,
+    item_type         TEXT,
+    item_id           TEXT,
+    body              TEXT NOT NULL,
+    model             TEXT,
+    input_fingerprint TEXT NOT NULL,
+    created_at        TEXT NOT NULL
+);
 """
 
 
@@ -98,6 +112,113 @@ def log_activity(
         conn.commit()
 
 
+def fingerprint_payload(payload: Any) -> str:
+    """Stable hash for cache invalidation when inputs change."""
+    text = json.dumps(payload, sort_keys=True, default=str)
+    return hashlib.sha256(text.encode()).hexdigest()[:24]
+
+
+def ai_cache_key(event_type: str, scope: str) -> str:
+    return f"{event_type}:{scope}"
+
+
+def get_ai_cache(cache_key: str, *, fingerprint: str | None = None) -> dict | None:
+    """Return cached LLM output when fingerprint still matches."""
+    with _connect() as conn:
+        row = conn.execute(
+            """
+            SELECT cache_key, event_type, source_db, item_type, item_id,
+                   body, model, input_fingerprint, created_at
+            FROM ai_cache WHERE cache_key=?
+            """,
+            (cache_key,),
+        ).fetchone()
+    if not row:
+        return None
+    data = dict(row)
+    if fingerprint is not None and data.get("input_fingerprint") != fingerprint:
+        return None
+    return data
+
+
+def put_ai_cache(
+    cache_key: str,
+    event_type: str,
+    body: str,
+    *,
+    model: str | None = None,
+    fingerprint: str,
+    source_db: str | None = None,
+    item_type: str | None = None,
+    item_id: str | None = None,
+) -> None:
+    with _connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO ai_cache (
+                cache_key, event_type, source_db, item_type, item_id,
+                body, model, input_fingerprint, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(cache_key) DO UPDATE SET
+                event_type = excluded.event_type,
+                source_db = excluded.source_db,
+                item_type = excluded.item_type,
+                item_id = excluded.item_id,
+                body = excluded.body,
+                model = excluded.model,
+                input_fingerprint = excluded.input_fingerprint,
+                created_at = excluded.created_at
+            """,
+            (
+                cache_key,
+                event_type,
+                source_db,
+                item_type,
+                item_id,
+                body,
+                model,
+                fingerprint,
+                _now(),
+            ),
+        )
+        conn.commit()
+
+
+def clear_ai_cache(
+    *,
+    cache_key: str | None = None,
+    event_type: str | None = None,
+    source_db: str | None = None,
+    item_type: str | None = None,
+    item_id: str | None = None,
+) -> int:
+    """Drop cached LLM outputs. Returns rows deleted."""
+    clauses: list[str] = []
+    params: list[Any] = []
+    if cache_key:
+        clauses.append("cache_key=?")
+        params.append(cache_key)
+    if event_type:
+        clauses.append("event_type=?")
+        params.append(event_type)
+    if source_db:
+        clauses.append("source_db=?")
+        params.append(source_db)
+    if item_type:
+        clauses.append("item_type=?")
+        params.append(item_type)
+    if item_id:
+        clauses.append("item_id=?")
+        params.append(item_id)
+    if not clauses:
+        return 0
+    where = " AND ".join(clauses)
+    with _connect() as conn:
+        cur = conn.execute(f"DELETE FROM ai_cache WHERE {where}", params)
+        conn.commit()
+        return int(cur.rowcount)
+
+
 def list_activity(limit: int = 30) -> list[dict]:
     with _connect() as conn:
         rows = conn.execute(
@@ -129,6 +250,12 @@ def set_fact_verification(
             (source_db, item_type, item_id, status, _now()),
         )
         conn.commit()
+    clear_ai_cache(
+        event_type="ai_fact_inspect",
+        source_db=source_db,
+        item_type=item_type,
+        item_id=item_id,
+    )
     log_activity(
         "fact_verification",
         f"Fact {item_id} marked {status}",

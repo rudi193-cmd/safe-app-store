@@ -107,7 +107,7 @@ class CommitPackageTests(unittest.TestCase):
             )
         self.assertTrue(result["ok"])
         self.assertEqual(result["atom_id"], "ATM-001")
-        inspect_fact.assert_called_once_with(fact_row)
+        inspect_fact.assert_called_once_with(fact_row, force=False)
 
 
 if __name__ == "__main__":

@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import shutil
+import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
+import gazelle_state
 import intelligence
 import llm_client
 import tool_context
@@ -96,6 +100,22 @@ class ToolContextTests(unittest.TestCase):
 
 
 class IntelligenceTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._tmpdir = tempfile.mkdtemp()
+        self.app_data = Path(self._tmpdir) / "app"
+        self.app_data.mkdir()
+        self._patches = [
+            mock.patch.object(gazelle_state, "APP_DATA", self.app_data),
+            mock.patch.object(gazelle_state, "STATE_DB", self.app_data / "gazelle_state.db"),
+        ]
+        for p in self._patches:
+            p.start()
+
+    def tearDown(self) -> None:
+        for p in self._patches:
+            p.stop()
+        shutil.rmtree(self._tmpdir, ignore_errors=True)
+
     def test_brief_card_calls_llm(self) -> None:
         card = item_to_action_card({
             "case": "coparent",
@@ -159,6 +179,56 @@ class IntelligenceTests(unittest.TestCase):
         self.assertEqual(out["context_sources"], ["fact:ATM-001"])
         set_status.assert_not_called()
         log_activity.assert_called_once()
+
+    def test_inspect_fact_row_uses_sidecar_cache(self) -> None:
+        row = {
+            "atom_id": "ATM-002",
+            "fact": "ATM-002: Pickup time",
+            "review_status": "Unreviewed",
+            "case_summary": "Verify pickup window.",
+            "source_summary": "Text thread",
+            "detail": {"evidence": []},
+            "card": {"source_item": {"source_db": "coparent"}},
+        }
+        llm = mock.patch(
+            "intelligence.llm_client.generate",
+            return_value={
+                "ok": True,
+                "text": "**Suggested status**: verified",
+                "model": "llama3.2:3b",
+                "provider": "ollama",
+                "error": None,
+            },
+        )
+        with llm, mock.patch("intelligence.gazelle_state.log_activity"):
+            first = intelligence.inspect_fact_row(row)
+            second = intelligence.inspect_fact_row(row)
+        self.assertFalse(first.get("cached"))
+        self.assertTrue(second.get("cached"))
+        self.assertEqual(second.get("text"), first.get("text"))
+        self.assertEqual(second.get("provider"), "sidecar")
+
+    def test_inspect_fact_row_force_bypasses_cache(self) -> None:
+        row = {
+            "atom_id": "ATM-003",
+            "fact": "ATM-003: Holiday",
+            "review_status": "Unreviewed",
+            "case_summary": "Check order.",
+            "source_summary": "Order PDF",
+            "detail": {"evidence": [{"title": "Order"}]},
+            "card": {"source_item": {"source_db": "coparent"}},
+        }
+        responses = [
+            {"ok": True, "text": "first", "model": "llama3.2:3b", "provider": "ollama", "error": None},
+            {"ok": True, "text": "second", "model": "llama3.2:3b", "provider": "ollama", "error": None},
+        ]
+        with mock.patch(
+            "intelligence.llm_client.generate", side_effect=responses
+        ), mock.patch("intelligence.gazelle_state.log_activity"):
+            intelligence.inspect_fact_row(row)
+            out = intelligence.inspect_fact_row(row, force=True)
+        self.assertFalse(out.get("cached"))
+        self.assertEqual(out.get("text"), "second")
 
 
 if __name__ == "__main__":

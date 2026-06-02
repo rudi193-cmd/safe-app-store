@@ -150,6 +150,7 @@ if App is not None:
             Binding("i", "ai_rank_today", "Rank", show=False),
             Binding("o", "open_file", "Open", show=False),
             Binding("f", "ai_inspect_fact", "Inspect Fact", show=False),
+            Binding("shift+f", "ai_inspect_fact_force", "Re-inspect", show=False),
             Binding("1", "fact_verified", "Verified", show=False),
             Binding("2", "fact_needs_source", "Needs Source", show=False),
             Binding("3", "fact_do_not_use", "Do Not Use", show=False),
@@ -439,12 +440,26 @@ if App is not None:
             fn,
             *,
             allow_save: bool = False,
+            cache_peek: tuple[str, str] | None = None,
         ) -> None:
             """Run intelligence function in a background worker (local Ollama)."""
             self._pending_ai_title = title
             self._pending_ai_allow_save = allow_save
-            self._set_ai_status(f"{title} via local Ollama", busy=True)
-            self.notify("Calling local Ollama — this may take a minute...", severity="information")
+            cached = None
+            if cache_peek:
+                cached = gazelle_state.get_ai_cache(cache_peek[0], fingerprint=cache_peek[1])
+            if cached:
+                self._set_ai_status(f"{title} (sidecar cache)", busy=True)
+                self.notify(
+                    "Recovered prior result from sidecar — no Ollama call",
+                    severity="information",
+                )
+            else:
+                self._set_ai_status(f"{title} via local Ollama", busy=True)
+                self.notify(
+                    "Calling local Ollama — this may take a minute...",
+                    severity="information",
+                )
 
             def work():
                 return fn()
@@ -473,7 +488,10 @@ if App is not None:
                 self.notify(result.get("error") or "AI failed", severity="error")
                 return
             meta_parts = []
-            if result.get("model"):
+            if result.get("cached"):
+                when = (result.get("cached_at") or "")[:19]
+                meta_parts.append(f"cached sidecar{(' @ ' + when) if when else ''}")
+            elif result.get("model"):
                 meta_parts.append(f"model: {result['model']}")
             if result.get("context_sources"):
                 meta_parts.append(f"sources: {', '.join(result['context_sources'][:8])}")
@@ -496,9 +514,13 @@ if App is not None:
                 self.notify("Rank Today only on Today home.", severity="warning")
                 return
             cards = workflow.today_cards(show_resolved=self.show_resolved)
-            self._run_ai_job("Today — priority ranking", lambda: intelligence.rank_today(cards))
+            self._run_ai_job(
+                "Today — priority ranking",
+                lambda: intelligence.rank_today(cards),
+                cache_peek=intelligence.rank_cache_key(cards),
+            )
 
-        def action_ai_inspect_fact(self) -> None:
+        def action_ai_inspect_fact(self, *, force: bool = False) -> None:
             if self._current_route != "fact_review":
                 self.notify("Inspect Fact only on Review Facts.", severity="warning")
                 return
@@ -506,10 +528,15 @@ if App is not None:
             if not row or not row.get("atom_id") or row.get("atom_id") == "none":
                 self.notify("Select a fact row first.", severity="warning")
                 return
+            cache_peek = None if force else intelligence.fact_inspection_cache_key(row)
             self._run_ai_job(
                 f"Inspect fact: {row.get('atom_id')}",
-                lambda: intelligence.inspect_fact_row(row),
+                lambda: intelligence.inspect_fact_row(row, force=force),
+                cache_peek=cache_peek,
             )
+
+        def action_ai_inspect_fact_force(self) -> None:
+            self.action_ai_inspect_fact(force=True)
 
         def _execute_deck_step(self, step: dict) -> None:
             step_id = step.get("step_id", "")
@@ -540,6 +567,7 @@ if App is not None:
                 self._run_ai_job(
                     f"Brief: {card.get('title', '')}",
                     lambda: intelligence.brief_card(card),
+                    cache_peek=intelligence.brief_cache_key(card),
                 )
                 return
             if step_id == workflow.DECK_AI_DRAFT:
@@ -547,6 +575,7 @@ if App is not None:
                     f"Draft: {card.get('title', '')}",
                     lambda: intelligence.draft_from_card(card),
                     allow_save=True,
+                    cache_peek=intelligence.draft_cache_key(card),
                 )
                 return
             if step_id == workflow.DECK_REVIEW_FACTS:
