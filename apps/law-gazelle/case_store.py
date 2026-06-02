@@ -256,10 +256,17 @@ def list_artifacts() -> list[dict]:
 
 
 def session_overview() -> dict:
-    """Session provenance from session_meta.db."""
+    """Session provenance from session_meta.db and latest Nest commit manifest."""
+    import commit_package
+
+    last_commit = commit_package.read_latest_manifest()
     path = session_meta_path()
     if not path.exists():
-        return {"present": False}
+        return {
+            "present": False,
+            "last_commit": last_commit,
+            "artifacts": list_artifacts(),
+        }
 
     meta_rows = _query_path(path, "SELECT key, value, category FROM session_meta ORDER BY id")
     meta = {row["key"]: row["value"] for row in meta_rows}
@@ -272,6 +279,7 @@ def session_overview() -> dict:
         "meta": meta,
         "decisions": decisions,
         "artifacts": list_artifacts(),
+        "last_commit": last_commit,
     }
 
 

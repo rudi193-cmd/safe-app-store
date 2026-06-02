@@ -17,6 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+import document_store
 import gazelle_state
 from case_store import (
     bankruptcy_overview,
@@ -83,7 +84,7 @@ if App is not None:
             Binding("n", "add_note", "Note", show=True),
             Binding("s", "snooze", "Snooze", show=True),
             Binding("u", "toggle_resolved", "Resolved", show=True),
-            Binding("o", "open_artifact", "Open", show=True),
+            Binding("o", "open_file", "Open", show=True),
             Binding("q", "quit", "Quit", show=True),
         ]
 
@@ -111,6 +112,8 @@ if App is not None:
                     yield DataTable(id="cross-table", zebra_stripes=True, classes="panel-table")
                 with TabPane("Session", id="tab-session"):
                     yield DataTable(id="session-table", zebra_stripes=True, classes="panel-table")
+                with TabPane("Drafts", id="tab-drafts"):
+                    yield DataTable(id="drafts-table", zebra_stripes=True, classes="panel-table")
             yield Footer()
 
         def on_mount(self) -> None:
@@ -175,6 +178,7 @@ if App is not None:
                 "tab-wc": "wc-table",
                 "tab-cross": "cross-table",
                 "tab-session": "session-table",
+                "tab-drafts": "drafts-table",
             }
             table_id = mapping.get(tab)
             if not table_id:
@@ -205,6 +209,7 @@ if App is not None:
             self._load_workers_comp()
             self._load_cross_case()
             self._load_session()
+            self._load_drafts()
             table = self._active_table()
             if table is not None:
                 table.focus()
@@ -274,25 +279,40 @@ if App is not None:
 
             self.push_screen(SnoozeModal(), apply_snooze)
 
-        def action_open_artifact(self) -> None:
+        def action_open_file(self) -> None:
             tab = self.query_one(TabbedContent).active
-            if tab != "tab-session":
-                return
             item = self._selected_item()
-            if item and item.get("item_type") == "artifact":
-                path = item.get("path")
-                if path:
-                    subprocess.Popen(
-                        ["xdg-open", path],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
-                    )
+
+            if tab == "tab-drafts":
+                path = item.get("path") if item else None
+                if not path:
+                    self.notify("No draft selected.", severity="warning")
+                    return
+                subprocess.Popen(
+                    ["xdg-open", path],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
                 return
-            arts = list_artifacts()
-            if not arts:
-                return
-            path = arts[0]["path"]
-            subprocess.Popen(["xdg-open", path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+            if tab == "tab-session":
+                if item and item.get("item_type") == "artifact":
+                    path = item.get("path")
+                    if path:
+                        subprocess.Popen(
+                            ["xdg-open", path],
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                        )
+                    return
+                arts = list_artifacts()
+                if not arts:
+                    return
+                subprocess.Popen(
+                    ["xdg-open", arts[0]["path"]],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
 
         def _load_urgent(self) -> None:
             table = self.query_one("#urgent-table", DataTable)
@@ -482,6 +502,35 @@ if App is not None:
             table.clear(columns=True)
             table.add_columns("Type", "Key", "Value")
             overview = session_overview()
+            last_commit = overview.get("last_commit")
+            if last_commit and not last_commit.get("error"):
+                commit_id = last_commit.get("session_date") or last_commit.get("name", "commit")
+                item = {
+                    "source_db": "session",
+                    "item_type": "commit_manifest",
+                    "item_id": commit_id,
+                    **last_commit,
+                }
+                summary = (last_commit.get("summary") or "")[:80]
+                files_n = last_commit.get("file_count", len(last_commit.get("files") or []))
+                self._add_item_row(
+                    table,
+                    item,
+                    "commit",
+                    last_commit.get("name", "legal_commit"),
+                    f"{summary} · {files_n} files · {last_commit.get('modified', '—')}",
+                )
+            elif last_commit and last_commit.get("error"):
+                item = {
+                    "source_db": "session",
+                    "item_type": "commit_manifest",
+                    "item_id": "error",
+                    **last_commit,
+                }
+                self._add_item_row(
+                    table, item, "commit", last_commit.get("name", "manifest"), last_commit["error"]
+                )
+
             if not overview.get("present"):
                 item = {
                     "source_db": "session",
@@ -533,6 +582,31 @@ if App is not None:
                 )
             self._configure_table(table)
 
+        def _load_drafts(self) -> None:
+            table = self.query_one("#drafts-table", DataTable)
+            table.clear(columns=True)
+            table.add_columns("Name", "Size", "Modified", "Path")
+            drafts = document_store.list_drafts()
+            if not drafts:
+                table.add_row("—", "—", "—", "No drafts yet — use gazelle_draft to generate one")
+                self._configure_table(table)
+                return
+            for d in drafts:
+                item = {
+                    "source_db": "drafts",
+                    "item_type": "draft",
+                    "item_id": d["name"],
+                    **d,
+                }
+                self._add_item_row(
+                    table, item,
+                    d["name"],
+                    f"{d['size_kb']} KB",
+                    d["modified"],
+                    d["path"],
+                )
+            self._configure_table(table)
+
 
 def _cli_fallback() -> int:
     """Plain-text dashboard when Textual is not installed."""
@@ -570,6 +644,12 @@ def _cli_fallback() -> int:
 
     session = session_overview()
     print("\n=== SESSION ===")
+    last_commit = session.get("last_commit")
+    if last_commit and not last_commit.get("error"):
+        print(
+            f"  last commit: {last_commit.get('name')} — "
+            f"{last_commit.get('summary', '')} ({last_commit.get('file_count', 0)} files)"
+        )
     if not session.get("present"):
         print("  session_meta.db not synced")
     else:

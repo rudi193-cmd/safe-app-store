@@ -75,6 +75,12 @@ class DocumentStoreTests(unittest.TestCase):
         conn.execute(
             "INSERT INTO atoms VALUES (1,'ATM-001','gap','open','urgent','schedule','Thu exchange','Body',NULL,NULL,NULL,'Act',NULL)"
         )
+        conn.execute(
+            "INSERT INTO context_events VALUES (1,'order','Parenting plan entered','2024-03-15')"
+        )
+        conn.execute(
+            "INSERT INTO context_events VALUES (2,'violation','Missed Thursday exchange','2026-05-10')"
+        )
         conn.commit()
         conn.close()
 
@@ -84,6 +90,7 @@ class DocumentStoreTests(unittest.TestCase):
               "_meta": {
                 "case": "D-000-DM-0000-00000",
                 "parties": {"parent_a": "Sean Campbell", "parent_b": "Example Parent B"},
+                "letter_sent": "2026-05-23",
                 "response_deadlines": {"schedule": "2099-01-01", "all_other": "2099-06-01"}
               }
             }""",
@@ -100,8 +107,11 @@ class DocumentStoreTests(unittest.TestCase):
         self.assertIn("ATM-001", ctx["atom_ids"])
         self.assertIn("structure_template", ctx)
         self.assertIn("schedule_packet", ctx)
+        self.assertIn("chronology", ctx)
+        self.assertGreater(ctx["chronology"]["event_count"], 0)
         md = document_store.format_draft_context_markdown(ctx)
         self.assertIn("Schedule Response", md)
+        self.assertIn("Case Chronology", md)
         self.assertIn("gazelle_save", md)
 
     def test_structure_template_schedule(self) -> None:
@@ -143,6 +153,31 @@ class DocumentStoreTests(unittest.TestCase):
         result = case_store.sync_cases(self.nest)
         self.assertIn("from_nest.md", result["copied"])
         self.assertTrue((self.cases_dir / "drafts" / "from_nest.md").exists())
+
+    def test_chronology_builder_events_and_gaps(self) -> None:
+        chrono = document_store.chronology_builder("coparent")
+        self.assertEqual(chrono["case"], "coparent")
+        self.assertGreaterEqual(chrono["event_count"], 4)
+        types = {e["type"] for e in chrono["events"]}
+        self.assertIn("order", types)
+        self.assertIn("violation", types)
+        self.assertIn("letter_sent", types)
+        self.assertIn("deadline", types)
+        violation = next(e for e in chrono["events"] if e["type"] == "violation")
+        self.assertEqual(violation["significance"], "🔴")
+
+    def test_format_chronology_markdown(self) -> None:
+        chrono = document_store.chronology_builder("coparent")
+        md = document_store.format_chronology_markdown(chrono)
+        self.assertIn("# Case Chronology", md)
+        self.assertIn("| Date | Sig |", md)
+        self.assertIn("2026-05-23", md)
+        self.assertIn("[VERIFY", md)
+
+    def test_structure_template_has_fact_flags(self) -> None:
+        tpl = document_store.structure_template("schedule_response")
+        self.assertIn("[FACT NEEDED", tpl)
+        self.assertIn("[VERIFY", tpl)
 
 
 if __name__ == "__main__":

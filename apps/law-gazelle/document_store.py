@@ -136,6 +136,7 @@ def draft_context(doc_type: str, atom_ids: list[str] | None = None) -> dict:
     if spec.get("include_schedule_packet"):
         packet["schedule_packet"] = case_store.schedule_response_packet()
 
+    packet["chronology"] = chronology_builder("coparent")
     packet["prior_artifacts"] = case_store.list_artifacts()
     return packet
 
@@ -157,12 +158,12 @@ def structure_template(doc_type: str) -> str:
 ---
 
 {parent_a}
-[Your address]
+[FACT NEEDED: current mailing address]
 
 {today}
 
 {parent_b}
-[Her address]
+[FACT NEEDED: Example Parent B's current mailing address]
 
 **Re:** Case No. {case_no} — Schedule Proposals (Response to Letter of May 23, 2026)
 
@@ -171,22 +172,29 @@ Dear Example Parent B,
 Thank you for acknowledging my letter. This responds to the schedule items due **May 30, 2026**.
 
 ## Thursday Exchange
-[Propose new exchange time — see ATM-001. Reference §V.Q, stipulated order.]
+[FACT NEEDED: current order's Thursday exchange time] [VERIFY: §V.Q governs weekday exchanges]
+Proposed: [FACT NEEDED: specific proposed time, e.g. 3:30pm] — see ATM-001.
 
 ## Friday Summer Coverage
-[Address immediate summer Fridays — see ATM-002. Propose concrete coverage plan.]
+[FACT NEEDED: which summer Fridays are at issue] [VERIFY: ATM-002 scope]
+Proposed: [UNCERTAIN: coverage plan — confirm with case data before committing]
 
 ## Friday School-Day Logistics
-[Morning drop-off and afternoon pickup — ATM-003, ATM-004.]
+Morning drop-off: [FACT NEEDED: current arrangement per order]
+Afternoon pickup: [FACT NEEDED: current arrangement per order]
+See ATM-003, ATM-004. [VERIFY: school schedule for current year]
 
 ## Alternating Tuesdays
-[Clarify status of Tuesday visits/calls — ATM-005, ATM-023.]
+[VERIFY: ATM-005, ATM-023 — confirm current Tuesday status before proposing change]
+Proposed: [FACT NEEDED: specific ask]
 
 ## Summer Vacation
-[Propose vacation scheduling conversation — ATM-019.]
+[VERIFY: ATM-019 — summer vacation clause in parenting plan]
+Proposed: [FACT NEEDED: dates and logistics]
 
 ## Agreement in Writing
-[All changes per §VIII / joint legal custody framework.]
+All proposed changes subject to written agreement per §VIII and joint legal custody framework.
+[VERIFY: §VIII is the correct section for modification process]
 
 Respectfully,
 
@@ -201,11 +209,12 @@ Respectfully,
 ---
 
 {parent_a}
-[Your address]
+[FACT NEEDED: current mailing address]
 
 {today}
 
 {parent_b}
+[FACT NEEDED: Example Parent B's current mailing address]
 
 **Re:** Case No. {case_no} — Response to Letter (Non-Schedule Items)
 
@@ -213,8 +222,10 @@ Dear Example Parent B,
 
 This letter addresses the non-schedule items from my letter of May 23, 2026, due **June 6, 2026**.
 
-## [Section per atom/issue]
-[Body]
+## [FACT NEEDED: section title from atom/issue]
+[VERIFY: confirm which atoms fall in non-schedule domain before drafting each section]
+[Body — use atom facts only; do not invent amounts, dates, or events]
+[UNCERTAIN: flag any claims that cannot be verified against case data]
 
 Respectfully,
 
@@ -229,7 +240,9 @@ Respectfully,
 
 **Re:** Case No. {case_no}
 
-[Body]
+[FACT NEEDED: subject and purpose of this letter]
+[VERIFY: cite only facts present in case atoms or documents]
+[UNCERTAIN: mark any assertion you cannot confirm before sending]
 
 {parent_a}
 {today}
@@ -267,13 +280,24 @@ def format_draft_context_markdown(ctx: dict) -> str:
         "",
         f"**Case:** {ctx.get('case_number')} | **Deadline:** {(ctx.get('deadline') or {}).get('date', '—')}",
         "",
+    ]
+
+    chrono = ctx.get("chronology")
+    if chrono and not chrono.get("error"):
+        lines.extend([
+            "## Case Chronology (orient before drafting)",
+            format_chronology_markdown(chrono),
+            "",
+        ])
+
+    lines.extend([
         "## Writing Instructions",
         ctx.get("writing_instructions") or "",
         "",
         "## Structure Template",
         ctx.get("structure_template") or "",
         "",
-    ]
+    ])
 
     if ctx.get("schedule_packet"):
         lines.extend([
@@ -353,3 +377,120 @@ def list_drafts() -> list[dict]:
                 "modified": date.fromtimestamp(stat.st_mtime).isoformat(),
             })
     return drafts
+
+
+def chronology_builder(case: str = "coparent") -> dict:
+    """
+    Build a dated event timeline from case data.
+
+    Pulls context_events from the DB plus key meta dates (letter sent, deadlines).
+    Significance: 🔴 critical/deadline, 🟡 notable, ⚪ background.
+    Gaps are explicitly reported rather than silently omitted.
+    """
+    events: list[dict] = []
+    gaps: list[str] = []
+
+    # ── Context events from DB ────────────────────────────────────────────────
+    if case_store.db_exists(case):
+        try:
+            rows = case_store._query(  # noqa: SLF001
+                case,
+                "SELECT id, effective_date, event_type, description FROM context_events ORDER BY effective_date",
+            )
+        except Exception:
+            rows = []
+            gaps.append(f"{case}.db: context_events table unreadable — DB may need sync")
+
+        if not rows:
+            gaps.append(f"{case}.db: context_events is empty — run sync or check Nest")
+
+        _critical_types = {"filing", "order", "violation", "hearing", "judgment"}
+        for row in rows:
+            sig = "🔴" if row.get("event_type", "").lower() in _critical_types else "🟡"
+            events.append({
+                "date": row.get("effective_date") or "[VERIFY date]",
+                "type": row.get("event_type", "event"),
+                "description": row.get("description", ""),
+                "source": f"context_events id={row.get('id')}",
+                "significance": sig,
+                "flags": [] if row.get("effective_date") else ["[VERIFY: date missing in DB]"],
+            })
+    else:
+        gaps.append(f"{case}.db not found — run sync from Nest")
+
+    # ── Key meta dates ────────────────────────────────────────────────────────
+    try:
+        meta = case_store.load_coparent_meta()
+    except Exception:
+        meta = {}
+        gaps.append("coparent_db_export.json unreadable — meta dates unavailable")
+
+    if meta.get("letter_sent"):
+        events.append({
+            "date": meta["letter_sent"],
+            "type": "letter_sent",
+            "description": "Campbell letter sent to opposing party",
+            "source": "coparent_db_export.json _meta.letter_sent",
+            "significance": "🔴",
+            "flags": [],
+        })
+    else:
+        gaps.append("letter_sent date not in meta — add to coparent_db_export.json _meta")
+
+    deadlines = meta.get("deadlines") or meta.get("response_deadlines") or {}
+    for key, dl_date in deadlines.items():
+        if dl_date:
+            events.append({
+                "date": dl_date,
+                "type": "deadline",
+                "description": f"Response deadline: {key}",
+                "source": "coparent_db_export.json _meta.response_deadlines",
+                "significance": "🔴",
+                "flags": ["[VERIFY: confirm date against letter]"],
+            })
+
+    # ── Sort by date (None/missing sorts last) ────────────────────────────────
+    events.sort(key=lambda e: (e["date"] or "9999-99-99"))
+
+    return {
+        "case": case,
+        "generated_at": date.today().isoformat(),
+        "event_count": len(events),
+        "events": events,
+        "gaps": gaps,
+        "note": (
+            "Entries marked [VERIFY] must be confirmed against source documents "
+            "before use in filings. Entries marked [UNCERTAIN] reflect model inference, "
+            "not verified facts. Gaps list sources that could not be read."
+        ),
+    }
+
+
+def format_chronology_markdown(chrono: dict) -> str:
+    """Render chronology_builder output as a markdown table with gap report."""
+    if chrono.get("error"):
+        return chrono["error"]
+
+    lines = [
+        f"# Case Chronology — {chrono.get('case', '').title()}",
+        "",
+        f"Generated: {chrono.get('generated_at', '—')} · {chrono.get('event_count', 0)} events",
+        "",
+        "| Date | Sig | Type | Description | Source | Flags |",
+        "|------|-----|------|-------------|--------|-------|",
+    ]
+    for ev in chrono.get("events", []):
+        flags = " ".join(ev.get("flags") or [])
+        lines.append(
+            f"| {ev['date']} | {ev['significance']} | {ev['type']} "
+            f"| {ev['description'][:80]} | {ev['source']} | {flags} |"
+        )
+
+    gaps = chrono.get("gaps", [])
+    if gaps:
+        lines.extend(["", "## Gaps (sources not read)", ""])
+        for g in gaps:
+            lines.append(f"- {g}")
+
+    lines.extend(["", f"> {chrono.get('note', '')}", ""])
+    return "\n".join(lines)

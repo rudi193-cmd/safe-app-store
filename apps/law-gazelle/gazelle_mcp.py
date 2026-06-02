@@ -12,6 +12,7 @@ Tools exposed:
   gazelle_schedule  — schedule response packet (May 30 letter)
   gazelle_draft     — document drafting context + template
   gazelle_save      — save LLM-produced document to Nest
+  gazelle_commit    — write legal_commit manifest to Nest (session-end signal)
 
 b17: LGMCP1  ΔΣ=42
 
@@ -30,6 +31,7 @@ _HERE = Path(__file__).parent
 sys.path.insert(0, str(_HERE))
 
 import case_store
+import commit_package
 import document_store
 import gazelle_state
 
@@ -164,8 +166,10 @@ _TOOLS = [
         "name": "gazelle_draft",
         "description": (
             "Get full drafting context for the LLM to produce a legal document: "
-            "case parties, deadline, relevant atoms, structure template, and writing instructions. "
-            "After authoring, call gazelle_save with the final body."
+            "case parties, deadline, chronology (context events + meta dates), "
+            "relevant atoms, structure template with [FACT NEEDED]/[VERIFY] flags, "
+            "and writing instructions. After authoring, call gazelle_save with the final body. "
+            "For chronology-only orientation, use gazelle_chronology."
         ),
         "inputSchema": {
             "type": "object",
@@ -187,6 +191,31 @@ _TOOLS = [
                 },
             },
             "required": ["doc_type"],
+        },
+    },
+    {
+        "name": "gazelle_chronology",
+        "description": (
+            "Build a dated event timeline from case data: context events, letter sent, "
+            "response deadlines. Events are significance-tagged (🔴 critical, 🟡 notable) "
+            "with [VERIFY] / [UNCERTAIN] flags and explicit gap reporting. "
+            "Use before drafting to orient on facts and spot missing dates."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "case": {
+                    "type": "string",
+                    "enum": ["coparent", "workers_comp"],
+                    "description": "Case database to build chronology from (default: coparent).",
+                },
+                "format": {
+                    "type": "string",
+                    "enum": ["json", "markdown"],
+                    "description": "Return raw dict (json) or rendered markdown table (markdown). Default markdown.",
+                },
+            },
+            "required": [],
         },
     },
     {
@@ -213,6 +242,32 @@ _TOOLS = [
                 },
             },
             "required": ["filename", "body"],
+        },
+    },
+    {
+        "name": "gazelle_commit",
+        "description": (
+            "Write a legal_commit_<date>.json manifest to Nest at session end. "
+            "Lists present case DBs and letter artifacts so nest_watcher can alert the fleet. "
+            "Call after saving work to Nest (DBs, export JSON, drafts). Use dry_run to preview."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "summary": {
+                    "type": "string",
+                    "description": "One-line session summary (e.g. 'Schedule atoms updated; draft saved').",
+                },
+                "session_date": {
+                    "type": "string",
+                    "description": "Session date for filename, e.g. 2026-06-01 (default: today UTC).",
+                },
+                "dry_run": {
+                    "type": "boolean",
+                    "description": "Build manifest without writing (default false).",
+                },
+            },
+            "required": [],
         },
     },
 ]
@@ -280,11 +335,30 @@ def _dispatch(name: str, args: dict) -> Any:
             "atom_ids": ctx.get("atom_ids"),
         }
 
+    if name == "gazelle_chronology":
+        chrono = document_store.chronology_builder(
+            case=args.get("case", "coparent")
+        )
+        if args.get("format", "markdown") == "json":
+            return chrono
+        return {
+            "markdown": document_store.format_chronology_markdown(chrono),
+            "event_count": chrono.get("event_count"),
+            "gaps": chrono.get("gaps"),
+        }
+
     if name == "gazelle_save":
         return document_store.save_document(
             args["filename"],
             args["body"],
             dest=args.get("dest", "nest"),
+        )
+
+    if name == "gazelle_commit":
+        return commit_package.write_commit_manifest(
+            summary=args.get("summary", ""),
+            session_date=args.get("session_date", ""),
+            dry_run=args.get("dry_run", False),
         )
 
     return {"error": f"Unknown tool: {name}"}

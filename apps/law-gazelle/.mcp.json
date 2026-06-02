@@ -11,7 +11,11 @@
     },
     "law-gazelle": {
       "command": "python3",
-      "args": ["/home/sean-campbell/safe-app-store/apps/law-gazelle/gazelle_mcp.py"]
+      "args": ["/home/sean-campbell/github/safe-app-store/apps/law-gazelle/gazelle_mcp.py"]
+    },
+    "courtlistener": {
+      "command": "python3",
+      "args": ["/home/sean-campbell/github/courtlistener-mcp/src/server.py"]
     }
   }
 }

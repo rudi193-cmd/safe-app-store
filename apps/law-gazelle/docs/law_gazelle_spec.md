@@ -337,12 +337,13 @@ Poll `coparent.db` + `session_meta.db` mtimes; alert on change. Simpler for auth
 - [x] `tests/test_case_store.py` (7 tests)
 - [x] `dev.sh` worktree launcher
 
-### Phase 1 — Session boundary (next)
+### Phase 1 — Session boundary (in progress)
 
-- [ ] `scripts/commit_package.py` — write manifest to Nest from current case files
-- [ ] Classify manifest in `nest_intake._classify()`
-- [ ] Verify `nest_watcher` alerts on manifest drop
-- [ ] Session tab: show last commit manifest if present
+- [x] `commit_package.py` + `scripts/commit_package.py` — write manifest to Nest from current case files + drafts
+- [x] `gazelle_commit` MCP tool
+- [x] Classify manifest in `nest_intake._classify()` (willow-1.9)
+- [ ] Verify `nest_watcher` alerts on manifest drop (manual)
+- [x] Session tab: show last commit manifest if present
 - [ ] Document ritual: build session → commit manifest → watcher alert → `./dev.sh`
 
 ### Phase 2 — LLM consumer
