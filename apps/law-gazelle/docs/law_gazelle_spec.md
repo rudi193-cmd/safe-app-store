@@ -1,10 +1,10 @@
 # Law Gazelle — Architecture & Roadmap Spec
 
-**Date:** 2026-05-24  
-**Status:** Backend + TUI shipped; LLM layer and watcher commit signal not wired  
+**Date:** 2026-06-02  
+**Status:** TUI, MCP, session commits, local-AI cache, stale-data checks, and first data-surfacing pass shipped  
 **b17:** E472A  
-**Branch:** `feat/law-gazelle`  
-**Worktree:** `/home/sean-campbell/safe-app-store/.worktrees/law-gazelle`
+**Branch:** `feat/ratatosk`  
+**Worktree:** `/home/sean-campbell/github/safe-app-store/apps/law-gazelle`
 
 ---
 
@@ -15,10 +15,10 @@ A **case command center** for Sean's real legal situations — not the generic t
 Law Gazelle:
 
 1. **Syncs** canonical case databases from Nest into app data
-2. **Queries** atoms, flags, evidence, deadlines, cross-case intersections
-3. **Surfaces** an urgent queue with milestone context
+2. **Queries** atoms, flags, evidence, deadlines, legal documents, and cross-case intersections
+3. **Surfaces** a Today workflow, matter drill-downs, milestone context, and stale-data warnings
 4. **Tracks** human/agent operational state in a sidecar (resolve, snooze, notes)
-5. **Displays** everything in a Textual TUI (visible backend)
+5. **Displays** everything in a Textual TUI and exposes MCP tools for legal sessions
 
 It is the **runtime operator** on prepared legal data. It does **not** author case facts during normal operation and does **not** write LOAM atoms directly.
 
@@ -50,11 +50,11 @@ flowchart TB
         Query["case_store queries + get_item_detail()"]
         Sidecar["gazelle_state.db"]
         TUI["Textual TUI (app.py)"]
-        LLM["LLM tools (future)"]
+        LLM["MCP + local Ollama tools"]
     end
 
     subgraph L3 [Layer 3 — Session boundary signal]
-        Manifest["commit manifest in Nest (future)"]
+        Manifest["legal_commit manifest in Nest"]
         Watcher["nest_watcher → Grove alert"]
         Fleet["Fleet decides: index, promote, audit"]
     end
@@ -78,7 +78,7 @@ flowchart TB
 
 | File | Role |
 |---|---|
-| `coparent.db` | Family law D-000-DM-0000-00000 — atoms, issues, evidence, plan citations, state law, correspondence, context events |
+| `coparent.db` | Family law D-000-DM-0000-00000 — atoms, issues, evidence, plan citations, state law, legal documents, correspondence, communication log, schedule, context events |
 | `bankruptcy.db` | Ch. 13 dismissed → Ch. 7 — flags, checklist, creditors, coparent_intersections |
 | `workers_comp.db` | WCA 00-00000 (scaffolded; narrative also in coparent) |
 | `session_meta.db` | Build-session provenance (May 23/24 night) |
@@ -96,7 +96,7 @@ flowchart TB
 | Path | Role |
 |---|---|
 | `cases/` | Synced copy of Nest DBs + export JSON + artifacts |
-| `gazelle_state.db` | Sidecar: resolved, snooze, user notes |
+| `gazelle_state.db` | Sidecar: resolved, snooze, user notes, activity, fact verification, local-AI cache |
 | `.venv/` | Textual + deps |
 
 **Modules:**
@@ -105,17 +105,22 @@ flowchart TB
 |---|---|
 | `case_store.py` | Sync, queries, urgent queue, detail drill-down, cross-case, milestones |
 | `gazelle_state.py` | Sidecar writes (never touches Nest) |
-| `app.py` | Textual TUI — tabs, keybindings, detail modals |
+| `app.py` | Textual TUI — Today workflow, matters, activity/session routes, detail modals |
 | `screens/detail.py` | DetailScreen, NoteModal, SnoozeModal |
+| `workflow.py` | Today cards, action deck, review-facts rows, draft actions |
+| `intelligence.py` | Local-Ollama ranking, brief/draft/fact inspection with content fingerprints |
+| `document_store.py` | Draft context, templates, save/list drafts |
+| `gazelle_mcp.py` | MCP server wrapping sync, briefing, detail, sidecar, draft, commit, AI tools |
+| `commit_package.py` | Session-end legal commit manifest writer |
 | `dev.sh` | venv, sync, launch |
 
-**Principle:** One backend, multiple consumers. TUI and future LLM tools call the same functions.
+**Principle:** One backend, multiple consumers. TUI and MCP tools call the same functions.
 
-### Layer 3 — Session-end signal (design intent, not fully wired)
+### Layer 3 — Session-end signal
 
 **During session:** work happens in Nest SQLite.
 
-**At session end:** package is **prepared and committed** — DBs saved, export JSON written, `session_meta.db` updated, artifacts present in Nest.
+**At session end:** package is **prepared and committed** — DBs saved, export JSON written, `session_meta.db` updated, artifacts present in Nest, and `legal_commit_<date>.json` written.
 
 **Not:** law-gazelle calls LOAM ingest.
 
@@ -123,7 +128,7 @@ flowchart TB
 
 - Existing: `willow-1.9/tools/nest_watcher.py` polls Nest, stages via `nest_intake.scan_nest()`, sends Grove message to `#heimdallr`
 - Planned: lightweight Loki watcher (KB atom 407916B5) — architecture only, code TBD
-- Gap: watcher today detects **new files**, not in-place `.db` updates; needs a **commit manifest** or mtime policy
+- Commit manifest path exists in Law Gazelle; watcher alert still needs manual verification in the fleet environment
 
 **Downstream (fleet):** Heimdallr / others decide whether to promote to LOAM (Postgres `knowledge` + `tags JSONB`), index for session RAG, or no-op.
 
@@ -136,6 +141,7 @@ flowchart TB
 | Nest case DBs | SQLite relational | No |
 | `coparent_db_export.json` | JSON file | N/A (plain JSON) |
 | `gazelle_state.db` | SQLite relational | No |
+| `ai_cache` table | SQLite relational inside `gazelle_state.db` | No |
 | LOAM `knowledge` | Postgres | `tags JSONB` — downstream only |
 | SOIL `records.data` | SQLite TEXT | JSON blob — optional projection |
 
@@ -149,7 +155,9 @@ Law Gazelle operates on **SQLite + one JSON export**. JSONB is the **fleet compo
 
 ```python
 sync_cases(source: Path = ~/Desktop/Nest) -> dict
+check_stale(source: Path = ~/Desktop/Nest) -> list[str]
 # Copies CASE_DBS + SYNC_EXTRAS + SESSION_META + artifacts into ~/.willow/.../cases/
+# check_stale reports Nest DBs newer than the local app copy before the user sees stale output.
 ```
 
 ### Queues & summaries
@@ -163,6 +171,9 @@ session_overview() -> dict
 bankruptcy_overview() -> dict
 workers_comp_overview() -> dict | None
 coparent_atoms(status="open") -> list[dict]
+legal_documents(limit=25) -> list[dict]
+schedule_response_packet(include_resolved=False) -> dict
+briefing_packet(include_session=False) -> dict
 ```
 
 ### Detail (returns dict; TUI renders via format_detail_text)
@@ -179,6 +190,7 @@ format_detail_text(detail) -> str
 | `atom` | coparent, workers_comp | atom_id |
 | `flag` | bankruptcy | flag_id |
 | `deadline` | coparent | `deadline:schedule` / `deadline:all_other` |
+| `legal_document` | coparent | doc_id |
 | `intersection` | bankruptcy | issue string |
 | `creditor` | bankruptcy | creditor_id |
 | `context_event` | coparent | numeric id |
@@ -186,6 +198,7 @@ format_detail_text(detail) -> str
 | `session_meta` | session | meta key |
 | `session_decision` | session | decision id |
 | `artifact` | session | filename |
+| `checklist_item` | bankruptcy | doc_type |
 
 ### Sidecar (writes)
 
@@ -195,7 +208,7 @@ gazelle_state.snooze_until(source_db, item_type, item_id, until_date)
 gazelle_state.add_note(source_db, item_type, item_id, body)
 ```
 
-Sidecar merges into `urgent_queue()` via `_merge_overlay()` — resolved/snoozed items hidden unless `show_resolved=True`.
+Sidecar merges into `urgent_queue()` and surfaced matter rows via `_merge_overlay()` — resolved/snoozed items hidden from urgent queue unless `show_resolved=True`.
 
 ---
 
@@ -205,10 +218,11 @@ Sidecar merges into `urgent_queue()` via `_merge_overlay()` — resolved/snoozed
 
 ```bash
 cd apps/law-gazelle && ./dev.sh
-# or worktree: .worktrees/law-gazelle/apps/law-gazelle
 ```
 
-**Tabs:** Urgent, Cases, Coparent, Bankruptcy, Workers Comp, Cross-Case, Session
+**Routes:** Today, action deck, fact review, matters, matter drill-downs, drafts, session, activity.
+
+**Matter coverage:** Coparent atoms + legal documents; bankruptcy flags/cases/checklist; workers-comp atoms when DB is present; cross-case intersections/creditors/context; all-cases summary.
 
 **Keys:**
 
@@ -216,14 +230,19 @@ cd apps/law-gazelle && ./dev.sh
 |---|---|
 | Enter / v | Detail modal |
 | r | Refresh (re-sync from Nest) |
-| d | Mark done → sidecar |
+| m | Matters |
+| d | Drafts route |
+| a | Activity route |
+| s | Session route |
+| x | Mark done → sidecar |
 | n | Add note → sidecar |
-| s | Snooze → sidecar |
-| u | Toggle show resolved |
+| z | Snooze → sidecar |
+| t | Toggle show resolved on Today |
+| f / Shift+F | AI inspect cached / force re-inspect on Review Facts |
 | o | Open artifact (Session tab, selected row) |
 | q | Quit |
 
-**Milestone banner:** May 30 (schedule), June 6 (all other letter items), July 1 (city job / Ch7 / support).
+**Milestone banner:** Reads `_meta.response_deadlines` from `coparent_db_export.json` when available and always includes July 1 city job / Ch7 / support context.
 
 ---
 
@@ -238,15 +257,15 @@ cd apps/law-gazelle && ./dev.sh
 
 ---
 
-## LLM Layer (future — not wired)
+## MCP + Local-AI Layer (shipped)
 
-**Role:** Reasoning, drafting, "what should I do Tuesday?" — reads Layer 2, writes only sidecar.
+**Role:** Reasoning, drafting, "what should I do Tuesday?" — reads Layer 2, writes only sidecar or explicit draft/commit files in Nest.
 
 **Consumption pattern:**
 
 ```python
 # Briefing
-urgent_queue() + milestone_banner() + cross_case_overview()
+briefing_packet(include_session=True)
 
 # Drill-down
 get_item_detail("coparent", "atom", "ATM-001")  # prefer dict over format_detail_text
@@ -256,34 +275,32 @@ gazelle_state.add_note(...)
 gazelle_state.mark_resolved(...)
 ```
 
-**Integration options (pick one or both):**
+**MCP tools:** `gazelle_sync`, `gazelle_briefing`, `gazelle_urgent`, `gazelle_detail`, `gazelle_note`, `gazelle_resolve`, `gazelle_schedule`, `gazelle_draft`, `gazelle_chronology`, `gazelle_save`, `gazelle_commit`, `gazelle_llm_health`, `gazelle_ai_brief`, `gazelle_ai_draft`, `gazelle_ai_rank_today`, `gazelle_ai_inspect_fact`.
 
-1. **Python import** — Ratatosk / local agent calls `case_store` directly (simplest)
-2. **MCP tools** — `gazelle_sync`, `gazelle_urgent`, `gazelle_detail`, `gazelle_note` wrapping same functions
-3. **Briefing helper** — `briefing_packet() -> dict` bundling urgent + milestones + session meta (small addition)
+**AI cache:** local sidecar cache keyed by content fingerprint. Cache invalidates when source content/verification/evidence changes, expires after 7 days, and supports `force=True` bypass from MCP and Shift+F in the TUI. The TUI preflights cache status before worker launch.
 
 **Do not:** give the agent direct Nest SQLite write access or LOAM ingest from law-gazelle.
 
 ---
 
-## Session-End Commit Signal (future — spec)
+## Session-End Commit Signal
 
 ### Problem
 
 `nest_watcher` detects **new files** in Nest. Legal sessions **update `.db` files in place** and rewrite export JSON. The watcher may not re-alert without an explicit marker.
 
-### Proposed: commit manifest
+### Commit manifest
 
 At end of a legal build session, write a small JSON file to Nest:
 
-**Filename:** `law_gazelle_commit.json` (or `legal_commit_<ISO-date>.json`)
+**Filename:** `legal_commit_<ISO-date>.json`
 
 ```json
 {
   "kind": "law_gazelle_commit",
   "status": "prepared",
-  "committed_at": "2026-05-24T17:15:00Z",
-  "session_date": "2026-05-23/24",
+  "committed_at": "2026-06-02T06:00:00Z",
+  "session_date": "2026-06-02",
   "case_number": "D-000-DM-0000-00000",
   "files": [
     "coparent.db",
@@ -293,29 +310,29 @@ At end of a legal build session, write a small JSON file to Nest:
     "coparent_db_export.json",
     "Campbell_Letter_May23_2026.docx"
   ],
-  "summary": "Letter sent; 21 atoms; deadlines May 30 / June 6"
+  "summary": "Session summary; case DBs/export/drafts ready for watcher"
 }
 ```
 
-### Watcher behavior (to implement)
+### Watcher behavior
 
-1. `nest_intake._classify()` — recognize `law_gazelle_commit.json` as track `legal` (or new track `law_gazelle_commit`)
+1. `nest_intake._classify()` — recognize `legal_commit_<date>.json` as track `legal` / `law_gazelle_commit`
 2. `nest_watcher` — Grove message, e.g.:
    ```
    [nest] law-gazelle package committed — session 2026-05-23/24, 6 files, case D-000-DM-0000-00000
    ```
 3. Fleet (Heimdallr / Loki watcher) — optional LOAM promote, session index, audit log
-4. Law Gazelle — `sync_cases()` on next refresh; no change required beyond optionally **reading** manifest for Session tab
+4. Law Gazelle — `sync_cases()` on next refresh; Session tab reads latest manifest when present
 
 ### Who writes the manifest
 
 | Option | Writer |
 |---|---|
-| A | Legal build session (Claude) at session close |
-| B | Small `scripts/commit_package.py` in law-gazelle |
+| A | `gazelle_commit` MCP tool |
+| B | `scripts/commit_package.py` in law-gazelle |
 | C | Nest pipeline stage after scrub |
 
-Recommend **B** callable from build session or manually — keeps ritual explicit.
+Recommended paths are **A** from MCP sessions or **B** manually from the CLI — both keep the ritual explicit.
 
 ### Alternative: extend watcher for DB mtime
 
@@ -334,31 +351,38 @@ Poll `coparent.db` + `session_meta.db` mtimes; alert on change. Simpler for auth
 - [x] Urgent queue v2 (days-until, overdue-first, sidecar filter)
 - [x] Cross-case tab + milestones
 - [x] Workers comp scaffold script
-- [x] `tests/test_case_store.py` (7 tests)
+- [x] Active test suite (`python3 -m pytest tests`, 69 tests)
 - [x] `dev.sh` worktree launcher
 
-### Phase 1 — Session boundary (in progress)
+### Phase 1 — Session boundary (mostly done)
 
 - [x] `commit_package.py` + `scripts/commit_package.py` — write manifest to Nest from current case files + drafts
 - [x] `gazelle_commit` MCP tool
 - [x] Classify manifest in `nest_intake._classify()` (willow-1.9)
 - [ ] Verify `nest_watcher` alerts on manifest drop (manual)
 - [x] Session tab: show last commit manifest if present
-- [ ] Document ritual: build session → commit manifest → watcher alert → `./dev.sh`
+- [x] Document ritual: build session → commit manifest → watcher alert → `./dev.sh`
 
-### Phase 2 — LLM consumer
+### Phase 2 — Workflow + LLM consumer (done)
 
-- [ ] `briefing_packet()` in `case_store.py`
-- [ ] MCP tool surface OR Ratatosk tool registration
-- [ ] Agent write path: sidecar only, with confirmation for `mark_resolved`
-- [ ] Optional: `format_detail_text` vs structured JSON toggle for agent context
+- [x] `briefing_packet()` in `case_store.py`
+- [x] MCP tool surface for sync, urgent, detail, notes, resolve, schedule, draft/save, chronology, commit, AI
+- [x] Today workflow, action deck, review-facts gate
+- [x] Agent write path: sidecar only for resolve/note; explicit Nest writes only for drafts and commit manifests
+- [x] Structured JSON and markdown-oriented contexts where useful
 
-### Phase 3 — Polish
+### Phase 3 — Correctness + first data surfacing (in progress)
 
+- [x] AI cache content fingerprint, 7-day TTL, force bypass, TUI cache preflight
+- [x] Stale DB detection before render and after sync
+- [x] Dynamic milestones from `coparent_db_export.json` plus static July 1 context
+- [x] Indexes on sidecar notes/activity and workers-comp table whitelist
+- [x] Bankruptcy checklist rows → detail type
+- [x] First missing-data path surfaced: `legal_documents` in Coparent matter drill-down and `gazelle_detail`
+- [x] Update `safe-app-manifest.json`, `pyproject.toml`, and spec to reflect case command center
+- [ ] Update README when the local markdown read hook permits it
 - [ ] PDF sync when source files appear in Nest (`legal_documents.content_notes` → file path)
-- [ ] Bankruptcy checklist rows → detail type
-- [ ] Stale manifest / sync conflict detection (Nest newer than local copy)
-- [ ] Update `safe-app-manifest.json` and README to reflect case command center (not generic legal reference)
+- [ ] Surface remaining populated coparent/bankruptcy tables (`decision_log`, communication/correspondence, schedule, hearing log)
 - [ ] Archive or remove dead stubs (`legal_db.py`, old `SAFESession` path) from active docs
 
 ---
@@ -372,8 +396,11 @@ cd apps/law-gazelle && ./dev.sh
 # Sync only
 python3 app.py --sync-only
 
-# Tests
-python3 -m unittest tests.test_case_store -v
+# Tests (active suite)
+python3 -m pytest tests
+
+# Note: bare `python3 -m pytest` also collects `_archived/test_case_store.py`,
+# which currently collides with `tests/test_case_store.py`.
 
 # Scaffold workers comp in Nest (once)
 python3 scripts/scaffold_workers_comp.py
@@ -381,13 +408,13 @@ python3 scripts/scaffold_workers_comp.py
 
 ---
 
-## Open Questions (for Sean on return)
+## Open Questions / Gates
 
-1. **Commit manifest filename** — fixed `law_gazelle_commit.json` vs dated files?
-2. **Grove channel** — `#heimdallr` (current nest-watcher) vs `#fleet` vs `#vishwakarma`?
-3. **LLM entry point** — Ratatosk module import, MCP server in law-gazelle, or Cursor-only?
-4. **Nest write-back** — ever sync sidecar notes into Nest, or keep sidecar forever separate?
-5. **LOAM domain** — if fleet promotes, use `saps1`, `law-gazelle`, or `hanuman`?
+1. **Watcher verification** — confirm `legal_commit_<date>.json` produces the intended fleet alert.
+2. **Remaining data surfacing** — choose next populated table group after `legal_documents`.
+3. **CourtListener integration** — `include_courtlistener` is accepted by AI tools but raw REST/MCP integration remains Horizon 2.
+4. **Draft evidence guard** — decide whether saved drafts must reject unverified facts automatically.
+5. **Privacy gate** — no public push until PII scrub confirms repo history and docs contain only app/test/demo data.
 
 ---
 

@@ -1,40 +1,41 @@
 {
-  "app_id": "safe-app-law-gazelle",
+  "app_id": "law-gazelle",
   "name": "law-gazelle",
   "version": "1.0.0",
   "safe_version": ">=2.0.0",
   "b17": "E472A",
   "agent_type": "tool",
-  "description": "Case command center for Sean's active legal matters \u2014 coparent (D-000-DM-0000-00000), bankruptcy (Ch.7), workers comp (WCA 00-00000). Syncs canonical Nest databases, surfaces urgent queue and deadlines, tracks sidecar state, and exposes an MCP surface for LLM legal sessions.",
+  "description": "Case command center for Sean's active legal matters \u2014 coparent (D-000-DM-0000-00000), bankruptcy (Ch.7), workers comp (WCA 00-00000). Syncs canonical Nest databases, surfaces Today workflow, deadlines, legal documents, stale-data signals, sidecar state, and MCP/local-AI tools for legal sessions.",
   "author": "Sean Campbell",
   "data_streams": [
     {
-      "id": "cloud_llm_queries",
-      "purpose": "AI processing via free cloud tier",
-      "retention": "session",
-      "description": "Cloud LLM API calls"
+      "id": "nest_case_databases",
+      "purpose": "Canonical legal case data synced from Nest into local app data",
+      "retention": "local until user removes",
+      "description": "SQLite case DBs, export JSON, drafts, and letter artifacts copied from ~/Desktop/Nest"
     },
     {
-      "id": "file_reads",
-      "purpose": "File system access",
-      "retention": "session",
-      "description": "Files read by app"
+      "id": "sidecar_state",
+      "purpose": "Operational state for the TUI and MCP tools",
+      "retention": "permanent local",
+      "description": "Resolved/snoozed items, notes, activity, fact review state, and AI cache"
     },
     {
-      "id": "patterns",
-      "purpose": "Behavioral pattern storage",
-      "retention": "permanent",
-      "description": "User pattern data"
+      "id": "local_llm_prompts",
+      "purpose": "Optional local Ollama ranking, briefing, drafting, and fact inspection",
+      "retention": "7-day local cache",
+      "description": "Prompt inputs and model outputs cached locally by content fingerprint"
     }
   ],
   "permissions": [
     "file_read",
     "file_write_sidecar",
-    "pattern_storage"
+    "file_write_nest_drafts",
+    "local_llm"
   ],
   "privacy_tier": "client_only",
-  "local_processing": 0.96,
+  "local_processing": 1.0,
   "entry_point": "app:main",
   "license": "MIT",
-  "repository": "https://github.com/rudi193-cmd/safe-app-law-gazelle"
+  "repository": "https://github.com/rudi193-cmd/safe-app-store"
 }
