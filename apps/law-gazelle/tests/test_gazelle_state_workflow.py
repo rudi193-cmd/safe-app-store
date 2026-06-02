@@ -80,6 +80,55 @@ class GazelleStateWorkflowTests(unittest.TestCase):
         cleared = gazelle_state.get_ai_cache(key)
         self.assertIsNone(cleared)
 
+    def test_ai_cache_expires_at_set(self) -> None:
+        key = gazelle_state.ai_cache_key("ai_brief", "card:X")
+        gazelle_state.put_ai_cache(key, "ai_brief", "body", fingerprint="fp1")
+        import sqlite3
+        with sqlite3.connect(gazelle_state.STATE_DB) as conn:
+            row = conn.execute("SELECT expires_at FROM ai_cache WHERE cache_key=?", (key,)).fetchone()
+        self.assertIsNotNone(row)
+        self.assertIsNotNone(row[0])
+        self.assertGreater(row[0], gazelle_state._now())
+
+    def test_ai_cache_expired_returns_none(self) -> None:
+        key = gazelle_state.ai_cache_key("ai_brief", "card:expired")
+        gazelle_state.put_ai_cache(key, "ai_brief", "old body", fingerprint="fp2")
+        import sqlite3
+        with sqlite3.connect(gazelle_state.STATE_DB) as conn:
+            conn.execute(
+                "UPDATE ai_cache SET expires_at=? WHERE cache_key=?",
+                ("2000-01-01T00:00:00Z", key),
+            )
+            conn.commit()
+        result = gazelle_state.get_ai_cache(key, fingerprint="fp2")
+        self.assertIsNone(result)
+
+    def test_ai_cache_migration_adds_expires_at(self) -> None:
+        import sqlite3
+        # Simulate an old DB without expires_at column
+        with sqlite3.connect(gazelle_state.STATE_DB) as conn:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS ai_cache (
+                    cache_key TEXT PRIMARY KEY,
+                    event_type TEXT NOT NULL,
+                    source_db TEXT,
+                    item_type TEXT,
+                    item_id TEXT,
+                    body TEXT NOT NULL,
+                    model TEXT,
+                    input_fingerprint TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                )
+                """
+            )
+            conn.commit()
+        # _connect() should add the column via migration
+        gazelle_state._connect().close()
+        with sqlite3.connect(gazelle_state.STATE_DB) as conn:
+            cols = {r[1] for r in conn.execute("PRAGMA table_info(ai_cache)").fetchall()}
+        self.assertIn("expires_at", cols)
+
 
 if __name__ == "__main__":
     unittest.main()

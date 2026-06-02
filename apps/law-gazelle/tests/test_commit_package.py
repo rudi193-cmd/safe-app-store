@@ -110,5 +110,74 @@ class CommitPackageTests(unittest.TestCase):
         inspect_fact.assert_called_once_with(fact_row, force=False)
 
 
+class CheckStaleTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._tmpdir = tempfile.mkdtemp()
+        self.nest = Path(self._tmpdir) / "nest"
+        self.nest.mkdir()
+        self.cases = Path(self._tmpdir) / "cases"
+        self.cases.mkdir()
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self._tmpdir, ignore_errors=True)
+
+    def test_stale_when_source_newer(self) -> None:
+        import case_store
+
+        src = self.nest / "coparent.db"
+        dest = self.cases / "coparent.db"
+        dest.write_bytes(b"old")
+        import time
+        time.sleep(0.01)
+        src.write_bytes(b"new")
+
+        with (
+            mock.patch.object(case_store, "CASES_DIR", self.cases),
+            mock.patch.object(case_store, "DEFAULT_SOURCE", self.nest),
+        ):
+            stale = case_store.check_stale(self.nest)
+        self.assertIn("coparent.db", stale)
+
+    def test_not_stale_when_dest_current(self) -> None:
+        import case_store
+
+        src = self.nest / "coparent.db"
+        src.write_bytes(b"data")
+        import shutil as _shutil
+        dest = self.cases / "coparent.db"
+        _shutil.copy2(src, dest)
+
+        with (
+            mock.patch.object(case_store, "CASES_DIR", self.cases),
+            mock.patch.object(case_store, "DEFAULT_SOURCE", self.nest),
+        ):
+            stale = case_store.check_stale(self.nest)
+        self.assertNotIn("coparent.db", stale)
+
+    def test_milestones_falls_back_to_constants_when_no_json(self) -> None:
+        import case_store
+
+        with mock.patch.object(case_store, "response_deadlines", return_value=[]):
+            items = case_store.milestones()
+        self.assertTrue(len(items) > 0)
+        labels = [m["label"] for m in items]
+        self.assertTrue(any("City job" in l for l in labels))
+
+    def test_milestones_uses_dynamic_data_when_present(self) -> None:
+        import case_store
+
+        dynamic = [
+            {"deadline": "2026-05-30", "title": "Schedule response", "case": "coparent",
+             "source_db": "coparent", "kind": "deadline", "item_type": "deadline",
+             "item_id": "deadline:schedule", "deadline_key": "schedule",
+             "days_until": -2, "overdue": True, "severity": "URGENT"},
+        ]
+        with mock.patch.object(case_store, "response_deadlines", return_value=dynamic):
+            items = case_store.milestones()
+        labels = [m["label"] for m in items]
+        self.assertIn("Schedule response", labels)
+        self.assertTrue(any("City job" in l for l in labels))
+
+
 if __name__ == "__main__":
     unittest.main()

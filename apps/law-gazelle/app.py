@@ -28,6 +28,7 @@ import tui_routes
 import workflow
 from case_store import (
     bankruptcy_overview,
+    check_stale,
     coparent_atoms,
     cross_case_overview,
     list_artifacts,
@@ -109,6 +110,14 @@ if App is not None:
             padding: 0 1;
             color: $text-muted;
         }
+        #stale-banner {
+            height: 1;
+            padding: 0 1;
+            text-style: bold;
+            color: $text;
+            background: $warning;
+            content-align: left middle;
+        }
         #ai-status {
             height: auto;
             padding: 0 1;
@@ -165,6 +174,7 @@ if App is not None:
                 RouteFrame("home", label="Today"),
             ]
             self._last_sync: dict | None = None
+            self._stale_files: list[str] = []
             self._active_card: dict | None = None
             self._deck_entries: list[dict] = []
             self._pending_ai_title: str = ""
@@ -193,6 +203,7 @@ if App is not None:
                 id="nav-hint",
             )
             yield Static("", id="milestones")
+            yield Static("", id="stale-banner")
             yield Static("", id="sync-status")
             yield Static("", id="ai-status")
             yield DataTable(id="main-table", zebra_stripes=True)
@@ -281,6 +292,15 @@ if App is not None:
             self.query_one("#route-hints", Static).update(
                 footer_hints(route, show_resolved=self.show_resolved)
             )
+            stale_widget = self.query_one("#stale-banner", Static)
+            if self._stale_files:
+                stale_widget.display = "block"
+                stale_widget.update(
+                    f"⚠ {len(self._stale_files)} case file(s) stale in Nest — press R to sync: "
+                    + ", ".join(self._stale_files)
+                )
+            else:
+                stale_widget.display = "none"
             if self._last_sync:
                 result = self._last_sync
                 copied = ", ".join(result["copied"]) or "none"
@@ -376,7 +396,9 @@ if App is not None:
             table.focus()
 
         def action_refresh(self) -> None:
+            self._stale_files = check_stale()
             self._last_sync = _sync_and_report()
+            self._stale_files = check_stale()  # re-check after sync
             self.query_one("#milestones", Static).update(milestone_banner())
             self._render_current_route()
 

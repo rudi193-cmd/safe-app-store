@@ -75,13 +75,19 @@ CREATE TABLE IF NOT EXISTS ai_cache (
     body              TEXT NOT NULL,
     model             TEXT,
     input_fingerprint TEXT NOT NULL,
-    created_at        TEXT NOT NULL
+    created_at        TEXT NOT NULL,
+    expires_at        TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_user_notes_item ON user_notes (source_db, item_type, item_id);
+CREATE INDEX IF NOT EXISTS idx_activity_event_time ON activity (event_type, created_at);
 """
 
 
 def _now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+_AI_CACHE_TTL_DAYS = 7
 
 
 def _connect() -> sqlite3.Connection:
@@ -90,7 +96,15 @@ def _connect() -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.executescript(_SCHEMA)
     conn.commit()
+    _migrate(conn)
     return conn
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(ai_cache)").fetchall()}
+    if "expires_at" not in cols:
+        conn.execute("ALTER TABLE ai_cache ADD COLUMN expires_at TEXT")
+        conn.commit()
 
 
 def log_activity(
@@ -123,12 +137,12 @@ def ai_cache_key(event_type: str, scope: str) -> str:
 
 
 def get_ai_cache(cache_key: str, *, fingerprint: str | None = None) -> dict | None:
-    """Return cached LLM output when fingerprint still matches."""
+    """Return cached LLM output when fingerprint matches and TTL has not expired."""
     with _connect() as conn:
         row = conn.execute(
             """
             SELECT cache_key, event_type, source_db, item_type, item_id,
-                   body, model, input_fingerprint, created_at
+                   body, model, input_fingerprint, created_at, expires_at
             FROM ai_cache WHERE cache_key=?
             """,
             (cache_key,),
@@ -138,7 +152,18 @@ def get_ai_cache(cache_key: str, *, fingerprint: str | None = None) -> dict | No
     data = dict(row)
     if fingerprint is not None and data.get("input_fingerprint") != fingerprint:
         return None
+    expires = data.get("expires_at")
+    if expires and expires < _now():
+        return None
     return data
+
+
+def _expires_at() -> str:
+    from datetime import timedelta
+
+    return (datetime.now(timezone.utc) + timedelta(days=_AI_CACHE_TTL_DAYS)).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
 
 
 def put_ai_cache(
@@ -152,13 +177,14 @@ def put_ai_cache(
     item_type: str | None = None,
     item_id: str | None = None,
 ) -> None:
+    now = _now()
     with _connect() as conn:
         conn.execute(
             """
             INSERT INTO ai_cache (
                 cache_key, event_type, source_db, item_type, item_id,
-                body, model, input_fingerprint, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                body, model, input_fingerprint, created_at, expires_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(cache_key) DO UPDATE SET
                 event_type = excluded.event_type,
                 source_db = excluded.source_db,
@@ -167,7 +193,8 @@ def put_ai_cache(
                 body = excluded.body,
                 model = excluded.model,
                 input_fingerprint = excluded.input_fingerprint,
-                created_at = excluded.created_at
+                created_at = excluded.created_at,
+                expires_at = excluded.expires_at
             """,
             (
                 cache_key,
@@ -178,7 +205,8 @@ def put_ai_cache(
                 body,
                 model,
                 fingerprint,
-                _now(),
+                now,
+                _expires_at(),
             ),
         )
         conn.commit()

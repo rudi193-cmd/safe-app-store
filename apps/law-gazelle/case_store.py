@@ -48,6 +48,11 @@ MILESTONES = (
     {"date": "2026-07-01", "label": "City job / Ch7 filing / support modification"},
 )
 
+# Always included regardless of what the JSON export provides
+_STATIC_MILESTONES = (
+    {"date": "2026-07-01", "label": "City job / Ch7 filing / support modification"},
+)
+
 
 def _parse_evidence_ids(raw: str | None) -> list[str]:
     if not raw:
@@ -102,16 +107,20 @@ def _merge_overlay(item: dict) -> dict:
 
 def milestones() -> list[dict]:
     today = date.today()
-    out = []
-    for m in MILESTONES:
-        d = date.fromisoformat(m["date"])
-        days = (d - today).days
-        out.append({
-            **m,
-            "days_until": days,
-            "overdue": days < 0,
-        })
-    return out
+
+    def _enrich(items: list[dict]) -> list[dict]:
+        out = []
+        for m in items:
+            d = date.fromisoformat(m["date"][:10])
+            days = (d - today).days
+            out.append({**m, "days_until": days, "overdue": days < 0})
+        return out
+
+    dynamic = response_deadlines()
+    if dynamic:
+        base = [{"date": d["deadline"][:10], "label": d["title"]} for d in dynamic if d.get("deadline")]
+        return _enrich(base + list(_STATIC_MILESTONES))
+    return _enrich(list(MILESTONES))
 
 
 def milestone_banner() -> str:
@@ -130,6 +139,23 @@ def _copy_if_updated(src: Path, dest: Path, copied: list[str], skipped: list[str
     shutil.copy2(src, dest)
     copied.append(dest.name)
     return True
+
+
+def check_stale(source: Path | str = DEFAULT_SOURCE) -> list[str]:
+    """Return filenames where Nest source is newer than the app copy (no copying)."""
+    source = Path(source)
+    stale: list[str] = []
+    for case_key, filename in CASE_DBS.items():
+        if case_key == "workers_comp":
+            src = _find_workers_comp_source(source)
+        else:
+            src = source / filename
+        if src is None or not src.exists():
+            continue
+        dest = CASES_DIR / filename
+        if not dest.exists() or src.stat().st_mtime > dest.stat().st_mtime:
+            stale.append(filename)
+    return stale
 
 
 def sync_cases(source: Path | str = DEFAULT_SOURCE) -> dict:
@@ -260,12 +286,14 @@ def session_overview() -> dict:
     import commit_package
 
     last_commit = commit_package.read_latest_manifest()
+    stale = check_stale()
     path = session_meta_path()
     if not path.exists():
         return {
             "present": False,
             "last_commit": last_commit,
             "artifacts": list_artifacts(),
+            "stale_files": stale,
         }
 
     meta_rows = _query_path(path, "SELECT key, value, category FROM session_meta ORDER BY id")
@@ -280,6 +308,7 @@ def session_overview() -> dict:
         "decisions": decisions,
         "artifacts": list_artifacts(),
         "last_commit": last_commit,
+        "stale_files": stale,
     }
 
 
@@ -1161,8 +1190,11 @@ def workers_comp_overview() -> dict | None:
             LIMIT 50
             """,
         )
+    _safe_name = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
     for table in tables:
         if table.startswith("sqlite_") or table == "atoms":
+            continue
+        if not _safe_name.match(table):
             continue
         rows = _query("workers_comp", f"SELECT * FROM {table} LIMIT 25")
         overview[table] = rows
