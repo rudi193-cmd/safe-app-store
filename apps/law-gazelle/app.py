@@ -31,6 +31,7 @@ from case_store import (
     check_stale,
     coparent_atoms,
     cross_case_overview,
+    legal_documents,
     list_artifacts,
     list_cases,
     milestone_banner,
@@ -904,7 +905,25 @@ if App is not None:
                 table.add_row(f"Unknown matter: {matter}")
 
         def _load_matter_coparent(self, table: DataTable) -> None:
-            table.add_columns("ID", "Priority", "Domain", "Title", "Action")
+            table.add_columns("Type", "ID", "Status", "Title", "Date/Action")
+            for doc in legal_documents():
+                item = {
+                    "source_db": "coparent",
+                    "item_type": "legal_document",
+                    "item_id": doc["doc_id"],
+                    "kind": "legal_document",
+                    **doc,
+                }
+                date_label = doc.get("effective_date") or doc.get("signed_date") or doc.get("filed_date") or ""
+                self._add_item_row(
+                    table,
+                    item,
+                    doc.get("doc_type") or "document",
+                    doc.get("doc_id", ""),
+                    doc.get("verified_label", ""),
+                    (doc.get("title") or "")[:60],
+                    date_label,
+                )
             for atom in coparent_atoms(status="open"):
                 item = {
                     "source_db": "coparent",
@@ -916,9 +935,9 @@ if App is not None:
                 self._add_item_row(
                     table,
                     item,
+                    "atom",
                     atom.get("atom_id", ""),
                     atom.get("priority", ""),
-                    atom.get("domain", ""),
                     (atom.get("title") or "")[:60],
                     (atom.get("action_required") or "")[:80],
                 )

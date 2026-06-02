@@ -336,6 +336,17 @@ def _query(case_key: str, sql: str, params: tuple = ()) -> list[dict]:
         return [dict(r) for r in conn.execute(sql, params).fetchall()]
 
 
+def _table_exists(case_key: str, table_name: str) -> bool:
+    path = db_path(case_key)
+    if not path.exists():
+        return False
+    with _connect(path) as conn:
+        return bool(conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
+            (table_name,),
+        ).fetchone())
+
+
 def load_coparent_meta() -> dict:
     """Load _meta from the JSON export if present."""
     export_path = CASES_DIR / "coparent_db_export.json"
@@ -487,6 +498,33 @@ def response_deadlines() -> list[dict]:
             "severity": "URGENT" if due and due < today else "HIGH",
         })
     return items
+
+
+def legal_documents(limit: int = 25) -> list[dict]:
+    """Court orders and other legal documents from coparent.db."""
+    if not _table_exists("coparent", "legal_documents"):
+        return []
+    rows = _query(
+        "coparent",
+        """
+        SELECT
+            id, doc_id, title, doc_type, case_number, effective_date, signed_date,
+            filed_date, filename, content_verified, content_notes
+        FROM legal_documents
+        ORDER BY COALESCE(effective_date, signed_date, filed_date, logged_at, '') DESC, id DESC
+        LIMIT ?
+        """,
+        (limit,),
+    )
+    for row in rows:
+        row["case"] = "coparent"
+        row["source_db"] = "coparent"
+        row["kind"] = "legal_document"
+        row["item_type"] = "legal_document"
+        row["item_id"] = row["doc_id"]
+        row["verified_label"] = "verified" if row.get("content_verified") else "unverified"
+        _merge_overlay(row)
+    return rows
 
 
 def urgent_queue(show_resolved: bool = False) -> list[dict]:
@@ -664,6 +702,31 @@ def get_deadline_detail(deadline_key: str) -> dict:
     }
 
 
+def get_legal_document_detail(doc_id: str) -> dict | None:
+    if not _table_exists("coparent", "legal_documents"):
+        return None
+    rows = _query(
+        "coparent",
+        "SELECT * FROM legal_documents WHERE doc_id = ? OR CAST(id AS TEXT) = ?",
+        (doc_id, doc_id),
+    )
+    if not rows:
+        return None
+    doc = rows[0]
+    item_id = doc.get("doc_id") or str(doc.get("id", ""))
+    text = " ".join(str(doc.get(k) or "") for k in ("title", "doc_type", "content_notes"))
+    return {
+        "type": "legal_document",
+        "source_db": "coparent",
+        "item_type": "legal_document",
+        "item_id": item_id,
+        "document": doc,
+        "intersections": _related_intersections(text),
+        "notes": gazelle_state.list_notes("coparent", "legal_document", item_id),
+        "overlay": gazelle_state.get_status("coparent", "legal_document", item_id),
+    }
+
+
 def get_case_detail(case_key: str) -> dict | None:
     """Summary drill-down for a case row on the Cases tab."""
     cases = {c["key"]: c for c in list_cases()}
@@ -679,6 +742,7 @@ def get_case_detail(case_key: str) -> dict | None:
     }
     if case_key == "coparent":
         detail["meta"] = load_coparent_meta()
+        detail["legal_documents"] = legal_documents(limit=10)
         detail["open_atoms"] = coparent_atoms(status="open", limit=25)
         detail["issues"] = coparent_issues(limit=15)
     elif case_key == "bankruptcy":
@@ -809,6 +873,8 @@ def get_item_detail(source_db: str, item_type: str, item_id: str) -> dict | None
         return get_deadline_detail(item_id.split(":", 1)[1])
     if item_type == "deadline":
         return get_deadline_detail(item_id)
+    if item_type == "legal_document":
+        return get_legal_document_detail(item_id)
     if item_type == "intersection":
         rows = _query(
             "bankruptcy",
@@ -897,6 +963,20 @@ def format_detail_text(detail: dict | None) -> str:
             "",
             f"**Due:** {detail.get('deadline')} ({detail.get('days_until')} days)",
         ])
+    elif t == "legal_document":
+        d = detail["document"]
+        lines.extend([
+            f"# {d.get('title')}",
+            "",
+            f"**Document ID:** {d.get('doc_id') or '—'}",
+            f"**Type:** {d.get('doc_type') or '—'} | **Verified:** {'yes' if d.get('content_verified') else 'no'}",
+            f"**Effective:** {d.get('effective_date') or '—'} | **Signed:** {d.get('signed_date') or '—'} | **Filed:** {d.get('filed_date') or '—'}",
+            f"**Case number:** {d.get('case_number') or '—'}",
+            f"**Filename:** {d.get('filename') or '—'}",
+            "",
+            "## Content Notes",
+            d.get("content_notes") or "(none)",
+        ])
     elif t == "intersection":
         x = detail.get("intersection") or {}
         lines.extend([
@@ -954,6 +1034,12 @@ def format_detail_text(detail: dict | None) -> str:
             lines.append("\n## Open Atoms")
             for a in detail["open_atoms"]:
                 lines.append(f"- **{a.get('atom_id')}** ({a.get('priority')}): {a.get('title')}")
+        if detail.get("legal_documents"):
+            lines.append("\n## Legal Documents")
+            for d in detail["legal_documents"]:
+                lines.append(
+                    f"- **{d.get('doc_id')}** ({d.get('doc_type') or 'document'}): {d.get('title')}"
+                )
         if detail.get("issues"):
             lines.append("\n## Issues")
             for i in detail["issues"]:

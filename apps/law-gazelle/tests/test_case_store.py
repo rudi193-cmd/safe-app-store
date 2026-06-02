@@ -69,12 +69,32 @@ class CaseStoreTests(unittest.TestCase):
             CREATE TABLE context_events (
                 id INTEGER PRIMARY KEY, event_type TEXT, description TEXT, effective_date TEXT
             );
+            CREATE TABLE legal_documents (
+                id INTEGER PRIMARY KEY, doc_id TEXT NOT NULL, title TEXT NOT NULL,
+                doc_type TEXT, case_number TEXT, effective_date TEXT, signed_date TEXT,
+                filed_date TEXT, source_email_thread TEXT, gmail_attachment_id TEXT,
+                filename TEXT, mime_type TEXT, content_verified INTEGER DEFAULT 0,
+                content_notes TEXT, parties TEXT, attorneys TEXT, mediator TEXT,
+                logged_at TEXT
+            );
         """)
         conn.execute(
             "INSERT INTO atoms VALUES (1,'ATM-001','gap','open','urgent','schedule','T','B',NULL,NULL,NULL,'Act',NULL)"
         )
         conn.execute(
             "INSERT INTO evidence_ledger VALUES (1,'EVD-2026-001','comm','2026-01-01','desc','quote',NULL,NULL,'abc')"
+        )
+        conn.execute(
+            """
+            INSERT INTO legal_documents (
+                id, doc_id, title, doc_type, case_number, effective_date, signed_date,
+                filed_date, filename, content_verified, content_notes, logged_at
+            ) VALUES (
+                1, 'DOC-001', 'Parenting Plan Order', 'court_order', 'D-000-DM-0000-00000',
+                '2026-01-15', '2026-01-10', '2026-01-12', 'parenting_plan.pdf', 1,
+                'Controls exchange times.', '2026-01-16T00:00:00'
+            )
+            """
         )
         conn.commit()
         conn.close()
@@ -151,6 +171,19 @@ class CaseStoreTests(unittest.TestCase):
         detail = case_store.get_flag_detail("FLAG-001")
         self.assertIsNotNone(detail)
         self.assertEqual(detail["flag"]["flag_id"], "FLAG-001")
+
+    def test_legal_documents_are_queryable(self) -> None:
+        docs = case_store.legal_documents()
+        self.assertEqual(docs[0]["item_type"], "legal_document")
+        self.assertEqual(docs[0]["item_id"], "DOC-001")
+        self.assertEqual(docs[0]["verified_label"], "verified")
+
+    def test_get_legal_document_detail_formats_text(self) -> None:
+        detail = case_store.get_item_detail("coparent", "legal_document", "DOC-001")
+        self.assertIsNotNone(detail)
+        text = case_store.format_detail_text(detail)
+        self.assertIn("Parenting Plan Order", text)
+        self.assertIn("Controls exchange times.", text)
 
     def test_cross_case_overview(self) -> None:
         cc = case_store.cross_case_overview()
