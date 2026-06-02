@@ -21,6 +21,7 @@ build/
 venv/
 
 # IDE
+.cursor/
 .vscode/
 .idea/
 .wrangler/

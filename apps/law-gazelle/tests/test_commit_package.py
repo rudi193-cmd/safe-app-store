@@ -9,7 +9,6 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-import case_store
 import commit_package
 
 
@@ -93,6 +92,22 @@ class CommitPackageTests(unittest.TestCase):
         )
         self.assertTrue(result["ok"])
         self.assertTrue(result["dry_run"])
+
+    def test_gazelle_mcp_dispatch_ai_inspect_fact(self) -> None:
+        import gazelle_mcp
+
+        fact_row = {"atom_id": "ATM-001", "fact": "Thursday exchange"}
+        with mock.patch(
+            "gazelle_mcp.intelligence.inspect_fact_row",
+            return_value={"ok": True, "atom_id": "ATM-001", "text": "review"},
+        ) as inspect_fact:
+            result = gazelle_mcp._dispatch(
+                "gazelle_ai_inspect_fact",
+                {"fact_row": fact_row},
+            )
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["atom_id"], "ATM-001")
+        inspect_fact.assert_called_once_with(fact_row)
 
 
 if __name__ == "__main__":

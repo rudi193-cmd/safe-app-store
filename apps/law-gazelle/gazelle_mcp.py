@@ -34,6 +34,9 @@ import case_store
 import commit_package
 import document_store
 import gazelle_state
+import intelligence
+import llm_client
+import workflow
 
 # ── Tool definitions ──────────────────────────────────────────────────────────
 
@@ -245,6 +248,93 @@ _TOOLS = [
         },
     },
     {
+        "name": "gazelle_ai_brief",
+        "description": (
+            "Generate a local-Ollama briefing for a work item: summary, gaps, risks, next steps. "
+            "Pass card_id from Today (e.g. coparent:atom:ATM-001) or full action_card dict."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "card_id": {
+                    "type": "string",
+                    "description": "Action card ID from Today screen.",
+                },
+                "card": {
+                    "type": "object",
+                    "description": "Optional full action_card dict (overrides card_id lookup).",
+                },
+                "include_courtlistener": {
+                    "type": "boolean",
+                    "description": "Verify citations with CourtListener if citations are present (default false).",
+                },
+            },
+            "required": [],
+        },
+    },
+    {
+        "name": "gazelle_ai_draft",
+        "description": (
+            "Generate a local-Ollama first-pass draft letter from drafting context. "
+            "Review before sending. Does not auto-save — use gazelle_save after review."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "card_id": {"type": "string"},
+                "card": {"type": "object"},
+                "include_courtlistener": {"type": "boolean"},
+            },
+            "required": [],
+        },
+    },
+    {
+        "name": "gazelle_ai_rank_today",
+        "description": (
+            "Rank Today action cards by priority using local Ollama and Gazelle context."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "show_resolved": {
+                    "type": "boolean",
+                    "description": "Include resolved items when building Today list (default false).",
+                },
+            },
+            "required": [],
+        },
+    },
+    {
+        "name": "gazelle_ai_inspect_fact",
+        "description": (
+            "Inspect one Review Facts row with local Ollama and suggest verified / needs_source / "
+            "do_not_use. Review-only; does not write sidecar verification status."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "fact_row": {
+                    "type": "object",
+                    "description": "A row from workflow.fact_review_rows.",
+                },
+                "card_id": {
+                    "type": "string",
+                    "description": "Optional Today card ID; first fact row for the card is inspected.",
+                },
+                "atom_id": {
+                    "type": "string",
+                    "description": "Optional atom ID within the card's Review Facts rows.",
+                },
+            },
+            "required": [],
+        },
+    },
+    {
+        "name": "gazelle_llm_health",
+        "description": "Check local Ollama availability and list installed models.",
+        "inputSchema": {"type": "object", "properties": {}, "required": []},
+    },
+    {
         "name": "gazelle_commit",
         "description": (
             "Write a legal_commit_<date>.json manifest to Nest at session end. "
@@ -360,6 +450,45 @@ def _dispatch(name: str, args: dict) -> Any:
             session_date=args.get("session_date", ""),
             dry_run=args.get("dry_run", False),
         )
+
+    if name == "gazelle_llm_health":
+        cfg = llm_client.llm_config()
+        health = llm_client.health_check()
+        return {"config": cfg, **health}
+
+    if name in (
+        "gazelle_ai_brief",
+        "gazelle_ai_draft",
+        "gazelle_ai_rank_today",
+        "gazelle_ai_inspect_fact",
+    ):
+        card = args.get("card")
+        if not card and args.get("card_id"):
+            cid = args["card_id"]
+            cards = workflow.today_cards(show_resolved=True)
+            card = next((c for c in cards if c.get("card_id") == cid), None)
+            if not card:
+                return {"ok": False, "error": f"card_id not found: {cid}"}
+        include_cl = args.get("include_courtlistener", False)
+        if name == "gazelle_ai_rank_today":
+            cards = workflow.today_cards(show_resolved=args.get("show_resolved", False))
+            return intelligence.rank_today(cards, include_courtlistener=False)
+        if name == "gazelle_ai_inspect_fact":
+            row = args.get("fact_row")
+            if not row:
+                if not card:
+                    return {"ok": False, "error": "Provide fact_row or card_id"}
+                rows = workflow.fact_review_rows(card)
+                atom_id = args.get("atom_id")
+                row = next((r for r in rows if r.get("atom_id") == atom_id), None) if atom_id else (rows[0] if rows else None)
+            if not row:
+                return {"ok": False, "error": "No matching fact row found"}
+            return intelligence.inspect_fact_row(row)
+        if not card:
+            return {"ok": False, "error": "Provide card_id or card"}
+        if name == "gazelle_ai_brief":
+            return intelligence.brief_card(card, include_courtlistener=include_cl)
+        return intelligence.draft_from_card(card, include_courtlistener=include_cl)
 
     return {"error": f"Unknown tool: {name}"}
 

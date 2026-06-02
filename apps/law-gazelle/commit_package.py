@@ -135,6 +135,15 @@ def write_commit_manifest(
         }
 
     dest.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    try:
+        import gazelle_state
+
+        gazelle_state.log_activity(
+            "commit",
+            f"Session commit: {summary} ({len(manifest['files'])} files)",
+        )
+    except Exception:
+        pass
     return {
         "ok": True,
         "path": str(dest),
