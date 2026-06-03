@@ -109,6 +109,37 @@ class AppRoutePilotTests(unittest.IsolatedAsyncioTestCase):
                 await pilot.pause()
                 self.assertEqual(app._current_route, "drafts")
 
+    async def test_a_opens_activity_with_commit_rows(self) -> None:
+        """Commit events have null source_db/item_type/item_id — keys must stay unique."""
+        duplicate_ts = "2026-06-02T06:27:35Z"
+        events = [
+            {
+                "event_type": "commit",
+                "summary": "Session commit: First commit (2 files)",
+                "source_db": None,
+                "item_type": None,
+                "item_id": None,
+                "created_at": duplicate_ts,
+            },
+            {
+                "event_type": "commit",
+                "summary": "Session commit: Atoms updated (2 files)",
+                "source_db": None,
+                "item_type": None,
+                "item_id": None,
+                "created_at": duplicate_ts,
+            },
+        ]
+        app = LawGazelleApp()
+        with mock.patch("app.gazelle_state.list_activity", return_value=events):
+            async with app.run_test(size=(100, 30)) as pilot:
+                await pilot.pause()
+                await pilot.press("a")
+                await pilot.pause()
+                self.assertEqual(app._current_route, "activity")
+                keys = list(app._item_by_key.keys())
+                self.assertEqual(len(keys), len(set(keys)))
+
 
 if __name__ == "__main__":
     unittest.main()

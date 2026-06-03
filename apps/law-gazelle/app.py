@@ -862,12 +862,13 @@ if App is not None:
             if not events:
                 table.add_row("—", "—", "No activity yet — triage, notes, and drafts appear here")
                 return
-            for ev in events:
+            for i, ev in enumerate(events):
+                created = ev.get("created_at") or ""
                 item = {
+                    **ev,
                     "source_db": "workflow",
                     "item_type": "activity",
-                    "item_id": ev.get("created_at", ""),
-                    **ev,
+                    "item_id": f"{created}:{i}",
                 }
                 self._add_item_row(
                     table,
