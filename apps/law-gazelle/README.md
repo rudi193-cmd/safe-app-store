@@ -6,6 +6,18 @@
 
 Not a generic legal reference tool. This app reads canonical case databases from Nest and surfaces an urgent queue, milestone tracker, and sidecar state — all in a Textual TUI. It also exposes an MCP surface for LLM legal sessions.
 
+### Privacy gate (public repo)
+
+**Do not push this branch to a public remote until real-case PII is scrubbed.** GitHub cannot make subfolders private — only whole repos. Keep real case material outside git:
+
+| Location | Contents |
+|----------|----------|
+| `~/Desktop/Nest` | Canonical case DBs, exports, drafts |
+| `~/.willow/apps/law-gazelle/` | Sidecar state (`gazelle_state.db`, activity, AI cache) |
+| `apps/law-gazelle/private/` | Optional local-only case files (gitignored) |
+
+This repository should ship **app code, tests, and demo/synthetic data only** when published.
+
 ---
 
 ## Cases

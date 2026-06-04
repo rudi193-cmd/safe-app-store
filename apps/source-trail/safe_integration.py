@@ -1,99 +1,126 @@
 """
 SAFE Framework Integration — Source Trail
-===========================================
-Pigeon bus helpers for dropping messages to Willow.
 
-Drop point: POST /api/pigeon/drop
-Topics: ask, query, contribute, connect, status
+verify(text) → calls core/source_trail.py (via WILLOW_ROOT) → stores results
+               in verified_claims via sources_db.
+
+query(q) → searches verified_claims in Postgres.
+
+WILLOW_ROOT must be set in the environment for verify() to work.
 """
 
-import json
 import os
-import uuid
-import sqlite3 as _sqlite3
-from pathlib import Path
+import sys
 from typing import Optional
-from datetime import datetime, timezone
 
-_STORE_ROOT = os.path.join(os.path.expanduser("~"), ".willow", "store")
-_STORE_ROOT = os.environ.get("WILLOW_STORE_ROOT", _STORE_ROOT)
 APP_ID = "safe-app-source-trail"
 
-_session_id = str(uuid.uuid4())
-_APP_DATA = Path(os.path.expanduser("~")) / ".willow" / "apps" / APP_ID
+_WILLOW_ROOT = os.environ.get("WILLOW_ROOT", "/home/sean-campbell/github/willow-2.0")
 
 
-def ask(prompt: str, persona: Optional[str] = None, tier: str = "free") -> str:
-    """LLM routing via Willow — not available in portless mode."""
-    return "[Willow LLM routing not available in portless mode]"
+def _get_source_trail():
+    """Lazy import of core/source_trail.py from WILLOW_ROOT."""
+    core_path = os.path.join(_WILLOW_ROOT, "core")
+    if core_path not in sys.path:
+        sys.path.insert(0, _WILLOW_ROOT)
+    import importlib
+    return importlib.import_module("core.source_trail")
 
 
-def ask_raw(prompt: str, tier: str = "free") -> dict:
-    """LLM routing via Willow — not available in portless mode."""
-    return {"ok": False, "error": "LLM routing not available in portless mode"}
+def verify(text: str, document_ref: Optional[str] = None) -> dict:
+    """
+    Extract and verify claims in text against Jeles sources.
+    Persists each result to verified_claims. Returns summary dict.
 
-
-def query(q: str, limit: int = 5) -> list:
-    """Query Willow's knowledge store directly via SOIL SQLite."""
-    db_path = os.path.join(_STORE_ROOT, "knowledge", "store.db")
-    if not os.path.exists(db_path):
-        return []
+    Requires WILLOW_ROOT pointing to a willow-2.0 checkout with
+    core/source_trail.py present.
+    """
     try:
-        conn = _sqlite3.connect(db_path)
-        rows = conn.execute(
-            "SELECT data FROM records WHERE deleted=0 AND data LIKE ? LIMIT ?",
-            (f"%{q}%", limit)
-        ).fetchall()
-        conn.close()
-        return [json.loads(r[0]) for r in rows]
+        st = _get_source_trail()
+    except Exception as e:
+        return {"ok": False, "error": f"Could not load core/source_trail: {e}",
+                "claims": [], "total": 0, "matched": 0}
+
+    try:
+        result = st.verify_text(text)
+    except Exception as e:
+        return {"ok": False, "error": f"verify_text failed: {e}",
+                "claims": [], "total": 0, "matched": 0}
+
+    from sources_db import get_connection, release_connection, init_schema, store_verified_claim
+    conn = None
+    stored = 0
+    try:
+        conn = get_connection()
+        init_schema(conn)
+        for claim in result.get("claims", []):
+            store_verified_claim(
+                conn,
+                claim_text=claim.get("claim", ""),
+                matched=bool(claim.get("matched", False)),
+                title=claim.get("title"),
+                url=claim.get("url"),
+                date=claim.get("date"),
+                source=claim.get("source"),
+                tier=claim.get("tier"),
+                confidence=claim.get("confidence"),
+                document_ref=document_ref,
+            )
+            stored += 1
+    except Exception as e:
+        return {"ok": False, "error": f"DB write failed: {e}",
+                "claims": result.get("claims", []),
+                "total": result.get("total", 0),
+                "matched": result.get("matched", 0)}
+    finally:
+        if conn:
+            release_connection(conn)
+
+    return {
+        "ok": True,
+        "claims": result.get("claims", []),
+        "total": result.get("total", 0),
+        "matched": result.get("matched", 0),
+        "stored": stored,
+        "document_ref": document_ref,
+    }
+
+
+def query(q: str, document_ref: Optional[str] = None,
+          matched_only: bool = False, limit: int = 50) -> list:
+    """Search stored verified claims in Postgres."""
+    from sources_db import get_connection, release_connection, search_verified_claims
+    conn = None
+    try:
+        conn = get_connection()
+        return search_verified_claims(
+            conn, query=q, document_ref=document_ref,
+            matched_only=matched_only, limit=limit,
+        )
     except Exception:
         return []
-
-
-def contribute(content: str, category: str = "note", metadata: Optional[dict] = None) -> dict:
-    """Stage a contribution to the Willow intake queue (filesystem, portless)."""
-    try:
-        intake_dir = _APP_DATA / "intake"
-        intake_dir.mkdir(parents=True, exist_ok=True)
-        ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
-        fname = intake_dir / f"{ts}_{uuid.uuid4().hex[:8]}.json"
-        fname.write_text(json.dumps({
-            "source_app": APP_ID,
-            "type": category,
-            "content": content,
-            "metadata": metadata or {},
-            "contributed_at": datetime.now(timezone.utc).isoformat(),
-        }, indent=2))
-        return {"ok": True, "staged": str(fname)}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    finally:
+        if conn:
+            release_connection(conn)
 
 
 def status() -> dict:
-    """Check if Willow store is reachable."""
-    db_path = os.path.join(_STORE_ROOT, "knowledge", "store.db")
-    reachable = os.path.exists(db_path)
-    return {"ok": reachable, "store": _STORE_ROOT, "mode": "portless"}
-
-
-def _drop(topic: str, payload: dict) -> dict:
-    return {"ok": False, "error": "portless mode — porch removed"}
-
-
-# ── Willow Consent Helpers ────────────────────────────────────────────────────
-
-def get_consent_status(token=None):
-    return False
-
-
-def request_consent_url():
-    return None
-
-
-def send(to_app, subject, body, thread_id=None):
-    return {"ok": False, "error": "messaging not available in portless mode"}
-
-
-def check_inbox(unread_only=True):
-    return []
-
+    """Health check — confirms DB connection and WILLOW_ROOT wiring."""
+    willow_root_ok = os.path.isfile(
+        os.path.join(_WILLOW_ROOT, "core", "source_trail.py")
+    )
+    db_ok = False
+    try:
+        from sources_db import get_connection, release_connection
+        conn = get_connection()
+        release_connection(conn)
+        db_ok = True
+    except Exception:
+        pass
+    return {
+        "ok": willow_root_ok and db_ok,
+        "willow_root": _WILLOW_ROOT,
+        "willow_root_ok": willow_root_ok,
+        "db_ok": db_ok,
+        "mode": "postgres",
+    }

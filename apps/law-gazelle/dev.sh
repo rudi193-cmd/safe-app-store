@@ -69,9 +69,14 @@ BRANCH="$(git -C "$REPO_ROOT" branch --show-current 2>/dev/null || echo "?")"
 
 echo "Law Gazelle DEV: $(pwd)" >&2
 echo "  python:  $PY" >&2
+echo "  app:     $(realpath app.py)" >&2
 echo "  nest:    $NEST_SOURCE" >&2
 echo "  cases:   $APP_DATA/cases" >&2
 echo "  branch:  $BRANCH" >&2
-echo "  keys:    r=refresh  q=quit (TUI)" >&2
+echo "  ui:      TODAY WORKFLOW (single table + action deck — NOT 8 tabs)" >&2
+echo "  ollama:  OLLAMA_MODEL=\${OLLAMA_MODEL:-llama3.2:3b} (local AI brief/draft/rank)" >&2
+echo "  keys:    Enter=action deck  m=matters  d=drafts  s=session  a=activity  u=today  Esc=back" >&2
+"$PY" app.py --check-ui
+echo "  (quit any old Law Gazelle window before starting)" >&2
 
 exec "$PY" app.py --source "$NEST_SOURCE" "$@"
