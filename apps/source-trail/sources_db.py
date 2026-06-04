@@ -4,7 +4,8 @@ sources_db.py -- Citation/source tracking database for the Source Trail app.
 PostgreSQL only. Schema: source_trail.
 Tables: sources, citations, source_links, verified_claims.
 
-Connection: WILLOW_DB_URL env var, or willow_20 on localhost.
+Connection: mirrors pg_bridge.py — Unix socket by default (peer auth).
+Env vars: WILLOW_PG_DB, WILLOW_PG_USER, WILLOW_PG_HOST, WILLOW_PG_PORT.
 """
 
 import os
@@ -41,9 +42,18 @@ def _get_pool():
         return _pool
     with _pool_lock:
         if _pool is None:
+            import psycopg2
             import psycopg2.pool
-            dsn = os.getenv("WILLOW_DB_URL", "dbname=willow_20 user=willow host=localhost")
-            _pool = psycopg2.pool.ThreadedConnectionPool(minconn=1, maxconn=10, dsn=dsn)
+            # Mirror pg_bridge.py: omit host → Unix socket → peer auth, no password.
+            # WILLOW_PG_HOST can force TCP if needed.
+            _pool = psycopg2.pool.ThreadedConnectionPool(
+                minconn=1,
+                maxconn=10,
+                dbname=os.environ.get("WILLOW_PG_DB", "willow_20"),
+                user=os.environ.get("WILLOW_PG_USER", os.environ.get("USER", "")),
+                host=os.environ.get("WILLOW_PG_HOST") or None,
+                port=os.environ.get("WILLOW_PG_PORT") or None,
+            )
     return _pool
 
 
