@@ -1,22 +1,16 @@
 """
-sources_db.py -- Citation/source tracking database using the 23-cubed lattice structure.
+sources_db.py -- Citation/source tracking database for the Source Trail app.
 
-PostgreSQL-only. Schema: source_trail.
-Each source maps into a 23x23x23 lattice (12,167 cells per entity).
+PostgreSQL only. Schema: source_trail.
+Tables: sources, citations, source_links, verified_claims.
 
-Lattice constants imported from Willow's user_lattice.py.
-DB connection follows Willow's core/db.py pattern (psycopg2, pooled).
+Connection: WILLOW_DB_URL env var, or willow_20 on localhost.
 """
 
 import os
-import sys
 import threading
 from datetime import datetime
-from typing import Optional, List, Dict, Any, Tuple
-
-# Import 23-cubed lattice constants from Willow
-sys.path.insert(0, os.environ.get("WILLOW_CORE", "/home/sean-campbell/github/Willow/core"))
-from user_lattice import DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE
+from typing import Optional, List, Dict, Any
 
 # ---------------------------------------------------------------------------
 # Connection
@@ -42,7 +36,6 @@ VALID_LINK_TYPES = frozenset({
 
 
 def _resolve_host() -> str:
-    """Return localhost, falling back to WSL resolv.conf nameserver."""
     host = "localhost"
     try:
         with open("/etc/resolv.conf") as f:
@@ -65,13 +58,12 @@ def _get_pool():
             dsn = os.getenv("WILLOW_DB_URL", "")
             if not dsn:
                 host = _resolve_host()
-                dsn = f"dbname=willow user=willow host={host}"
+                dsn = f"dbname=willow_20 user=willow host={host}"
             _pool = psycopg2.pool.ThreadedConnectionPool(minconn=1, maxconn=10, dsn=dsn)
     return _pool
 
 
 def get_connection():
-    """Return a pooled Postgres connection with search_path = source_trail, public."""
     pool = _get_pool()
     conn = pool.getconn()
     try:
@@ -86,7 +78,6 @@ def get_connection():
 
 
 def release_connection(conn):
-    """Return a connection to the pool."""
     try:
         conn.rollback()
     except Exception:
@@ -97,15 +88,6 @@ def release_connection(conn):
 # ---------------------------------------------------------------------------
 # Validation
 # ---------------------------------------------------------------------------
-
-def _validate_lattice(domain: str, depth: int, temporal: str):
-    if domain not in DOMAINS:
-        raise ValueError(f"Invalid domain '{domain}'. Must be one of: {DOMAINS}")
-    if not (DEPTH_MIN <= depth <= DEPTH_MAX):
-        raise ValueError(f"Invalid depth {depth}. Must be {DEPTH_MIN}-{DEPTH_MAX}")
-    if temporal not in TEMPORAL_STATES:
-        raise ValueError(f"Invalid temporal '{temporal}'. Must be one of: {TEMPORAL_STATES}")
-
 
 def _validate_source_type(source_type: str):
     if source_type not in VALID_SOURCE_TYPES:
@@ -123,7 +105,6 @@ def _validate_link_type(link_type: str):
 
 
 def _row_to_dict(cur, row) -> Optional[Dict[str, Any]]:
-    """Convert a cursor row to an immutable-style dict. Returns None if row is None."""
     if row is None:
         return None
     cols = [d[0] for d in cur.description]
@@ -131,7 +112,6 @@ def _row_to_dict(cur, row) -> Optional[Dict[str, Any]]:
 
 
 def _rows_to_dicts(cur, rows) -> List[Dict[str, Any]]:
-    """Convert cursor rows to a list of dicts."""
     cols = [d[0] for d in cur.description]
     return [dict(zip(cols, r)) for r in rows]
 
@@ -197,21 +177,21 @@ def init_schema(conn):
     """)
 
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS lattice_cells (
+        CREATE TABLE IF NOT EXISTS verified_claims (
             id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            source_id     BIGINT NOT NULL REFERENCES sources(id),
-            domain        TEXT NOT NULL,
-            depth         INTEGER NOT NULL CHECK (depth >= 1 AND depth <= 23),
-            temporal      TEXT NOT NULL,
-            content       TEXT NOT NULL,
-            source_ref    TEXT,
-            created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            is_sensitive  INTEGER DEFAULT 0,
-            UNIQUE(source_id, domain, depth, temporal)
+            claim_text    TEXT NOT NULL,
+            matched       BOOLEAN NOT NULL DEFAULT FALSE,
+            title         TEXT,
+            url           TEXT,
+            date          TEXT,
+            source        TEXT,
+            tier          TEXT,
+            confidence    REAL,
+            document_ref  TEXT,
+            created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
-    # Indices
     cur.execute("CREATE INDEX IF NOT EXISTS idx_sources_title ON sources (title)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_sources_type ON sources (source_type)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_sources_domain ON sources (domain_name)")
@@ -220,21 +200,19 @@ def init_schema(conn):
     cur.execute("CREATE INDEX IF NOT EXISTS idx_citations_doc ON citations (cited_in_document)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_links_a ON source_links (source_a)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_links_b ON source_links (source_b)")
-    cur.execute("CREATE INDEX IF NOT EXISTS idx_lc_source ON lattice_cells (source_id)")
-    cur.execute("CREATE INDEX IF NOT EXISTS idx_lc_domain ON lattice_cells (domain)")
-    cur.execute("CREATE INDEX IF NOT EXISTS idx_lc_temporal ON lattice_cells (temporal)")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_vc_document ON verified_claims (document_ref)")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_vc_matched ON verified_claims (matched)")
 
     conn.commit()
 
 
 # ---------------------------------------------------------------------------
-# CRUD -- all return new dicts (immutable pattern)
+# CRUD
 # ---------------------------------------------------------------------------
 
 def add_source(conn, *, title: str, source_type: str, url: str = None,
                authors: List[str] = None, publication_date: str = None,
                access_date: str = None, domain_name: str = None) -> Dict[str, Any]:
-    """Insert a source. Returns a dict with the new row (including id)."""
     _validate_source_type(source_type)
     cur = conn.cursor()
     cur.execute("""
@@ -253,7 +231,6 @@ def add_source(conn, *, title: str, source_type: str, url: str = None,
 def add_citation(conn, *, source_id: int, cited_in_document: str,
                  citation_format: str, page_ref: str = None,
                  context_quote: str = None) -> Dict[str, Any]:
-    """Attach a citation record to a source. Returns the new row as a dict."""
     _validate_citation_format(citation_format)
     cur = conn.cursor()
     cur.execute("""
@@ -269,8 +246,6 @@ def add_citation(conn, *, source_id: int, cited_in_document: str,
 
 
 def add_link(conn, *, source_a: int, source_b: int, link_type: str) -> Dict[str, Any]:
-    """Link two sources. Returns the new link row as a dict.
-    Raises on duplicate (source_a, source_b, link_type)."""
     _validate_link_type(link_type)
     cur = conn.cursor()
     cur.execute("""
@@ -283,33 +258,56 @@ def add_link(conn, *, source_a: int, source_b: int, link_type: str) -> Dict[str,
     return result
 
 
-def place_in_lattice(conn, source_id: int, domain: str, depth: int, temporal: str,
-                     content: str, source_ref: str = None,
-                     is_sensitive: bool = False) -> Dict[str, Any]:
-    """Map a source to a lattice cell. Upserts on (source_id, domain, depth, temporal).
-    Returns the cell row as a dict."""
-    _validate_lattice(domain, depth, temporal)
+def store_verified_claim(conn, *, claim_text: str, matched: bool,
+                         title: str = None, url: str = None, date: str = None,
+                         source: str = None, tier: str = None,
+                         confidence: float = None,
+                         document_ref: str = None) -> Dict[str, Any]:
+    """Persist one result row from source_trail_verify."""
     cur = conn.cursor()
     cur.execute("""
-        INSERT INTO lattice_cells (source_id, domain, depth, temporal, content,
-                                   source_ref, is_sensitive)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (source_id, domain, depth, temporal)
-        DO UPDATE SET content = EXCLUDED.content,
-                      source_ref = EXCLUDED.source_ref,
-                      is_sensitive = EXCLUDED.is_sensitive
-        RETURNING id, source_id, domain, depth, temporal, content, source_ref,
-                  created_at, is_sensitive
-    """, (source_id, domain, depth, temporal, content, source_ref,
-          1 if is_sensitive else 0))
+        INSERT INTO verified_claims
+            (claim_text, matched, title, url, date, source, tier, confidence, document_ref)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING id, claim_text, matched, title, url, date, source, tier,
+                  confidence, document_ref, created_at
+    """, (claim_text, matched, title, url, date, source, tier, confidence, document_ref))
     result = _row_to_dict(cur, cur.fetchone())
     conn.commit()
     return result
 
 
+def search_verified_claims(conn, query: str = None, document_ref: str = None,
+                           matched_only: bool = False,
+                           limit: int = 50) -> List[Dict[str, Any]]:
+    """Search stored verified claims by text or document_ref."""
+    conditions = []
+    params: list = []
+
+    if query:
+        conditions.append("claim_text ILIKE %s")
+        params.append(f"%{query}%")
+    if document_ref:
+        conditions.append("document_ref = %s")
+        params.append(document_ref)
+    if matched_only:
+        conditions.append("matched = TRUE")
+
+    where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+    params.append(limit)
+
+    cur = conn.cursor()
+    cur.execute(f"""
+        SELECT * FROM verified_claims
+        {where}
+        ORDER BY created_at DESC
+        LIMIT %s
+    """, params)
+    return _rows_to_dicts(cur, cur.fetchall())
+
+
 def verify_source(conn, source_id: int) -> Dict[str, Any]:
-    """Check the source URL via HTTP HEAD request. Updates is_verified, last_checked,
-    http_status. Returns the updated source row as a dict."""
+    """Check the source URL via HTTP HEAD. Updates is_verified, last_checked, http_status."""
     import urllib.request
     import urllib.error
 
@@ -332,10 +330,8 @@ def verify_source(conn, source_id: int) -> Dict[str, Any]:
                 is_verified = 200 <= http_status < 400
         except urllib.error.HTTPError as e:
             http_status = e.code
-            is_verified = False
         except (urllib.error.URLError, OSError):
-            http_status = None
-            is_verified = False
+            pass
 
     now = datetime.utcnow()
     cur.execute("""
@@ -353,7 +349,6 @@ def verify_source(conn, source_id: int) -> Dict[str, Any]:
 
 def search_sources(conn, query: str, source_type: str = None,
                    verified_only: bool = False) -> List[Dict[str, Any]]:
-    """Search sources by title/URL (case-insensitive ILIKE). Returns list of dicts."""
     conditions = ["is_deleted = 0", "(title ILIKE %s OR url ILIKE %s)"]
     params: list = [f"%{query}%", f"%{query}%"]
 
@@ -361,27 +356,18 @@ def search_sources(conn, query: str, source_type: str = None,
         _validate_source_type(source_type)
         conditions.append("source_type = %s")
         params.append(source_type)
-
     if verified_only:
         conditions.append("is_verified = TRUE")
 
     where = " AND ".join(conditions)
     cur = conn.cursor()
-    cur.execute(f"""
-        SELECT * FROM sources
-        WHERE {where}
-        ORDER BY title
-    """, params)
+    cur.execute(f"SELECT * FROM sources WHERE {where} ORDER BY title", params)
     return _rows_to_dicts(cur, cur.fetchall())
 
 
 def get_citation_chain(conn, source_id: int, max_depth: int = 5) -> Dict[str, Any]:
-    """Walk the source_links graph starting from source_id up to max_depth hops.
-    Returns a dict with 'root' (source dict), 'nodes' (all visited sources),
-    and 'edges' (all traversed links). BFS traversal."""
+    """BFS walk of source_links from source_id up to max_depth hops."""
     cur = conn.cursor()
-
-    # Fetch root
     cur.execute("SELECT * FROM sources WHERE id = %s AND is_deleted = 0", (source_id,))
     root_row = cur.fetchone()
     if root_row is None:
@@ -426,8 +412,7 @@ def get_citation_chain(conn, source_id: int, max_depth: int = 5) -> Dict[str, An
 
         frontier = next_frontier
 
-    # Deduplicate edges by id
-    seen_edge_ids = set()
+    seen_edge_ids: set = set()
     unique_edges = []
     for e in all_edges:
         if e["id"] not in seen_edge_ids:
