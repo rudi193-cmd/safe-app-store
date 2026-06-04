@@ -35,19 +35,6 @@ VALID_LINK_TYPES = frozenset({
 })
 
 
-def _resolve_host() -> str:
-    host = "localhost"
-    try:
-        with open("/etc/resolv.conf") as f:
-            for line in f:
-                if line.strip().startswith("nameserver"):
-                    host = line.strip().split()[1]
-                    break
-    except FileNotFoundError:
-        pass
-    return host
-
-
 def _get_pool():
     global _pool
     if _pool is not None:
@@ -55,10 +42,7 @@ def _get_pool():
     with _pool_lock:
         if _pool is None:
             import psycopg2.pool
-            dsn = os.getenv("WILLOW_DB_URL", "")
-            if not dsn:
-                host = _resolve_host()
-                dsn = f"dbname=willow_20 user=willow host={host}"
+            dsn = os.getenv("WILLOW_DB_URL", "dbname=willow_20 user=willow host=localhost")
             _pool = psycopg2.pool.ThreadedConnectionPool(minconn=1, maxconn=10, dsn=dsn)
     return _pool
 
