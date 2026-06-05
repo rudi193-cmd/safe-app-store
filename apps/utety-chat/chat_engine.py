@@ -13,6 +13,13 @@ from datetime import datetime
 import safe_integration as _willow
 from consult_engine import build_prompt as _build_prompt_shared
 
+try:
+    import chat_db as _chat_db
+    _DB_AVAILABLE = True
+except ImportError:
+    _chat_db = None  # type: ignore[assignment]
+    _DB_AVAILABLE = False
+
 
 def _willow_context(query: str, limit: int = 3) -> str:
     """Fetch relevant atoms from Willow's knowledge graph for this query."""
@@ -62,6 +69,21 @@ class ChatSession:
         # Load pre-seeded Willow memory for this professor (if available)
         self.professor_memory = self._load_professor_memory(professor_name)
 
+        # Postgres session row — None when DB is unavailable
+        self._db_session_id: Optional[int] = None
+        if _DB_AVAILABLE:
+            try:
+                conn = _chat_db.get_connection()
+                row = _chat_db.add_session(
+                    conn,
+                    faculty_member=professor_name,
+                    session_title=f"Session {session_id}",
+                )
+                self._db_session_id = row["id"]
+                _chat_db.release_connection(conn)
+            except Exception:
+                pass
+
     @classmethod
     def _load_professor_memory(cls, name: str) -> str:
         """Load pre-seeded Willow memory from data/professors/{name}_context.md."""
@@ -105,6 +127,27 @@ class ChatSession:
             "professor": self.professor_name,
             "provider": provider,
         })
+
+        if self._db_session_id is not None:
+            try:
+                conn = _chat_db.get_connection()
+                _chat_db.add_message(
+                    conn,
+                    session_id=self._db_session_id,
+                    sender="user",
+                    role="user",
+                    content=user_message,
+                )
+                _chat_db.add_message(
+                    conn,
+                    session_id=self._db_session_id,
+                    sender=self.professor_name,
+                    role="assistant",
+                    content=reply,
+                )
+                _chat_db.release_connection(conn)
+            except Exception:
+                pass
 
         return reply
 

@@ -11,14 +11,7 @@ DB connection follows Willow's core/db.py pattern (psycopg2, pooled).
 import os
 import threading
 from datetime import datetime
-from typing import Optional, List, Dict, Any, Tuple
-
-# 23-cubed lattice constants (from Willow user_lattice.py)
-DOMAINS = frozenset({'biography', 'geography', 'genealogy', 'culture', 'migration'})
-TEMPORAL_STATES = frozenset({'past', 'present', 'future', 'unknown'})
-DEPTH_MIN = 1
-DEPTH_MAX = 23
-LATTICE_SIZE = 23
+from typing import Optional, List, Dict, Any
 
 # ---------------------------------------------------------------------------
 # Connection
@@ -86,19 +79,6 @@ def release_connection(conn):
 
 
 # ---------------------------------------------------------------------------
-# Validation
-# ---------------------------------------------------------------------------
-
-def _validate_lattice(domain: str, depth: int, temporal: str):
-    if domain not in DOMAINS:
-        raise ValueError(f"Invalid domain '{domain}'. Must be one of: {DOMAINS}")
-    if not (DEPTH_MIN <= depth <= DEPTH_MAX):
-        raise ValueError(f"Invalid depth {depth}. Must be {DEPTH_MIN}-{DEPTH_MAX}")
-    if temporal not in TEMPORAL_STATES:
-        raise ValueError(f"Invalid temporal '{temporal}'. Must be one of: {TEMPORAL_STATES}")
-
-
-# ---------------------------------------------------------------------------
 # Schema init
 # ---------------------------------------------------------------------------
 
@@ -134,31 +114,12 @@ def init_schema(conn):
         )
     """)
 
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS lattice_cells (
-            id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            entity_id       BIGINT NOT NULL,
-            entity_type     TEXT NOT NULL CHECK (entity_type IN ('session','message')),
-            domain          TEXT NOT NULL,
-            depth           INTEGER NOT NULL CHECK (depth >= 1 AND depth <= 23),
-            temporal        TEXT NOT NULL,
-            content         TEXT NOT NULL,
-            source          TEXT,
-            created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            is_sensitive    BOOLEAN DEFAULT FALSE,
-            UNIQUE(entity_id, entity_type, domain, depth, temporal)
-        )
-    """)
-
     # Indices
     cur.execute("CREATE INDEX IF NOT EXISTS idx_sessions_faculty ON chat_sessions (faculty_member)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_sessions_exported ON chat_sessions (was_exported)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_messages_session ON chat_messages (session_id)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_messages_sender ON chat_messages (sender)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_messages_role ON chat_messages (role)")
-    cur.execute("CREATE INDEX IF NOT EXISTS idx_lc_entity ON lattice_cells (entity_id, entity_type)")
-    cur.execute("CREATE INDEX IF NOT EXISTS idx_lc_domain ON lattice_cells (domain)")
-    cur.execute("CREATE INDEX IF NOT EXISTS idx_lc_temporal ON lattice_cells (temporal)")
 
     conn.commit()
 
@@ -201,28 +162,6 @@ def add_message(conn, *, session_id: int, sender: str, role: str, content: str,
         WHERE id = %s
     """, (session_id,))
 
-    conn.commit()
-    return dict(zip(cols, row))
-
-
-def place_in_lattice(conn, entity_id: int, entity_type: str, domain: str, depth: int,
-                     temporal: str, content: str, source: str = None,
-                     is_sensitive: bool = False) -> Dict[str, Any]:
-    """Map an entity to a lattice cell. Upserts on (entity_id, entity_type, domain, depth, temporal).
-    Returns the cell row as a dict."""
-    if entity_type not in ("session", "message"):
-        raise ValueError(f"Invalid entity_type '{entity_type}'. Must be 'session' or 'message'")
-    _validate_lattice(domain, depth, temporal)
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO lattice_cells (entity_id, entity_type, domain, depth, temporal, content, source, is_sensitive)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (entity_id, entity_type, domain, depth, temporal)
-        DO UPDATE SET content = EXCLUDED.content, source = EXCLUDED.source, is_sensitive = EXCLUDED.is_sensitive
-        RETURNING id, entity_id, entity_type, domain, depth, temporal, content, source, created_at, is_sensitive
-    """, (entity_id, entity_type, domain, depth, temporal, content, source, is_sensitive))
-    row = cur.fetchone()
-    cols = [d[0] for d in cur.description]
     conn.commit()
     return dict(zip(cols, row))
 
