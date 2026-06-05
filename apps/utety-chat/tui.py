@@ -336,6 +336,7 @@ if TEXTUAL_OK:
             self._tier: str = "?"
             self._filed_count: list[int] = [0]
             self._busy: bool = False
+            self._stream_buf: str = ""
 
         def compose(self) -> ComposeResult:
             yield Header()
@@ -440,15 +441,23 @@ if TEXTUAL_OK:
             self._history.append({"role": "user", "content": text})
 
             self._busy = True
+            self._stream_buf = ""
             waiting_msg = WAITING.get(professor, DEFAULT_WAITING)
-            self.query_one("#waiting-indicator", Static).update(
-                f"[dim italic]{escape(waiting_msg)}[/dim italic]"
-            )
+            indicator = self.query_one("#waiting-indicator", Static)
+            indicator.update(f"[dim italic]{escape(waiting_msg)}[/dim italic]")
 
             prompt = _build_prompt(professor, self._history)
 
+            def on_chunk(token: str) -> None:
+                self._stream_buf += token
+                tail = self._stream_buf[-400:]
+                self.call_from_thread(
+                    indicator.update,
+                    f"[dim italic]{escape(professor)}:[/dim italic] {escape(tail)}",
+                )
+
             def work():
-                llm_result = tui_llm.ask(prompt, professor=professor)
+                llm_result = tui_llm.ask(prompt, professor=professor, on_chunk=on_chunk)
                 if professor == "Binder" and llm_result.get("ok"):
                     llm_result["binder_category"] = tui_llm.categorize_for_binder(text)
                 return llm_result
@@ -462,6 +471,7 @@ if TEXTUAL_OK:
                 return
 
             self.query_one("#waiting-indicator", Static).update("")
+            self._stream_buf = ""
             self._busy = False
 
             professor = self._active_professor
