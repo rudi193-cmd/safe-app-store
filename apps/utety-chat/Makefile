@@ -2,7 +2,7 @@
 CAMPUS_DIR := campus
 CATALOG_SCRIPT := $(CAMPUS_DIR)/catalog/generate_catalog.py
 
-.PHONY: campus tui catalog
+.PHONY: campus tui catalog test
 
 # Ratatui archival terminal
 campus: catalog
@@ -15,3 +15,8 @@ tui:
 
 catalog:
 	@python3 $(CATALOG_SCRIPT)
+
+test:
+	@command -v ../../.venv-dev/bin/python >/dev/null 2>&1 && \
+		../../.venv-dev/bin/python -m unittest discover -s tests -v || \
+		python3 -m unittest discover -s tests -v
