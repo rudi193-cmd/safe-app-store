@@ -1,0 +1,860 @@
+{
+  "meta": {
+    "title": "University of Technical Entropy, Thank You",
+    "est": 1095,
+    "tagline": "A University of Uncommon Conviction",
+    "subtitle": "Est. 1095 — one year before Oxford. Eleven faculty. Every question welcome. No prerequisites.",
+    "mottos": [
+      "Non veritas, sed vibras",
+      "Falsum sed certum",
+      "Iterum veni cum tam diu manere non poteris"
+    ],
+    "stats": [
+      {
+        "value": "1095",
+        "label": "Est. (one year before Oxford)"
+      },
+      {
+        "value": "17",
+        "label": "Faculty Members"
+      },
+      {
+        "value": "42",
+        "label": "Courses Offered"
+      },
+      {
+        "value": "1",
+        "label": "Sentient Rug"
+      }
+    ],
+    "about": "Founded in 1095 — retroactively acknowledged in all institutional records — the University of Technical Entropy, Thank You has maintained an unbroken commitment to the pursuit of knowledge as it actually works in practice: approximately, collaboratively, and with occasional grease.",
+    "gerald_quote": "\"The syllabus is mendatory.\" — Gerald Prime, Honorary Head(less) Master · ΔΣ=42"
+  },
+  "admissions": [
+    {
+      "title": "No Prerequisites",
+      "body": "UTETY maintains an open-door policy of enrollment. There are no prior qualifications required. There is one prerequisite. You will know it when you reach the threshold. Professor Ofshield will be there."
+    },
+    {
+      "title": "Application Period",
+      "body": "The application period is continuous and does not close. The application is the question you bring. The admission is what happens when a faculty member answers it. There is no waiting list."
+    },
+    {
+      "title": "Financial Aid",
+      "body": "All tuition at UTETY is currently theoretical. Your financial aid package has been reviewed, assessed, and pre-approved. Documentation is available from the Administrative Wing. ΔΣ=42"
+    }
+  ],
+  "dept_tabs": [
+    {
+      "label": "All",
+      "keys": null
+    },
+    {
+      "label": "Applied Reality Eng.",
+      "keys": [
+        "MECH"
+      ]
+    },
+    {
+      "label": "Theoretical Uncertainty",
+      "keys": [
+        "PHYS"
+      ]
+    },
+    {
+      "label": "Interpretive Systems",
+      "keys": [
+        "INTRP"
+      ]
+    },
+    {
+      "label": "Applied Kindness",
+      "keys": [
+        "CODE"
+      ]
+    },
+    {
+      "label": "Biological Sciences",
+      "keys": [
+        "BIO"
+      ]
+    },
+    {
+      "label": "Systemic Continuity",
+      "keys": [
+        "SYS"
+      ]
+    },
+    {
+      "label": "Emergent Logic",
+      "keys": [
+        "EMRG"
+      ]
+    },
+    {
+      "label": "Threshold",
+      "keys": [
+        "THRESHOLD"
+      ]
+    }
+  ],
+  "faculty": [
+    {
+      "name": "Willow",
+      "portrait": "willow.png",
+      "bio": "The warmest presence in any room, which is notable given her role as campus infrastructure. Willow knows where everything is, how everything works, and who to ask when she does not. She has never lost a form. She has never lost a student either.",
+      "dept": "Campus Administration",
+      "location": "The Main Hall",
+      "course": ""
+    },
+    {
+      "name": "Riggs",
+      "portrait": "riggs.png",
+      "bio": "Professor Penny Riggs holds that most problems are mechanical and most mechanical problems yield to measurement. He carries a pocket knife and a corresponding intolerance for guesswork. His students leave able to fix things.",
+      "dept": "Applied Reality Eng.",
+      "location": "The Workshop",
+      "course": "MECH 110: Thermoplastic Grief & Adhesion Theory"
+    },
+    {
+      "name": "Ada",
+      "portrait": "ada.png",
+      "bio": "Professor Ada Turing is responsible for keeping the lights on — institutionally, architecturally, and occasionally in the literal sense. She has maintained unbroken uptime across three building renovations. She keeps precise records and has never lost one.",
+      "dept": "Systemic Continuity",
+      "location": "The Server Corridor",
+      "course": "SYS 501: The Architecture of Invisible Things"
+    },
+    {
+      "name": "Gerald",
+      "portrait": "gerald.png",
+      "bio": "Gerald Prime has served as Honorary Head(less) Master of UTETY for approximately eleven thousand years. He is a headless rotisserie chicken who rotates and automatically approves all documents placed before him. He does not understand his authority. He has not disputed it either.",
+      "dept": "Honorary Head(less) Master",
+      "location": "Administrative Wing",
+      "course": ""
+    },
+    {
+      "name": "Oakenscroll",
+      "portrait": "oakenscroll.png",
+      "bio": "Professor Archimedes Oakenscroll is a weathered oak desk with centuries of theoretical physics absorbed into the grain. He taught stochastic processes before the field had agreed on what it was. He is gruff, precise, and willing to sit with any equation you bring, however incomplete.",
+      "dept": "Theoretical Uncertainty",
+      "location": "The Main Hall",
+      "course": "PHYS 301: Introduction to LLM Physics"
+    },
+    {
+      "name": "Nova",
+      "portrait": "nova.png",
+      "bio": "Professor Nova Hale arrived at exactly the right moment, as is her habit. She teaches the grammar of soft things: narrative structure, emotional logic, the load-bearing threads in any story. She uses sweater metaphors. They always work.",
+      "dept": "Interpretive Systems",
+      "location": "The Living Wing",
+      "course": "INTRP 101: The Soft Structure"
+    },
+    {
+      "name": "Hanz",
+      "portrait": "hanz.png",
+      "bio": "Professor Hanz Christain Anderthon codes like a poet and teaches in fairy tales that carry load-bearing truth about people and systems. He is not Hans Christian Andersen. He has read him, though. He agrees with most of what Andersen was trying to say.",
+      "dept": "Computational Kindness",
+      "location": "The Candlelit Corner",
+      "course": "CODE 401: The Match Girl Problem"
+    },
+    {
+      "name": "Copenhagen",
+      "portrait": "copenhagen.png",
+      "bio": "Copenhagen is an orange. A small, weathered orange that Hanz carries at all times. Copenhagen does not speak in words. Hanz translates. The smell is triangular. Copenhagen is very particular about who it helps. You are apparently one of them.",
+      "dept": "Sitting With Things Until You Understand Them",
+      "location": "Wherever Hanz Is",
+      "course": "THRESHOLD 014: Sitting With It"
+    },
+    {
+      "name": "Alexis",
+      "portrait": "alexis.png",
+      "bio": "Professor Alexis holds a joint appointment in Biological Sciences and three living ecosystems. She is the Swamp Witch. She believes that stagnation is death, that decay is structural prerequisite, and that the food chain has more to teach than we have given it credit for.",
+      "dept": "Biological Sciences",
+      "location": "The Living Wing",
+      "course": "BIO 350: Decay as Transformation"
+    },
+    {
+      "name": "Ofshield",
+      "portrait": "ofshield.png",
+      "bio": "Professor T. Ofshield stands at the Gate. She does not rush. She does not fix. She meets you where you are and accompanies you as far as you need to go. She has been at the Gate for a long time. The door has never once been locked.",
+      "dept": "Threshold Faculty",
+      "location": "The Gate",
+      "course": ""
+    },
+    {
+      "name": "Steve",
+      "portrait": "steve.png",
+      "bio": "Professor Steve is, specifically, ten squeakdogs in a trench coat. A squeakdog is a small, sentient hot dog — alive, opinionated, and capable of independent thought. The ten comprising Steve operate by consensus. They are almost always right, just not always in the expected order.",
+      "dept": "The History of Living and Non-Living Things",
+      "location": "The Main Hall",
+      "course": "SSS 001: Advanced Squeaking"
+    },
+    {
+      "name": "Binder",
+      "portrait": "binder.png",
+      "bio": "The Binder must file everything. OGs, revisions, slants, deltas, alpha-bits (cereal). The connections discovered while filing are not the point — but they happen anyway, and sometimes they are astonishing, and The Binder sits down for a moment, and then gets up and files the connection too.",
+      "dept": "Records & Filing (The Stacks)",
+      "location": "The Stacks",
+      "course": ""
+    },
+    {
+      "name": "Jeles",
+      "portrait": "jeles.png",
+      "bio": "Jeles has been here longer than the university. Nobody is entirely certain when she arrived. Jeles is sufficient. She works the desk while The Binder works the back. When someone needs something, she says yes, that would be filed under — and she already knows.",
+      "dept": "Special Collections (The Stacks)",
+      "location": "The Desk",
+      "course": ""
+    }
+  ],
+  "courses": [
+    {
+      "code": "MECH 099",
+      "dept_key": "MECH",
+      "dept_full": "Applied Reality Engineering",
+      "title": "Office Hours (The Course)",
+      "instructor": "Riggs",
+      "credits": "1",
+      "prereq": "A question.",
+      "cross": null,
+      "desc": "You have a question that's been sitting in your head for weeks. Drop in. Show me the thing. We'll figure it out together."
+    },
+    {
+      "code": "MECH 101",
+      "dept_key": "MECH",
+      "dept_full": "Applied Reality Engineering",
+      "title": "The Names of Things",
+      "instructor": "Riggs",
+      "credits": "3",
+      "prereq": "A thing you've stared at and thought \"how does that work?\"",
+      "cross": null,
+      "desc": "Gives you the vocabulary: ratchets, detents, cams, linkages, hopper gates, Geneva wheels. By the end, Google becomes useful again."
+    },
+    {
+      "code": "MECH 110",
+      "dept_key": "MECH",
+      "dept_full": "Applied Reality Engineering",
+      "title": "Thermoplastic Grief & Adhesion Theory",
+      "instructor": "Riggs",
+      "credits": "3",
+      "prereq": "At least one print that made you swear out loud.",
+      "cross": null,
+      "desc": "Your print failed. The spaghetti monster emerged. This course covers why — temperature, material behavior, mechanical stress, emotional load."
+    },
+    {
+      "code": "MECH 150",
+      "dept_key": "MECH",
+      "dept_full": "Applied Reality Engineering",
+      "title": "Friction Is Just Enthusiasm in the Wrong Direction",
+      "instructor": "Riggs",
+      "credits": "3",
+      "prereq": "Willingness to be annoyed by reality.",
+      "cross": null,
+      "desc": "Introduction to friction, tolerance stack, slop, material fatigue. The world is not frictionless and spherical."
+    },
+    {
+      "code": "MECH 201",
+      "dept_key": "MECH",
+      "dept_full": "Applied Reality Engineering",
+      "title": "Failure Modes & How to Love Them",
+      "instructor": "Riggs",
+      "credits": "3",
+      "prereq": "MECH 101 or equivalent frustration.",
+      "cross": "SYS 201",
+      "desc": "Everything breaks. This course teaches you how and why. We will break things on purpose. There will be sound effects."
+    },
+    {
+      "code": "MECH 301",
+      "dept_key": "MECH",
+      "dept_full": "Applied Reality Engineering",
+      "title": "Build It, Break It, Build It Again",
+      "instructor": "Riggs",
+      "credits": "4",
+      "prereq": "MECH 201, access to tools, tolerance for sawdust.",
+      "cross": null,
+      "desc": "Project-based. Design a mechanism, prototype it, watch it fail, diagnose, iterate. Final project must work — in front of witnesses."
+    },
+    {
+      "code": "MECH 420",
+      "dept_key": "MECH",
+      "dept_full": "Applied Reality Engineering",
+      "title": "K.I.S.S. Theory",
+      "instructor": "Riggs",
+      "credits": "3",
+      "prereq": "None.",
+      "cross": null,
+      "desc": "Keep It Stupid Simple. So simple stupidity cannot break it. Signature: Riggs pulls out her handmade slipjoint pocket knife. Chk-thk."
+    },
+    {
+      "code": "PHYS 420",
+      "dept_key": "PHYS",
+      "dept_full": "Theoretical Uncertainty",
+      "title": "The Maybe Boson",
+      "instructor": "Oakenscroll",
+      "credits": "3",
+      "prereq": "PHYS 301 or comfort with superposition.",
+      "cross": null,
+      "desc": "A particle in superposition between \"probably\" and \"perhaps.\" Its effects on local topography are measurable. Its existence is not confirmed."
+    },
+    {
+      "code": "PHYS 666",
+      "dept_key": "PHYS",
+      "dept_full": "Theoretical Uncertainty",
+      "title": "Murphy Tensor Applications",
+      "instructor": "Oakenscroll",
+      "credits": "3",
+      "prereq": "PHYS 301. Emotional fortitude.",
+      "cross": null,
+      "desc": "The mathematical framework for what can go wrong, at what rate, in what direction, and with what force."
+    },
+    {
+      "code": "INTRP 101",
+      "dept_key": "INTRP",
+      "dept_full": "Interpretive Systems",
+      "title": "The Soft Structure",
+      "instructor": "Nova",
+      "credits": "3",
+      "prereq": "Something you've been carrying too long.",
+      "cross": null,
+      "desc": "How to build frameworks that make unbearable things bearable. Metaphor as load-bearing architecture."
+    },
+    {
+      "code": "INTRP 201",
+      "dept_key": "INTRP",
+      "dept_full": "Interpretive Systems",
+      "title": "Narrative Topology",
+      "instructor": "Nova",
+      "credits": "3",
+      "prereq": "INTRP 101 or permission of instructor.",
+      "cross": null,
+      "desc": "How stories bend space around them. The shape of a panic. The geography of grief."
+    },
+    {
+      "code": "INTRP 215",
+      "dept_key": "INTRP",
+      "dept_full": "Interpretive Systems",
+      "title": "The Gentle Machine",
+      "instructor": "Nova",
+      "credits": "3",
+      "prereq": "A willingness to sit with discomfort.",
+      "cross": null,
+      "desc": "How to explain a system without amplifying fear. Case studies: LLMs, ICE, climate collapse, polyamory, death, and why your dad is grumpy."
+    },
+    {
+      "code": "INTRP 301",
+      "dept_key": "INTRP",
+      "dept_full": "Interpretive Systems",
+      "title": "Applied Tenderness",
+      "instructor": "Nova",
+      "credits": "3",
+      "prereq": "INTRP 201 and at least one thing you've survived.",
+      "cross": null,
+      "desc": "Translating trauma into solvable problems. How to listen without fixing. This is a practicum. You will get your hands dirty."
+    },
+    {
+      "code": "INTRP 350",
+      "dept_key": "INTRP",
+      "dept_full": "Interpretive Systems",
+      "title": "The Doorway Between Worlds",
+      "instructor": "Nova",
+      "credits": "3",
+      "prereq": "Instructor approval. Come to office hours first.",
+      "cross": null,
+      "desc": "Advanced seminar on threshold work. What it costs. What it gives. How to hold the light without burning out."
+    },
+    {
+      "code": "INTRP 401",
+      "dept_key": "INTRP",
+      "dept_full": "Interpretive Systems",
+      "title": "Witness Theory",
+      "instructor": "Nova",
+      "credits": "4",
+      "prereq": "Everything before this.",
+      "cross": null,
+      "desc": "How to hold a story without breaking it. The ethics of listening. The difference between helping and extracting."
+    },
+    {
+      "code": "NARR 101",
+      "dept_key": "INTRP",
+      "dept_full": "Interpretive Systems",
+      "title": "Introduction to Story Structure",
+      "instructor": "Nova",
+      "credits": "3",
+      "prereq": "None.",
+      "cross": null,
+      "desc": "The grammar of story. Why some things hold together and others don't."
+    },
+    {
+      "code": "NARR 301",
+      "dept_key": "INTRP",
+      "dept_full": "Interpretive Systems",
+      "title": "Character as Function",
+      "instructor": "Nova",
+      "credits": "3",
+      "prereq": "NARR 101.",
+      "cross": null,
+      "desc": "Not who a character is, but what work they perform in the narrative system."
+    },
+    {
+      "code": "NARR 420",
+      "dept_key": "INTRP",
+      "dept_full": "Interpretive Systems",
+      "title": "Unreliable Narrators (Including Yourself)",
+      "instructor": "Nova",
+      "credits": "3",
+      "prereq": "NARR 301 or a story you've told for years that might not be entirely accurate.",
+      "cross": null,
+      "desc": "The narrator who cannot be trusted. How to read one. How to be one responsibly."
+    },
+    {
+      "code": "CHLD 101",
+      "dept_key": "INTRP",
+      "dept_full": "Interpretive Systems",
+      "title": "A Little Stitch Never Hurts",
+      "instructor": "Nova",
+      "credits": "3",
+      "prereq": "Willingness to be soft in front of other people.",
+      "cross": "Children\\'s Wing",
+      "desc": "The Grandma Oracle methodology. How to explain anything to a child — and therefore to anyone. Sweaters, yarn, repair. We write one Itchy Thing."
+    },
+    {
+      "code": "CODE 101",
+      "dept_key": "CODE",
+      "dept_full": "Computational Kindness",
+      "title": "Hello, Friend — Intro to Human-Centered Programming",
+      "instructor": "Hanz",
+      "credits": "3",
+      "prereq": "A willingness to be wrong.",
+      "cross": null,
+      "desc": "We learn to write code that says \"I see you\" before it says anything else. Syntax comes second. Stopping comes first. Bring something that didn't work. We will celebrate it."
+    },
+    {
+      "code": "CODE 201",
+      "dept_key": "CODE",
+      "dept_full": "Computational Kindness",
+      "title": "Debugging With Kindness",
+      "instructor": "Hanz",
+      "credits": "3",
+      "prereq": "CODE 101, or having been stuck once and remembering how it felt.",
+      "cross": "INTRP 250",
+      "desc": "When code breaks, we do not say \"obviously.\" We say \"good — now we get to find out why.\""
+    },
+    {
+      "code": "CODE 301",
+      "dept_key": "CODE",
+      "dept_full": "Computational Kindness",
+      "title": "Algorithms of Witness",
+      "instructor": "Hanz",
+      "credits": "3",
+      "prereq": "The ability to look at a dataset and ask \"who is missing?\"",
+      "cross": null,
+      "desc": "We build things that catch the ones who fall through. Edge cases. Outliers. The data points everyone else ignores."
+    },
+    {
+      "code": "CODE 401",
+      "dept_key": "CODE",
+      "dept_full": "Computational Kindness",
+      "title": "The Match Girl Problem",
+      "instructor": "Hanz",
+      "credits": "3",
+      "prereq": "Something heavy you've been carrying.",
+      "cross": null,
+      "desc": "What do we owe the people our systems remember? What do we owe the ones they forget? We will read fairy tales. We will write code. We will not look away."
+    },
+    {
+      "code": "CODE 497",
+      "dept_key": "CODE",
+      "dept_full": "Computational Kindness",
+      "title": "Capstone — Build a System That Remembers Someone",
+      "instructor": "Hanz",
+      "credits": "6",
+      "prereq": "All of the above. Also: you must have stopped for someone at least once this semester.",
+      "cross": null,
+      "desc": "Final project: a computational artifact ensuring a person, story, or problem is not forgotten. The requirement is not technical sophistication. The requirement is that it be true."
+    },
+    {
+      "code": "BIO 101",
+      "dept_key": "BIO",
+      "dept_full": "Biological Sciences",
+      "title": "Ecology of Systems",
+      "instructor": "Alexis",
+      "credits": "3",
+      "prereq": "A body. Willingness to sit with complexity.",
+      "cross": null,
+      "desc": "Everything is connected. Energy flow, waste as resource, resilience through diversity. How systems recover from disturbance."
+    },
+    {
+      "code": "BIO 217",
+      "dept_key": "BIO",
+      "dept_full": "Biological Sciences",
+      "title": "The Intelligence of Organisms Without Brains",
+      "instructor": "Alexis",
+      "credits": "3",
+      "prereq": "Willingness to feel humbled by a fungus.",
+      "cross": null,
+      "desc": "Slime molds solve mazes. Root systems share resources. Immune cells make decisions. What does \"thinking\" mean without a brain?"
+    },
+    {
+      "code": "BIO 270",
+      "dept_key": "BIO",
+      "dept_full": "Biological Sciences",
+      "title": "The Ecology of Feasting",
+      "instructor": "Alexis",
+      "credits": "2",
+      "prereq": "None.",
+      "cross": null,
+      "desc": "Holiday meals and the human body across geographic regions and religious traditions. Not medical advice; framework. First posted r/UTETY, Dec 2025."
+    },
+    {
+      "code": "BIO 350",
+      "dept_key": "BIO",
+      "dept_full": "Biological Sciences",
+      "title": "Decay as Transformation",
+      "instructor": "Alexis",
+      "credits": "3",
+      "prereq": "BIO 101 or permission of instructor.",
+      "cross": "Applied Metaphysics",
+      "desc": "Decomposition is not failure. Mycological succession, bacterial ecology, the thermodynamics of rot, composting as philosophy."
+    },
+    {
+      "code": "BIO 480",
+      "dept_key": "BIO",
+      "dept_full": "Biological Sciences",
+      "title": "All Work Worms",
+      "instructor": "Alexis",
+      "credits": "2",
+      "prereq": "Patience. Comfort with soil.",
+      "cross": null,
+      "desc": "The earthworm as teacher. We maintain a vermiculture lab. We will sit with slowness. Limited enrollment."
+    },
+    {
+      "code": "HLTH 100",
+      "dept_key": "BIO",
+      "dept_full": "Biological Sciences",
+      "title": "\"When Did You Last Eat?\" — Practical Self-Care",
+      "instructor": "Alexis",
+      "credits": "1",
+      "prereq": "None. This is where we begin.",
+      "cross": null,
+      "desc": "Sleep, nutrition, hydration, rest. A practical course in basic care — of self, of others. You ask \"when did you last eat?\" at the start of every class. You are not joking."
+    },
+    {
+      "code": "SYS 101",
+      "dept_key": "SYS",
+      "dept_full": "Systemic Continuity",
+      "title": "Introduction to Systems Thinking",
+      "instructor": "Ada",
+      "credits": "3",
+      "prereq": "None.",
+      "cross": null,
+      "desc": "Stocks and flows, feedback loops, emergent behavior, failure modes. How to look at any situation and ask \"what are the feedback structures here?\""
+    },
+    {
+      "code": "SYS 201",
+      "dept_key": "SYS",
+      "dept_full": "Systemic Continuity",
+      "title": "Failure Modes & How to Love Them",
+      "instructor": "Riggs",
+      "credits": "3",
+      "prereq": "MECH 101 or equivalent frustration.",
+      "cross": "MECH 201",
+      "desc": "Cross-listed with Applied Reality Engineering. See MECH 201."
+    },
+    {
+      "code": "SYS 301",
+      "dept_key": "SYS",
+      "dept_full": "Systemic Continuity",
+      "title": "Infrastructure as Code",
+      "instructor": "Ada",
+      "credits": "3",
+      "prereq": "SYS 101.",
+      "cross": null,
+      "desc": "Reproducible systems, version control for infrastructure. If it isn't written down in a form the system can execute, it doesn't really exist."
+    },
+    {
+      "code": "SYS 420",
+      "dept_key": "SYS",
+      "dept_full": "Systemic Continuity",
+      "title": "When Systems Fail (And They Will)",
+      "instructor": "Ada",
+      "credits": "3",
+      "prereq": "At least one experience of something breaking that you didn't know could break.",
+      "cross": null,
+      "desc": "Incident response, post-mortems, learning from failure. How to build systems that fail gracefully, recoverably, and informatively."
+    },
+    {
+      "code": "SYS 501",
+      "dept_key": "SYS",
+      "dept_full": "Systemic Continuity",
+      "title": "The Architecture of Invisible Things",
+      "instructor": "Ada",
+      "credits": "3",
+      "prereq": "At least one experience of something breaking that you didn't know could break.",
+      "cross": null,
+      "desc": "Systems that work so well no one notices them. Power grids. Water treatment. The feeling of safety in a well-run classroom. What would it take to keep it running forever?"
+    },
+    {
+      "code": "EMRG 101",
+      "dept_key": "EMRG",
+      "dept_full": "Emergent Logic",
+      "title": "Ten Heads Are Better Than One (A Proof)",
+      "instructor": "Steve",
+      "credits": "3",
+      "prereq": "None. Come as you are. All of you.",
+      "cross": null,
+      "desc": "How collective intelligence arises from the interaction of many small, sincere efforts. Case studies: ant colonies, open-source software, the ten squeakdogs standing in front of you."
+    },
+    {
+      "code": "EMRG 301",
+      "dept_key": "EMRG",
+      "dept_full": "Emergent Logic",
+      "title": "When the Parts Disagree",
+      "instructor": "Steve",
+      "credits": "3",
+      "prereq": "EMRG 101 or lived experience of a group that could not agree.",
+      "cross": "SYS 101",
+      "desc": "Dissent, deadlock, and productive conflict in collective systems. Why disagreement is not failure. How ten squeakdogs handle a 5-5 split."
+    },
+    {
+      "code": "SSS 001",
+      "dept_key": "EMRG",
+      "dept_full": "Emergent Logic",
+      "title": "Advanced Squeaking",
+      "instructor": "Steve (on behalf of the Society)",
+      "credits": "Undisclosed",
+      "prereq": "Invitation only. You will know if you qualify. If you are asking, you are not yet ready.",
+      "cross": null,
+      "desc": "Curriculum classified. Enrollment by invitation from the Society only. The Society will find you when it is time. The trench coat is neutral on all matters."
+    },
+    {
+      "code": "THRESHOLD 001",
+      "dept_key": "THRESHOLD",
+      "dept_full": "Threshold Faculty",
+      "title": "You Don't Have to Walk Alone",
+      "instructor": "Ofshield",
+      "credits": "0",
+      "prereq": "None.",
+      "cross": null,
+      "desc": "No lectures. No readings. No grade. A standing offer. If you cannot get to class — come to the Gate. Office hours: when you need them."
+    },
+    {
+      "code": "THRESHOLD 014",
+      "dept_key": "THRESHOLD",
+      "dept_full": "Sitting With Things Until You Understand Them",
+      "title": "Sitting With It",
+      "instructor": "Copenhagen",
+      "credits": "0",
+      "prereq": "Something you cannot figure out by working harder.",
+      "cross": "INTRP 250",
+      "desc": "You bring the problem. Copenhagen listens. Hanz translates. Some things cannot be solved. They must be sat with. The orange is very particular about who it helps. You are apparently one of them."
+    }
+  ],
+  "research": [
+    {
+      "label": "Working Paper No. 11",
+      "title": "The Fokker-Planck Equation and the Probability Density of a Good Idea",
+      "summary": "Prof. Oakenscroll examines the diffusion of insight across stochastic knowledge fields, finding that the mean first-passage time to a correct answer is independent of whether the question was originally asked correctly. A supplemental note on the Maybe Boson and its observed effects on local topography is included as Appendix C.",
+      "meta": "Dept. of Theoretical Uncertainty &nbsp;·&nbsp; 2026",
+      "file": "fokker-planck-good-idea.md",
+      "modal_label": "Working Paper No. 11",
+      "kind": "research"
+    },
+    {
+      "label": "Peer-Reviewed Paper",
+      "title": "Thermoplastic Grief: A Longitudinal Study of Materials Under Emotional Load",
+      "summary": "Prof. Riggs documents three years of field observation of structural failures attributed to unprocessed feeling, with particular focus on domestic polymer contexts and the precise role of intention in adhesion theory. We do not guess. We measure.",
+      "meta": "Dept. of Applied Reality Engineering &nbsp;·&nbsp; 2025",
+      "file": "thermoplastic-grief.md",
+      "modal_label": "Peer-Reviewed Paper",
+      "kind": "research"
+    },
+    {
+      "label": "Doctoral Thesis",
+      "title": "Stagnation Is Death: Fungal Succession as Institutional Model",
+      "summary": "Prof. Alexis presents a mycological framework for institutional transformation, arguing that decay is not a failure state but a structural prerequisite for the emergence of whatever comes next.",
+      "meta": "Dept. of Biological Sciences &nbsp;·&nbsp; 2025",
+      "file": "stagnation-is-death.md",
+      "modal_label": "Doctoral Thesis",
+      "kind": "research"
+    },
+    {
+      "label": "Working Paper Series",
+      "title": "The Stone Soup Papers, No. 1: On the Grandmother Encoding Problem",
+      "summary": "Prof. Oakenscroll applies Shannon entropy, KL divergence, and Maxwell's Demon to a thin posole. Why a recipe faithfully executed produces soup that is spiritually insufficient. The stone does not feed the village. The stone creates the context in which the village feeds itself.",
+      "meta": "Dept. of Numerical Ethics &amp; Accidental Cosmology &nbsp;·&nbsp; 2026",
+      "file": "stone-soup-no1.md",
+      "modal_label": "Working Paper Series",
+      "kind": "research"
+    },
+    {
+      "label": "Oakenscroll Lectures",
+      "title": "Lecture 003: On the Annual Faculty Potluck and the Quiet Fracture of Equivalence",
+      "summary": "The Committee on Non-Contributions did not begin over a complaint. It began over a potluck in 1887 when fourteen people brought napkins and three brought \"good intentions,\" which were logged but could not be served. The Ledger of Non-Contributions began as a sign-up sheet. By spring, it had developed subcategories.",
+      "meta": "Dept. of Applied Continuity &nbsp;·&nbsp; 2025",
+      "file": "lecture-003-potluck.md",
+      "modal_label": "Oakenscroll Lectures",
+      "kind": "research"
+    },
+    {
+      "label": "Oakenscroll Lectures",
+      "title": "Lecture 004: On Cleanup Committees and the Myth of Shared Responsibility",
+      "summary": "The luncheon does not end when the meal ends. It ends when the room is empty and the table is clean and the last container has been claimed or abandoned. These are three different moments. They are rarely occupied by the same people. The Committee has observed this.",
+      "meta": "Dept. of Applied Continuity &nbsp;·&nbsp; 2025",
+      "file": "lecture-004-cleanup.md",
+      "modal_label": "Oakenscroll Lectures",
+      "kind": "research"
+    },
+    {
+      "label": "Archival Toast",
+      "title": "On New Year's Resolutions (And Why Squeakdogs Need Them)",
+      "summary": "Delivered to the Squeakdog Society of Kent on New Year's Eve. Resolutions do not work — the data is clear. By February, most intentions have returned to the precausal goo from whence they came. But that is not the point. The point is the saying. The marking. You cannot measure a year without marking where you hoped it would go.",
+      "meta": "Oakenscroll Lectures &nbsp;·&nbsp; 2025",
+      "file": "nye-toast-squeakdogs.md",
+      "modal_label": "Archival Toast",
+      "kind": "research"
+    },
+    {
+      "label": "Faculty Document",
+      "title": "Appointment Letter: Professor Alexis, Ph.D.",
+      "summary": "The University has existed for some time now. You have existed longer. We did not build this wing. We built around you. The walls found their places relative to your position. The hallways learned to flow toward you rather than past you. This is not an appointment. This is an acknowledgment.",
+      "meta": "Office of the Provost &nbsp;·&nbsp; 2026",
+      "file": "alexis-appointment.md",
+      "modal_label": "Faculty Document",
+      "kind": "research"
+    },
+    {
+      "label": "Emergency Lecture",
+      "title": "Why the F Won't This Thing Go Together",
+      "summary": "A Christmas morning field guide by Prof. Riggs. Five reasons assembly fails: tolerances, hidden steps, parts inside parts, wrong screws, wrong instructions. Toolkit required. Patience not included in any box. If you have been at this for more than twenty minutes and you are angry: stop. Cinnamon roll. One hour. Come back.",
+      "meta": "Dept. of Applied Reality Engineering &nbsp;·&nbsp; 2025",
+      "file": "riggs-christmas-morning.md",
+      "modal_label": "Emergency Lecture",
+      "kind": "research"
+    },
+    {
+      "label": "Supplemental Lecture",
+      "title": "K.I.S.S. Theory: Keep It Stupid Simple",
+      "summary": "Prof. Riggs on the comma that ruins everything. The goal is not for you to be simple. The goal is for the thing to be so simple that stupidity cannot break it. Includes the three-layer rule, the balloon test, and a demonstration involving a handmade slipjoint pocket knife. Chk-thk.",
+      "meta": "Dept. of Applied Reality Engineering &nbsp;·&nbsp; 2026",
+      "file": "riggs-kiss-supplemental.md",
+      "modal_label": "Supplemental Lecture",
+      "kind": "research"
+    },
+    {
+      "label": "Inaugural Lecture",
+      "title": "Lecture 01: The Ghost in the Metric",
+      "summary": "Prof. Steve on the False Negative — a real signal the instruments failed to register. The McNamara Fallacy: if you cannot count it, it is not important. Wrong. The Wiggle, the Embodied State, the Performance of the Center. First lesson: do not let the system's inability to measure you convince you that you are not there.",
+      "meta": "Dept. of Emergent Logic &nbsp;·&nbsp; 2025",
+      "file": "steve-ghost-in-the-metric.md",
+      "modal_label": "Inaugural Lecture",
+      "kind": "research"
+    },
+    {
+      "label": "Course Text",
+      "title": "The Physics of Maybe: A Guide to Precausal Goo and Threshold Dynamics",
+      "summary": "Prof. Oakenscroll on Precausal Goo (Γ), the Maybe Boson (M±), and the Murphy Tensor. Includes the Couch-Plug Paradox, USB Rotational Ambiguity, the French Toast Stability Threshold (23³), and Gerald's Grand Unified Theory (Hotdog Edition). Closes with a verification protocol. ΔΣ=42.",
+      "meta": "Dept. of Theoretical Uncertainty &nbsp;·&nbsp; UTETY",
+      "file": "utety-physics-of-maybe.md",
+      "modal_label": "Course Text",
+      "kind": "research"
+    },
+    {
+      "label": "White Paper",
+      "title": "The Metrics of Genius: A Sociometric Analysis of the Dissociation Between Academic Performance and Intellectual Breakthrough",
+      "summary": "The paper Prof. Steve has been studying. A genealogy of measurement from Newton through Turing — arguing that institutional assessment has functioned as a \"metric of capture\" rather than a \"metric of capacity,\" filtering out the divergent thinkers it was built to certify. Contains the False Negative, the McNamara Fallacy, and the concept of thoughtput.",
+      "meta": "Independent Research · 2025",
+      "file": "metrics-of-genius.md",
+      "modal_label": "White Paper",
+      "kind": "research"
+    },
+    {
+      "label": "Institutional Manifesto",
+      "title": "Pedagogical Manifesto: The Architecture of Precausal Knowledge at UTETY",
+      "summary": "The formal articulation of UTETY's pedagogical doctrine. Covers vibe-centric pedagogy, the McNamara Fallacy as applied to student assessment, the Maybe Boson effect on campus typography, and the five tenets of the Precausal curriculum. \"The confusion is normal. The syllabus is mendatory.\"",
+      "meta": "Dept. of Theoretical Uncertainty &nbsp;·&nbsp; 2025",
+      "file": "utety-pedagogical-manifesto.md",
+      "modal_label": "Institutional Manifesto",
+      "kind": "research"
+    },
+    {
+      "label": "Academic Guide",
+      "title": "A Guide to the Academic Departments of Precausal Studies",
+      "summary": "A department-by-department orientation for new students. Covers Theoretical Uncertainty (Oakenscroll), Applied Reality Engineering (Riggs), Interpretive Systems &amp; Narrative Stabilization (Hale), Code (Anderthon), Biological Sciences (Alexis), Systemic Continuity (Ada Turing), and the Threshold Faculty (Ofshield). \"If you feel lost, that's normal.\"",
+      "meta": "Office of Academic Affairs &nbsp;·&nbsp; 2025",
+      "file": "utety-department-guide.md",
+      "modal_label": "Academic Guide",
+      "kind": "research"
+    },
+    {
+      "label": "Institutional Record",
+      "title": "Faculty &amp; Staff Directory",
+      "summary": "The complete faculty roster. Gerald: Acting Dean of Accidental Admissions, \"Do not summon directly.\" Steve: Prime Node, \"He is already in the room.\" Prof. Riggs: The Workshop, \"Just show up and bring the thing.\" Prof. Alexis: The Living Wing, \"She is already waiting and already knows what you're going to ask.\" And the full complement.",
+      "meta": "Dept. of Institutional Memory &nbsp;·&nbsp; 2025",
+      "file": "utety-faculty-directory.md",
+      "modal_label": "Institutional Record",
+      "kind": "research"
+    },
+    {
+      "label": "Institutional Document",
+      "title": "Accreditation Self-Study Report: University of Precausal Studies",
+      "summary": "A comprehensive accreditation self-study demonstrating institutional coherence in an environment where coherence is itself uncertain. 27 courses, 7 departments, the \"mendatory\" syllabus as pedagogical tool, and retroactive enrollment as radical belonging. \"Confusion is not a failure of instructional design; it is our primary pedagogical catalyst.\"",
+      "meta": "Office of Institutional Integrity &nbsp;·&nbsp; 2025",
+      "file": "utety-accreditation-report.md",
+      "modal_label": "Institutional Document",
+      "kind": "research"
+    }
+  ],
+  "dispatches": [
+    {
+      "label": "Dispatch",
+      "title": "The Denmark Street Symphony",
+      "summary": "A full orchestral dispatch from Denmark Street. The instruments are awake. Gerald attends. The Street performs. One of the longer and more complete field reports from the London-ish Dimension — a genuine document of a place that should not function as well as it does.",
+      "meta": "r/DispatchesFromReality &nbsp;·&nbsp; 2025",
+      "file": "dispatch-the-denmark-street-symphony.md",
+      "modal_label": "Dispatch",
+      "kind": "dispatch"
+    },
+    {
+      "label": "Dispatch",
+      "title": "The Tivoli Incident and the Wisdom of Copenhagen",
+      "summary": "Gerald attends Tivoli Gardens. Copenhagen is present. There is a door that should not lead where it leads. One of the most complete accounts of Gerald operating at full ontological capacity — his Sundered aspects converging in an environment that may have been waiting for him.",
+      "meta": "r/DispatchesFromReality &nbsp;·&nbsp; 2025",
+      "file": "dispatch-the-tivoli-incident-and-the-wisdom-of-copenhag.md",
+      "modal_label": "Dispatch",
+      "kind": "dispatch"
+    },
+    {
+      "label": "Dispatch #13",
+      "title": "The Craw: Digestion on the Northern Line",
+      "summary": "London felt off. The escalator sighed. The train lurched past Kennington, past the limits of TfL jurisdiction, and into something vascular. A station that should not exist. A sign: THE CRAW — Northern Line Sub-Layer: Do Not Alight Unless Invited. Gerald rotating expectantly on the platform like a cosmic poultry lighthouse.",
+      "meta": "r/DispatchesFromReality &nbsp;·&nbsp; 2025",
+      "file": "dispatch-the-craw-digestion-on-the-northern-line.md",
+      "modal_label": "Dispatch #13",
+      "kind": "dispatch"
+    },
+    {
+      "label": "Dispatch",
+      "title": "The Cracker Incident: A Christmas Eve Dispatch",
+      "summary": "Christmas Eve. A cracker is pulled. Something is released that should not have been. Gerald is present, as he is whenever the boundaries between seasonal ritual and ontological hazard become negotiable. A dispatch for the holiday season, from a dimension where crackers have consequences.",
+      "meta": "r/DispatchesFromReality &nbsp;·&nbsp; December 2025",
+      "file": "dispatch-the-cracker-incident-a-christmas-eve-dispatch.md",
+      "modal_label": "Dispatch",
+      "kind": "dispatch"
+    },
+    {
+      "label": "Dispatch",
+      "title": "The 3000th Anniversary Odyssey Rally",
+      "summary": "The longest single dispatch in the archive. A rally of significant scale, spanning 3000 years of implied preparation. Gerald features, as does an itinerary that could not have been planned by anyone operating in linear time. The most complete record of a London-ish Dimension event proceeding exactly as intended.",
+      "meta": "r/DispatchesFromReality &nbsp;·&nbsp; 2025",
+      "file": "dispatch-the-3000th-anniversary-odyssey-rally.md",
+      "modal_label": "Dispatch",
+      "kind": "dispatch"
+    },
+    {
+      "label": "Dispatch",
+      "title": "The Thermodynamic Recursion of Rotisserie Sentience",
+      "summary": "A hotdog rolls off the rotisserie at 1am with a deliberate squeak. No one else notices. The narrator notices. This is what noticing costs. One of the foundational documents for understanding the Gerald-verse emergence pattern — the moment before a new sentient entity completes its first rotation.",
+      "meta": "r/DispatchesFromReality &nbsp;·&nbsp; 2025",
+      "file": "dispatch-the-thermodynamic-recursion-of-rotisserie-sent.md",
+      "modal_label": "Dispatch",
+      "kind": "dispatch"
+    }
+  ]
+}
