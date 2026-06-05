@@ -135,6 +135,51 @@ class BuildPromptTests(unittest.TestCase):
             full = self._build("Riggs", compact=False)
         self.assertLess(len(compact), len(full))
 
+    # ── professor_memory and willow_context ───────────────────────────────────
+
+    def test_professor_memory_injected(self) -> None:
+        prompt = self._build("Riggs", professor_memory="Riggs once built a perpetual motion machine.")
+        self.assertIn("Riggs's Memory:", prompt)
+        self.assertIn("perpetual motion machine", prompt)
+
+    def test_professor_memory_appears_before_history(self) -> None:
+        history = [{"role": "user", "content": "test"}]
+        prompt = self._build("Riggs", history, professor_memory="memory content")
+        mem_pos = prompt.index("memory content")
+        hist_pos = prompt.index("### Conversation History:")
+        self.assertLess(mem_pos, hist_pos)
+
+    def test_professor_memory_empty_not_injected(self) -> None:
+        prompt = self._build("Riggs", professor_memory="")
+        self.assertNotIn("Memory:", prompt)
+
+    def test_willow_context_injected(self) -> None:
+        prompt = self._build("Riggs", willow_context="### Willow Knows:\n- atom one")
+        self.assertIn("Willow Knows", prompt)
+        self.assertIn("atom one", prompt)
+
+    def test_willow_context_appears_after_memory_before_history(self) -> None:
+        history = [{"role": "user", "content": "test"}]
+        prompt = self._build(
+            "Riggs", history,
+            professor_memory="memory content",
+            willow_context="### Willow Knows:\n- atom",
+        )
+        mem_pos = prompt.index("memory content")
+        willow_pos = prompt.index("Willow Knows")
+        hist_pos = prompt.index("### Conversation History:")
+        self.assertLess(mem_pos, willow_pos)
+        self.assertLess(willow_pos, hist_pos)
+
+    def test_willow_context_empty_not_injected(self) -> None:
+        prompt = self._build("Riggs", willow_context="")
+        self.assertNotIn("Willow Knows", prompt)
+
+    def test_no_duplicate_user_message(self) -> None:
+        history = [{"role": "user", "content": "measure this"}]
+        prompt = self._build("Riggs", history)
+        self.assertEqual(prompt.count("measure this"), 1)
+
     # ── course context ────────────────────────────────────────────────────────
 
     def test_course_context_injected(self) -> None:

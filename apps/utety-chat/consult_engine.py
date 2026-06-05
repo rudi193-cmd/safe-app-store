@@ -75,8 +75,17 @@ def build_prompt(
     *,
     course_code: str | None = None,
     compact: bool = False,
+    professor_memory: str = "",
+    willow_context: str = "",
 ) -> str:
-    """Build LLM prompt: persona + UTETY context + optional course + history."""
+    """Build LLM prompt: persona + UTETY context + optional extras + history.
+
+    Args:
+        professor_memory: Pre-seeded stable background for this professor
+            (e.g. from data/professors/<name>_context.md).
+        willow_context: Per-query RAG atoms fetched from Willow knowledge graph.
+            Injected after professor_memory, before history.
+    """
     if compact:
         persona_prompt = faculty_context("Hanz" if professor == "Copenhagen" else professor)
         context = compact_utety_context()
@@ -96,6 +105,10 @@ def build_prompt(
     ctx = course_context(course_code)
     if ctx:
         parts.extend(["", ctx])
+    if professor_memory:
+        parts.extend(["", f"### {professor}'s Memory:", professor_memory])
+    if willow_context:
+        parts.extend(["", willow_context])
     parts.extend(["", "### Conversation History:"])
 
     recent_limit = 4 if compact else 10
