@@ -51,6 +51,12 @@ FACULTY = [
     {"name": "Pigeon",        "dept": "Carrier Services / Not Yet",  "icon": "🐦"},
     {"name": "Jeles",         "dept": "Special Collections",         "icon": "📚"},
     {"name": "Binder",        "dept": "Records & Filing",            "icon": "🗂️"},
+    {"name": "Gatekeeper",    "dept": "Public Gate / AI Literacy",   "icon": "🚦"},
+    {"name": "Grandma Oracle","dept": "Warm Explanations",           "icon": "🧶"},
+    {"name": "Kart",          "dept": "Die-Namic Infrastructure",    "icon": "🦈"},
+    {"name": "Mitra",         "dept": "Die-Namic Coordination",      "icon": "📋"},
+    {"name": "Consus",        "dept": "Die-Namic Generation",        "icon": "⚙️"},
+    {"name": "Shiva",         "dept": "SAFE Bridge Ring",            "icon": "🌀"},
 ]
 
 PROFESSOR_CONFIG = {f["name"]: f for f in FACULTY}
@@ -70,21 +76,35 @@ BORDER_COLORS = {
     "Pigeon":      "#b08060",
     "Jeles":       "#8b6914",
     "Binder":      "#a07830",
+    "Gatekeeper":  "#c87830",
+    "Grandma Oracle": "#b06080",
+    "Kart":        "#2a6496",
+    "Mitra":       "#c8a040",
+    "Consus":      "#7a8a9a",
+    "Shiva":       "#8a70b8",
 }
 
 WAITING = {
-    "Gerald":      "🍗 ...",
-    "Nova":        "still knitting...",
-    "Oakenscroll": "filing...",
-    "Riggs":       "*chk-tunk* measuring...",
-    "Copenhagen":  "🍊",
-    "Ada":         "uptime maintained...",
-    "Ofshield":    "*noting passage...*",
-    "Steve":       "🌭🌭🌭 deliberating...",
-    "Pigeon":      "carrying your thing...",
-    "Jeles":       "consulting the stacks...",
-    "Binder":      "filing intake...",
-    "Hanz":        "Hello, friend. one moment...",
+    "Willow":         "consulting the campus...",
+    "Gerald":         "🍗 ...",
+    "Nova":           "still knitting...",
+    "Oakenscroll":    "filing...",
+    "Riggs":          "*chk-tunk* measuring...",
+    "Copenhagen":     "🍊",
+    "Ada":            "uptime maintained...",
+    "Alexis":         "in the swamp...",
+    "Ofshield":       "*noting passage...*",
+    "Steve":          "🌭🌭🌭 deliberating...",
+    "Pigeon":         "carrying your thing...",
+    "Jeles":          "consulting the stacks...",
+    "Binder":         "filing intake...",
+    "Hanz":           "Hello, friend. one moment...",
+    "Gatekeeper":     "at the threshold...",
+    "Grandma Oracle": "knitting the answer...",
+    "Kart":           "building...",
+    "Mitra":          "coordinating...",
+    "Consus":         "generating...",
+    "Shiva":          "present...",
 }
 DEFAULT_WAITING = "thinking..."
 
@@ -95,7 +115,12 @@ INPUT_PROMPTS = {
     "Gerald":    "Leave a napkin →",
     "Pigeon":    "What needs carrying →",
     "Copenhagen":"Sit with it →",
-    "Oakenscroll": "The question, then →",
+    "Oakenscroll":    "The question, then →",
+    "Kart":           "What needs building →",
+    "Mitra":          "What needs routing →",
+    "Consus":         "What needs generating →",
+    "Shiva":          "What's on your mind →",
+    "Gatekeeper":     "Step through →",
 }
 DEFAULT_PROMPT = "Your message →"
 
@@ -114,7 +139,13 @@ GREETINGS = {
     "Gerald":      "*rotates once. Leaves napkin: 'WELCOME'*",
     "Pigeon":      "OH! Hello! I know EXACTLY where that goes. Probably. What do you need carried?",
     "Jeles":       "The catalog is extensive. Where would you like to begin?",
-    "Binder":      "Something to file?",
+    "Binder":         "Something to file?",
+    "Gatekeeper":     "Welcome to the gate. Take your time.",
+    "Grandma Oracle": "Come in. Sit down. There's a little stitch for everything.",
+    "Kart":           "What are we building?",
+    "Mitra":          "What needs coordinating?",
+    "Consus":         "Ready to generate. What's the output?",
+    "Shiva":          "Hello. What's on your mind?",
 }
 
 

@@ -72,11 +72,10 @@ class TuiTestBase(unittest.IsolatedAsyncioTestCase):
 # ── structure tests ───────────────────────────────────────────────────────────
 
 class TestMount(TuiTestBase):
-    async def test_all_14_professors_in_sidebar(self) -> None:
+    async def test_all_professors_in_sidebar(self) -> None:
         async with UTETYApp().run_test(size=(120, 40)) as pilot:
             from textual.widgets import ListView
             items = list(pilot.app.query_one("#faculty-list", ListView).children)
-            self.assertEqual(len(items), 14)
             self.assertEqual(len(items), len(FACULTY))
 
     async def test_pigeon_in_sidebar(self) -> None:
