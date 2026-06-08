@@ -163,11 +163,11 @@ def structure_template(doc_type: str) -> str:
 {today}
 
 {parent_b}
-[FACT NEEDED: Example Parent B's current mailing address]
+[FACT NEEDED: {parent_b}'s current mailing address]
 
 **Re:** Case No. {case_no} — Schedule Proposals (Response to Letter of May 23, 2026)
 
-Dear Example Parent B,
+Dear {parent_b},
 
 Thank you for acknowledging my letter. This responds to the schedule items due **May 30, 2026**.
 
@@ -214,11 +214,11 @@ Respectfully,
 {today}
 
 {parent_b}
-[FACT NEEDED: Example Parent B's current mailing address]
+[FACT NEEDED: {parent_b}'s current mailing address]
 
 **Re:** Case No. {case_no} — Response to Letter (Non-Schedule Items)
 
-Dear Example Parent B,
+Dear {parent_b},
 
 This letter addresses the non-schedule items from my letter of May 23, 2026, due **June 6, 2026**.
 

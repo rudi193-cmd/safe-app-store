@@ -7,7 +7,7 @@ Loads persona.md and extracts the facts the Gazelle needs at session start.
 Usage:
     from client_profile import build_context
     context = build_context()
-    session = create_session("Sean", context=context)
+    session = create_session("Client", context=context)
 
 The context dict matches the shape expected by gazelle_engine.create_session():
     {
@@ -34,29 +34,28 @@ def build_context() -> dict:
     """
     Return a context dict for create_session() pre-loaded with facts from persona.md.
 
-    Facts are curated for legal relevance — the Gazelle doesn't need Sean's
-    42 discovery or the Books of Mann. It needs: who he is, what the case is,
+    Facts are curated for legal relevance — the Gazelle doesn't need the
+    client's full life history. It needs: who the client is, what the case is,
     the injury, the deadlines, the jurisdiction.
     """
     persona = _load_persona_md()
     source = str(_PERSONA_PATH) if _PERSONA_PATH.exists() else str(_FALLBACK_PATH)
 
     # Static facts derived from persona.md (as of 2026-03-31, b17: HE50K).
-    # These are ground truth — update here when sean.db changes.
+    # These are example/synthetic facts — update here when the client profile changes.
     facts = [
-        "Client: Example Client, Albuquerque, NM.",
-        "Case: WCA No. 00-00000, Campbell v. Example Employer Inc. (Trader Joe's), "
-        "New Mexico Workers' Compensation Administration.",
-        "Injury: Two back injury — lumbar and mid-back. Onset May 2025. "
-        "Work-related injury during employment at Trader Joe's.",
-        "Medical: Surgery consult scheduled May 2026. Currently on medical leave.",
-        "Employment: 15-year employee at Trader Joe's. On medical leave since May 2025.",
+        "Client: Example Client, Example City, ST.",
+        "Case: WCA No. 00-00000, Doe v. Example Employer Inc., "
+        "State Workers' Compensation Administration.",
+        "Injury: Work-related back injury during employment at Example Employer.",
+        "Medical: Treatment ongoing; currently on medical leave.",
+        "Employment: Long-term employee at Example Employer; currently on medical leave.",
         "Mediation: Mediation case 00-00000 scheduled (see correspondence files).",
-        "Financial context: Chapter 13 bankruptcy active (case 00-00000-x00, NM). "
-        "Foreclosure proceedings started January 2026.",
+        "Financial context: Chapter 13 bankruptcy active (case 00-00000-x00, ST). "
+        "Foreclosure proceedings underway.",
         "Legal representative for disability issues: Ada (AI research agent). "
         "Workers comp attorney engaged.",
-        "Jurisdiction: New Mexico. Governing statute: NMSA 1978, Workers' Compensation Act.",
+        "Jurisdiction: Example State. Governing statute: the State Workers' Compensation Act.",
         "Primary input: voice-to-text. Correct transcription errors silently.",
     ]
 
@@ -72,7 +71,7 @@ def build_context() -> dict:
 
 
 def get_client_name() -> str:
-    return "Sean"
+    return "Client"
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@
 
 ## What It Is
 
-A **case command center** for Sean's real legal situations — not the generic template-engine / Postgres stub in the old repo.
+A **case command center** for the user's real legal situations — not the generic template-engine / Postgres stub in the old repo.
 
 Law Gazelle:
 
@@ -28,7 +28,7 @@ It is the **runtime operator** on prepared legal data. It does **not** author ca
 
 | Ignored / deprecated | Why |
 |---|---|
-| `legal_db.py`, Postgres `sweet_pea_rudi19.*` | Wrong backend; not Sean's data |
+| `legal_db.py`, Postgres backend | Wrong backend; not the user's data |
 | `src/gazelle_engine.py` intake/chat flow | Template demand-letter assistant |
 | Direct `willow_knowledge_ingest` at session end | Compost/promote is downstream of the watcher |
 | Mutating Nest SQLite from the TUI | Nest stays canonical; only sidecar writes |
@@ -37,7 +37,7 @@ It is the **runtime operator** on prepared legal data. It does **not** author ca
 
 ## Layer Model
 
-Sean converged on a three-layer mental model:
+The design converged on a three-layer mental model:
 
 ```mermaid
 flowchart TB
@@ -87,7 +87,7 @@ flowchart TB
 
 **Format:** Relational **SQLite** (`TEXT`, `INTEGER`, `REAL`). **Not JSONB.** JSON appears only in the export file and optional TEXT reference columns.
 
-**Authoring:** Legal work sessions (Claude + Sean) write here. Law Gazelle reads.
+**Authoring:** Legal work sessions (Claude + the user) write here. Law Gazelle reads.
 
 ### Layer 2 — Law Gazelle (runtime backend + visible console)
 
@@ -250,7 +250,7 @@ cd apps/law-gazelle && ./dev.sh
 
 | Domain | Identifier | Notes |
 |---|---|---|
-| Coparent | D-000-DM-0000-00000 | Example County NM |
+| Coparent | D-000-DM-0000-00000 | Example County, ST |
 | Bankruptcy | Ch. 13 dismissed 2026-05-12 → Ch. 7 organizing | |
 | Workers comp | WCA 00-00000 | Scaffolded DB; narrative in coparent atoms |
 | Letter | Campbell_Letter_May23_2026.docx | Sent; response deadlines in export `_meta` |
