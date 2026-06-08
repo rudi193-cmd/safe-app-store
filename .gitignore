@@ -7,3 +7,7 @@ __pycache__/
 .env
 *.db
 .pytest_cache/
+*.egg-info/
+apps/story-timeline/exports/
+apps/utety-chat/data/exports/
+=*
