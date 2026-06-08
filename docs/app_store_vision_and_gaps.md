@@ -9,7 +9,9 @@
 1. **Thesis confirmed** (§2): *a sovereign personal OS — own your data, trust your sources — wearing the friendly face of a fictional university.*
 2. **Direction: Sovereign-first (A3)** (§4). The **sovereign suite is the product**; the personas are its UI; the cloud "UTETY universe" apps are **demos / a side channel, not the destination**.
 3. **Willow: invest in true standalone** (§7). Flagship apps must run with **no Willow and no Postgres** — local SQLite only. Bundling Willow is explicitly *not* the path.
-4. **Still open:** which apps are flagships vs. parked/archived (§6 proposes a cut — needs your sign-off).
+4. **law-gazelle manifest will be scrubbed** — real case numbers in a public repo (a leak the public-facing audit was meant to prevent).
+5. **nasa-archive keeps its name** — "NASA" is a deliberate backronym (**N**orth **A**merica **S**cootering **A**rchive), not a mistake.
+6. **Still open:** which apps are flagships vs. parked/archived (§6 proposes a cut — discussing app-by-app).
 
 This document does three things:
 1. **Inventory** — what's actually in the store today (grounded in the code, not the README pitch).
@@ -217,8 +219,10 @@ This isn't a problem to "fix" — it was a **strategic choice**, and we've made 
 ### 5.5 Honesty / public-repo risks (ties to the earlier public-facing audit)
 - **law-gazelle** embeds **real legal case numbers** and "Sean's active legal matters" in its manifest
   description, in a **public** repo. Recommend genericizing the manifest (data already lives outside git).
-- **nasa-archive** is named/described as a "NASA open-datasets explorer" but is a **scooter-rally
-  archive**. Misleading for a public catalog — rename or re-describe.
+- **nasa-archive** — the name is a **deliberate backronym** (**N**orth **A**merica **S**cootering
+  **A**rchive) and is being kept. *However*, the `safe-app-manifest.json` description text still claims
+  literal NASA space datasets ("mission telemetry, earth science") — that leftover copy should be
+  aligned to the actual scooter-archive content so the public catalog reads honestly.
 
 ---
 
@@ -241,7 +245,7 @@ This isn't a problem to "fix" — it was a **strategic choice**, and we've made 
 | bt-controller | 🟡 ~50% | no web UI; Win/WSL only | **Park** (niche) unless needed |
 | source-trail | 🔴 ~50% | Postgres-only; no logic; no ask-jeles link | **Invest or fold into ask-jeles** |
 | field-notes | 🟡 ~45% | feeds-the-Binder is a stub | **Finish capture→Binder** |
-| nasa-archive | 🔴 ~40% | misnamed; cloud-bound; broken entry | **Rename + re-scope, or archive** |
+| nasa-archive | 🔴 ~40% | cloud-bound; broken entry; stale manifest copy | **Keep** (name is a deliberate backronym); fix entry point + align manifest text |
 | game (Jane GM) | 🔴 ~30% | crashes (14 bugs); no real GM logic | **Fix-or-park** (decide intent) |
 | dating-wellbeing | 🔴 ~30% | no UI; Postgres-only; no logic | **Rebuild or archive** |
 | the-binder | 🔴 ~25% | **shell; no engine** | **Invest hard** (keystone) or redefine |
@@ -257,7 +261,9 @@ ordering principle: **make the local suite genuinely ownable by a non-developer 
 
 ### Phase 0 — Truth & hygiene *(small; unblocks everything; safe to start now)*
 - Fix the broken entry points (`game`, `public-ledger`, `nasa-archive`, `dating-wellbeing`).
-- Scrub **law-gazelle**'s manifest (real case numbers in a public repo); rename/re-scope **nasa-archive**.
+- Scrub **law-gazelle**'s manifest (real case numbers in a public repo).
+- Keep **nasa-archive**'s name (deliberate backronym); just fix its broken entry point and align its
+  manifest description to the actual archive content.
 - Resolve `llmphysics-bot/gerald-bot` (fill or delete).
 - Make `catalog.json` statuses honest (use this doc's maturity column).
 - *Outcome:* the catalog stops lying; nothing claims to work that doesn't.
@@ -300,7 +306,7 @@ investment until the sovereign product stands on its own.
 | **Direction** — funnel / split / sovereign-first? | ✅ **Sovereign-first (A3)** (§4). |
 | **Willow** — bundle / standalone / dev-only? | ✅ **True standalone** (no Willow, no Postgres) (§7 Phase 1). |
 | **Cloud** acceptable? | ✅ Only as **demos**; the product is local-only. |
-| Which apps are **flagships** vs **parked/archived**? | ⬜ **Open** — §6 proposes a cut (flagships: story-timeline, ask-jeles, the-binder, private-ledger; park: bt-controller, game, dating-wellbeing pending intent; rename/re-scope nasa-archive). **Needs your sign-off** before Phase 1 scopes.|
+| Which apps are **flagships** vs **parked/archived**? | ⬜ **Open — discussing app-by-app.** §6 proposes flagships: story-timeline, ask-jeles, the-binder, private-ledger; support: law-gazelle, the-squirrel; park pending intent: game, dating-wellbeing, source-trail, bt-controller. nasa-archive kept (backronym). |
 
 **Next concrete step once the flagship cut is signed off:** start **Phase 0** (hygiene), which is safe
 and useful under any flagship choice.
