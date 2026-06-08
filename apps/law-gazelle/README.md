@@ -2,7 +2,7 @@
 
 # Law Gazelle
 
-**Case command center** for Sean Campbell's active legal matters.
+**Case command center** for the user's active legal matters.
 
 Not a generic legal reference tool. This app reads canonical case databases from Nest and surfaces an urgent queue, milestone tracker, and sidecar state — all in a Textual TUI. It also exposes an MCP surface for LLM legal sessions.
 
@@ -24,7 +24,7 @@ This repository should ship **app code, tests, and demo/synthetic data only** wh
 
 | Case | ID | Status |
 |------|-----|--------|
-| Co-Parent / Family Law | D-000-DM-0000-00000 | Active — Example County NM |
+| Co-Parent / Family Law | D-000-DM-0000-00000 | Active — Example County, ST |
 | Bankruptcy | Ch. 13 dismissed 2026-05-12 → Ch. 7 | Organizing |
 | Workers' Comp | WCA 00-00000 | Active — NM WCA |
 

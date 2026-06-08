@@ -22,7 +22,7 @@ def _case_exists(conn, case_number: str) -> bool:
 
 
 def seed_workers_comp(conn) -> dict:
-    """Seed WCA 00-00000: Trader Joe's back injury workers' comp claim."""
+    """Seed WCA 00-00000: Example Employer back injury workers' comp claim."""
     if _case_exists(conn, "WCA 00-00000"):
         cur = conn.cursor()
         cur.execute("SELECT id FROM cases WHERE case_number = %s", ("WCA 00-00000",))
@@ -32,11 +32,11 @@ def seed_workers_comp(conn) -> dict:
         conn,
         case_number="WCA 00-00000",
         case_type="workers_comp",
-        title="Workers' Comp - Trader Joe's Back Injury",
+        title="Workers' Comp - Example Employer Back Injury",
         status="open",
         jurisdiction="Washington State Department of Labor & Industries",
         filed_date="2025-01-01",
-        description="Workers' compensation claim for back injury sustained while employed at Trader Joe's. "
+        description="Workers' compensation claim for back injury sustained while employed at Example Employer. "
                     "Involves medical treatment, wage replacement, and potential permanent partial disability evaluation.",
     )
     cid = case["id"]
@@ -87,10 +87,10 @@ def seed_workers_comp(conn) -> dict:
 
     # Lattice placements
     legal_db.place_in_lattice(conn, cid, "health", 5, "established",
-                              "Back injury from workplace incident at Trader Joe's",
+                              "Back injury from workplace incident at Example Employer",
                               source="WCA 00-00000 filing", is_sensitive=True)
     legal_db.place_in_lattice(conn, cid, "work", 8, "established",
-                              "Employment at Trader Joe's; injury during employment duties",
+                              "Employment at Example Employer; injury during employment duties",
                               source="WCA 00-00000 filing")
     legal_db.place_in_lattice(conn, cid, "finance", 6, "evolving",
                               "Wage replacement and medical expense coverage under L&I",

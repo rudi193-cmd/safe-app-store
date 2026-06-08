@@ -5,7 +5,7 @@
   "safe_version": ">=2.0.0",
   "b17": "E472A",
   "agent_type": "tool",
-  "description": "Case command center for Sean's active legal matters \u2014 coparent (D-000-DM-0000-00000), bankruptcy (Ch.7), workers comp (WCA 00-00000). Syncs canonical Nest databases, surfaces Today workflow, deadlines, legal documents, stale-data signals, sidecar state, and MCP/local-AI tools for legal sessions.",
+  "description": "Case command center for the user's active legal matters \u2014 family law, bankruptcy, and workers' compensation. Syncs canonical Nest databases, surfaces Today workflow, deadlines, legal documents, stale-data signals, sidecar state, and MCP/local-AI tools for legal sessions.",
   "author": "Sean Campbell",
   "data_streams": [
     {

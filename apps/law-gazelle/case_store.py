@@ -392,7 +392,7 @@ def list_cases() -> list[dict]:
             "key": "bankruptcy",
             "title": "Bankruptcy",
             "case_number": active.get("case_id", "—"),
-            "jurisdiction": "District of New Mexico",
+            "jurisdiction": "District of Example",
             "status": active.get("status", "unknown"),
             "open_items": open_flags[0]["n"] if open_flags else 0,
             "chapter": active.get("chapter"),
@@ -403,7 +403,7 @@ def list_cases() -> list[dict]:
             "key": "workers_comp",
             "title": "Workers' Compensation",
             "case_number": "WCA 00-00000",
-            "jurisdiction": "New Mexico WCA",
+            "jurisdiction": "State WCA",
             "status": "active",
             "open_items": 0,
         })
@@ -412,7 +412,7 @@ def list_cases() -> list[dict]:
             "key": "workers_comp",
             "title": "Workers' Compensation",
             "case_number": "WCA 00-00000",
-            "jurisdiction": "New Mexico WCA",
+            "jurisdiction": "State WCA",
             "status": "missing_db",
             "open_items": 0,
         })
@@ -1164,7 +1164,7 @@ def _related_intersections(text: str) -> list[dict]:
         if issue and issue in text_l:
             hits.append(row)
             continue
-        for token in ("july 1", "cssd", "housing", "garnish", "child support", "jessi"):
+        for token in ("july 1", "cssd", "housing", "garnish", "child support", "coparent"):
             if token in text_l and token in blob:
                 hits.append(row)
                 break

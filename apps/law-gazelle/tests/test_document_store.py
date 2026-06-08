@@ -89,7 +89,7 @@ class DocumentStoreTests(unittest.TestCase):
             """{
               "_meta": {
                 "case": "D-000-DM-0000-00000",
-                "parties": {"parent_a": "Sean Campbell", "parent_b": "Example Parent B"},
+                "parties": {"parent_a": "Example Parent A", "parent_b": "Example Parent B"},
                 "letter_sent": "2026-05-23",
                 "response_deadlines": {"schedule": "2099-01-01", "all_other": "2099-06-01"}
               }
@@ -117,7 +117,7 @@ class DocumentStoreTests(unittest.TestCase):
     def test_structure_template_schedule(self) -> None:
         tpl = document_store.structure_template("schedule_response")
         self.assertIn("May 30", tpl)
-        self.assertIn("Sean Campbell", tpl)
+        self.assertIn("Example Parent A", tpl)
 
     def test_save_document_to_nest(self) -> None:
         result = document_store.save_document(
