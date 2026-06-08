@@ -15,7 +15,7 @@ from typing import Optional
 
 APP_ID = "safe-app-source-trail"
 
-_WILLOW_ROOT = os.environ.get("WILLOW_ROOT", "/home/sean-campbell/github/willow-2.0")
+_WILLOW_ROOT = os.environ.get("WILLOW_ROOT", os.path.expanduser("~/github/willow-2.0"))
 
 
 def _get_source_trail():

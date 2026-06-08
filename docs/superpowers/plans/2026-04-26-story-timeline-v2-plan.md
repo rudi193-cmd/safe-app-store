@@ -121,7 +121,7 @@ def test_node_id_is_uuid_format(db):
 - [ ] **Step 1.2: Run tests to verify they fail**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store
+cd ~/github/safe-app-store
 python -m pytest tests/story-timeline/test_timeline_db.py -v 2>&1 | head -30
 ```
 
@@ -252,7 +252,7 @@ def get_all_node_ids() -> list[str]:
 - [ ] **Step 1.4: Run tests to verify they pass**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store
+cd ~/github/safe-app-store
 python -m pytest tests/story-timeline/test_timeline_db.py -v
 ```
 
@@ -290,7 +290,7 @@ sys.path.insert(0, str(os.path.dirname(__file__) + "/../../apps/story-timeline")
 def edges(tmp_path, monkeypatch):
     monkeypatch.setenv("WILLOW_STORE_ROOT", str(tmp_path / "willow"))
     monkeypatch.setenv("WILLOW_CORE",
-        "/home/sean-campbell/github/willow-1.9/core")
+        "~/github/willow-1.9/core")
     import willow_edges
     import importlib
     importlib.reload(willow_edges)
@@ -344,7 +344,7 @@ def test_graceful_degradation_when_willow_unavailable(tmp_path, monkeypatch):
 - [ ] **Step 2.2: Run tests to verify they fail**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store
+cd ~/github/safe-app-store
 python -m pytest tests/story-timeline/test_willow_edges.py -v 2>&1 | head -20
 ```
 
@@ -475,7 +475,7 @@ def reconcile_orphans(valid_node_ids: list[str], uuid: Optional[str] = None) -> 
 - [ ] **Step 2.4: Run tests to verify they pass**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store
+cd ~/github/safe-app-store
 python -m pytest tests/story-timeline/test_willow_edges.py -v
 ```
 
@@ -533,7 +533,7 @@ def test_get_user_uuid_returns_none_on_malformed_json(si, tmp_path, monkeypatch)
 def test_write_session_composite(si, tmp_path, monkeypatch):
     monkeypatch.setenv("WILLOW_STORE_ROOT", str(tmp_path / "willow"))
     monkeypatch.setenv("WILLOW_CORE",
-        "/home/sean-campbell/github/willow-1.9/core")
+        "~/github/willow-1.9/core")
     import importlib
     importlib.reload(si)
     stats = {
@@ -557,7 +557,7 @@ def test_write_session_composite_noop_without_willow(si, tmp_path, monkeypatch):
 - [ ] **Step 3.2: Run tests to verify they fail**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store
+cd ~/github/safe-app-store
 python -m pytest tests/story-timeline/test_safe_integration.py -v 2>&1 | head -20
 ```
 
@@ -630,7 +630,7 @@ def write_session_composite(stats: dict, uuid: str) -> bool:
 - [ ] **Step 3.4: Run tests to verify they pass**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store
+cd ~/github/safe-app-store
 python -m pytest tests/story-timeline/test_safe_integration.py -v
 ```
 
@@ -746,7 +746,7 @@ def test_run_migration_is_idempotent(migrator):
 - [ ] **Step 4.2: Run tests to verify they fail**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store
+cd ~/github/safe-app-store
 python -m pytest tests/story-timeline/test_migrate.py -v 2>&1 | head -20
 ```
 
@@ -843,7 +843,7 @@ def run_migration() -> int:
 - [ ] **Step 4.4: Run tests to verify they pass**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store
+cd ~/github/safe-app-store
 python -m pytest tests/story-timeline/test_migrate.py -v
 ```
 
@@ -929,7 +929,7 @@ def test_api_node_by_id(server):
 - [ ] **Step 5.2: Run tests to verify they fail**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store
+cd ~/github/safe-app-store
 python -m pytest tests/story-timeline/test_web.py -v 2>&1 | head -20
 ```
 
@@ -1279,7 +1279,7 @@ def run_web(port: int = 8765, open_browser: bool = True):
 - [ ] **Step 5.4: Run tests to verify they pass**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store
+cd ~/github/safe-app-store
 python -m pytest tests/story-timeline/test_web.py -v
 ```
 
@@ -1332,7 +1332,7 @@ def test_boot_sequence_runs_migration_when_needed(tmp_path, monkeypatch):
 def test_boot_sequence_reconciles_edges(tmp_path, monkeypatch):
     monkeypatch.setenv("STORY_TIMELINE_DB", str(tmp_path / "timeline.db"))
     monkeypatch.setenv("WILLOW_STORE_ROOT", str(tmp_path / "willow"))
-    monkeypatch.setenv("WILLOW_CORE", "/home/sean-campbell/github/willow-1.9/core")
+    monkeypatch.setenv("WILLOW_CORE", "~/github/willow-1.9/core")
 
     import timeline_db, willow_edges, importlib
     importlib.reload(timeline_db); importlib.reload(willow_edges)
@@ -1348,7 +1348,7 @@ def test_boot_sequence_reconciles_edges(tmp_path, monkeypatch):
 - [ ] **Step 6.2: Run tests to verify they fail**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store
+cd ~/github/safe-app-store
 python -m pytest tests/story-timeline/test_app_boot.py -v 2>&1 | head -20
 ```
 
@@ -1721,7 +1721,7 @@ if __name__ == "__main__":
 - [ ] **Step 6.4: Run boot tests to verify they pass**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store
+cd ~/github/safe-app-store
 python -m pytest tests/story-timeline/test_app_boot.py -v
 ```
 
@@ -1730,7 +1730,7 @@ Expected: both tests PASS.
 - [ ] **Step 6.5: Smoke-test the TUI launches without errors**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store/apps/story-timeline
+cd ~/github/safe-app-store/apps/story-timeline
 python3 -c "
 import app, timeline_db
 timeline_db.add_node('character', {'name': 'Alice'})
@@ -1744,7 +1744,7 @@ Expected: `DB ready. TUI import OK.`
 - [ ] **Step 6.6: Run full test suite**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store
+cd ~/github/safe-app-store
 python -m pytest tests/story-timeline/ -v
 ```
 
@@ -1805,7 +1805,7 @@ Replace the contents of `apps/story-timeline/safe-app-manifest.json` with:
 - [ ] **Step 7.2: Verify make run app=story-timeline works**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store
+cd ~/github/safe-app-store
 make run app=story-timeline 2>&1 | head -5 || true
 ```
 
@@ -1814,7 +1814,7 @@ Expected: TUI starts (or prints migration notice). `ctrl+c` to exit.
 - [ ] **Step 7.3: Verify --web flag works**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store/apps/story-timeline
+cd ~/github/safe-app-store/apps/story-timeline
 timeout 3 python3 app.py --web || true
 ```
 
@@ -1834,7 +1834,7 @@ git commit -m "feat(story-timeline): v2 — update SAP manifest with permissions
 - [ ] **Step 8.1: Run the full test suite one final time**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store
+cd ~/github/safe-app-store
 python -m pytest tests/story-timeline/ -v --tb=short
 ```
 
@@ -1843,7 +1843,7 @@ Expected: all tests PASS. Note any failures and fix before proceeding.
 - [ ] **Step 8.2: Manual smoke test — TUI golden path**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store/apps/story-timeline
+cd ~/github/safe-app-store/apps/story-timeline
 python3 app.py
 ```
 
@@ -1857,7 +1857,7 @@ Run through:
 - [ ] **Step 8.3: Manual smoke test — web golden path**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-store/apps/story-timeline
+cd ~/github/safe-app-store/apps/story-timeline
 python3 app.py --web
 ```
 

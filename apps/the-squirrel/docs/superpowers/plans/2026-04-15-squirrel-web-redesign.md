@@ -137,7 +137,7 @@ def test_stories_save_empty(server):
 - [ ] **Step 2: Run — expect failure**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-the-squirrel
+cd ~/github/safe-app-the-squirrel
 pytest tests/test_app.py -v 2>&1 | tail -20
 ```
 

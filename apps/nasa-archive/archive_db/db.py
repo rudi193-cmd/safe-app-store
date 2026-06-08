@@ -5,7 +5,7 @@ PostgreSQL-only. All data lives in Postgres under schema nasa_archive.
 Requires WILLOW_DB_URL=postgresql://... in the environment.
 All code calls get_connection() -- never sqlite3.connect() directly.
 
-Mirrors /mnt/c/Users/Sean/Documents/GitHub/Willow/core/db.py pattern.
+Mirrors Willow's core/db.py pattern.
 """
 import os
 import threading

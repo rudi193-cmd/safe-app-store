@@ -5,7 +5,7 @@ import sys
 
 # SAP gate check
 try:
-    sys.path.insert(0, "/home/sean-campbell/github/willow-1.7")
+    sys.path.insert(0, os.environ.get("WILLOW_ROOT", os.path.expanduser("~/github/willow-1.7")))
     from sap.core.gate import authorized as _sap_authorized
     if not _sap_authorized("Game"):
         st.error("SAP gate denied — SAFE/Applications/Game/ not authorized.")

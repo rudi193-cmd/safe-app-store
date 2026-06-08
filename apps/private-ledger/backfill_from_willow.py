@@ -7,11 +7,12 @@ and lattice cells with known financial facts.
 Run once after init_schema, or re-run (idempotent via upsert on lattice).
 """
 
+import os
 import sys
 from datetime import date
 
 # Ensure ledger_db is importable from this directory
-sys.path.insert(0, "/mnt/c/Users/Sean/Documents/GitHub/safe-app-private-ledger")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ledger_db
 
 

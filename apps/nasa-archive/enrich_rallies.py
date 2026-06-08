@@ -19,14 +19,15 @@ import argparse
 from pathlib import Path
 
 # Wire up fleet — need both core dir and parent for relative imports
-WILLOW_ROOT = "/mnt/c/Users/Sean/Documents/GitHub/Willow"
+WILLOW_ROOT = os.environ.get("WILLOW_ROOT", os.path.expanduser("~/github/Willow"))
 sys.path.insert(0, WILLOW_ROOT)
 sys.path.insert(0, os.path.join(WILLOW_ROOT, "core"))
 import llm_router
 llm_router.load_keys_from_json()
 
-DATA_DIR = Path("/mnt/c/Users/Sean/Documents/GitHub/safe-app-nasa-archive/data/rallies")
-INDEX_PATH = Path("/mnt/c/Users/Sean/Documents/GitHub/safe-app-nasa-archive/web/data/rallies.json")
+_APP_DIR = Path(__file__).resolve().parent
+DATA_DIR = Path(os.environ.get("NASA_DATA_DIR", _APP_DIR / "data" / "rallies"))
+INDEX_PATH = Path(os.environ.get("NASA_INDEX_PATH", _APP_DIR / "web" / "data" / "rallies.json"))
 
 PROMPT_TEMPLATE = """You are a research librarian specializing in motor scooter culture and rally history in North America and worldwide.
 

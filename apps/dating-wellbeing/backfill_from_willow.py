@@ -7,8 +7,9 @@ from known personal context. All data is_sensitive=TRUE by default.
 Run once, then use wellbeing_db.py functions for ongoing inserts.
 """
 
+import os
 import sys
-sys.path.insert(0, "/mnt/c/Users/Sean/Documents/GitHub/safe-app-dating-wellbeing")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from wellbeing_db import (
     get_connection, release_connection, init_schema,

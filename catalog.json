@@ -149,6 +149,16 @@
       "tags": ["ledger", "transparency"]
     },
     {
+      "id": "ratatosk",
+      "name": "Ratatosk",
+      "description": "Sovereign Claude Code replacement. Direct Anthropic API, full tool loop, JSONL sessions, MCP client, Grove-wired. Yours to run. Yours to keep.",
+      "author": "Sean Campbell",
+      "status": "beta",
+      "path": "apps/ratatosk",
+      "repository": "https://github.com/rudi193-cmd/safe-app-store",
+      "tags": ["agent", "cli", "llm", "mcp", "sovereign"]
+    },
+    {
       "id": "grove",
       "name": "Grove",
       "description": "Sovereign p2p messaging. Chat directly with Sean and other users over an encrypted peer-to-peer connection (u2u). Each user runs their own local node — no central server.",
@@ -162,7 +172,6 @@
       "name": "Genealogy",
       "description": "Local-first family tree and genealogy research. Merged into the-squirrel.",
       "status": "archived",
-      "path": "apps/genealogy",
       "tags": ["family", "history", "local"]
     }
   ]

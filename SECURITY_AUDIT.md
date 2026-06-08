@@ -72,21 +72,21 @@ Across the monorepo, paths are hardcoded to Sean's machine, making apps non-port
 
 ```python
 # dating-wellbeing/wellbeing_db.py:20
-sys.path.insert(0, os.environ.get("WILLOW_CORE", "/home/sean-campbell/github/Willow/core"))
+sys.path.insert(0, os.environ.get("WILLOW_CORE", "~/github/Willow/core"))
 
 # private-ledger/ledger_db.py:19
-_WILLOW_CORE = "/mnt/c/Users/Sean/Documents/GitHub/Willow/core"
+_WILLOW_CORE = "~/github/Willow/core"
 
 # nasa-archive/enrich_rallies.py:22-29
-WILLOW_ROOT = "/mnt/c/Users/Sean/Documents/GitHub/Willow"
-DATA_DIR = Path("/mnt/c/Users/Sean/Documents/GitHub/safe-app-nasa-archive/data/rallies")
+WILLOW_ROOT = "~/github/Willow"
+DATA_DIR = Path("~/github/safe-app-nasa-archive/data/rallies")
 ```
 
 Examples found:
-- `/home/sean-campbell/github/Willow` (should use willow-1.9)
-- `/home/sean-campbell/github/willow-1.5`, `willow-1.7` (old versions)
-- `/mnt/c/Users/Sean/Documents/GitHub/...` (Windows paths, non-portable)
-- `/home/sean-campbell/persona.md` (developer-specific)
+- `~/github/Willow` (should use willow-1.9)
+- `~/github/willow-1.5`, `willow-1.7` (old versions)
+- `~/github/...` (Windows paths, non-portable)
+- `~/persona.md` (developer-specific)
 
 This prevents all these apps from running on any system except Sean's.
 
@@ -151,11 +151,11 @@ Each safe_integration.py depends on hardcoded paths that fail on non-Sean system
 
 ```python
 # From dating-wellbeing/safe_integration.py
-sys.path.insert(0, os.environ.get("WILLOW_CORE", "/home/sean-campbell/github/Willow/core"))
+sys.path.insert(0, os.environ.get("WILLOW_CORE", "~/github/Willow/core"))
 from user_lattice import DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX
 ```
 
-When WILLOW_CORE is not set and `/home/sean-campbell/...` doesn't exist:
+When WILLOW_CORE is not set and `~/...` doesn't exist:
 1. Import fails silently (no FileNotFoundError because sys.path.insert doesn't validate)
 2. `from user_lattice import ...` raises ModuleNotFoundError
 3. safe_integration.py can't be imported
