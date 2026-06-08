@@ -9,7 +9,15 @@
 1. **Thesis confirmed** (§2): *a sovereign personal OS — own your data, trust your sources — wearing the friendly face of a fictional university.*
 2. **Direction: Sovereign-first (A3)** (§4). The **sovereign suite is the product**; the personas are its UI; the cloud "UTETY universe" apps are **demos / a side channel, not the destination**.
 3. **Willow: invest in true standalone** (§7). Flagship apps must run with **no Willow and no Postgres** — local SQLite only. Bundling Willow is explicitly *not* the path.
-4. **Still open:** which apps are flagships vs. parked/archived (§6 proposes a cut — needs your sign-off).
+4. **law-gazelle manifest will be scrubbed** — real case numbers in a public repo (a leak the public-facing audit was meant to prevent).
+5. **nasa-archive keeps its name** — "NASA" is a deliberate backronym (**N**orth **A**merica **S**cootering **A**rchive), not a mistake.
+6. **App fates decided** (§6, app-by-app):
+   - **Flagships** (local-first, true-standalone): story-timeline, ask-jeles, the-binder, private-ledger.
+   - **source-trail → folds into ask-jeles** (provenance becomes an ask-jeles feature; retire the standalone).
+   - **Jane GM (game) → invest** as a real product (fix the crashes first); a parallel track, off the core data thesis.
+   - **dating-wellbeing → parked** (revisit as a clean local-first rebuild later).
+   - **bt-controller → kept** as a supported (off-thesis) personal utility.
+   - **Support/keep:** law-gazelle (scrubbed), the-squirrel, nasa-archive, vision-board, public-ledger, field-notes, ratatosk, grove.
 
 This document does three things:
 1. **Inventory** — what's actually in the store today (grounded in the code, not the README pitch).
@@ -217,12 +225,14 @@ This isn't a problem to "fix" — it was a **strategic choice**, and we've made 
 ### 5.5 Honesty / public-repo risks (ties to the earlier public-facing audit)
 - **law-gazelle** embeds **real legal case numbers** and "Sean's active legal matters" in its manifest
   description, in a **public** repo. Recommend genericizing the manifest (data already lives outside git).
-- **nasa-archive** is named/described as a "NASA open-datasets explorer" but is a **scooter-rally
-  archive**. Misleading for a public catalog — rename or re-describe.
+- **nasa-archive** — the name is a **deliberate backronym** (**N**orth **A**merica **S**cootering
+  **A**rchive) and is being kept. *However*, the `safe-app-manifest.json` description text still claims
+  literal NASA space datasets ("mission telemetry, earth science") — that leftover copy should be
+  aligned to the actual scooter-archive content so the public catalog reads honestly.
 
 ---
 
-## 6. Per-app scorecard & recommendation 🤝
+## 6. Per-app scorecard & decision ✅
 
 | App | Real maturity | Biggest gap | Proposed move |
 |-----|---------------|-------------|---------------|
@@ -233,17 +243,17 @@ This isn't a problem to "fix" — it was a **strategic choice**, and we've made 
 | story-timeline | 🟢 ~85% | web UI; SLM suggestions | **Keep / flagship** (suite anchor) |
 | law-gazelle | 🟢 ~85% | **PII in public manifest** | **Keep; scrub manifest** |
 | the-squirrel | 🟢 ~80% | Willow KB wiring; SQLite option | **Keep** |
-| ask-jeles | 🟡 ~75% | verification; web UI | **Invest** (it's the "search" keystone) |
+| ask-jeles | 🟡 ~75% | verification; web UI | **Flagship** (search keystone); **absorbs source-trail's provenance** |
 | vision-board | 🟡 ~75% | photo-library integration | **Keep / finish** |
 | private-ledger | 🟡 ~70% | the pairing; no export | **Keep / finish** |
 | ratatosk | 🟡 solid | Grove listener; error handling | **Keep** (powers the suite) |
-| public-ledger | 🟡 ~60% | broken entry point; no UI/persistence | **Fix entry; give it a UI** |
-| bt-controller | 🟡 ~50% | no web UI; Win/WSL only | **Park** (niche) unless needed |
-| source-trail | 🔴 ~50% | Postgres-only; no logic; no ask-jeles link | **Invest or fold into ask-jeles** |
-| field-notes | 🟡 ~45% | feeds-the-Binder is a stub | **Finish capture→Binder** |
-| nasa-archive | 🔴 ~40% | misnamed; cloud-bound; broken entry | **Rename + re-scope, or archive** |
-| game (Jane GM) | 🔴 ~30% | crashes (14 bugs); no real GM logic | **Fix-or-park** (decide intent) |
-| dating-wellbeing | 🔴 ~30% | no UI; Postgres-only; no logic | **Rebuild or archive** |
+| public-ledger | 🟡 ~60% | broken entry point; no UI/persistence | **Keep** — fix entry; give it a UI; wire the private⇄public pairing |
+| bt-controller | 🟡 ~50% | no web UI; Win/WSL only | **Keep** — supported off-thesis personal utility |
+| source-trail | 🔴 ~50% | Postgres-only; no logic; no ask-jeles link | **Fold into ask-jeles** — provenance becomes an ask-jeles feature |
+| field-notes | 🟡 ~45% | feeds-the-Binder is a stub | **Keep** — finish capture→Binder |
+| nasa-archive | 🔴 ~40% | cloud-bound; broken entry; stale manifest copy | **Keep** (name is a deliberate backronym); fix entry point + align manifest text |
+| game (Jane GM) | 🔴 ~30% | crashes (14 bugs); no real GM logic | **Invest** — build out as a real product (parallel track, off core thesis) |
+| dating-wellbeing | 🔴 ~30% | no UI; Postgres-only; no logic | **Park** — revisit as a clean local-first rebuild |
 | the-binder | 🔴 ~25% | **shell; no engine** | **Invest hard** (keystone) or redefine |
 | grove | external | local integration | **Track separately** |
 | genealogy | ⚫ archived | — | **Leave archived** |
@@ -257,7 +267,9 @@ ordering principle: **make the local suite genuinely ownable by a non-developer 
 
 ### Phase 0 — Truth & hygiene *(small; unblocks everything; safe to start now)*
 - Fix the broken entry points (`game`, `public-ledger`, `nasa-archive`, `dating-wellbeing`).
-- Scrub **law-gazelle**'s manifest (real case numbers in a public repo); rename/re-scope **nasa-archive**.
+- Scrub **law-gazelle**'s manifest (real case numbers in a public repo).
+- Keep **nasa-archive**'s name (deliberate backronym); just fix its broken entry point and align its
+  manifest description to the actual archive content.
 - Resolve `llmphysics-bot/gerald-bot` (fill or delete).
 - Make `catalog.json` statuses honest (use this doc's maturity column).
 - *Outcome:* the catalog stops lying; nothing claims to work that doesn't.
@@ -290,6 +302,11 @@ Kept alive as **demos/side channel** (per A3), not grown as the main thing. Low-
 ready Reddit bots if cheap, keep utety-chat running, fix persona drift opportunistically. No major
 investment until the sovereign product stands on its own.
 
+### Parallel track — Jane GM (game)
+Off the core "own-your-data" thesis, but you want it built as a **real product**. It runs on its own
+timeline alongside the sovereign roadmap. First step is non-negotiable: **fix the 14 catalogued crash
+bugs** so it actually runs, *then* design the real game-master logic. Not gated by the flagship work.
+
 ---
 
 ## 8. Status of the open questions
@@ -300,9 +317,10 @@ investment until the sovereign product stands on its own.
 | **Direction** — funnel / split / sovereign-first? | ✅ **Sovereign-first (A3)** (§4). |
 | **Willow** — bundle / standalone / dev-only? | ✅ **True standalone** (no Willow, no Postgres) (§7 Phase 1). |
 | **Cloud** acceptable? | ✅ Only as **demos**; the product is local-only. |
-| Which apps are **flagships** vs **parked/archived**? | ⬜ **Open** — §6 proposes a cut (flagships: story-timeline, ask-jeles, the-binder, private-ledger; park: bt-controller, game, dating-wellbeing pending intent; rename/re-scope nasa-archive). **Needs your sign-off** before Phase 1 scopes.|
+| Which apps are **flagships** vs **parked/archived**? | ✅ **Decided** (§6 / Decisions-locked #6). Flagships: story-timeline, ask-jeles, the-binder, private-ledger. source-trail→folds into ask-jeles. Jane GM→invest (parallel track). dating-wellbeing→parked. bt-controller→kept utility. nasa-archive kept (backronym). |
 
-**Next concrete step once the flagship cut is signed off:** start **Phase 0** (hygiene), which is safe
-and useful under any flagship choice.
+**Next concrete step:** the flagship cut is signed off, so **Phase 0 (hygiene)** is ready to start —
+fix the broken entry points, scrub law-gazelle's manifest, fix nasa-archive's entry point + manifest
+copy, and make `catalog.json` statuses honest.
 
 ΔΣ=42
