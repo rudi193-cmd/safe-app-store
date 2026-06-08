@@ -1,13 +1,13 @@
 """
-Story Timeline v2 — open node graph writing tool.
-Professor Oakenscroll's successor. Local. Free. Willow-integrated.
+Story Timeline v2 — literary knowledge base.
+Open node graph: books, authors, notes, themes, projects — all connected.
 
 Usage:
-  python3 app.py          → TUI
-  python3 app.py --web    → web server + open browser
+  python3 app.py            → TUI
+  textual serve app.py      → same app in browser
 """
-import json
 import sys
+from pathlib import Path
 from typing import Optional
 
 from textual.app import App, ComposeResult
@@ -15,8 +15,9 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
 from textual.widgets import (
-    DataTable, Footer, Header, Input, Label,
-    Button, Select, Static, TextArea
+    Button, DataTable, Footer, Header, Input, Label,
+    ListItem, ListView, Markdown, Static, TabbedContent,
+    TabPane, TextArea, Tree,
 )
 
 import timeline_db as db
@@ -25,45 +26,182 @@ import safe_integration
 import migrate
 
 
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+_STARS = {0: "—", 1: "★", 2: "★★", 3: "★★★", 4: "★★★★", 5: "★★★★★"}
+_SHELF_LABEL = {
+    "read": "Read",
+    "currently-reading": "Reading",
+    "to-read": "To Read",
+    "dnf": "DNF",
+}
+
+
+def _stars(rating) -> str:
+    try:
+        return _STARS.get(int(rating), "—")
+    except (ValueError, TypeError):
+        return "—"
+
+
+def _shelf_label(shelf: str) -> str:
+    return _SHELF_LABEL.get(shelf, shelf or "—")
+
+
+def _node_title(node: dict) -> str:
+    f = node.get("fields", {})
+    return (
+        f.get("title") or f.get("name") or
+        str(f.get("summary", ""))[:40] or
+        node["type"]
+    )
+
+
 # ── Boot ──────────────────────────────────────────────────────────────────────
 
 def boot_sequence(uuid: Optional[str] = None) -> dict:
-    import sys as _sys
-    _migrate = _sys.modules.get("migrate", migrate)
-    _db = _sys.modules.get("timeline_db", db)
-    _edges = _sys.modules.get("willow_edges", willow_edges)
-    result = {"migrated": 0, "orphans_removed": 0, "uuid": uuid}
-    if _migrate.needs_migration():
-        result["migrated"] = _migrate.run_migration()
-    node_ids = _db.get_all_node_ids()
-    result["orphans_removed"] = _edges.reconcile_orphans(node_ids, uuid=uuid)
+    result = {"migrated": 0, "orphans_removed": 0}
+    if migrate.needs_migration():
+        result["migrated"] = migrate.run_migration()
+    node_ids = db.get_all_node_ids()
+    result["orphans_removed"] = willow_edges.reconcile_orphans(node_ids, uuid=uuid)
     return result
 
 
 # ── Screens ───────────────────────────────────────────────────────────────────
 
-class CreateNodeScreen(ModalScreen):
-    """Create or edit a node. Fields entered as 'key: value' lines."""
+class NodePickerScreen(ModalScreen):
+    """Searchable node picker — replaces UUID paste for linking."""
 
     BINDINGS = [Binding("escape", "dismiss", "Cancel")]
 
-    def __init__(self, node: Optional[dict] = None):
+    def compose(self) -> ComposeResult:
+        yield Vertical(
+            Label("Select target node", id="modal-title"),
+            Input(placeholder="search by title, name, type…", id="picker-search"),
+            ListView(id="picker-list"),
+            Button("Cancel", id="cancel-btn"),
+            id="modal-content",
+        )
+
+    def on_mount(self) -> None:
+        self._all_nodes = db.get_nodes()
+        self._visible: list[dict] = []
+        self._refresh_list(self._all_nodes)
+        self.query_one("#picker-search", Input).focus()
+
+    def _refresh_list(self, nodes: list) -> None:
+        lv = self.query_one("#picker-list", ListView)
+        lv.clear()
+        self._visible = nodes[:60]
+        for node in self._visible:
+            lv.append(ListItem(Label(f"[{node['type']}]  {_node_title(node)}")))
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        q = event.value.strip().lower()
+        if not q:
+            self._refresh_list(self._all_nodes)
+        else:
+            self._refresh_list([
+                n for n in self._all_nodes
+                if q in _node_title(n).lower() or q in n["type"].lower()
+            ])
+
+    def on_list_view_selected(self, event: ListView.Selected) -> None:
+        idx = self.query_one("#picker-list", ListView).index
+        if idx is not None and 0 <= idx < len(self._visible):
+            self.dismiss(self._visible[idx]["id"])
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        self.dismiss(None)
+
+
+class RelationScreen(ModalScreen):
+    """Enter relation label after picking a target node."""
+
+    BINDINGS = [Binding("escape", "dismiss", "Cancel")]
+
+    def __init__(self, from_id: str, to_id: str):
         super().__init__()
-        self._node = node
+        self._from_id = from_id
+        self._to_id = to_id
 
     def compose(self) -> ComposeResult:
-        existing_type = self._node["type"] if self._node else ""
+        yield Vertical(
+            Label("Relation label", id="modal-title"),
+            Label(f"…{self._from_id[-12:]}  →  …{self._to_id[-12:]}"),
+            Input(placeholder="written_by / knows / inspired / set_in / …", id="relation-input"),
+            Horizontal(
+                Button("Link", variant="primary", id="link-btn"),
+                Button("Cancel", id="cancel-btn"),
+            ),
+            id="modal-content",
+        )
+
+    def on_mount(self) -> None:
+        self.query_one("#relation-input", Input).focus()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "cancel-btn":
+            self.dismiss(None)
+            return
+        relation = self.query_one("#relation-input", Input).value.strip()
+        if relation:
+            self.dismiss(relation)
+
+
+class ImportScreen(ModalScreen):
+    """CSV import — Goodreads / StoryGraph / LibraryThing."""
+
+    BINDINGS = [Binding("escape", "dismiss", "Cancel")]
+
+    def compose(self) -> ComposeResult:
+        yield Vertical(
+            Label("Import from CSV", id="modal-title"),
+            Label("File path (Goodreads / StoryGraph / LibraryThing export):"),
+            Input(placeholder="~/Downloads/goodreads_library_export.csv", id="path-input"),
+            Label("Source — leave blank to auto-detect:"),
+            Input(placeholder="goodreads / storygraph / librarything", id="source-input"),
+            Horizontal(
+                Button("Import", variant="primary", id="import-btn"),
+                Button("Cancel", id="cancel-btn"),
+            ),
+            id="modal-content",
+        )
+
+    def on_mount(self) -> None:
+        self.query_one("#path-input", Input).focus()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "cancel-btn":
+            self.dismiss(None)
+            return
+        path_str = self.query_one("#path-input", Input).value.strip()
+        source = self.query_one("#source-input", Input).value.strip() or None
+        self.dismiss({"path": path_str, "source": source} if path_str else None)
+
+
+class CreateNodeScreen(ModalScreen):
+    """Create or edit a node."""
+
+    BINDINGS = [Binding("escape", "dismiss", "Cancel")]
+
+    def __init__(self, node: Optional[dict] = None, default_type: str = "book"):
+        super().__init__()
+        self._node = node
+        self._default_type = default_type
+
+    def compose(self) -> ComposeResult:
+        existing_type = self._node["type"] if self._node else self._default_type
         existing_fields = ""
         if self._node:
-            fields = self._node.get("fields", {})
-            if isinstance(fields, str):
-                fields = json.loads(fields)
-            existing_fields = "\n".join(f"{k}: {v}" for k, v in fields.items())
+            f = self._node.get("fields", {})
+            existing_fields = "\n".join(f"{k}: {v}" for k, v in f.items())
         yield Vertical(
-            Label("Create Node" if not self._node else "Edit Node", id="modal-title"),
-            Label("Entity type (e.g. character, location, event)"),
-            Input(value=existing_type, placeholder="character", id="type-input"),
-            Label("Fields — one 'key: value' per line"),
+            Label("Edit Node" if self._node else "Create Node", id="modal-title"),
+            Label("Type  (book / author / note / theme / project / …)"),
+            Input(value=existing_type, id="type-input"),
+            Label("Fields — one  key: value  per line"),
             TextArea(existing_fields, id="fields-input"),
             Horizontal(
                 Button("Save", variant="primary", id="save-btn"),
@@ -71,6 +209,9 @@ class CreateNodeScreen(ModalScreen):
             ),
             id="modal-content",
         )
+
+    def on_mount(self) -> None:
+        self.query_one("#type-input", Input).focus()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "cancel-btn":
@@ -80,7 +221,7 @@ class CreateNodeScreen(ModalScreen):
         if not type_:
             return
         raw = self.query_one("#fields-input", TextArea).text.strip()
-        fields = {}
+        fields: dict = {}
         for line in raw.splitlines():
             if ": " in line:
                 k, _, v = line.partition(": ")
@@ -88,40 +229,9 @@ class CreateNodeScreen(ModalScreen):
         self.dismiss({"type": type_, "fields": fields})
 
 
-class LinkNodesScreen(ModalScreen):
-    BINDINGS = [Binding("escape", "dismiss", "Cancel")]
-
-    def __init__(self, from_id: str):
-        super().__init__()
-        self._from_id = from_id
-
-    def compose(self) -> ComposeResult:
-        yield Vertical(
-            Label("Link Nodes", id="modal-title"),
-            Label(f"From: {self._from_id[:24]}"),
-            Label("Target node ID (paste full ID)"),
-            Input(placeholder="paste node ID", id="to-id"),
-            Label("Relation label"),
-            Input(placeholder="knows / causes / located_in", id="relation"),
-            Horizontal(
-                Button("Link", variant="primary", id="link-btn"),
-                Button("Cancel", id="cancel-btn"),
-            ),
-            id="modal-content",
-        )
-
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        if event.button.id == "cancel-btn":
-            self.dismiss(None)
-            return
-        to_id = self.query_one("#to-id", Input).value.strip()
-        relation = self.query_one("#relation", Input).value.strip()
-        if not to_id or not relation:
-            return
-        self.dismiss({"from_id": self._from_id, "to_id": to_id, "relation": relation})
-
-
 class NodeDetailScreen(ModalScreen):
+    """Rich node detail — fields, edges, review rendered as Markdown."""
+
     BINDINGS = [Binding("escape", "dismiss", "Close")]
 
     def __init__(self, node: dict, edges: list):
@@ -129,25 +239,36 @@ class NodeDetailScreen(ModalScreen):
         self._node = node
         self._edges = edges
 
-    def compose(self) -> ComposeResult:
-        fields = self._node.get("fields", {})
-        if isinstance(fields, str):
-            fields = json.loads(fields)
-        fields_text = "\n".join(f"  {k}: {v}" for k, v in fields.items()) or "  (no fields)"
+    def _build_md(self) -> str:
+        f = self._node.get("fields", {})
+        title = f.get("title") or f.get("name") or self._node["type"]
+        lines = [f"# {title}", ""]
+        if f.get("author"):
+            lines.append(f"**Author:** {f['author']}")
+        rating = _stars(f.get("rating", 0))
+        if rating != "—":
+            lines.append(f"**Rating:** {rating}")
+        shelf = _shelf_label(f.get("shelf", ""))
+        if shelf and shelf != "—":
+            lines.append(f"**Shelf:** {shelf}")
+        for k, v in f.items():
+            if k not in ("title", "author", "rating", "shelf", "review", "name"):
+                lines.append(f"**{k}:** {v}")
         if self._edges:
-            edges_text = "\n".join(
-                f"  → {e['relation']} → {e['to_id'][:20]}" if e["from_id"] == self._node["id"]
-                else f"  ← {e['relation']} ← {e['from_id'][:20]}"
-                for e in self._edges
-            )
-        else:
-            edges_text = "  (no edges)"
+            lines += ["", "---", "", "**Connections:**", ""]
+            for e in self._edges:
+                if e["from_id"] == self._node["id"]:
+                    lines.append(f"- → `{e['relation']}` → `{e['to_id'][:20]}`")
+                else:
+                    lines.append(f"- ← `{e['relation']}` ← `{e['from_id'][:20]}`")
+        review = f.get("review", "").strip()
+        if review:
+            lines += ["", "---", "", review]
+        return "\n".join(lines)
+
+    def compose(self) -> ComposeResult:
         yield Vertical(
-            Label(f"[{self._node['type']}]", id="modal-title"),
-            Label("Fields:"),
-            Static(fields_text),
-            Label("Edges:"),
-            Static(edges_text),
+            Markdown(self._build_md(), id="detail-md"),
             Button("Close", id="close-btn"),
             id="modal-content",
         )
@@ -158,182 +279,355 @@ class NodeDetailScreen(ModalScreen):
 
 # ── Main App ──────────────────────────────────────────────────────────────────
 
-class TimelineApp(App):
+class LibraryApp(App):
     CSS = """
+    /* Modals */
+    CreateNodeScreen, NodePickerScreen, NodeDetailScreen,
+    ImportScreen, RelationScreen { align: center middle; }
+
     #modal-content {
         background: $surface;
         border: solid $primary;
         padding: 1 2;
-        width: 72;
+        width: 80;
         height: auto;
         max-height: 90vh;
     }
+    NodeDetailScreen #modal-content { width: 90; }
     #modal-title { text-style: bold; margin-bottom: 1; }
-    CreateNodeScreen, LinkNodesScreen, NodeDetailScreen { align: center middle; }
-    #filter-bar { height: 3; }
-    #type-select { width: 24; }
+    #detail-md { height: 30; border: solid $surface-lighten-2; padding: 0 1; }
+    #picker-list { height: 14; border: solid $surface-lighten-2; }
+
+    /* Layout */
+    #books-layout { height: 1fr; }
+    #sidebar { width: 24; border-right: solid $surface-lighten-1; padding: 0 1; }
+    #sidebar-heading { text-style: bold; color: $text-muted; margin-bottom: 1; }
+    #content-panel { width: 1fr; }
     #search-input { width: 1fr; }
-    #status { height: 1; color: $text-muted; }
-    DataTable { height: 1fr; }
+    #node-table { height: 1fr; }
+    #status { height: 1; color: $text-muted; padding: 0 1; }
+    #author-table, #notes-table, #all-table { height: 1fr; }
     """
 
     BINDINGS = [
-        Binding("a", "create_node", "Add"),
+        Binding("a", "add_node", "Add"),
         Binding("e", "edit_node", "Edit"),
         Binding("d", "delete_node", "Delete"),
         Binding("l", "link_node", "Link"),
         Binding("v", "view_node", "View"),
+        Binding("i", "import_csv", "Import"),
         Binding("r", "refresh", "Refresh"),
+        Binding("/", "focus_search", "Search"),
         Binding("q", "quit", "Quit"),
     ]
 
     def __init__(self, uuid: Optional[str] = None):
         super().__init__()
         self._uuid = uuid
-        self._type_filter: Optional[str] = None
+        self._book_ids: list[str] = []
+        self._shelf_filter: Optional[str] = None
+        self._tag_filter: Optional[str] = None
         self._search: Optional[str] = None
-        self._node_ids: list[str] = []
-        self._stats = {"nodes_created": 0, "edges_created": 0, "types_used": set()}
+        self._link_target: str = ""
+        self._stats = {"nodes_created": 0, "edges_created": 0}
 
     def compose(self) -> ComposeResult:
-        types = db.get_types()
-        type_opts = [("All types", "__all__")] + [(t, t) for t in types]
         yield Header(show_clock=True)
-        yield Horizontal(
-            Label("Type: "),
-            Select(type_opts, id="type-select", value="__all__"),
-            Input(placeholder="search…", id="search-input"),
-            id="filter-bar",
-        )
-        yield DataTable(id="node-table")
-        yield Static("", id="status")
+        with TabbedContent(id="tabs"):
+            with TabPane("Books", id="tab-books"):
+                yield Horizontal(
+                    Vertical(
+                        Label("LIBRARY", id="sidebar-heading"),
+                        Tree("All", id="shelf-tree"),
+                        id="sidebar",
+                    ),
+                    Vertical(
+                        Input(placeholder="search…", id="search-input"),
+                        DataTable(id="node-table", cursor_type="row"),
+                        Static("", id="status"),
+                        id="content-panel",
+                    ),
+                    id="books-layout",
+                )
+            with TabPane("Authors", id="tab-authors"):
+                yield DataTable(id="author-table", cursor_type="row")
+            with TabPane("Notes", id="tab-notes"):
+                yield DataTable(id="notes-table", cursor_type="row")
+            with TabPane("All Nodes", id="tab-all"):
+                yield DataTable(id="all-table", cursor_type="row")
         yield Footer()
 
     def on_mount(self) -> None:
-        self.title = "Story Timeline v2"
-        self.sub_title = "open node graph"
-        self._build_table()
+        self.title = "Story Timeline"
+        self.sub_title = "literary knowledge base"
+        self._rebuild_shelf_tree()
+        self._rebuild_books_table()
+        self._rebuild_author_table()
+        self._rebuild_notes_table()
+        self._rebuild_all_table()
 
-    def _node_summary(self, node: dict) -> str:
-        fields = node.get("fields", {})
-        if isinstance(fields, str):
-            fields = json.loads(fields)
-        return (
-            fields.get("name") or
-            fields.get("title") or
-            str(fields.get("summary", ""))[:50] or
-            node["type"]
-        )
+    # ── Shelf tree ────────────────────────────────────────────────────────────
 
-    def _build_table(self) -> None:
-        table = self.query_one(DataTable)
+    def _rebuild_shelf_tree(self) -> None:
+        tree = self.query_one("#shelf-tree", Tree)
+        tree.clear()
+        books = db.get_nodes(type_="book")
+
+        shelf_counts: dict[str, int] = {}
+        tag_counts: dict[str, int] = {}
+        for b in books:
+            shelf = b["fields"].get("shelf", "")
+            if shelf:
+                shelf_counts[shelf] = shelf_counts.get(shelf, 0) + 1
+            for tag in b["fields"].get("tags", "").split(","):
+                tag = tag.strip()
+                if tag:
+                    tag_counts[tag] = tag_counts.get(tag, 0) + 1
+
+        root = tree.root
+        root.expand()
+        root.add_leaf(f"All books  ({len(books)})", data={"filter": "all"})
+
+        if shelf_counts:
+            shelves = root.add("Shelves", data=None)
+            for shelf in ("read", "currently-reading", "to-read", "dnf"):
+                count = shelf_counts.get(shelf, 0)
+                if count:
+                    shelves.add_leaf(
+                        f"{_shelf_label(shelf)}  ({count})",
+                        data={"filter": "shelf", "value": shelf},
+                    )
+            shelves.expand()
+
+        if tag_counts:
+            tags_node = root.add("Tags", data=None)
+            for tag, count in sorted(tag_counts.items(), key=lambda x: -x[1])[:20]:
+                tags_node.add_leaf(f"{tag}  ({count})", data={"filter": "tag", "value": tag})
+
+    def on_tree_node_selected(self, event: Tree.NodeSelected) -> None:
+        data = event.node.data
+        if not data:
+            return
+        f = data.get("filter")
+        if f == "all":
+            self._shelf_filter = None
+            self._tag_filter = None
+        elif f == "shelf":
+            self._shelf_filter = data["value"]
+            self._tag_filter = None
+        elif f == "tag":
+            self._shelf_filter = None
+            self._tag_filter = data["value"]
+        else:
+            return
+        self._search = None
+        self.query_one("#search-input", Input).value = ""
+        self._rebuild_books_table()
+
+    # ── Books table ───────────────────────────────────────────────────────────
+
+    def _rebuild_books_table(self) -> None:
+        table = self.query_one("#node-table", DataTable)
         table.clear(columns=True)
-        table.add_columns("ID", "Type", "Summary")
-        nodes = db.search_nodes(self._search) if self._search else db.get_nodes(type_=self._type_filter)
-        self._node_ids = [n["id"] for n in nodes]
+        table.add_columns("Title", "Author", "Rating", "Shelf", "Date Read")
+
+        if self._search:
+            nodes = [n for n in db.search_nodes(self._search) if n["type"] == "book"]
+        elif self._shelf_filter:
+            nodes = [
+                n for n in db.get_nodes(type_="book")
+                if n["fields"].get("shelf") == self._shelf_filter
+            ]
+        elif self._tag_filter:
+            tag = self._tag_filter
+            nodes = [
+                n for n in db.get_nodes(type_="book")
+                if tag in [t.strip() for t in n["fields"].get("tags", "").split(",")]
+            ]
+        else:
+            nodes = db.get_nodes(type_="book")
+
+        self._book_ids = [n["id"] for n in nodes]
         for n in nodes:
-            table.add_row(n["id"][:16] + "…", n["type"], self._node_summary(n))
-        self.query_one("#status", Static).update(
-            f"{len(nodes)} node(s)"
-            + (f"  type={self._type_filter}" if self._type_filter else "")
-            + (f"  search='{self._search}'" if self._search else "")
-        )
+            f = n["fields"]
+            table.add_row(
+                f.get("title", "—")[:52],
+                f.get("author", "—")[:28],
+                _stars(f.get("rating", 0)),
+                _shelf_label(f.get("shelf", "")),
+                (f.get("date_read") or "")[:10],
+            )
 
-    def _selected_node(self) -> Optional[dict]:
-        table = self.query_one(DataTable)
+        parts = [f"{len(nodes)} book(s)"]
+        if self._shelf_filter:
+            parts.append(f"shelf={_shelf_label(self._shelf_filter)}")
+        if self._tag_filter:
+            parts.append(f"tag={self._tag_filter}")
+        if self._search:
+            parts.append(f"search='{self._search}'")
+        self.query_one("#status", Static).update("  ".join(parts))
+
+    # ── Other tabs ────────────────────────────────────────────────────────────
+
+    def _rebuild_author_table(self) -> None:
+        table = self.query_one("#author-table", DataTable)
+        table.clear(columns=True)
+        table.add_columns("Name", "Notes")
+        for a in db.get_nodes(type_="author"):
+            f = a["fields"]
+            table.add_row(f.get("name", "—"), f.get("notes", "")[:60])
+
+    def _rebuild_notes_table(self) -> None:
+        table = self.query_one("#notes-table", DataTable)
+        table.clear(columns=True)
+        table.add_columns("Title", "Preview")
+        for n in db.get_nodes(type_="note"):
+            f = n["fields"]
+            title = f.get("title") or f.get("name") or "—"
+            preview = f.get("content") or f.get("summary") or ""
+            table.add_row(title[:50], preview[:70])
+
+    def _rebuild_all_table(self) -> None:
+        table = self.query_one("#all-table", DataTable)
+        table.clear(columns=True)
+        table.add_columns("Type", "Summary", "ID")
+        for n in db.get_nodes():
+            table.add_row(n["type"], _node_title(n)[:60], n["id"][:16] + "…")
+
+    # ── Helpers ───────────────────────────────────────────────────────────────
+
+    def _refresh_all(self) -> None:
+        self._rebuild_shelf_tree()
+        self._rebuild_books_table()
+        self._rebuild_author_table()
+        self._rebuild_notes_table()
+        self._rebuild_all_table()
+
+    def _selected_book_node(self) -> Optional[dict]:
+        table = self.query_one("#node-table", DataTable)
         row = table.cursor_row
-        if row < 0 or row >= len(self._node_ids):
+        if row < 0 or row >= len(self._book_ids):
             return None
-        return db.get_node(self._node_ids[row])
+        return db.get_node(self._book_ids[row])
 
-    def on_select_changed(self, event: Select.Changed) -> None:
-        if event.select.id == "type-select":
-            self._type_filter = None if event.value == "__all__" else str(event.value)
-            self._build_table()
+    def _active_tab(self) -> str:
+        try:
+            return str(self.query_one("#tabs", TabbedContent).active)
+        except Exception:
+            return "tab-books"
+
+    def _default_type_for_tab(self) -> str:
+        return {"tab-authors": "author", "tab-notes": "note"}.get(self._active_tab(), "book")
+
+    # ── Input handler ─────────────────────────────────────────────────────────
 
     def on_input_changed(self, event: Input.Changed) -> None:
         if event.input.id == "search-input":
             self._search = event.value.strip() or None
-            self._build_table()
+            self._shelf_filter = None
+            self._tag_filter = None
+            self._rebuild_books_table()
 
-    def action_create_node(self) -> None:
+    # ── Actions ───────────────────────────────────────────────────────────────
+
+    def action_add_node(self) -> None:
         def on_dismiss(result):
             if result:
                 db.add_node(type_=result["type"], fields=result["fields"])
                 self._stats["nodes_created"] += 1
-                self._stats["types_used"].add(result["type"])
-                self._build_table()
-        self.push_screen(CreateNodeScreen(), on_dismiss)
+                self._refresh_all()
+                self.notify(f"Added {result['type']}.")
+        self.push_screen(CreateNodeScreen(default_type=self._default_type_for_tab()), on_dismiss)
 
     def action_edit_node(self) -> None:
-        node = self._selected_node()
+        node = self._selected_book_node()
         if not node:
             return
         def on_dismiss(result):
             if result:
                 db.update_node(node["id"], fields=result["fields"])
-                self._build_table()
+                self._refresh_all()
+                self.notify("Updated.")
         self.push_screen(CreateNodeScreen(node=node), on_dismiss)
 
     def action_delete_node(self) -> None:
-        node = self._selected_node()
+        node = self._selected_book_node()
         if node and db.delete_node(node["id"]):
-            self._build_table()
+            self._refresh_all()
+            self.notify("Deleted.")
 
     def action_link_node(self) -> None:
-        node = self._selected_node()
+        node = self._selected_book_node()
         if not node:
             return
-        def on_dismiss(result):
-            if result:
+
+        def on_relation(relation: Optional[str]) -> None:
+            if relation:
                 willow_edges.add_edge(
-                    result["from_id"], result["to_id"],
-                    result["relation"], uuid=self._uuid
+                    node["id"], self._link_target, relation, uuid=self._uuid
                 )
                 self._stats["edges_created"] += 1
-        self.push_screen(LinkNodesScreen(from_id=node["id"]), on_dismiss)
+                self.notify(f"Linked: {relation}")
+
+        def on_picker(target_id: Optional[str]) -> None:
+            if target_id:
+                self._link_target = target_id
+                self.push_screen(
+                    RelationScreen(from_id=node["id"], to_id=target_id), on_relation
+                )
+
+        self.push_screen(NodePickerScreen(), on_picker)
 
     def action_view_node(self) -> None:
-        node = self._selected_node()
+        node = self._selected_book_node()
         if not node:
             return
         edges = willow_edges.edges_for(node["id"], uuid=self._uuid)
         self.push_screen(NodeDetailScreen(node=node, edges=edges))
 
+    def action_import_csv(self) -> None:
+        def on_dismiss(result):
+            if not result:
+                return
+            path = Path(result["path"]).expanduser()
+            if not path.exists():
+                self.notify(f"Not found: {path}", severity="error")
+                return
+            import import_csv
+            r = import_csv.run_import(path, source=result.get("source"))
+            self._refresh_all()
+            self.notify(
+                f"Imported {r['imported']} · Skipped {r['skipped']} · Errors {r['errors']}"
+            )
+        self.push_screen(ImportScreen(), on_dismiss)
+
+    def action_focus_search(self) -> None:
+        try:
+            self.query_one("#search-input", Input).focus()
+        except Exception:
+            pass
+
     def action_refresh(self) -> None:
-        self._build_table()
+        self._refresh_all()
+        self.notify("Refreshed.")
 
     def action_quit(self) -> None:
-        stats = {
-            "nodes_created": self._stats["nodes_created"],
-            "edges_created": self._stats["edges_created"],
-            "types_used": list(self._stats["types_used"]),
-        }
         if self._uuid:
-            safe_integration.write_session_composite(stats=stats, uuid=self._uuid)
+            safe_integration.write_session_composite(
+                stats={**self._stats, "types_used": []}, uuid=self._uuid
+            )
         self.exit()
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    import web as _web
-
     uuid = safe_integration.get_user_uuid()
     if not uuid:
         sys.stderr.write(
-            "Warning: ~/.willow/user_identity.json not found — Willow edges disabled.\n"
-            "Install willow-seed to enable graph persistence.\n\n"
+            "Warning: ~/.willow/user_identity.json not found — Willow edges disabled.\n\n"
         )
-
     boot = boot_sequence(uuid=uuid)
     if boot["migrated"]:
-        print(f"Migrated {boot['migrated']} v1 event(s) to v2 nodes.")
-    if boot["orphans_removed"]:
-        print(f"Removed {boot['orphans_removed']} orphan edge(s).")
-
-    if "--web" in sys.argv:
-        _web._set_user_uuid(uuid)
-        _web.run_web(port=8765)
-    else:
-        TimelineApp(uuid=uuid).run()
+        print(f"Migrated {boot['migrated']} v1 event(s).")
+    LibraryApp(uuid=uuid).run()
