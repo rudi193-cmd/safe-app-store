@@ -102,4 +102,4 @@ npm run upload
 
 Originally written by [rudi193-cmd](https://github.com/rudi193-cmd) as a Devvit Blocks app using the legacy `devvit.yaml` configuration. Migrated to the Devvit Web server architecture by [allhailseizure](https://github.com/allhailseizure).
 
-The legacy version is preserved in `(DEPRECATED) devvit/` for reference.
+The legacy version is preserved in `devvit-deprecated/` for reference.

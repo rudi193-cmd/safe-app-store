@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 
 _STORE_ROOT = _os.path.join(_os.path.expanduser("~"), ".willow", "store")
 _STORE_ROOT = _os.environ.get("WILLOW_STORE_ROOT", _STORE_ROOT)
-APP_ID = "safe-app-nasa-archive"
+APP_ID = "nasa-archive"
 
 _session_id = str(uuid.uuid4())
 _APP_DATA = Path(_os.path.expanduser("~")) / ".willow" / "apps" / APP_ID

@@ -1,5 +1,5 @@
 {
-  "app_id": "safe-app-private-ledger",
+  "app_id": "private-ledger",
   "name": "private-ledger",
   "version": "0.1.0",
   "safe_version": ">=2.0.0",

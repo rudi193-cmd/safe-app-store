@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 
 _STORE_ROOT = os.path.join(os.path.expanduser("~"), ".willow", "store")
 _STORE_ROOT = os.environ.get("WILLOW_STORE_ROOT", _STORE_ROOT)
-APP_ID = "safe-app-field-notes"
+APP_ID = "field-notes"
 
 _session_id = str(uuid.uuid4())
 _APP_DATA = Path(os.path.expanduser("~")) / ".willow" / "apps" / APP_ID

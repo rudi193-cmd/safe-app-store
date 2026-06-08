@@ -1,4 +1,5 @@
 {
+  "app_id": "story-timeline",
   "name": "story-timeline",
   "version": "2.2.0",
   "description": "Writer tool and story protocol — reading shelf, commonplace notes, writing projects, named timelines, intelligence suggestions, and Willow graph edges.",

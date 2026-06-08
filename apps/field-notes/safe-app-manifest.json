@@ -1,5 +1,5 @@
 {
-  "app_id": "safe-app-field-notes",
+  "app_id": "field-notes",
   "name": "field-notes",
   "version": "1.0.0",
   "safe_version": ">=2.0.0",
