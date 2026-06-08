@@ -18,36 +18,9 @@ Willow integration is optional. When it's running you get cited Jeles research o
 
 ## Screenshots
 
-```
-┌─ Story Timeline ─────────────────────────────────────────────────────────────────┐
-│ Desk  Shelves  Authors  Commonplace  Timelines  Jeles Inbox  Constellation       │
-├──────────────────────────────────────────────────────────────────────────────────┤
-│ READING SHELF                        │ NODE DETAIL                               │
-│ ┌──────────────────────────────────┐ │ ┌──────────────────────────────────────┐  │
-│ │ Title               Status  ★   │ │ │ The Name of the Rose                 │  │
-│ │ The Name of the Rose  Read   ★★★★│ │ │ Umberto Eco · 1980                   │  │
-│ │ Piranesi              Read   ★★★★│ │ │                                      │  │
-│ │ The Left Hand…        Reading    │ │ │ Tags: medieval, semiotics, mystery    │  │
-│ │ The Atlas Six         To Read    │ │ │ Linked: Umberto Eco (author)          │  │
-│ │ Piranesi              DNF        │ │ │        "Sign and meaning" (note)      │  │
-│ └──────────────────────────────────┘ │ │        "Medieval library" (note)      │  │
-│                        18 books       │ └──────────────────────────────────────┘  │
-├──────────────────────────────────────────────────────────────────────────────────┤
-│  a add  e edit  d del  l link  p promote  j research  s suggest  i import  q quit│
-└──────────────────────────────────────────────────────────────────────────────────┘
-```
+![Story Timeline — Desk tab](screenshots/desk.png)
 
-```
-┌─ Story Timeline · Timelines ──────────────────────────────────────────────────────┐
-│ PROJECTS           │ TIMELINES               │ ENTRIES                             │
-│ ┌────────────────┐ │ ┌─────────────────────┐ │ ┌──────────────────────────────┐   │
-│ │ My Novel       │ │ │ World chronology    │ │ │ The Library Fire    [beat]   │   │
-│ │ Essay draft    │ │ │ Draft beats         │ │ │ First Signs         [beat]   │   │
-│ │ World Notes    │ │ │ Research log        │ │ │ Adso arrives        [scene]  │   │
-│ └────────────────┘ │ └─────────────────────┘ │ └──────────────────────────────┘   │
-│                    │                         │ provenance: "The Name of the Rose"  │
-└───────────────────────────────────────────────────────────────────────────────────┘
-```
+![Story Timeline — Shelves tab (128 read, 4 to read)](screenshots/shelves.png)
 
 ---
 
