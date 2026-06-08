@@ -57,7 +57,7 @@ Primary channel: `#vishwakarma` is your **inbox** — messages sent TO you. Coor
 
 ## Willow Auth
 
-This project uses SAFE dev-fallback auth. app_id is `safe-app-store`. The Willow server must have `WILLOW_DEV_SAFE_ROOT=/home/sean-campbell/github` in its env — this is set in `.claude/settings.json` mcpServers config.
+This project uses SAFE dev-fallback auth. app_id is `safe-app-store`. The Willow server must have `WILLOW_DEV_SAFE_ROOT=~/github` in its env — this is set in `.claude/settings.json` mcpServers config.
 
 If MCP tools return `unauthorized`, check that `WILLOW_DEV_SAFE_ROOT` is set and `safe-app-manifest.json` exists at the repo root.
 

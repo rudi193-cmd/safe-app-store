@@ -1,7 +1,7 @@
 # Willow Nest — App Spec
 **Date:** 2026-04-27 | **Status:** Approved | **b17:** B2DA2
 **Reviewed by:** hanuman (2026-04-27) — 3 gaps addressed: photo track expansion, test coverage section, compost config location
-**Repo:** `/home/sean-campbell/github/willow-nest`
+**Repo:** `~/github/willow-nest`
 
 ## What It Is
 

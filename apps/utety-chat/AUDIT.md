@@ -74,12 +74,12 @@ This is committed to a public repository. Even as a comment, secret scanners wil
 **Category:** Bug / Security -- Path Disclosure
 
 ```python
-sys.path.insert(0, "/home/sean-campbell/willow-1.5/core")
+sys.path.insert(0, "~/willow-1.5/core")
 ```
 
 This hardcoded path:
 - Breaks the application on any machine except the developer's
-- Exposes a real username (`sean-campbell`) and internal project structure
+- Exposes a real username (`<user>`) and internal project structure
 - Modifies `sys.path` globally, risking module shadowing
 
 **Fix:** Use a relative import, an environment variable (`WILLOW_CORE_PATH`), or package the dependency properly.

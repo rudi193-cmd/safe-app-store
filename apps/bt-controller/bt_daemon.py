@@ -35,17 +35,21 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 import signal
 import sys
+import tempfile
 from pathlib import Path
 from datetime import datetime
+
+_LOG_PATH = os.environ.get("BT_DAEMON_LOG", os.path.join(tempfile.gettempdir(), "bt-daemon.log"))
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler("/tmp/bt-daemon.log"),
+        logging.FileHandler(_LOG_PATH),
     ]
 )
 log = logging.getLogger("bt-daemon")

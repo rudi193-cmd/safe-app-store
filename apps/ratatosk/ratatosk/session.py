@@ -9,13 +9,20 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 _SESSION_DIR_ENV = "RATATOSK_SESSION_DIR"
-_DEFAULT_SESSION_DIR = Path.home() / ".claude" / "projects" / "-home-sean-campbell-willow-2-0"
 
 VERSION = "ratatosk-1.0"
 
 
+def _default_session_dir() -> Path:
+    # Mirror Claude Code's project-dir convention: cwd path with separators
+    # collapsed to dashes, under ~/.claude/projects/.
+    slug = str(Path.cwd()).replace("/", "-")
+    return Path.home() / ".claude" / "projects" / slug
+
+
 def _session_dir() -> Path:
-    d = Path(os.environ.get(_SESSION_DIR_ENV, str(_DEFAULT_SESSION_DIR)))
+    env = os.environ.get(_SESSION_DIR_ENV)
+    d = Path(env) if env else _default_session_dir()
     d.mkdir(parents=True, exist_ok=True)
     return d
 

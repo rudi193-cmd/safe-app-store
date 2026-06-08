@@ -126,7 +126,7 @@ Expected: watchdog and markdown install cleanly.
 - [ ] **Step 5: Verify conftest works**
 
 ```bash
-cd /home/sean-campbell/github/safe-app-the-squirrel
+cd ~/github/safe-app-the-squirrel
 python -c "import tests.conftest; import db; print('db import OK')"
 ```
 

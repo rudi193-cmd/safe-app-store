@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 
 # ── Pigeon Bus Helpers ────────────────────────────────────────────────────────
 
-_APP_ID = "safe-app-utety-chat"
+_APP_ID = "utety-chat"
 _session_id = str(uuid.uuid4())
 _APP_DATA = Path(_os.path.expanduser("~")) / ".willow" / "apps" / _APP_ID
 

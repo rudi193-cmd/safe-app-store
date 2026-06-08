@@ -5,7 +5,7 @@ import sqlite3 as _sqlite3
 
 _STORE_ROOT = _os.path.join(_os.path.expanduser("~"), ".willow", "store")
 _STORE_ROOT = _os.environ.get("WILLOW_STORE_ROOT", _STORE_ROOT)
-_APP_ID = "safe-app-the-squirrel"
+_APP_ID = "the-squirrel"
 
 
 def get_manifest():

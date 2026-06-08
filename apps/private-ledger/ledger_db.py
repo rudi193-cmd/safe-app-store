@@ -16,7 +16,7 @@ from decimal import Decimal
 from typing import Optional, List, Dict, Any
 
 # Import 23-cubed lattice constants
-_WILLOW_CORE = "/mnt/c/Users/Sean/Documents/GitHub/Willow/core"
+_WILLOW_CORE = os.environ.get("WILLOW_CORE", os.path.expanduser("~/github/Willow/core"))
 if _WILLOW_CORE not in sys.path:
     sys.path.insert(0, _WILLOW_CORE)
 from user_lattice import DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE

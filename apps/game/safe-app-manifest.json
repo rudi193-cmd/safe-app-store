@@ -1,5 +1,5 @@
 {
-  "app_id": "safe-app-game",
+  "app_id": "game",
   "name": "game",
   "version": "1.0.0",
   "safe_version": ">=2.0.0",

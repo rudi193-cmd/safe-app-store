@@ -4,7 +4,7 @@
 **Status:** TUI, MCP, session commits, local-AI cache, stale-data checks, and first data-surfacing pass shipped  
 **b17:** E472A  
 **Branch:** `feat/ratatosk`  
-**Worktree:** `/home/sean-campbell/github/safe-app-store/apps/law-gazelle`
+**Worktree:** `~/github/safe-app-store/apps/law-gazelle`
 
 ---
 
