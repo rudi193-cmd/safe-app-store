@@ -4,7 +4,7 @@
       "type": "stdio",
       "command": "bash",
       "args": [
-        "/home/sean-campbell/github/willow-2.0/sap/unified_mcp.sh"
+        "${HOME}/github/willow-2.0/sap/unified_mcp.sh"
       ],
       "env": {
         "WILLOW_AGENT_NAME": "vishwakarma",

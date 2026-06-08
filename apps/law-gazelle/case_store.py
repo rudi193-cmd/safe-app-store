@@ -40,18 +40,20 @@ WORKERS_COMP_ALIASES = (
 
 SYNC_EXTRAS = ("coparent_db_export.json",)
 SESSION_META_DB = "session_meta.db"
-LETTER_GLOB = "Campbell_Letter*.docx"
+LETTER_GLOBS = tuple(
+    glob.strip()
+    for glob in os.environ.get("LAW_GAZELLE_LETTER_GLOBS", "Case_Letter*.docx:*_Letter*.docx").split(":")
+    if glob.strip()
+)
 
 MILESTONES = (
-    {"date": "2026-05-30", "label": "Schedule response (letter)"},
-    {"date": "2026-06-06", "label": "All other letter items"},
-    {"date": "2026-07-01", "label": "City job / Ch7 filing / support modification"},
+    {"date": "2099-01-01", "label": "Demo schedule response"},
+    {"date": "2099-02-01", "label": "Demo non-schedule response"},
+    {"date": "2099-03-01", "label": "Demo cross-matter checkpoint"},
 )
 
-# Always included regardless of what the JSON export provides
-_STATIC_MILESTONES = (
-    {"date": "2026-07-01", "label": "City job / Ch7 filing / support modification"},
-)
+# Optional static milestones, supplied as JSON via environment for private local use.
+_STATIC_MILESTONES = tuple(json.loads(os.environ.get("LAW_GAZELLE_STATIC_MILESTONES", "[]")))
 
 
 def _parse_evidence_ids(raw: str | None) -> list[str]:
@@ -199,11 +201,12 @@ def sync_cases(source: Path | str = DEFAULT_SOURCE) -> dict:
         optional_missing.append(SESSION_META_DB)
 
     letter_found = False
-    for letter_src in sorted(source.glob(LETTER_GLOB)):
-        letter_found = True
-        _copy_if_updated(letter_src, CASES_DIR / letter_src.name, copied, skipped)
+    for pattern in LETTER_GLOBS:
+        for letter_src in sorted(source.glob(pattern)):
+            letter_found = True
+            _copy_if_updated(letter_src, CASES_DIR / letter_src.name, copied, skipped)
     if not letter_found:
-        optional_missing.append(LETTER_GLOB)
+        optional_missing.append("letter artifacts")
 
     nest_drafts = source / "drafts"
     if nest_drafts.is_dir():
@@ -256,15 +259,20 @@ def session_meta_path() -> Path:
 def list_artifacts() -> list[dict]:
     """Synced letter/docx artifacts from Nest."""
     artifacts: list[dict] = []
-    for path in sorted(CASES_DIR.glob("Campbell_Letter*.docx")):
-        stat = path.stat()
-        artifacts.append({
-            "name": path.name,
-            "path": str(path),
-            "size_kb": round(stat.st_size / 1024, 1),
-            "modified": date.fromtimestamp(stat.st_mtime).isoformat(),
-            "kind": "letter",
-        })
+    seen_letters: set[str] = set()
+    for pattern in LETTER_GLOBS:
+        for path in sorted(CASES_DIR.glob(pattern)):
+            if path.name in seen_letters:
+                continue
+            seen_letters.add(path.name)
+            stat = path.stat()
+            artifacts.append({
+                "name": path.name,
+                "path": str(path),
+                "size_kb": round(stat.st_size / 1024, 1),
+                "modified": date.fromtimestamp(stat.st_mtime).isoformat(),
+                "kind": "letter",
+            })
     drafts_dir = CASES_DIR / "drafts"
     if drafts_dir.exists():
         for path in sorted(drafts_dir.glob("*")):
@@ -1164,7 +1172,7 @@ def _related_intersections(text: str) -> list[dict]:
         if issue and issue in text_l:
             hits.append(row)
             continue
-        for token in ("july 1", "cssd", "housing", "garnish", "child support", "coparent"):
+        for token in ("housing", "garnish", "support", "coparent"):
             if token in text_l and token in blob:
                 hits.append(row)
                 break
@@ -1179,8 +1187,8 @@ def cross_case_overview() -> dict:
         "coparent",
         """
         SELECT atom_id, title, priority, domain FROM atoms
-        WHERE body LIKE '%bankruptcy%' OR body LIKE '%Chapter%' OR body LIKE '%CSSD%'
-           OR body LIKE '%July 1%' OR title LIKE '%support%' OR title LIKE '%arrear%'
+        WHERE body LIKE '%bankruptcy%' OR body LIKE '%Chapter%'
+           OR title LIKE '%support%' OR title LIKE '%arrear%'
         ORDER BY priority, id
         LIMIT 20
         """,
@@ -1320,7 +1328,7 @@ def schedule_plan_citations() -> list[dict]:
 
 
 def schedule_response_packet(include_resolved: bool = False) -> dict:
-    """Briefing for the May 30 schedule letter response — atoms, citations, deadline.
+    """Briefing for a schedule letter response — atoms, citations, deadline.
 
     Returns raw dicts (not markdown). Use format_schedule_response_text() for drafting export.
     """

@@ -35,19 +35,19 @@ class CommitPackageTests(unittest.TestCase):
     def test_write_commit_manifest_dry_run(self) -> None:
         result = commit_package.write_commit_manifest(
             summary="Test session",
-            session_date="2026-06-01",
+            session_date="2099-06-01",
             nest=self.nest,
             dry_run=True,
         )
         self.assertTrue(result["ok"])
         self.assertTrue(result["dry_run"])
         self.assertEqual(result["manifest"]["kind"], "law_gazelle_commit")
-        self.assertNotIn("legal_commit_2026-06-01.json", list(self.nest.iterdir()))
+        self.assertNotIn("legal_commit_2099-06-01.json", list(self.nest.iterdir()))
 
     def test_write_commit_manifest_writes_file(self) -> None:
         result = commit_package.write_commit_manifest(
             summary="Atoms updated",
-            session_date="2026-06-01",
+            session_date="2099-06-01",
             nest=self.nest,
         )
         self.assertTrue(result["ok"])
@@ -55,7 +55,7 @@ class CommitPackageTests(unittest.TestCase):
         self.assertTrue(path.exists())
         data = json.loads(path.read_text(encoding="utf-8"))
         self.assertEqual(data["summary"], "Atoms updated")
-        self.assertEqual(data["session_date"], "2026-06-01")
+        self.assertEqual(data["session_date"], "2099-06-01")
 
     def test_write_commit_manifest_missing_nest(self) -> None:
         result = commit_package.write_commit_manifest(nest="/nonexistent/nest/path")
@@ -65,22 +65,22 @@ class CommitPackageTests(unittest.TestCase):
     def test_find_artifacts_includes_drafts(self) -> None:
         drafts = self.nest / "drafts"
         drafts.mkdir()
-        (drafts / "Campbell_schedule.md").write_text("# Draft", encoding="utf-8")
+        (drafts / "CaseDraft_schedule.md").write_text("# Draft", encoding="utf-8")
         files = commit_package.find_artifacts(self.nest)
-        self.assertIn("drafts/Campbell_schedule.md", files)
+        self.assertIn("drafts/CaseDraft_schedule.md", files)
 
     def test_read_latest_manifest(self) -> None:
         self.assertIsNone(commit_package.read_latest_manifest(self.nest))
         commit_package.write_commit_manifest(
             summary="First commit",
-            session_date="2026-05-30",
+            session_date="2099-05-30",
             nest=self.nest,
         )
         latest = commit_package.read_latest_manifest(self.nest)
         self.assertIsNotNone(latest)
         assert latest is not None
         self.assertEqual(latest["summary"], "First commit")
-        self.assertEqual(latest["session_date"], "2026-05-30")
+        self.assertEqual(latest["session_date"], "2099-05-30")
         self.assertGreaterEqual(latest["file_count"], 2)
 
     def test_gazelle_mcp_dispatch(self) -> None:
@@ -88,7 +88,7 @@ class CommitPackageTests(unittest.TestCase):
 
         result = gazelle_mcp._dispatch(
             "gazelle_commit",
-            {"summary": "MCP test", "session_date": "2026-06-01", "dry_run": True},
+            {"summary": "MCP test", "session_date": "2099-06-01", "dry_run": True},
         )
         self.assertTrue(result["ok"])
         self.assertTrue(result["dry_run"])
@@ -161,13 +161,13 @@ class CheckStaleTests(unittest.TestCase):
             items = case_store.milestones()
         self.assertTrue(len(items) > 0)
         labels = [m["label"] for m in items]
-        self.assertTrue(any("City job" in l for l in labels))
+        self.assertTrue(any("Demo cross-matter checkpoint" in l for l in labels))
 
     def test_milestones_uses_dynamic_data_when_present(self) -> None:
         import case_store
 
         dynamic = [
-            {"deadline": "2026-05-30", "title": "Schedule response", "case": "coparent",
+            {"deadline": "2099-05-30", "title": "Schedule response", "case": "coparent",
              "source_db": "coparent", "kind": "deadline", "item_type": "deadline",
              "item_id": "deadline:schedule", "deadline_key": "schedule",
              "days_until": -2, "overdue": True, "severity": "URGENT"},
@@ -176,7 +176,7 @@ class CheckStaleTests(unittest.TestCase):
             items = case_store.milestones()
         labels = [m["label"] for m in items]
         self.assertIn("Schedule response", labels)
-        self.assertTrue(any("City job" in l for l in labels))
+        self.assertFalse(any("Demo cross-matter checkpoint" in l for l in labels))
 
 
 if __name__ == "__main__":

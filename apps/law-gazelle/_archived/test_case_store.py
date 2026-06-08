@@ -74,7 +74,7 @@ class CaseStoreTests(unittest.TestCase):
             "INSERT INTO atoms VALUES (1,'ATM-001','gap','open','urgent','schedule','T','B',NULL,NULL,NULL,'Act',NULL)"
         )
         conn.execute(
-            "INSERT INTO evidence_ledger VALUES (1,'EVD-2026-001','comm','2026-01-01','desc','quote',NULL,NULL,'abc')"
+            "INSERT INTO evidence_ledger VALUES (1,'EVD-2099-001','comm','2099-01-01','desc','quote',NULL,NULL,'abc')"
         )
         conn.commit()
         conn.close()

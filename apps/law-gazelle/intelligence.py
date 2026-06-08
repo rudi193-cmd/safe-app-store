@@ -257,7 +257,7 @@ Structure template:
     def run() -> dict[str, Any]:
         out = _run(prompt)
         out["doc_type"] = doc_type
-        out["suggested_filename"] = f"Campbell_{doc_type}_{date.today().isoformat()}.md"
+        out["suggested_filename"] = f"CaseDraft_{doc_type}_{date.today().isoformat()}.md"
         out["context_sources"] = _source_labels(bundle)
         return out
 
@@ -273,7 +273,7 @@ Structure template:
     )
     out.setdefault("doc_type", doc_type)
     out.setdefault(
-        "suggested_filename", f"Campbell_{doc_type}_{date.today().isoformat()}.md"
+        "suggested_filename", f"CaseDraft_{doc_type}_{date.today().isoformat()}.md"
     )
     if not out.get("context_sources"):
         out["context_sources"] = _source_labels(bundle)

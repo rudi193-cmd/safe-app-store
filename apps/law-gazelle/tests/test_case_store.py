@@ -82,7 +82,7 @@ class CaseStoreTests(unittest.TestCase):
             "INSERT INTO atoms VALUES (1,'ATM-001','gap','open','urgent','schedule','T','B',NULL,NULL,NULL,'Act',NULL)"
         )
         conn.execute(
-            "INSERT INTO evidence_ledger VALUES (1,'EVD-2026-001','comm','2026-01-01','desc','quote',NULL,NULL,'abc')"
+            "INSERT INTO evidence_ledger VALUES (1,'EVD-2099-001','comm','2099-01-01','desc','quote',NULL,NULL,'abc')"
         )
         conn.execute(
             """
@@ -91,8 +91,8 @@ class CaseStoreTests(unittest.TestCase):
                 filed_date, filename, content_verified, content_notes, logged_at
             ) VALUES (
                 1, 'DOC-001', 'Parenting Plan Order', 'court_order', 'D-000-DM-0000-00000',
-                '2026-01-15', '2026-01-10', '2026-01-12', 'parenting_plan.pdf', 1,
-                'Controls exchange times.', '2026-01-16T00:00:00'
+                '2099-01-15', '2099-01-10', '2099-01-12', 'parenting_plan.pdf', 1,
+                'Controls exchange times.', '2099-01-16T00:00:00'
             )
             """
         )
@@ -188,7 +188,7 @@ class CaseStoreTests(unittest.TestCase):
     def test_cross_case_overview(self) -> None:
         cc = case_store.cross_case_overview()
         self.assertEqual(len(cc["intersections"]), 1)
-        self.assertEqual(len(cc["milestones"]), 3)
+        self.assertEqual(len(cc["milestones"]), 2)
 
     def test_milestones_days_until(self) -> None:
         ms = case_store.milestones()

@@ -5,8 +5,8 @@
   "safe_version": ">=2.0.0",
   "b17": "E472A",
   "agent_type": "tool",
-  "description": "Case command center for the user's active legal matters \u2014 family law, bankruptcy, and workers' compensation. Syncs canonical Nest databases, surfaces Today workflow, deadlines, legal documents, stale-data signals, sidecar state, and MCP/local-AI tools for legal sessions.",
-  "author": "Sean Campbell",
+  "description": "Local-first case command center for private legal matter data. Syncs operator-provided Nest databases, surfaces Today workflow, deadlines, legal documents, stale-data signals, sidecar state, and MCP/local-AI tools for legal sessions. Public repository content is app code plus synthetic examples only.",
+  "author": "SAFE App Store",
   "data_streams": [
     {
       "id": "nest_case_databases",

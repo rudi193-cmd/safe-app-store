@@ -1,44 +1,47 @@
-@markdownai v1.0
+@markdownai
 
 # Law Gazelle
 
-**Case command center** for the user's active legal matters.
+**Local-first case command center** for private legal matter data.
 
-Not a generic legal reference tool. This app reads canonical case databases from Nest and surfaces an urgent queue, milestone tracker, and sidecar state — all in a Textual TUI. It also exposes an MCP surface for LLM legal sessions.
+Law Gazelle reads operator-provided case databases from Nest and surfaces an urgent queue, milestone tracker, document context, and sidecar state in a Textual TUI. It also exposes an MCP surface for local LLM legal sessions.
 
-### Privacy gate (public repo)
+This public repository contains app code, tests, and synthetic examples only. Real case databases, exports, drafts, correspondence, and generated manifests must stay outside git.
 
-**Do not push this branch to a public remote until real-case PII is scrubbed.** GitHub cannot make subfolders private — only whole repos. Keep real case material outside git:
+### Privacy Gate
+
+Keep private matter data in local-only locations:
 
 | Location | Contents |
 |----------|----------|
-| `~/Desktop/Nest` | Canonical case DBs, exports, drafts |
-| `~/.willow/apps/law-gazelle/` | Sidecar state (`gazelle_state.db`, activity, AI cache) |
+| `~/Desktop/Nest` | Canonical private case DBs, exports, drafts, and correspondence |
+| `~/.willow/apps/law-gazelle/` | Local app state (`gazelle_state.db`, activity, AI cache) |
 | `apps/law-gazelle/private/` | Optional local-only case files (gitignored) |
 
-This repository should ship **app code, tests, and demo/synthetic data only** when published.
+Before publishing, run a PII/secret scan and confirm repo history contains only code, tests, docs, and demo/synthetic data.
 
 ---
 
-## Cases
+## Demo Matter Types
 
-| Case | ID | Status |
-|------|-----|--------|
-| Co-Parent / Family Law | D-000-DM-0000-00000 | Active — Example County, ST |
-| Bankruptcy | Ch. 13 dismissed 2026-05-12 → Ch. 7 | Organizing |
-| Workers' Comp | WCA 00-00000 | Active — NM WCA |
+| Matter | Demo ID | Status |
+|--------|---------|--------|
+| Co-parent / family law | D-000-DM-0000-00000 | Synthetic demo |
+| Bankruptcy | BK-0000-DEMO | Synthetic demo |
+| Workers' comp | WCA 00-00000 | Synthetic demo |
 
 ---
 
-## Layer model
+## Layer Model
 
-```
-Nest SQLite (canonical)  →  Law Gazelle (reads only)  →  LLM / TUI
-                                    ↓
-                          gazelle_state.db (sidecar writes only)
+```text
+Nest SQLite (canonical private data) -> Law Gazelle (reads only) -> LLM / TUI
+                                           |
+                                           v
+                               gazelle_state.db (sidecar writes only)
 ```
 
-Nest stays canonical. Law Gazelle never writes to Nest.
+Nest stays canonical. Law Gazelle only writes sidecar state, explicit drafts, and commit manifests.
 
 ---
 
@@ -52,28 +55,28 @@ cd apps/law-gazelle && ./dev.sh
 |-----|--------|
 | Enter / v | Detail modal |
 | r | Refresh (re-sync from Nest) |
-| d | Mark done → sidecar |
-| n | Add note → sidecar |
-| s | Snooze → sidecar |
+| d | Mark done -> sidecar |
+| n | Add note -> sidecar |
+| s | Snooze -> sidecar |
 | u | Toggle show resolved |
 | o | Open artifact (Session tab) |
 | q | Quit |
 
 ---
 
-## Session-end ritual
+## Session-End Ritual
 
-At the end of a legal build session, commit the Nest package:
+At the end of a legal build session, commit the local Nest package:
 
 ```bash
-python3 scripts/commit_package.py --summary "Letter sent; 21 atoms; deadlines May 30 / June 6"
+python3 scripts/commit_package.py --summary "Session summary; case DBs/export/drafts ready for watcher"
 ```
 
-This writes `legal_commit_<date>.json` to `~/Desktop/Nest/`. The nest_watcher picks it up and alerts `#heimdallr`.
+This writes `legal_commit_<date>.json` to `~/Desktop/Nest/`. The Nest watcher can pick it up and alert the fleet.
 
 ---
 
-## LLM / MCP surface
+## LLM / MCP Surface
 
 Add `law-gazelle` to your `.mcp.json`:
 
@@ -90,30 +93,27 @@ Add `law-gazelle` to your `.mcp.json`:
 
 Tools: `gazelle_sync`, `gazelle_briefing`, `gazelle_urgent`, `gazelle_detail`, `gazelle_note`, `gazelle_resolve`
 
-Typical legal session flow:
-```
-gazelle_sync()                          # refresh from Nest
-gazelle_briefing()                      # orient: urgent + milestones + cross-case
-gazelle_detail("coparent", "atom", "ATM-001")  # drill down
-gazelle_note("coparent", "atom", "ATM-001", "Called court clerk — confirmed May 30 deadline")
+Typical session flow:
+
+```text
+gazelle_sync()
+gazelle_briefing()
+gazelle_detail("coparent", "atom", "ATM-001")
+gazelle_note("coparent", "atom", "ATM-001", "Confirmed deadline against source document")
 ```
 
-Agent write path: sidecar only. Nest untouched.
+Agent write path: sidecar only. Nest remains canonical.
 
 ---
 
-## Deadlines (embedded in data)
+## Deadlines
 
-| Date | Item |
-|------|------|
-| 2026-05-30 | Schedule response (letter) |
-| 2026-06-06 | All other letter items |
-| 2026-07-01 | City job / Ch7 filing / support modification |
+Deadlines are read from local case data, especially `coparent_db_export.json` `_meta.response_deadlines`. The public repo should not hardcode real deadlines or legal timeline facts.
 
 ---
 
-## What this is not
+## What This Is Not
 
-- Not a generic legal template engine (`src/gazelle_engine.py` — archived)
-- Not a Postgres-backed tool (`legal_db.py` — archived)
-- Not a LOAM ingest tool — that's downstream of nest_watcher → fleet
+- Not a generic legal template engine (`src/gazelle_engine.py` is archived)
+- Not a Postgres-backed tool (`legal_db.py` is archived)
+- Not a LOAM ingest tool; indexing and promotion happen downstream of the Nest watcher

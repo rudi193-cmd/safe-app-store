@@ -1,5 +1,5 @@
 """
-backfill_from_willow.py -- Seed the legal_gazelle schema with known case data.
+backfill_from_willow.py -- Seed the legal_gazelle schema with synthetic demo data.
 
 Run once to populate initial cases, documents, events, and lattice cells.
 Idempotent: checks for existing case_number before inserting.
@@ -22,7 +22,7 @@ def _case_exists(conn, case_number: str) -> bool:
 
 
 def seed_workers_comp(conn) -> dict:
-    """Seed WCA 00-00000: Example Employer back injury workers' comp claim."""
+    """Seed WCA 00-00000: synthetic workers' comp demo claim."""
     if _case_exists(conn, "WCA 00-00000"):
         cur = conn.cursor()
         cur.execute("SELECT id FROM cases WHERE case_number = %s", ("WCA 00-00000",))
@@ -32,12 +32,11 @@ def seed_workers_comp(conn) -> dict:
         conn,
         case_number="WCA 00-00000",
         case_type="workers_comp",
-        title="Workers' Comp - Example Employer Back Injury",
+        title="Workers' Comp - Demo Workplace Injury",
         status="open",
-        jurisdiction="Washington State Department of Labor & Industries",
-        filed_date="2025-01-01",
-        description="Workers' compensation claim for back injury sustained while employed at Example Employer. "
-                    "Involves medical treatment, wage replacement, and potential permanent partial disability evaluation.",
+        jurisdiction="Example State Workers' Compensation Administration",
+        filed_date="2099-01-01",
+        description="Synthetic workers' compensation claim for demo workflow coverage.",
     )
     cid = case["id"]
 
@@ -47,7 +46,7 @@ def seed_workers_comp(conn) -> dict:
         case_id=cid,
         doc_type="research",
         title="Deep Dive Workers' Comp Legal Research.pdf",
-        content_summary="Comprehensive legal research on Washington State workers' compensation law, "
+        content_summary="Synthetic legal research summary on example workers' compensation law, "
                         "claim procedures, benefit calculations, and appeal processes.",
     )
     legal_db.add_document(
@@ -55,8 +54,7 @@ def seed_workers_comp(conn) -> dict:
         case_id=cid,
         doc_type="research",
         title="Healthcare and Workers' Comp Effects.pdf",
-        content_summary="Analysis of healthcare impacts from workers' compensation injuries, "
-                        "treatment protocols, and long-term health effects of back injuries.",
+        content_summary="Synthetic analysis of healthcare impacts from workers' compensation injuries.",
     )
 
     # Events
@@ -64,61 +62,60 @@ def seed_workers_comp(conn) -> dict:
         conn,
         case_id=cid,
         event_type="filing",
-        event_date="2025-01-01",
-        description="Initial workers' compensation claim filed with L&I",
+        event_date="2099-01-01",
+        description="Synthetic workers' compensation claim filed",
         is_completed=True,
     )
     legal_db.add_event(
         conn,
         case_id=cid,
         event_type="mediation",
-        event_date="2025-02-15",
-        description="Mediation response deadline - employer response to claim",
+        event_date="2099-02-15",
+        description="Synthetic mediation response deadline",
         is_completed=True,
     )
     legal_db.add_event(
         conn,
         case_id=cid,
         event_type="decision",
-        event_date="2025-03-01",
+        event_date="2099-03-01",
         description="Administrative closure notice review",
         is_completed=False,
     )
 
     # Lattice placements
     legal_db.place_in_lattice(conn, cid, "health", 5, "established",
-                              "Back injury from workplace incident at Example Employer",
+                              "Synthetic workplace injury fact",
                               source="WCA 00-00000 filing", is_sensitive=True)
     legal_db.place_in_lattice(conn, cid, "work", 8, "established",
-                              "Employment at Example Employer; injury during employment duties",
+                              "Synthetic employment relationship fact",
                               source="WCA 00-00000 filing")
     legal_db.place_in_lattice(conn, cid, "finance", 6, "evolving",
-                              "Wage replacement and medical expense coverage under L&I",
+                              "Synthetic wage replacement and medical expense coverage",
                               source="WCA 00-00000 benefits", is_sensitive=True)
     legal_db.place_in_lattice(conn, cid, "crisis", 3, "recent",
-                              "Active workers' comp claim; navigating claim process and medical treatment",
+                              "Synthetic workers' comp claim workflow",
                               source="WCA 00-00000")
 
     return case
 
 
 def seed_bankruptcy(conn) -> dict:
-    """Seed bankruptcy case with March 11 schedule deadline."""
-    if _case_exists(conn, "BK-2025-SCHED"):
+    """Seed bankruptcy case with synthetic schedule deadline."""
+    if _case_exists(conn, "BK-0000-DEMO"):
         cur = conn.cursor()
-        cur.execute("SELECT id FROM cases WHERE case_number = %s", ("BK-2025-SCHED",))
+        cur.execute("SELECT id FROM cases WHERE case_number = %s", ("BK-0000-DEMO",))
         return {"id": cur.fetchone()[0], "skipped": True}
 
     case = legal_db.add_case(
         conn,
-        case_number="BK-2025-SCHED",
+        case_number="BK-0000-DEMO",
         case_type="bankruptcy",
         title="Bankruptcy Schedules Filing",
         status="pending",
         jurisdiction="US Bankruptcy Court",
-        filed_date="2025-02-01",
-        description="Bankruptcy petition with required schedules. "
-                    "March 11 deadline for schedule completion and filing.",
+        filed_date="2099-02-01",
+        description="Synthetic bankruptcy matter with required schedules.",
     )
     cid = case["id"]
 
@@ -127,26 +124,26 @@ def seed_bankruptcy(conn) -> dict:
         conn,
         case_id=cid,
         event_type="deadline",
-        event_date="2025-03-11",
-        description="Bankruptcy schedules filing deadline",
+        event_date="2099-03-11",
+        description="Synthetic bankruptcy schedules filing deadline",
         is_completed=True,
     )
     legal_db.add_event(
         conn,
         case_id=cid,
         event_type="filing",
-        event_date="2025-02-01",
-        description="Initial bankruptcy petition filed",
+        event_date="2099-02-01",
+        description="Synthetic bankruptcy petition filed",
         is_completed=True,
     )
 
     # Lattice placements
     legal_db.place_in_lattice(conn, cid, "finance", 10, "immediate",
-                              "Bankruptcy schedules: asset/liability disclosure required",
-                              source="BK-2025-SCHED", is_sensitive=True)
+                              "Synthetic bankruptcy schedules: asset/liability disclosure required",
+                              source="BK-0000-DEMO", is_sensitive=True)
     legal_db.place_in_lattice(conn, cid, "crisis", 7, "this_month",
-                              "March 11 deadline for bankruptcy schedule completion",
-                              source="BK-2025-SCHED")
+                              "Synthetic deadline for bankruptcy schedule completion",
+                              source="BK-0000-DEMO")
 
     return case
 
@@ -163,7 +160,7 @@ def main():
 
         bk = seed_bankruptcy(conn)
         skip = bk.get("skipped", False)
-        print(f"Bankruptcy case BK-2025-SCHED: {'already exists' if skip else 'seeded'} (id={bk['id']})")
+        print(f"Bankruptcy case BK-0000-DEMO: {'already exists' if skip else 'seeded'} (id={bk['id']})")
 
         print("Backfill complete.")
     finally:

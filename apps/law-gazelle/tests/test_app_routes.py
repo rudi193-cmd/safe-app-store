@@ -111,7 +111,7 @@ class AppRoutePilotTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_a_opens_activity_with_commit_rows(self) -> None:
         """Commit events have null source_db/item_type/item_id — keys must stay unique."""
-        duplicate_ts = "2026-06-02T06:27:35Z"
+        duplicate_ts = "2099-06-02T06:27:35Z"
         events = [
             {
                 "event_type": "commit",

@@ -22,7 +22,7 @@ import commit_package as cp
 def main() -> None:
     parser = argparse.ArgumentParser(description="Commit law-gazelle Nest package")
     parser.add_argument("--summary", default="", help="One-line session summary")
-    parser.add_argument("--session-date", default="", help="Session date e.g. 2026-05-24")
+    parser.add_argument("--session-date", default="", help="Session date e.g. 2099-05-24")
     parser.add_argument("--dry-run", action="store_true", help="Print manifest, don't write")
     parser.add_argument("--nest", default=str(case_store.DEFAULT_SOURCE), help="Nest directory override")
     args = parser.parse_args()

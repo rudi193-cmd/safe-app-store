@@ -1,4 +1,4 @@
-"""Scaffold workers_comp.db in Nest from known WCA 00-00000 context."""
+"""Scaffold a synthetic workers_comp.db demo in Nest."""
 
 from __future__ import annotations
 
@@ -64,31 +64,31 @@ CREATE TABLE IF NOT EXISTS documents (
 _SEED_ATOMS = [
     (
         "WCA-001", "fact", "open", "urgent", "medical",
-        "Work-Related Back Injury",
-        "Work-related back injury sustained during employment at Example Employer Inc.",
+        "Demo Workplace Injury",
+        "Synthetic workplace injury fact for local demo data.",
         "State Workers' Compensation Act",
-        "Maintain medical records chain for surgery consult and WCA hearing.",
+        "Maintain source-document chain for review.",
     ),
     (
         "WCA-002", "action", "open", "high", "claim",
-        "WCA No. 00-00000 — Active Claim",
-        "Doe v. Example Employer Inc. State Workers' Compensation Administration.",
+        "WCA No. 00-00000 — Demo Claim",
+        "Demo Claimant v. Example Employer Inc. State Workers' Compensation Administration.",
         "WCA 00-00000",
         "Track mediation correspondence and employer responses.",
     ),
     (
         "WCA-003", "deadline", "open", "high", "medical",
-        "Surgery Consult — Late May 2026",
-        "Surgery consultation scheduled. Document outcome for support modification (July 1).",
+        "Medical Consult — Demo Deadline",
+        "Synthetic medical consultation deadline for demo workflow.",
         None,
-        "Obtain consult notes; link to coparent ATM-020 modification window.",
+        "Obtain consult notes and link to the relevant local matter.",
     ),
     (
         "WCA-004", "gap", "open", "normal", "financial",
-        "Income Gap — May 2025 through July 1 2026",
-        "~12 months reduced income. Basis for child support arrears and bankruptcy. Involuntary underemployment.",
+        "Income Gap — Demo Period",
+        "Synthetic income-gap fact for cross-matter demo workflow.",
         "State child support statute",
-        "Use WCA records for Motion to Modify filed July 1.",
+        "Use source records for any downstream local workflow.",
     ),
 ]
 
@@ -115,8 +115,8 @@ def main() -> int:
             "open",
             "State WCA",
             "Example Employer Inc.",
-            "2025-05-01",
-            "Back injury; mediation active; surgery consult May 2026.",
+            "2099-01-01",
+            "Synthetic workers-comp demo matter.",
             now,
         ),
     )
@@ -138,9 +138,9 @@ def main() -> int:
         (
             "WCA-EVD-001",
             "medical",
-            "2025-05-01",
-            "Work-related back injury; workers comp claim filed; ~12 months reduced income.",
-            "coparent EVD-2026-009 cross-ref",
+            "2099-01-01",
+            "Synthetic workers-comp evidence entry.",
+            "demo cross-reference",
             now,
         ),
     )
@@ -150,10 +150,10 @@ def main() -> int:
         VALUES (?, ?, ?, ?)
         """,
         (
-            "Surgery consultation",
-            "2026-05-31",
+            "Medical consultation",
+            "2099-02-01",
             "pending",
-            "Late May 2026 per session records.",
+            "Synthetic deadline for demo data.",
         ),
     )
     conn.execute(

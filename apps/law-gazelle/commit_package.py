@@ -10,6 +10,7 @@ b17: LGCP1  ΔΣ=42
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -26,7 +27,11 @@ CASE_FILES = [
     "coparent_db_export.json",
 ]
 
-LETTER_GLOB = "Campbell_Letter*.docx"
+LETTER_GLOBS = tuple(
+    glob.strip()
+    for glob in os.environ.get("LAW_GAZELLE_LETTER_GLOBS", "Case_Letter*.docx:*_Letter*.docx").split(":")
+    if glob.strip()
+)
 COMMIT_GLOB = "legal_commit_*.json"
 MANIFEST_NAME_TEMPLATE = "legal_commit_{date}.json"
 DRAFT_SUFFIXES = (".md", ".txt", ".html")
@@ -39,8 +44,12 @@ def find_artifacts(nest: Path | None = None) -> list[str]:
     for name in CASE_FILES:
         if (root / name).exists():
             present.append(name)
-    for p in sorted(root.glob(LETTER_GLOB)):
-        present.append(p.name)
+    seen_letters: set[str] = set()
+    for pattern in LETTER_GLOBS:
+        for p in sorted(root.glob(pattern)):
+            if p.name not in seen_letters:
+                present.append(p.name)
+                seen_letters.add(p.name)
     drafts_dir = root / "drafts"
     if drafts_dir.is_dir():
         for p in sorted(drafts_dir.iterdir()):

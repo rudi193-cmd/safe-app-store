@@ -9,7 +9,7 @@ Tools exposed:
   gazelle_detail    — drill-down on a single item
   gazelle_note      — add a note to the sidecar
   gazelle_resolve   — mark an item resolved in the sidecar
-  gazelle_schedule  — schedule response packet (May 30 letter)
+  gazelle_schedule  — schedule response packet
   gazelle_draft     — document drafting context + template
   gazelle_save      — save LLM-produced document to Nest
   gazelle_commit    — write legal_commit manifest to Nest (session-end signal)
@@ -145,7 +145,7 @@ _TOOLS = [
     {
         "name": "gazelle_schedule",
         "description": (
-            "Return the schedule response briefing packet for the May 30 letter deadline: "
+            "Return the schedule response briefing packet for the case response deadline: "
             "open schedule-domain atoms (ATM-001 etc.), parenting plan citations, deadline, "
             "and proposal summary. Use before drafting schedule proposals."
         ),
@@ -232,7 +232,7 @@ _TOOLS = [
             "properties": {
                 "filename": {
                     "type": "string",
-                    "description": "e.g. Campbell_schedule_response_2026-05-30.md",
+                    "description": "e.g. CaseDraft_schedule_response_2099-01-01.md",
                 },
                 "body": {
                     "type": "string",
@@ -367,7 +367,7 @@ _TOOLS = [
                 },
                 "session_date": {
                     "type": "string",
-                    "description": "Session date for filename, e.g. 2026-06-01 (default: today UTC).",
+                    "description": "Session date for filename, e.g. 2099-06-01 (default: today UTC).",
                 },
                 "dry_run": {
                     "type": "boolean",

@@ -1,6 +1,6 @@
 # Law Gazelle — Architecture & Roadmap Spec
 
-**Date:** 2026-06-02  
+**Date:** 2099-06-02  
 **Status:** TUI, MCP, session commits, local-AI cache, stale-data checks, and first data-surfacing pass shipped  
 **b17:** E472A  
 **Branch:** `feat/ratatosk`  
@@ -10,7 +10,7 @@
 
 ## What It Is
 
-A **case command center** for the user's real legal situations — not the generic template-engine / Postgres stub in the old repo.
+A **case command center** for private, operator-provided legal matter data — not the generic template-engine / Postgres stub in the old repo. Public repo examples are synthetic.
 
 Law Gazelle:
 
@@ -28,7 +28,7 @@ It is the **runtime operator** on prepared legal data. It does **not** author ca
 
 | Ignored / deprecated | Why |
 |---|---|
-| `legal_db.py`, Postgres backend | Wrong backend; not the user's data |
+| `legal_db.py`, Postgres backend | Wrong backend for local Nest case data |
 | `src/gazelle_engine.py` intake/chat flow | Template demand-letter assistant |
 | Direct `willow_knowledge_ingest` at session end | Compost/promote is downstream of the watcher |
 | Mutating Nest SQLite from the TUI | Nest stays canonical; only sidecar writes |
@@ -78,12 +78,12 @@ flowchart TB
 
 | File | Role |
 |---|---|
-| `coparent.db` | Family law D-000-DM-0000-00000 — atoms, issues, evidence, plan citations, state law, legal documents, correspondence, communication log, schedule, context events |
-| `bankruptcy.db` | Ch. 13 dismissed → Ch. 7 — flags, checklist, creditors, coparent_intersections |
-| `workers_comp.db` | WCA 00-00000 (scaffolded; narrative also in coparent) |
-| `session_meta.db` | Build-session provenance (May 23/24 night) |
+| `coparent.db` | Demo family-law matter D-000-DM-0000-00000 — atoms, issues, evidence, plan citations, state law, legal documents, correspondence, communication log, schedule, context events |
+| `bankruptcy.db` | Demo bankruptcy matter — flags, checklist, creditors, coparent_intersections |
+| `workers_comp.db` | Demo workers-comp matter WCA 00-00000 |
+| `session_meta.db` | Build-session provenance |
 | `coparent_db_export.json` | Full snapshot + `_meta.response_deadlines` |
-| `Campbell_Letter_May23_2026.docx` | Sent letter artifact |
+| `Case_Letter_YYYY-MM-DD.docx` | Optional source-letter artifact |
 
 **Format:** Relational **SQLite** (`TEXT`, `INTEGER`, `REAL`). **Not JSONB.** JSON appears only in the export file and optional TEXT reference columns.
 
@@ -242,7 +242,7 @@ cd apps/law-gazelle && ./dev.sh
 | o | Open artifact (Session tab, selected row) |
 | q | Quit |
 
-**Milestone banner:** Reads `_meta.response_deadlines` from `coparent_db_export.json` when available and always includes July 1 city job / Ch7 / support context.
+**Milestone banner:** Reads `_meta.response_deadlines` from `coparent_db_export.json` when available and may include operator-configured static context.
 
 ---
 
@@ -251,9 +251,9 @@ cd apps/law-gazelle && ./dev.sh
 | Domain | Identifier | Notes |
 |---|---|---|
 | Coparent | D-000-DM-0000-00000 | Example County, ST |
-| Bankruptcy | Ch. 13 dismissed 2026-05-12 → Ch. 7 organizing | |
-| Workers comp | WCA 00-00000 | Scaffolded DB; narrative in coparent atoms |
-| Letter | Campbell_Letter_May23_2026.docx | Sent; response deadlines in export `_meta` |
+| Bankruptcy | BK-0000-DEMO | Synthetic demo matter |
+| Workers comp | WCA 00-00000 | Synthetic demo scaffold |
+| Letter | Case_Letter_YYYY-MM-DD.docx | Optional source-letter artifact; response deadlines in export `_meta` |
 
 ---
 
@@ -299,8 +299,8 @@ At end of a legal build session, write a small JSON file to Nest:
 {
   "kind": "law_gazelle_commit",
   "status": "prepared",
-  "committed_at": "2026-06-02T06:00:00Z",
-  "session_date": "2026-06-02",
+  "committed_at": "2099-06-02T06:00:00Z",
+  "session_date": "2099-06-02",
   "case_number": "D-000-DM-0000-00000",
   "files": [
     "coparent.db",
@@ -308,7 +308,7 @@ At end of a legal build session, write a small JSON file to Nest:
     "workers_comp.db",
     "session_meta.db",
     "coparent_db_export.json",
-    "Campbell_Letter_May23_2026.docx"
+    "Case_Letter_YYYY-MM-DD.docx"
   ],
   "summary": "Session summary; case DBs/export/drafts ready for watcher"
 }
@@ -319,7 +319,7 @@ At end of a legal build session, write a small JSON file to Nest:
 1. `nest_intake._classify()` — recognize `legal_commit_<date>.json` as track `legal` / `law_gazelle_commit`
 2. `nest_watcher` — Grove message, e.g.:
    ```
-   [nest] law-gazelle package committed — session 2026-05-23/24, 6 files, case D-000-DM-0000-00000
+   [nest] law-gazelle package committed — session 2099-06-02, 6 files, case D-000-DM-0000-00000
    ```
 3. Fleet (Heimdallr / Loki watcher) — optional LOAM promote, session index, audit log
 4. Law Gazelle — `sync_cases()` on next refresh; Session tab reads latest manifest when present
@@ -375,7 +375,7 @@ Poll `coparent.db` + `session_meta.db` mtimes; alert on change. Simpler for auth
 
 - [x] AI cache content fingerprint, 7-day TTL, force bypass, TUI cache preflight
 - [x] Stale DB detection before render and after sync
-- [x] Dynamic milestones from `coparent_db_export.json` plus static July 1 context
+- [x] Dynamic milestones from `coparent_db_export.json` plus optional static context
 - [x] Indexes on sidecar notes/activity and workers-comp table whitelist
 - [x] Bankruptcy checklist rows → detail type
 - [x] First missing-data path surfaced: `legal_documents` in Coparent matter drill-down and `gazelle_detail`

@@ -79,7 +79,7 @@ class DocumentStoreTests(unittest.TestCase):
             "INSERT INTO context_events VALUES (1,'order','Parenting plan entered','2024-03-15')"
         )
         conn.execute(
-            "INSERT INTO context_events VALUES (2,'violation','Missed Thursday exchange','2026-05-10')"
+            "INSERT INTO context_events VALUES (2,'violation','Missed Thursday exchange','2099-05-10')"
         )
         conn.commit()
         conn.close()
@@ -90,7 +90,7 @@ class DocumentStoreTests(unittest.TestCase):
               "_meta": {
                 "case": "D-000-DM-0000-00000",
                 "parties": {"parent_a": "Example Parent A", "parent_b": "Example Parent B"},
-                "letter_sent": "2026-05-23",
+                "letter_sent": "2099-05-23",
                 "response_deadlines": {"schedule": "2099-01-01", "all_other": "2099-06-01"}
               }
             }""",
@@ -116,12 +116,12 @@ class DocumentStoreTests(unittest.TestCase):
 
     def test_structure_template_schedule(self) -> None:
         tpl = document_store.structure_template("schedule_response")
-        self.assertIn("May 30", tpl)
+        self.assertIn("case response deadline", tpl)
         self.assertIn("Example Parent A", tpl)
 
     def test_save_document_to_nest(self) -> None:
         result = document_store.save_document(
-            "Campbell_test_draft",
+            "CaseDraft_test_draft",
             "# Test Letter\n\nBody text.",
         )
         self.assertTrue(result["ok"])
@@ -171,7 +171,7 @@ class DocumentStoreTests(unittest.TestCase):
         md = document_store.format_chronology_markdown(chrono)
         self.assertIn("# Case Chronology", md)
         self.assertIn("| Date | Sig |", md)
-        self.assertIn("2026-05-23", md)
+        self.assertIn("2099-05-23", md)
         self.assertIn("[VERIFY", md)
 
     def test_structure_template_has_fact_flags(self) -> None:

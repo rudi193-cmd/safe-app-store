@@ -29,14 +29,14 @@ DOCUMENT_TYPES: dict[str, dict[str, Any]] = {
     "schedule_response": {
         "title": "Schedule Response Letter",
         "deadline_key": "schedule",
-        "description": "Proposed schedule changes in response to Campbell letter (May 30 deadline).",
+        "description": "Proposed schedule changes in response to a source letter.",
         "atom_domains": ("schedule",),
         "include_schedule_packet": True,
     },
     "letter_all_other": {
         "title": "Letter Response — All Other Items",
         "deadline_key": "all_other",
-        "description": "Response to non-schedule items from Campbell letter (June 6 deadline).",
+        "description": "Response to non-schedule items from a source letter.",
         "atom_domains": None,
         "exclude_domains": ("schedule",),
     },
@@ -165,11 +165,11 @@ def structure_template(doc_type: str) -> str:
 {parent_b}
 [FACT NEEDED: {parent_b}'s current mailing address]
 
-**Re:** Case No. {case_no} — Schedule Proposals (Response to Letter of May 23, 2026)
+**Re:** Case No. {case_no} — Schedule Proposals (Response to Source Letter)
 
 Dear {parent_b},
 
-Thank you for acknowledging my letter. This responds to the schedule items due **May 30, 2026**.
+Thank you for acknowledging my letter. This responds to the schedule items due by the case response deadline.
 
 ## Thursday Exchange
 [FACT NEEDED: current order's Thursday exchange time] [VERIFY: §V.Q governs weekday exchanges]
@@ -220,7 +220,7 @@ Respectfully,
 
 Dear {parent_b},
 
-This letter addresses the non-schedule items from my letter of May 23, 2026, due **June 6, 2026**.
+This letter addresses the non-schedule items from my source letter, due by the case response deadline.
 
 ## [FACT NEEDED: section title from atom/issue]
 [VERIFY: confirm which atoms fall in non-schedule domain before drafting each section]
@@ -259,12 +259,12 @@ def _writing_instructions(doc_type: str) -> str:
     if doc_type == "schedule_response":
         return (
             base
-            + " Focus ONLY on schedule/custody logistics for the May 30 deadline. "
+            + " Focus ONLY on schedule/custody logistics for the case response deadline. "
             "Include concrete times (e.g. Thursday exchange 3:30pm). "
             "Reference ATM IDs internally while drafting but do not put atom IDs in the final letter."
         )
     if doc_type == "letter_all_other":
-        return base + " Cover financial, compliance, and non-schedule items. Due June 6."
+        return base + " Cover financial, compliance, and non-schedule items using the case response deadline."
     return base
 
 
@@ -317,7 +317,7 @@ def format_draft_context_markdown(ctx: dict) -> str:
     lines.extend([
         "## After Drafting",
         "Call gazelle_save with the final markdown body. "
-        f"Suggested filename: Campbell_{ctx.get('doc_type', 'draft')}_{date.today().isoformat()}.md",
+        f"Suggested filename: CaseDraft_{ctx.get('doc_type', 'draft')}_{date.today().isoformat()}.md",
     ])
     return "\n".join(lines)
 
@@ -429,7 +429,7 @@ def chronology_builder(case: str = "coparent") -> dict:
         events.append({
             "date": meta["letter_sent"],
             "type": "letter_sent",
-            "description": "Campbell letter sent to opposing party",
+            "description": "Source letter sent to opposing party",
             "source": "coparent_db_export.json _meta.letter_sent",
             "significance": "🔴",
             "flags": [],

@@ -36,7 +36,7 @@ ROUTE_LABELS: dict[str, str] = {
 
 MATTER_NAV: list[tuple[str, str, str]] = [
     ("coparent", "Coparent", "D-000-DM-0000-00000 atoms and issues"),
-    ("bankruptcy", "Bankruptcy", "Ch.7 flags, creditors, checklist"),
+    ("bankruptcy", "Bankruptcy", "Flags, creditors, checklist"),
     ("workers_comp", "Workers Comp", "WCA claim atoms"),
     ("cross_case", "Cross-Case", "Intersections and shared context"),
     ("cases", "All Cases", "Case summary overview"),
