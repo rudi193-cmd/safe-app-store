@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ask Jeles — Your butler for the open web</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inconsolata:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --parchment: #f5f0e8;
+  --parchment-dark: #ebe4d6;
+  --rust: #8b3a2a;
+  --rust-light: #a04e3c;
+  --gold: #9a7b3c;
+  --gold-light: #c4a456;
+  --ink: #1a1510;
+  --ink-soft: #3d352a;
+  --ink-muted: #6b5e4f;
+  --cream: #faf7f2;
+  --card-border: #d4c9b8;
+  --shadow: rgba(26, 21, 16, 0.08);
+  --shadow-deep: rgba(26, 21, 16, 0.15);
+}
+
+html { font-size: 16px; }
+body {
+  font-family: 'EB Garamond', Georgia, serif;
+  background: var(--parchment);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.6;
+}
+
+/* ── Header ── */
+.site-header {
+  background: var(--ink);
+  color: var(--parchment);
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-portrait {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  object-fit: cover;
+}
+.header-text h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--parchment);
+}
+.header-text p {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.75rem;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.header-links {
+  margin-left: auto;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.header-links a {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.75rem;
+  color: var(--gold);
+  text-decoration: none;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.header-links a:hover { color: var(--parchment); }
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 0%, rgba(154, 123, 60, 0.18), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 90% 100%, rgba(139, 58, 42, 0.12), transparent 50%),
+    linear-gradient(165deg, var(--ink) 0%, #2a2218 42%, var(--parchment-dark) 100%);
+  color: var(--parchment);
+  border-bottom: 3px solid var(--gold);
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(245, 240, 232, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245, 240, 232, 0.03) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+  opacity: 0.35;
+}
+.hero-inner {
+  position: relative;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 2rem;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 2rem;
+  align-items: center;
+}
+.hero-copy { z-index: 1; }
+.hero-eyebrow {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  margin-bottom: 0.75rem;
+}
+.hero h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: 0.01em;
+  margin-bottom: 0.85rem;
+  color: var(--cream);
+}
+.hero-lead {
+  font-size: clamp(1rem, 2.2vw, 1.15rem);
+  color: rgba(245, 240, 232, 0.82);
+  max-width: 34rem;
+  margin-bottom: 1.35rem;
+}
+.hero-quote {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--gold-light);
+  border-left: 2px solid var(--rust-light);
+  padding-left: 1rem;
+  margin-bottom: 1.5rem;
+  max-width: 28rem;
+}
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+.hero-cta {
+  background: var(--rust);
+  color: var(--parchment);
+  border: none;
+  padding: 0.7rem 1.35rem;
+  border-radius: 5px;
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+.hero-cta:hover {
+  background: var(--rust-light);
+  transform: translateY(-1px);
+}
+.hero-cta-secondary {
+  background: transparent;
+  color: var(--gold-light);
+  border: 1px solid rgba(196, 164, 86, 0.55);
+  padding: 0.65rem 1.1rem;
+  border-radius: 5px;
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.hero-cta-secondary:hover {
+  border-color: var(--parchment);
+  color: var(--parchment);
+}
+.hero-drawers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+.hero-drawer {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(196, 164, 86, 0.35);
+  color: rgba(245, 240, 232, 0.75);
+  background: rgba(26, 21, 16, 0.35);
+}
+.hero-drawer strong { color: var(--gold-light); font-weight: 500; }
+.hero-visual {
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.hero-frame {
+  position: relative;
+  width: min(100%, 280px);
+  aspect-ratio: 4 / 5;
+  border: 1px solid rgba(196, 164, 86, 0.45);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(26, 21, 16, 0.5), rgba(26, 21, 16, 0.85));
+  box-shadow: 0 18px 40px var(--shadow-deep);
+  overflow: hidden;
+}
+.hero-frame::before,
+.hero-frame::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-color: var(--gold);
+  border-style: solid;
+  z-index: 2;
+}
+.hero-frame::before {
+  top: 8px; left: 8px;
+  border-width: 2px 0 0 2px;
+}
+.hero-frame::after {
+  bottom: 8px; right: 8px;
+  border-width: 0 2px 2px 0;
+}
+.hero-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  display: block;
+}
+.hero-portrait-fallback {
+  width: 100%;
+  height: 100%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 5rem;
+  color: var(--gold);
+  background: radial-gradient(circle at 50% 35%, #3d352a, var(--ink));
+}
+.hero-frame.no-image .hero-portrait { display: none; }
+.hero-frame.no-image .hero-portrait-fallback { display: flex; }
+.hero-desk-card {
+  width: min(100%, 280px);
+  background: rgba(250, 247, 242, 0.08);
+  border: 1px solid rgba(196, 164, 86, 0.25);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  text-align: center;
+}
+.hero-desk-card p {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+}
+.hero-desk-card span {
+  display: block;
+  margin-top: 0.25rem;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--parchment);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.hero-motto {
+  text-align: center;
+  padding: 0.65rem 1rem;
+  border-top: 1px solid rgba(196, 164, 86, 0.2);
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245, 240, 232, 0.55);
+  background: rgba(26, 21, 16, 0.45);
+}
+.hero-motto em {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: var(--gold-light);
+}
+.hero.hidden { display: none; }
+
+/* ── Main Layout ── */
+.main-wrap {
+  flex: 1;
+  max-width: 820px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── Trusted Sources ── */
+.sources-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--parchment-dark);
+  border-radius: 6px;
+  border: 1px solid var(--card-border);
+}
+.sources-bar span {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.7rem;
+  color: var(--ink-muted);
+  letter-spacing: 0.04em;
+}
+.sources-bar .sources-label {
+  width: 100%;
+  text-align: center;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  margin-bottom: 0.25rem;
+}
+.sources-bar .sources-note {
+  width: 100%;
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+  margin-top: 0.35rem;
+  font-style: italic;
+}
+
+/* ── Chat Thread ── */
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 120px;
+}
+
+.msg {
+  max-width: 88%;
+  padding: 0.85rem 1.1rem;
+  border-radius: 8px;
+  line-height: 1.55;
+  font-size: 0.95rem;
+}
+.msg-user {
+  align-self: flex-end;
+  background: var(--ink);
+  color: var(--parchment);
+  border-bottom-right-radius: 2px;
+}
+.msg-jeles {
+  align-self: flex-start;
+  background: var(--cream);
+  color: var(--ink);
+  border: 1px solid var(--card-border);
+  border-bottom-left-radius: 2px;
+}
+.msg-jeles .msg-name {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rust);
+  margin-bottom: 0.35rem;
+}
+
+/* ── Source Cards ── */
+.source-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+.source-card {
+  position: relative;
+  background: var(--parchment);
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.85rem;
+}
+/* Corner brackets */
+.source-card::before,
+.source-card::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: var(--gold);
+  border-style: solid;
+}
+.source-card::before {
+  top: 3px; left: 3px;
+  border-width: 1.5px 0 0 1.5px;
+}
+.source-card::after {
+  bottom: 3px; right: 3px;
+  border-width: 0 1.5px 1.5px 0;
+}
+.source-card-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--ink);
+  margin-bottom: 0.2rem;
+}
+.source-card-summary {
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+.source-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.4rem;
+}
+.source-card-url {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.68rem;
+  color: var(--rust);
+  text-decoration: none;
+}
+.source-card-url:hover { text-decoration: underline; }
+.badge {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+  border: 1px solid;
+}
+.badge-high { color: #2d6a30; border-color: #2d6a30; background: #e8f5e9; }
+.badge-medium { color: #8a6d00; border-color: #8a6d00; background: #fff8e1; }
+.badge-low { color: var(--rust); border-color: var(--rust); background: #fbe9e7; }
+
+/* ── Input Area ── */
+.input-area {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--cream);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  position: sticky;
+  bottom: 1rem;
+}
+.input-area input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1rem;
+  color: var(--ink);
+  outline: none;
+}
+.input-area input::placeholder { color: var(--ink-muted); font-style: italic; }
+.btn-send {
+  background: var(--rust);
+  color: var(--parchment);
+  border: none;
+  padding: 0.5rem 1.2rem;
+  border-radius: 5px;
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-send:hover { background: var(--rust-light); }
+.btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Action Bar ── */
+.action-bar {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn-action {
+  background: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--ink-muted);
+  padding: 0.35rem 0.9rem;
+  border-radius: 4px;
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-action:hover {
+  border-color: var(--rust);
+  color: var(--rust);
+}
+
+/* ── Footer ── */
+.site-footer {
+  text-align: center;
+  padding: 1.5rem;
+  border-top: 1px solid var(--card-border);
+  margin-top: auto;
+}
+.consent-notice {
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.7rem;
+  color: var(--ink-muted);
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+}
+.footer-credit {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+}
+.footer-credit a { color: var(--rust); text-decoration: none; }
+.footer-credit a:hover { text-decoration: underline; }
+
+/* ── Loading ── */
+.loading-dots::after {
+  content: '';
+  animation: dots 1.2s steps(4, end) infinite;
+}
+@keyframes dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 800px) {
+  .hero-inner {
+    grid-template-columns: 1fr;
+    padding: 2rem 1.25rem 1.5rem;
+    text-align: center;
+  }
+  .hero-quote,
+  .hero-lead { margin-left: auto; margin-right: auto; }
+  .hero-actions,
+  .hero-drawers { justify-content: center; }
+}
+@media (max-width: 600px) {
+  .main-wrap { padding: 1rem; }
+  .msg { max-width: 95%; }
+  .site-header { padding: 0.5rem 1rem; }
+  .header-text h1 { font-size: 1.1rem; }
+  .hero h2 { font-size: 1.85rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="site-header">
+  <img src="jeles.png" alt="Jeles" class="header-portrait">
+  <div class="header-text">
+    <h1>Ask Jeles</h1>
+    <p>The Stacks &mdash; UTETY</p>
+  </div>
+  <div class="header-links">
+    <a href="https://utety.pages.dev" target="_blank">UTETY</a>
+    <a href="https://github.com/rudi193-cmd/safe-app-ask-jeles" target="_blank">GitHub</a>
+  </div>
+</header>
+
+<!-- ── Hero ── -->
+<section class="hero" id="hero" aria-label="Ask Jeles introduction">
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <p class="hero-eyebrow">Spiritual successor to Ask Jeeves &middot; Est. the misfiled drawer</p>
+      <h2>Jeles knows where things are.</h2>
+      <p class="hero-lead">
+        Your butler for your own verified knowledge first, then maps when you need a place,
+        the wide web when you need an answer, and Special Collections when you need a citation.
+      </p>
+      <blockquote class="hero-quote">
+        &ldquo;The things we think we&rsquo;ve lost are simply misfiled.&rdquo;
+      </blockquote>
+      <div class="hero-actions">
+        <button type="button" class="hero-cta" onclick="focusSearch()">Ask the Librarian</button>
+        <button type="button" class="hero-cta-secondary" onclick="scrollToChat()">Go to the desk</button>
+      </div>
+      <div class="hero-drawers" aria-label="Search drawers">
+        <span class="hero-drawer"><strong>Your KB</strong> &mdash; Willow &amp; Binder</span>
+        <span class="hero-drawer"><strong>Open web</strong> &mdash; DuckDuckGo</span>
+        <span class="hero-drawer"><strong>Maps</strong> &mdash; handoffs</span>
+        <span class="hero-drawer"><strong>Special Collections</strong> &mdash; LoC, NASA, arXiv&hellip;</span>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-frame" id="hero-frame">
+        <img
+          src="jeles.png"
+          alt="Jeles at the Special Collections desk"
+          class="hero-portrait"
+          onerror="document.getElementById('hero-frame').classList.add('no-image')"
+        >
+        <div class="hero-portrait-fallback" aria-hidden="true">J</div>
+      </div>
+      <div class="hero-desk-card">
+        <p>At the desk</p>
+        <span>Special Collections, UTETY</span>
+      </div>
+    </div>
+  </div>
+  <p class="hero-motto">
+    <em>Non veritas, vibras</em> &middot; No SEO slop &middot; <em>Falsum sed certum</em>
+  </p>
+</section>
+
+<!-- ── Main ── -->
+<div class="main-wrap" id="chat-section">
+
+  <!-- Trusted Sources -->
+  <div class="sources-bar">
+    <span class="sources-label">Your KB, open web &amp; Special Collections</span>
+    <span>Smithsonian</span>
+    <span>Library of Congress</span>
+    <span>Internet Archive</span>
+    <span>Louvre</span>
+    <span>NASA</span>
+    <span>NIH</span>
+    <span>UNESCO</span>
+    <span>Europeana</span>
+    <span>The Met</span>
+    <span>V&amp;A</span>
+    <span>British Museum</span>
+    <span>Nature</span>
+    <span>JSTOR</span>
+    <span>Wikipedia</span>
+    <span class="sources-note">Jeles checks your Willow/Binder knowledge first, then steps out to the web when needed.</span>
+  </div>
+
+  <!-- Chat Thread -->
+  <div class="thread" id="thread"></div>
+
+  <!-- Input -->
+  <div class="input-area">
+    <input type="text" id="user-input" placeholder="Ask the Librarian..." autocomplete="off">
+    <button class="btn-send" id="send-btn" onclick="sendMessage()">Search</button>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-bar">
+    <button class="btn-action" onclick="downloadConversation()">Save</button>
+    <button class="btn-action" onclick="forgetConversation()">Forget</button>
+  </div>
+
+</div>
+
+<!-- ── Footer ── -->
+<footer class="site-footer">
+  <p class="consent-notice">Your queries live on your machine. Nothing leaves without your permission.</p>
+  <p class="footer-credit">
+    <a href="https://utety.pages.dev">UTETY</a> &mdash;
+    A <a href="https://github.com/rudi193-cmd">SAFE</a> application
+  </p>
+</footer>
+
+<script>
+const STORAGE_KEY = 'askjeles_history';
+const thread = document.getElementById('thread');
+const input = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+const hero = document.getElementById('hero');
+
+let history = [];
+
+function hideHero() {
+  if (hero) hero.classList.add('hidden');
+}
+
+function showHero() {
+  if (hero) hero.classList.remove('hidden');
+}
+
+function focusSearch() {
+  hideHero();
+  input.focus();
+  input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function scrollToChat() {
+  hideHero();
+  document.getElementById('chat-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  input.focus();
+}
+
+// Load from localStorage
+function loadHistory() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      history = JSON.parse(saved);
+      if (history.length > 0) hideHero();
+      for (const entry of history) {
+        if (entry.role === 'user') {
+          appendUserMsg(entry.content, false);
+        } else {
+          appendJelesMsg(entry.content, entry.sources || [], false);
+        }
+      }
+    }
+  } catch { /* fresh start */ }
+}
+
+function saveHistory() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  } catch { /* storage full — degrade gracefully */ }
+}
+
+function appendUserMsg(text, save = true) {
+  const div = document.createElement('div');
+  div.className = 'msg msg-user';
+  div.textContent = text;
+  thread.appendChild(div);
+  if (save) {
+    history.push({ role: 'user', content: text });
+    saveHistory();
+  }
+  scrollToBottom();
+}
+
+function appendJelesMsg(text, sources = [], save = true) {
+  const div = document.createElement('div');
+  div.className = 'msg msg-jeles';
+
+  let html = '<div class="msg-name">Jeles</div>';
+  html += formatText(text);
+
+  if (sources && sources.length > 0) {
+    html += '<div class="source-cards">';
+    for (const s of sources) {
+      const badgeClass = s.confidence === 'high' ? 'badge-high' : s.confidence === 'medium' ? 'badge-medium' : 'badge-low';
+      html += `<div class="source-card">
+        <div class="source-card-title">${escapeHtml(s.title)}</div>
+        <div class="source-card-summary">${escapeHtml(truncate(s.summary, 200))}</div>
+        <div class="source-card-meta">
+          <a class="source-card-url" href="${escapeHtml(s.url)}" target="_blank" rel="noopener">${escapeHtml(safeHostname(s.url))}</a>
+          <span class="badge ${badgeClass}">${escapeHtml(s.confidence)}</span>
+        </div>
+      </div>`;
+    }
+    html += '</div>';
+  }
+
+  div.innerHTML = html;
+  thread.appendChild(div);
+  if (save) {
+    history.push({ role: 'assistant', content: text, sources });
+    saveHistory();
+  }
+  scrollToBottom();
+}
+
+function appendLoading() {
+  const div = document.createElement('div');
+  div.className = 'msg msg-jeles';
+  div.id = 'loading-msg';
+  div.innerHTML = '<div class="msg-name">Jeles</div><span class="loading-dots">Searching the stacks</span>';
+  thread.appendChild(div);
+  scrollToBottom();
+  return div;
+}
+
+function removeLoading() {
+  const el = document.getElementById('loading-msg');
+  if (el) el.remove();
+}
+
+async function sendMessage() {
+  const text = input.value.trim();
+  if (!text) return;
+
+  hideHero();
+  appendUserMsg(text);
+  input.value = '';
+  sendBtn.disabled = true;
+
+  const loader = appendLoading();
+
+  // Build history for API (last 10 turns)
+  const apiHistory = history.slice(-10).filter(h => h.role === 'user' || h.role === 'assistant').map(h => ({
+    role: h.role,
+    content: h.content,
+  }));
+  // Remove the last entry (current message — already in 'message' param)
+  apiHistory.pop();
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, history: apiHistory }),
+    });
+
+    removeLoading();
+
+    if (resp.status === 429) {
+      appendJelesMsg("I'm afraid there's a queue at the desk. Do come back in a moment — the stacks aren't going anywhere.", []);
+      sendBtn.disabled = false;
+      return;
+    }
+
+    if (!resp.ok) {
+      appendJelesMsg("Something has gone awry in the back shelves. The Binder may be reorganising. Try again shortly.", []);
+      sendBtn.disabled = false;
+      return;
+    }
+
+    const data = await resp.json();
+    appendJelesMsg(data.response || "I seem to have lost my place. Could you ask again?", data.sources || []);
+  } catch {
+    removeLoading();
+    appendJelesMsg("The connection to the stacks has been interrupted. Check your line and try once more.", []);
+  }
+
+  sendBtn.disabled = false;
+  input.focus();
+}
+
+function forgetConversation() {
+  if (!confirm('Clear all conversation history? This cannot be undone.')) return;
+  history = [];
+  localStorage.removeItem(STORAGE_KEY);
+  thread.innerHTML = '';
+  showHero();
+}
+
+function downloadConversation() {
+  if (history.length === 0) return;
+  const blob = new Blob([JSON.stringify({ exported: new Date().toISOString(), conversation: history }, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ask-jeles-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function scrollToBottom() {
+  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function truncate(str, max) {
+  if (!str || str.length <= max) return str || '';
+  return str.slice(0, max) + '...';
+}
+
+function safeHostname(url) {
+  if (!url) return 'source';
+  try { return new URL(url).hostname; } catch { return 'source'; }
+}
+
+function formatText(text) {
+  if (!text) return '';
+  // Basic markdown-ish: bold, italic, line breaks
+  return escapeHtml(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+}
+
+// Enter to send
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+// Init
+loadHistory();
+input.focus();
+</script>
+</body>
+</html>

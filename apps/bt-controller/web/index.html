@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BT Controller — SAFE App</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #141420;
+    --border: #2a2a3a;
+    --text: #e0e0e8;
+    --dim: #808090;
+    --accent: #4a9eff;
+    --green: #4aff8a;
+    --red: #ff4a6a;
+    --orange: #ffaa4a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  h1 { font-size: 1.2em; margin-bottom: 4px; }
+  .subtitle { color: var(--dim); font-size: 0.8em; margin-bottom: 20px; }
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .panel h2 { font-size: 0.9em; color: var(--dim); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.85em;
+    margin-right: 8px;
+    margin-bottom: 8px;
+  }
+  button:hover { opacity: 0.85; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.danger { background: var(--red); }
+  button.success { background: var(--green); color: #000; }
+  button.warn { background: var(--orange); color: #000; }
+  .device-list { list-style: none; }
+  .device-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .device-item:last-child { border-bottom: none; }
+  .device-name { font-weight: bold; }
+  .device-id { color: var(--dim); font-size: 0.75em; }
+  .device-status { font-size: 0.8em; padding: 3px 8px; border-radius: 4px; }
+  .status-connected { background: var(--green); color: #000; }
+  .status-disconnected { background: var(--border); color: var(--dim); }
+  .status-connecting { background: var(--orange); color: #000; }
+  #log {
+    font-size: 0.75em;
+    color: var(--dim);
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+  #log .error { color: var(--red); }
+  #log .success { color: var(--green); }
+  #log .info { color: var(--accent); }
+  .stats { display: flex; gap: 20px; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-value { font-size: 1.4em; font-weight: bold; }
+  .stat-label { font-size: 0.7em; color: var(--dim); }
+  .keepalive-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .keepalive-on { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .keepalive-off { background: var(--border); }
+  .not-supported {
+    padding: 40px;
+    text-align: center;
+    color: var(--red);
+  }
+</style>
+</head>
+<body>
+
+<h1>BT Controller</h1>
+<div class="subtitle">Web Bluetooth device manager — bypasses Windows BT stack</div>
+
+<div id="not-supported" class="panel not-supported" style="display:none;">
+  Web Bluetooth is not supported in this browser.<br>
+  Use Chrome or Edge with <code>chrome://flags/#enable-web-bluetooth</code> enabled.
+</div>
+
+<div id="app">
+  <div class="panel">
+    <h2>Scan</h2>
+    <button id="btn-scan" onclick="scanDevices()">Scan for Devices</button>
+    <button id="btn-scan-audio" onclick="scanAudioDevices()">Scan Audio Devices</button>
+    <button id="btn-scan-all" class="warn" onclick="scanAllDevices()">Scan All (Permissive)</button>
+  </div>
+
+  <div class="panel">
+    <h2>Connected Devices</h2>
+    <div class="stats" id="stats">
+      <div class="stat"><div class="stat-value" id="stat-connected">0</div><div class="stat-label">Connected</div></div>
+      <div class="stat"><div class="stat-value" id="stat-keepalive">0</div><div class="stat-label">Keep-Alive</div></div>
+      <div class="stat"><div class="stat-value" id="stat-reconnects">0</div><div class="stat-label">Reconnects</div></div>
+      <div class="stat"><div class="stat-value" id="stat-drops">0</div><div class="stat-label">Drops</div></div>
+    </div>
+    <ul class="device-list" id="device-list"></ul>
+  </div>
+
+  <div class="panel">
+    <h2>Log</h2>
+    <button onclick="clearLog()">Clear</button>
+    <div id="log"></div>
+  </div>
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────
+const devices = new Map(); // id -> { device, server, connected, keepalive, reconnects, timer }
+let stats = { connected: 0, keepalive: 0, reconnects: 0, drops: 0 };
+
+// ── Check Web Bluetooth support ──────────────────────────────────
+if (!navigator.bluetooth) {
+  document.getElementById('not-supported').style.display = 'block';
+  document.getElementById('app').style.display = 'none';
+}
+
+// ── Logging ──────────────────────────────────────────────────────
+function log(msg, cls = '') {
+  const el = document.getElementById('log');
+  const ts = new Date().toLocaleTimeString();
+  const span = document.createElement('div');
+  span.className = cls;
+  span.textContent = `${ts} | ${msg}`;
+  el.appendChild(span);
+  el.scrollTop = el.scrollHeight;
+}
+
+function clearLog() {
+  document.getElementById('log').innerHTML = '';
+}
+
+// ── Stats ────────────────────────────────────────────────────────
+function updateStats() {
+  let connected = 0, keepalive = 0;
+  devices.forEach(d => {
+    if (d.connected) connected++;
+    if (d.keepalive) keepalive++;
+  });
+  stats.connected = connected;
+  stats.keepalive = keepalive;
+  document.getElementById('stat-connected').textContent = stats.connected;
+  document.getElementById('stat-keepalive').textContent = stats.keepalive;
+  document.getElementById('stat-reconnects').textContent = stats.reconnects;
+  document.getElementById('stat-drops').textContent = stats.drops;
+}
+
+// ── Scanning ─────────────────────────────────────────────────────
+async function scanDevices() {
+  try {
+    log('Scanning for BLE devices...', 'info');
+    const device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: ['battery_service', 'device_information', 'generic_access']
+    });
+    await connectDevice(device);
+  } catch (e) {
+    log(`Scan cancelled or failed: ${e.message}`, 'error');
+  }
+}
+
+async function scanAudioDevices() {
+  try {
+    log('Scanning for audio devices...', 'info');
+    const device = await navigator.bluetooth.requestDevice({
+      filters: [
+        { services: ['battery_service'] },
+        { namePrefix: 'PYLE' },
+        { namePrefix: 'BK6302' },
+        { namePrefix: 'Porlei' },
+      ],
+      optionalServices: ['battery_service', 'device_information', 'generic_access',
+                         '0000fff0-0000-1000-8000-00805f9b34fb']
+    });
+    await connectDevice(device);
+  } catch (e) {
+    log(`Audio scan failed: ${e.message}`, 'error');
+  }
+}
+
+async function scanAllDevices() {
+  try {
+    log('Permissive scan — all devices, all services...', 'info');
+    const device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: [
+        'battery_service', 'device_information', 'generic_access',
+        'human_interface_device',
+        '0000fff0-0000-1000-8000-00805f9b34fb',
+        '0000180f-0000-1000-8000-00805f9b34fb',
+      ]
+    });
+    await connectDevice(device);
+  } catch (e) {
+    log(`Permissive scan failed: ${e.message}`, 'error');
+  }
+}
+
+// ── Connection ───────────────────────────────────────────────────
+async function connectDevice(device) {
+  const id = device.id;
+  const name = device.name || 'Unknown';
+
+  log(`Connecting to ${name} (${id.substring(0, 8)})...`, 'info');
+
+  try {
+    const server = await device.gatt.connect();
+    log(`Connected to ${name}`, 'success');
+
+    const entry = {
+      device: device,
+      server: server,
+      name: name,
+      connected: true,
+      keepalive: false,
+      reconnects: 0,
+      timer: null,
+    };
+
+    devices.set(id, entry);
+
+    // Listen for disconnection
+    device.addEventListener('gattserverdisconnected', () => onDisconnect(id));
+
+    // Try to read battery level
+    try {
+      const battery = await server.getPrimaryService('battery_service');
+      const level = await battery.getCharacteristic('battery_level');
+      const val = await level.readValue();
+      log(`${name} battery: ${val.getUint8(0)}%`, 'success');
+    } catch (e) {
+      // No battery service — that's fine
+    }
+
+    renderDevices();
+    updateStats();
+  } catch (e) {
+    log(`Connection failed: ${e.message}`, 'error');
+  }
+}
+
+function onDisconnect(id) {
+  const entry = devices.get(id);
+  if (!entry) return;
+
+  entry.connected = false;
+  stats.drops++;
+  log(`${entry.name} disconnected (drop #${stats.drops})`, 'error');
+
+  if (entry.keepalive) {
+    log(`Keep-alive active — reconnecting ${entry.name}...`, 'info');
+    reconnect(id);
+  }
+
+  renderDevices();
+  updateStats();
+}
+
+async function reconnect(id) {
+  const entry = devices.get(id);
+  if (!entry) return;
+
+  const maxRetries = 5;
+  const baseDelay = 2000;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const delay = baseDelay * attempt;
+      log(`Reconnect attempt ${attempt}/${maxRetries} for ${entry.name} (wait ${delay}ms)`, 'info');
+      await new Promise(r => setTimeout(r, delay));
+
+      if (!entry.keepalive) {
+        log(`Keep-alive disabled for ${entry.name}, stopping reconnect`, 'info');
+        return;
+      }
+
+      const server = await entry.device.gatt.connect();
+      entry.server = server;
+      entry.connected = true;
+      entry.reconnects++;
+      stats.reconnects++;
+      log(`Reconnected to ${entry.name} (attempt ${attempt})`, 'success');
+
+      renderDevices();
+      updateStats();
+      return;
+    } catch (e) {
+      log(`Reconnect attempt ${attempt} failed: ${e.message}`, 'error');
+    }
+  }
+
+  log(`Giving up on ${entry.name} after ${maxRetries} attempts`, 'error');
+  entry.keepalive = false;
+  renderDevices();
+  updateStats();
+}
+
+// ── Keep-Alive ───────────────────────────────────────────────────
+function toggleKeepAlive(id) {
+  const entry = devices.get(id);
+  if (!entry) return;
+
+  entry.keepalive = !entry.keepalive;
+
+  if (entry.keepalive) {
+    log(`Keep-alive ENABLED for ${entry.name}`, 'success');
+    // Start a GATT ping every 15 seconds to prevent the connection from going idle
+    entry.timer = setInterval(async () => {
+      if (!entry.connected || !entry.keepalive) return;
+      try {
+        // Read any GATT service to keep the connection alive
+        await entry.server.getPrimaryService('generic_access');
+      } catch (e) {
+        // Connection may have dropped — onDisconnect handler will fire
+      }
+    }, 15000);
+  } else {
+    log(`Keep-alive DISABLED for ${entry.name}`, 'info');
+    if (entry.timer) {
+      clearInterval(entry.timer);
+      entry.timer = null;
+    }
+  }
+
+  renderDevices();
+  updateStats();
+}
+
+function disconnectDevice(id) {
+  const entry = devices.get(id);
+  if (!entry) return;
+
+  entry.keepalive = false;
+  if (entry.timer) {
+    clearInterval(entry.timer);
+    entry.timer = null;
+  }
+
+  try {
+    entry.device.gatt.disconnect();
+  } catch (e) {}
+
+  entry.connected = false;
+  log(`Disconnected ${entry.name}`, 'info');
+
+  renderDevices();
+  updateStats();
+}
+
+function removeDevice(id) {
+  disconnectDevice(id);
+  devices.delete(id);
+  renderDevices();
+  updateStats();
+}
+
+// ── Render ───────────────────────────────────────────────────────
+function renderDevices() {
+  const list = document.getElementById('device-list');
+  list.innerHTML = '';
+
+  if (devices.size === 0) {
+    list.innerHTML = '<div style="padding:12px;color:var(--dim);">No devices. Click Scan to find one.</div>';
+    return;
+  }
+
+  devices.forEach((entry, id) => {
+    const li = document.createElement('li');
+    li.className = 'device-item';
+
+    const statusClass = entry.connected ? 'status-connected' : 'status-disconnected';
+    const statusText = entry.connected ? 'Connected' : 'Disconnected';
+    const keepaliveClass = entry.keepalive ? 'keepalive-on' : 'keepalive-off';
+
+    li.innerHTML = `
+      <div>
+        <div class="device-name">${entry.name}
+          <span class="keepalive-indicator ${keepaliveClass}"></span>
+        </div>
+        <div class="device-id">${id.substring(0, 12)}... | ${entry.reconnects} reconnects</div>
+      </div>
+      <div>
+        <span class="device-status ${statusClass}">${statusText}</span>
+        <button onclick="toggleKeepAlive('${id}')" class="${entry.keepalive ? 'success' : ''}" style="margin-left:8px;padding:6px 12px;">
+          ${entry.keepalive ? 'Keep-Alive ON' : 'Keep-Alive OFF'}
+        </button>
+        <button onclick="disconnectDevice('${id}')" class="danger" style="padding:6px 12px;">Disconnect</button>
+        <button onclick="removeDevice('${id}')" style="background:var(--border);padding:6px 12px;">Remove</button>
+      </div>
+    `;
+    list.appendChild(li);
+  });
+}
+
+// ── Init ─────────────────────────────────────────────────────────
+renderDevices();
+updateStats();
+log('BT Controller ready. Web Bluetooth API active.', 'success');
+log('This bypasses the Windows BT stack — connections managed by Chrome directly.', 'info');
+</script>
+
+</body>
+</html>

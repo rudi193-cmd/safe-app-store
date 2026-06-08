@@ -1,0 +1,21 @@
+{
+  "url": "http://scoot.net/gallery/1999/05/bridlington/",
+  "slug": "1999/05/bridlington",
+  "title": "Bridlington Run to the Sun 1999",
+  "year": 1999,
+  "month": 5,
+  "date_rally": "1999-05",
+  "photo_count": 13,
+  "stories": [],
+  "lat": 54.082242,
+  "lng": -0.190865,
+  "notable_facts": [
+    "Event held on scoot.net",
+    "Rally name: Bridlington Run to the Sun",
+    "Photographs available"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:23:29Z",
+  "enriched_provider": "Novita"
+}

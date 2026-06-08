@@ -1,0 +1,27 @@
+{
+  "url": "http://scoot.net/gallery/2008/01/fybo/",
+  "slug": "2008/01/fybo",
+  "title": "Freeze Your Balls Off",
+  "year": 2008,
+  "month": 1,
+  "date_rally": "2008-01",
+  "photo_count": 357,
+  "stories": [],
+  "description": "Scooterists gathering for a winter scooter rally to show off their bikes in cold weather.",
+  "city": "Stevens Point",
+  "state_province": "Wisconsin",
+  "country": "US",
+  "recurring": true,
+  "notable_facts": [
+    "held in January to test riders' endurance",
+    "features riders dressing in festive costumes"
+  ],
+  "related_clubs": [
+    null
+  ],
+  "source_confidence": "medium",
+  "source": "http://scoot.net/gallery/2008/01/fybo/",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:02:43Z",
+  "enriched_provider": "Cerebras"
+}

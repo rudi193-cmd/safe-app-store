@@ -1,0 +1,21 @@
+{
+  "url": "http://scoot.net/gallery/2007/03/ridesofmarch/",
+  "slug": "2007/03/ridesofmarch",
+  "title": "Rides of March",
+  "year": 2007,
+  "month": 3,
+  "date_rally": "2007-03",
+  "photo_count": 1103,
+  "stories": [],
+  "description": "A gallery of scooter photos featuring a variety of scooter models and their riders.",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Photos from the event were posted on Scoot.net"
+  ],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:59:22Z",
+  "enriched_provider": "Cerebras3"
+}

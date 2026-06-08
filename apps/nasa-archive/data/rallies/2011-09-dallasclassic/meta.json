@@ -1,0 +1,21 @@
+{
+  "url": "http://scoot.net/gallery/2011/09/dallasclassic/",
+  "slug": "2011/09/dallasclassic",
+  "title": "Dallas Classic",
+  "year": 2011,
+  "month": 9,
+  "date_rally": "2011-09",
+  "photo_count": 0,
+  "lat": 32.776272,
+  "lng": -96.796856,
+  "city": "Dallas",
+  "state_province": "Texas",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:16:30Z",
+  "enriched_provider": "Cerebras3"
+}

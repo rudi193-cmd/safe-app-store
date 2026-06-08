@@ -1,0 +1,23 @@
+{
+  "url": "http://scoot.net/gallery/2005/07/wineride/",
+  "slug": "2005/07/wineride",
+  "title": "Temecula Wine Country Ride",
+  "year": 2005,
+  "month": 7,
+  "date_rally": "2005-07",
+  "photo_count": 700,
+  "stories": [],
+  "description": "Temecula Wine Country Ride, a scooter rally taking place in scenic Temecula wine country",
+  "city": "Temecula",
+  "state_province": "California",
+  "country": "US",
+  "notable_facts": [
+    "held in July 2005",
+    "scoot.net covered this event"
+  ],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:48:22Z",
+  "enriched_provider": "Cerebras2"
+}

@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-story-timeline"
+version = "2.2.0"
+description = "Writer tool for readers and writers — reading shelf, commonplace notes, writing projects, named timelines, and Willow graph edges."
+requires-python = ">=3.10"
+dependencies = [
+    "textual>=0.47.0",
+    "mcp>=1.0.0",
+]
+
+[project.scripts]
+story-timeline = "app:main"
+
+[tool.setuptools]
+py-modules = [
+    "app",
+    "timeline_db",
+    "willow_edges",
+    "safe_integration",
+    "migrate",
+    "story_protocol",
+    "intelligence",
+    "suggestion_store",
+    "export_lists",
+    "mcp_client",
+    "promote",
+    "soil_protocol",
+    "web",
+    "import_csv",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]

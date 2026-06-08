@@ -1,0 +1,11 @@
+{
+  "name": "safe-app-store",
+  "b17": "SAPS1",
+  "agent": "vishwakarma",
+  "description": "Local-first SAFE app monorepo and catalog. Vishwakarma keeps the store, guides users, builds apps, scaffolds new projects.",
+  "store_root": ".willow/store",
+  "created": "2026-04-26",
+  "willow_version": "1.9",
+  "app_id": "safe-app-store",
+  "auth": "dev_fallback"
+}

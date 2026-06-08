@@ -1,0 +1,23 @@
+{
+  "url": "http://scoot.net/gallery/2012/06/nycblockparty/",
+  "slug": "2012/06/nycblockparty",
+  "title": "New York Scooter BlockParty 7",
+  "year": 2012,
+  "month": 6,
+  "date_rally": "2012-06",
+  "photo_count": 0,
+  "lat": 40.712728,
+  "lng": -74.006015,
+  "city": "New York City",
+  "state_province": "New York",
+  "country": "USA",
+  "recurring": "false",
+  "notable_facts": [
+    "Hosted on Scoot.net"
+  ],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:19:14Z",
+  "enriched_provider": "Cerebras2"
+}

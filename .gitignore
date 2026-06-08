@@ -1,0 +1,13 @@
+.superpowers/
+.worktrees/
+.cursor/
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.db
+.pytest_cache/
+*.egg-info/
+apps/story-timeline/exports/
+apps/utety-chat/data/exports/
+=*

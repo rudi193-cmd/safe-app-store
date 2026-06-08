@@ -1,0 +1,21 @@
+{
+  "url": "http://scoot.net/gallery/2007/05/scootercamp/",
+  "slug": "2007/05/scootercamp",
+  "title": "Scooter Camp Rally",
+  "year": 2007,
+  "month": 5,
+  "date_rally": "2007-05",
+  "photo_count": 19,
+  "stories": [],
+  "description": "A scooter rally with the Scoot.net community",
+  "hosting_club": "Scoot.net",
+  "recurring": false,
+  "notable_facts": [
+    "Information posted on the Scoot.net website with photos"
+  ],
+  "related_clubs": [],
+  "source_confidence": "high",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:59:51Z",
+  "enriched_provider": "Cerebras3"
+}

@@ -1,0 +1,21 @@
+{
+  "url": "http://scoot.net/gallery/2011/08/shakedown/",
+  "slug": "2011/08/shakedown",
+  "title": "Motor City Shakedown 7; Rally in New Detroit",
+  "year": 2011,
+  "month": 8,
+  "date_rally": "2011-08",
+  "photo_count": 0,
+  "lat": 42.331551,
+  "lng": -83.04664,
+  "city": "Detroit",
+  "state_province": "Michigan",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [],
+  "related_clubs": [],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:17:20Z",
+  "enriched_provider": "Cerebras2"
+}

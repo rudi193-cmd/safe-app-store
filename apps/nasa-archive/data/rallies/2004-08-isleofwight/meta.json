@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2004/08/isleofwight/",
+  "slug": "2004/08/isleofwight",
+  "title": "Isle of Wight - 2004",
+  "year": 2004,
+  "month": 8,
+  "date_rally": "2004-08",
+  "photo_count": 0,
+  "lat": 50.671048,
+  "lng": -1.332711,
+  "description": "The 2004 Isle of Wight rally was likely a gathering of scooter enthusiasts.",
+  "city": "null",
+  "country": "United Kingdom",
+  "recurring": false,
+  "notable_facts": [
+    "It was documented by scoot.net with online photographs."
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:39:54Z",
+  "enriched_provider": "Cerebras"
+}

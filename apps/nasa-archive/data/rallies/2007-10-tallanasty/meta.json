@@ -1,0 +1,24 @@
+{
+  "url": "http://scoot.net/gallery/2007/10/tallanasty/",
+  "slug": "2007/10/tallanasty",
+  "title": "Tallanasty Rally in da Dirrty Dirrty!",
+  "year": 2007,
+  "month": 10,
+  "date_rally": "2007-10",
+  "photo_count": 194,
+  "stories": [],
+  "description": "Annual rally hosted by scoot.net forum members with gatherings in the wilderness for off-roading and fun.",
+  "city": "near Bend or possibly around Lake Tahoe (per event photos and narrative)",
+  "state_province": "Oregon or California (per event photos and narrative)",
+  "country": "USA",
+  "recurring": true,
+  "notable_facts": [
+    "held in the wilderness with off-roading opportunities",
+    "attended by scoot.net forum members",
+    " photos shown in scoop.net gallery"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:00:56Z",
+  "enriched_provider": "Cerebras2"
+}

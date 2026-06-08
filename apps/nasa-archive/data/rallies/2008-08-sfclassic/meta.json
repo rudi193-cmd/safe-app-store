@@ -1,0 +1,21 @@
+{
+  "url": "http://scoot.net/gallery/2008/08/sfclassic/",
+  "slug": "2008/08/sfclassic",
+  "title": "San Francisco Classic",
+  "year": 2008,
+  "month": 8,
+  "date_rally": "2008-08",
+  "photo_count": 896,
+  "stories": [],
+  "description": "The 2008 San Francisco Classic was a meeting of scooter enthusiasts in San Francisco, California.",
+  "city": "San Francisco",
+  "state_province": "California",
+  "country": "US",
+  "notable_facts": [
+    "Held in August 2008"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:05:29Z",
+  "enriched_provider": "Cerebras"
+}

@@ -1,0 +1,116 @@
+---
+import Base from '../layouts/Base.astro';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+const DATA_DIR = join(process.cwd(), '..', 'data');
+
+let stats = { rallies: 0, total_photos_mapped: 0, patches: 0 };
+let recentRallies: any[] = [];
+try {
+  const raw = JSON.parse(readFileSync(join(DATA_DIR, 'index.json'), 'utf-8'));
+  stats = { rallies: raw.rallies || 0, total_photos_mapped: raw.total_photos_mapped || 0, patches: raw.patches || 0 };
+  recentRallies = (raw.rallies_list || []).slice(0, 6);
+} catch (e) {}
+---
+<Base title="NASA — North America Scootering Archive">
+
+  <!-- Hero -->
+  <section style="padding:4rem 0 3rem; border-bottom:1px solid var(--border);">
+
+    <!-- Pre-headline stamp -->
+    <div style="font-size:0.62rem; letter-spacing:0.3em; color:var(--red); text-transform:uppercase; margin-bottom:1.5rem;">
+      Do you remember?
+    </div>
+
+    <!-- Main mark -->
+    <div style="margin-bottom:1rem;">
+      <div style="font-family:var(--font-display); font-size:clamp(5rem, 15vw, 10rem); color:var(--red); letter-spacing:0.15em; line-height:0.9; text-transform:uppercase;">
+        NASA
+      </div>
+      <div style="font-size:0.75rem; letter-spacing:0.2em; color:var(--muted); text-transform:uppercase; margin-top:0.75rem;">
+        North America Scootering Archive
+      </div>
+    </div>
+
+    <!-- Subheadline -->
+    <p style="max-width:520px; color:var(--muted); font-size:0.82rem; line-height:1.9; margin:1.5rem 0 2.5rem;">
+      The complete record of North American scooter rally history.
+      Photos from scoot.net. Patch scans. Stories from people who were there.
+      1997 through now.
+    </p>
+
+    <!-- Stats row -->
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1px; max-width:420px; background:var(--border); border:1px solid var(--border); margin-bottom:2.5rem;">
+      <div class="stat-card" data-index="01">
+        <span class="stat-number">{stats.rallies > 0 ? stats.rallies.toLocaleString() : '—'}</span>
+        <span class="stat-label">Rallies</span>
+      </div>
+      <div class="stat-card" data-index="02">
+        <span class="stat-number">{stats.total_photos_mapped > 0 ? stats.total_photos_mapped.toLocaleString() : '—'}</span>
+        <span class="stat-label">Photos</span>
+      </div>
+      <div class="stat-card" data-index="03">
+        <span class="stat-number">{stats.patches > 0 ? stats.patches.toLocaleString() : '—'}</span>
+        <span class="stat-label">Patches</span>
+      </div>
+    </div>
+
+    <!-- CTAs -->
+    <div class="flex gap-3 flex-wrap">
+      <a href="/rallies"    class="btn-primary">Browse Rallies</a>
+      <a href="/patches"    class="btn-outline">Patch Gallery</a>
+      <a href="/contribute" class="btn-ghost">Add Your Story</a>
+    </div>
+
+  </section>
+
+  <!-- Recent rallies -->
+  {recentRallies.length > 0 && (
+    <section style="margin-top:3rem;">
+      <div class="section-head"><span>Recent Activity</span></div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {recentRallies.map((rally: any) => (
+          <a href={`/rally/${String(rally.slug || '').replace(/\//g, '-')}`}
+             class="rally-card block">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
+              <span style="font-family:var(--font-display); font-size:1.1rem; color:var(--red); letter-spacing:0.1em;">{rally.year}</span>
+              {rally.photo_count && (
+                <span style="font-size:0.6rem; letter-spacing:0.1em; color:var(--dim); text-transform:uppercase;">{rally.photo_count} photos</span>
+              )}
+            </div>
+            <div style="color:var(--cream); font-size:0.82rem; line-height:1.4; margin-bottom:0.3rem;">{rally.name}</div>
+            {rally.location && (
+              <div style="font-size:0.65rem; color:var(--muted); letter-spacing:0.05em;">{rally.location}</div>
+            )}
+          </a>
+        ))}
+      </div>
+      <div style="margin-top:1.5rem;">
+        <a href="/rallies" class="btn-ghost" style="padding:0.4rem 1.5rem; font-size:0.65rem;">View all rallies →</a>
+      </div>
+    </section>
+  )}
+
+  <!-- About -->
+  <section style="margin-top:3rem; padding-top:2rem; border-top:1px solid var(--border);">
+    <div class="section-head"><span>About This Archive</span></div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8" style="font-size:0.8rem; color:var(--muted);">
+      <div>
+        <div style="color:var(--cream); font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.75rem;">The Record</div>
+        <p style="line-height:1.8;">The full history of North American scooter rallies — digital photos from scoot.net,
+        scanned prints from the pre-internet era, and everything happening now. No artificial start date.</p>
+      </div>
+      <div>
+        <div style="color:var(--cream); font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.75rem;">Claim Your Photos</div>
+        <p style="line-height:1.8;">Were you there? Tag yourself in photos, add context, correct dates.
+        The archive belongs to the community that lived it.</p>
+      </div>
+      <div>
+        <div style="color:var(--cream); font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.75rem;">Keep It Going</div>
+        <p style="line-height:1.8;">Rallies still happen. Add new photos, new patches, new events. The record continues.</p>
+      </div>
+    </div>
+  </section>
+
+</Base>

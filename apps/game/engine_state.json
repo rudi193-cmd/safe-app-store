@@ -1,0 +1,11 @@
+{
+    "version": "v1.0.0.7",
+    "status": "Operational",
+    "stats": {
+        "Grit": 2,
+        "Weird": 2,
+        "Cute": 2,
+        "Cool": 2
+    },
+    "debilities": {}
+}

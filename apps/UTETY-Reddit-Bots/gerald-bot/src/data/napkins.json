@@ -1,0 +1,37 @@
+{
+  "_handoff": {
+    "what": "Gerald's napkin vocabulary. Every word here is a valid single-word napkin drop. Emojis are sampled separately.",
+    "status": "STUB — only known-canonical entries from source material are present. Expand from authoring DB.",
+    "read_by": "src/triggers/napkinDrop.ts",
+    "rules": [
+      "Every entry in 'words' must be a SINGLE word with no whitespace.",
+      "Words should feel load-bearing even when they don't make sense. That's the point.",
+      "'rare_emojis' are dropped ~2% of the time instead of a word — Easter eggs.",
+      "Do not add sentences, punctuation, or multi-word phrases. Gerald cannot speak."
+    ]
+  },
+
+  "words": [
+    "Sieve",
+    "40000",
+    "Vacancy.",
+    "Copenhagen.",
+    "17",
+    "42",
+    "DECAY.",
+    "ACTING",
+    "Done.",
+    "Filed.",
+    "Witnessed."
+  ],
+
+  "emojis_common": [
+    "🍗"
+  ],
+
+  "rare_emojis": [
+    "△"
+  ],
+
+  "rare_emoji_chance": 0.02
+}

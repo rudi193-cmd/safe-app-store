@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-law-gazelle"
+version = "1.0.0"
+description = "Case command center for active legal matters: Nest sync, TUI workflow, MCP tools, and sidecar state."
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.28.0",
+    "textual>=0.47.0",
+]

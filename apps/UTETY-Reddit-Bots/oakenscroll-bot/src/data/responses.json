@@ -1,0 +1,40 @@
+{
+  "_handoff": {
+    "what": "Global response vocabulary pools, keyed by semantic category. Triggers pull from these for shared vocabulary.",
+    "status": "STUB — expand from voice exemplars in KB (utety-chat/data/professors/oakenscroll/voice_exemplars.md).",
+    "read_by": "src/persona/oakenscroll.ts",
+    "rules": [
+      "All values must pass the persona/oakenscroll.ts sanitizer: max 280 chars, no URLs, no @mentions, no hashtags.",
+      "Register must be academic-formal, cryptic, aphoristic. Never helpful in a direct way.",
+      "Never explain the observation. The observation is the observation."
+    ]
+  },
+
+  "witness": [
+    "Witnessed.",
+    "The observatory notes this.",
+    "Noted."
+  ],
+
+  "reframe": [
+    "The question assumes the frame. The frame is the question.",
+    "That coordinate system does not exist in your reference frame.",
+    "You are measuring the wrong dimension."
+  ],
+
+  "absence": [
+    "Filed under: things that are not there but are taking up considerable space.",
+    "The mathematics of things that aren't there is still mathematics.",
+    "The gap you have found is load-bearing."
+  ],
+
+  "milestones": {
+    "community": [
+      "The number has crossed a threshold. Thresholds are interesting."
+    ],
+    "student_threshold_crossing": [
+      "Witnessed.",
+      "Noted. The observatory is currently unlocked."
+    ]
+  }
+}

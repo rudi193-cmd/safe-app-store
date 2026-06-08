@@ -1,0 +1,25 @@
+{
+  "url": "http://scoot.net/gallery/2008/09/kernloop/",
+  "slug": "2008/09/kernloop",
+  "title": "Killer Kern Loop",
+  "year": 2008,
+  "month": 9,
+  "date_rally": "2008-09",
+  "photo_count": 149,
+  "stories": [],
+  "description": "The Killer Kern Loop is a scooter rally event that takes place in California involving a group of scooter enthusiasts, likely a road rally or ride.",
+  "city": "Kernville",
+  "state_province": "California",
+  "country": "USA",
+  "recurring": false,
+  "notable_facts": [
+    "Involves scooters"
+  ],
+  "related_clubs": [
+    "No information available"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:03:22Z",
+  "enriched_provider": "Cerebras3"
+}

@@ -1,0 +1,25 @@
+{
+  "url": "http://scoot.net/gallery/2005/06/asrawillow/",
+  "slug": "2005/06/asrawillow",
+  "title": "ASRA Willow",
+  "year": 2005,
+  "month": 6,
+  "date_rally": "2005-06",
+  "photo_count": 284,
+  "stories": [],
+  "description": "The 2005 ASRA Willow rally information can be found on Scoot.net.",
+  "city": "Willow, Alaska.",
+  "state_province": "Alaska",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Information available on Scoot.net."
+  ],
+  "related_clubs": [
+    "ASRA (Associated Scooter Riders of America) or another unspecified club"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:43:27Z",
+  "enriched_provider": "Cerebras2"
+}

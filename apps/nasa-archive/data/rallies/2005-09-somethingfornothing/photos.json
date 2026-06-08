@@ -1,0 +1,4804 @@
+[
+  {
+    "pic_id": "178650",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178650&b=2005/09/somethingfornothing/Tony_G/tinyindex.html",
+    "photographer": "Tony_G",
+    "date_rally": "2005-09",
+    "date_exif": "2005:02:24 13:33:25",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Tony_G/178650/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:02:24 13:33:25",
+      "Make": "SONY",
+      "Model": "CYBERSHOT",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179319",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179319&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 12:00:12",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179319/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 12:00:12",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179320",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179320&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 16:21:53",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179320/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 16:21:53",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179321",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179321&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 16:22:07",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179321/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 16:22:07",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179322",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179322&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 16:22:19",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179322/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 16:22:19",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179323",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179323&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 16:22:43",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179323/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 16:22:43",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179324",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179324&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 20:36:55",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179324/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 20:36:55",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179325",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179325&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 20:37:04",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179325/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 20:37:04",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179326",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179326&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 20:37:23",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179326/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 20:37:23",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179327",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179327&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 20:41:53",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179327/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 20:41:53",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179328",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179328&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 21:38:08",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179328/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 21:38:08",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179329",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179329&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 21:47:27",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179329/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 21:47:27",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179330",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179330&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 21:48:12",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179330/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 21:48:12",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179331",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179331&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 21:50:59",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179331/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 21:50:59",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179332",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179332&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 21:51:10",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179332/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 21:51:10",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179333",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179333&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 21:51:29",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179333/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 21:51:29",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179334",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179334&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 21:51:47",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179334/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 21:51:47",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179335",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179335&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 21:52:06",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179335/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 21:52:06",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179336",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179336&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:01 22:17:28",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179336/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:01 22:17:28",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179337",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179337&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:02 11:59:38",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179337/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:02 11:59:38",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179338",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179338&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:02 11:59:51",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179338/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:02 11:59:51",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179339",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179339&b=2005/09/somethingfornothing/michele/tinyindex.html",
+    "photographer": "michele",
+    "date_rally": "2005-09",
+    "date_exif": "2005:01:02 12:00:08",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-michele/179339/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:01:02 12:00:08",
+      "Make": "EASTMAN KODAK COMPANY",
+      "Model": "KODAK DX6440 ZOOM DIGITAL CAMERA",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178891",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178891&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 00:01:03",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178891/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 00:01:03",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178892",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178892&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 00:32:30",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178892/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 00:32:30",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178893",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178893&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 00:52:43",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178893/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 00:52:43",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178894",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178894&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 01:30:09",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178894/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 01:30:09",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178895",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178895&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 01:30:23",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178895/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 01:30:23",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178896",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178896&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 01:30:54",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178896/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 01:30:54",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178897",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178897&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 01:32:15",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178897/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 01:32:15",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178898",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178898&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 01:33:11",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178898/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 01:33:11",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178899",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178899&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 01:46:15",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178899/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 01:46:15",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178900",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178900&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 01:47:32",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178900/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 01:47:32",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178901",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178901&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 02:29:20",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178901/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 02:29:20",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178902",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178902&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 02:29:36",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178902/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 02:29:36",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178903",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178903&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 02:29:58",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178903/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 02:29:58",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178904",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178904&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 02:31:49",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178904/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 02:31:49",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178905",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178905&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 02:32:12",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178905/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 02:32:12",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178906",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178906&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 02:36:05",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178906/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 02:36:05",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178907",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178907&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 02:50:38",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178907/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 02:50:38",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178908",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178908&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 04:15:26",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178908/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 04:15:26",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178909",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178909&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 04:15:31",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178909/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 04:15:31",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178910",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178910&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 06:46:42",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178910/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 06:46:42",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178911",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178911&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 06:47:46",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178911/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 06:47:46",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178912",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178912&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 06:48:43",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178912/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 06:48:43",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178913",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178913&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 06:49:15",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178913/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 06:49:15",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178914",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178914&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 06:56:10",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178914/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 06:56:10",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178915",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178915&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 06:56:39",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178915/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 06:56:39",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178916",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178916&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 06:58:53",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178916/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 06:58:53",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178917",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178917&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 06:59:15",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178917/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 06:59:15",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178918",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178918&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:00:34",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178918/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:00:34",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178919",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178919&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:02:50",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178919/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:02:50",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178920",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178920&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:10:12",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178920/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:10:12",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178921",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178921&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:11:24",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178921/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:11:24",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178922",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178922&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:11:49",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178922/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:11:49",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178923",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178923&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:11:55",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178923/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:11:55",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178924",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178924&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:12:01",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178924/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:12:01",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178925",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178925&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:14:22",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178925/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:14:22",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178926",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178926&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:19:16",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178926/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:19:16",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178927",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178927&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:19:40",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178927/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:19:40",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178928",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178928&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:19:55",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178928/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:19:55",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178929",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178929&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:20:33",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178929/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:20:33",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178930",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178930&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:30:37",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178930/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:30:37",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178931",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178931&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:43:32",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178931/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:43:32",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178932",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178932&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:43:57",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178932/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:43:57",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178933",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178933&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:44:12",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178933/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:44:12",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178934",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178934&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:44:39",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178934/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:44:39",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178935",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178935&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:44:47",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178935/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:44:47",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178936",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178936&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:45:46",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178936/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:45:46",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178937",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178937&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:46:11",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178937/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:46:11",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178938",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178938&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:49:09",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178938/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:49:09",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178939",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178939&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:50:14",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178939/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:50:14",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178940",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178940&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:50:57",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178940/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:50:57",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178941",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178941&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:53:58",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178941/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:53:58",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178942",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178942&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:54:21",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178942/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:54:21",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178943",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178943&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:57:50",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178943/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:57:50",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178944",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178944&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:59:01",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178944/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:59:01",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178945",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178945&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 08:00:23",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178945/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 08:00:23",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178946",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178946&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 08:01:44",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178946/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 08:01:44",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178947",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178947&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 08:07:41",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178947/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 08:07:41",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178948",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178948&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 08:15:09",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178948/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 08:15:09",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178949",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178949&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 08:15:20",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178949/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 08:15:20",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178950",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178950&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 08:47:25",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178950/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 08:47:25",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178951",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178951&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 08:47:39",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178951/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 08:47:39",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178952",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178952&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 08:48:55",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178952/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 08:48:55",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178953",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178953&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 08:49:17",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178953/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 08:49:17",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178954",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178954&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 09:19:07",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178954/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 09:19:07",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178955",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178955&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 09:26:57",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178955/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 09:26:57",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178956",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178956&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 09:27:59",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178956/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 09:27:59",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178957",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178957&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 09:39:44",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178957/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 09:39:44",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178958",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178958&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 10:22:37",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178958/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 10:22:37",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178959",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178959&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 10:22:49",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178959/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 10:22:49",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178960",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178960&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 10:23:08",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178960/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 10:23:08",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178961",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178961&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 10:49:22",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178961/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 10:49:22",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178962",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178962&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 11:42:11",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178962/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 11:42:11",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178963",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178963&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 12:48:07",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178963/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 12:48:07",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178964",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178964&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 12:51:51",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178964/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 12:51:51",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178965",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178965&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 12:54:15",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178965/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 12:54:15",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178966",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178966&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 13:33:56",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178966/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 13:33:56",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178967",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178967&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 13:48:28",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178967/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 13:48:28",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178968",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178968&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:04:37",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178968/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:04:37",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178969",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178969&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:09:57",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178969/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:09:57",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178970",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178970&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:10:21",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178970/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:10:21",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178971",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178971&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 15:27:53",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178971/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 15:27:53",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178972",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178972&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 15:28:05",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178972/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 15:28:05",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178973",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178973&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 15:35:12",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178973/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 15:35:12",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178974",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178974&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 16:45:36",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178974/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 16:45:36",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178975",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178975&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 18:22:40",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178975/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 18:22:40",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178976",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178976&b=2005/09/somethingfornothing/Andrea/tinyindex.html",
+    "photographer": "Andrea",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 18:23:11",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Andrea/178976/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 18:23:11",
+      "Make": "KONICA MINOLTA",
+      "Model": "DiMAGE Z3",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178396",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178396&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 08:56:12",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178396/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 08:56:12",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178397",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178397&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 09:00:12",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178397/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 09:00:12",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178398",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178398&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 09:00:22",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178398/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 09:00:22",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178399",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178399&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 10:10:18",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178399/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 10:10:18",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178400",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178400&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 10:10:37",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178400/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 10:10:37",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178401",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178401&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 10:17:40",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178401/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 10:17:40",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178402",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178402&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 12:24:09",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178402/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 12:24:09",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178403",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178403&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 12:24:14",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178403/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 12:24:14",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178404",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178404&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 12:24:20",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178404/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 12:24:20",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178405",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178405&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 12:25:04",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178405/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 12:25:04",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178406",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178406&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 12:32:31",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178406/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 12:32:31",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178407",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178407&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 12:43:25",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178407/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 12:43:25",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178408",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178408&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 13:57:42",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178408/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 13:57:42",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178409",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178409&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 13:58:23",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178409/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 13:58:23",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178410",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178410&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 13:59:57",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178410/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 13:59:57",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178411",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178411&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 15:07:32",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178411/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 15:07:32",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178412",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178412&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 15:14:11",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178412/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 15:14:11",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178413",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178413&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 16:19:30",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178413/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 16:19:30",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178414",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178414&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 16:32:37",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178414/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 16:32:37",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178415",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178415&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 16:36:14",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178415/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 16:36:14",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178416",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178416&b=2005/09/somethingfornothing/Mike_Stirrat/tinyindex.html",
+    "photographer": "Mike_Stirrat",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 17:15:40",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Mike_Stirrat/178416/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 17:15:40",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179172",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179172&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:03:46",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179172/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:03:46",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179173",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179173&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:04:04",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179173/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:04:04",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179174",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179174&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:04:23",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179174/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:04:23",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179175",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179175&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:04:33",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179175/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:04:33",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179176",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179176&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:50:32",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179176/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:50:32",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179177",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179177&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:50:41",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179177/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:50:41",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179178",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179178&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:50:54",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179178/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:50:54",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179179",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179179&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:52:07",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179179/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:52:07",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179180",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179180&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:52:15",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179180/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:52:15",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179181",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179181&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:52:45",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179181/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:52:45",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179182",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179182&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:52:51",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179182/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:52:51",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179183",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179183&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:52:59",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179183/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:52:59",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179184",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179184&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:53:09",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179184/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:53:09",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179185",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179185&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:53:20",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179185/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:53:20",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179186",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179186&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:53:46",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179186/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:53:46",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179187",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179187&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:53:56",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179187/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:53:56",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179188",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179188&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:54:01",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179188/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:54:01",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179189",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179189&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:54:09",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179189/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:54:09",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179190",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179190&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:55:14",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179190/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:55:14",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179191",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179191&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:55:29",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179191/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:55:29",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179192",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179192&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 14:55:40",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179192/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 14:55:40",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179193",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179193&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 15:43:31",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179193/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 15:43:31",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179194",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179194&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 15:43:52",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179194/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 15:43:52",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179195",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179195&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 17:44:24",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179195/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 17:44:24",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179196",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179196&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 17:45:31",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179196/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 17:45:31",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179197",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179197&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 17:46:02",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179197/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 17:46:02",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179198",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179198&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 17:46:17",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179198/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 17:46:17",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179199",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179199&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 17:50:28",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179199/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 17:50:28",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179200",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179200&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 17:52:06",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179200/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 17:52:06",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179201",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179201&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 17:52:13",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179201/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 17:52:13",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179202",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179202&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 17:52:32",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179202/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 17:52:32",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179203",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179203&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 17:52:50",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179203/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 17:52:50",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179204",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179204&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 17:53:04",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179204/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 17:53:04",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179205",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179205&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 17:54:04",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179205/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 17:54:04",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179206",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179206&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 17:54:48",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179206/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 17:54:48",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179207",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179207&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 17:55:24",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179207/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 17:55:24",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179208",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179208&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 18:00:35",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179208/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 18:00:35",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179209",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179209&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 18:11:38",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179209/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 18:11:38",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179210",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179210&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 18:11:51",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179210/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 18:11:51",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179211",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179211&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 18:13:29",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179211/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 18:13:29",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179212",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179212&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 18:15:03",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179212/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 18:15:03",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179213",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179213&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 18:15:16",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179213/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 18:15:16",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179214",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179214&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 18:15:54",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179214/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 18:15:54",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179215",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179215&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 18:28:28",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179215/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 18:28:28",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179216",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179216&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 18:39:52",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179216/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 18:39:52",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179217",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179217&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 18:41:20",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179217/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 18:41:20",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179218",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179218&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 18:56:27",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179218/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 18:56:27",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179219",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179219&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 19:35:14",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179219/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 19:35:14",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179220",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179220&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 19:38:19",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179220/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 19:38:19",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179221",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179221&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 19:38:40",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179221/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 19:38:40",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179222",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179222&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 20:16:10",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179222/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 20:16:10",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179223",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179223&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 23:15:46",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179223/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 23:15:46",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179224",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179224&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 23:15:54",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179224/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 23:15:54",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179225",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179225&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 23:16:02",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179225/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 23:16:02",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179226",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179226&b=2005/09/somethingfornothing/AzHardpack/tinyindex.html",
+    "photographer": "AzHardpack",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 23:16:09",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-AzHardpack/179226/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 23:16:09",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A70",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179586",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179586&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179586/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179587",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179587&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179587/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179588",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179588&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179588/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179589",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179589&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179589/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179590",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179590&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179590/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179591",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179591&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179591/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179592",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179592&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179592/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179593",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179593&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179593/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179594",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179594&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179594/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179595",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179595&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179595/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179596",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179596&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179596/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179597",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179597&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179597/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179598",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179598&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179598/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179599",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179599&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179599/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179600",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179600&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179600/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179601",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179601&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179601/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179602",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179602&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179602/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179603",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179603&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179603/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179604",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179604&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179604/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179605",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179605&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179605/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179606",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179606&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179606/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179607",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179607&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179607/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179608",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179608&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179608/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179609",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179609&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179609/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179610",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179610&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179610/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179611",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179611&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179611/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179612",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179612&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179612/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179613",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179613&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179613/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179614",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179614&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179614/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179615",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179615&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179615/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179616",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179616&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179616/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179617",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179617&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179617/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179618",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179618&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179618/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179619",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179619&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179619/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179620",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179620&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179620/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179621",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179621&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179621/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179622",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179622&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179622/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179623",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179623&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179623/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179624",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179624&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179624/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179625",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179625&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179625/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179626",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179626&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179626/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179627",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179627&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179627/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179628",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179628&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179628/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179629",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179629&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179629/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179630",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179630&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179630/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179631",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179631&b=2005/09/somethingfornothing/desert_friar/tinyindex.html",
+    "photographer": "desert_friar",
+    "date_rally": "2005-09",
+    "date_exif": null,
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-desert_friar/179631/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": null
+  },
+  {
+    "pic_id": "179112",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179112&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:09:30 22:58:45",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179112/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:09:30 22:58:45",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179113",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179113&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:09:30 22:21:00",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179113/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:09:30 22:21:00",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179114",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179114&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:09:30 23:05:23",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179114/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:09:30 23:05:23",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179115",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179115&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:09:30 23:04:56",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179115/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:09:30 23:04:56",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179116",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179116&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:09:30 23:09:56",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179116/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:09:30 23:09:56",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179117",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179117&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:09:30 23:07:51",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179117/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:09:30 23:07:51",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179118",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179118&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:09:30 23:06:48",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179118/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:09:30 23:06:48",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179119",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179119&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:09:30 23:06:02",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179119/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:09:30 23:06:02",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179120",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179120&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:09:30 23:15:43",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179120/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:09:30 23:15:43",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179121",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179121&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:09:30 23:49:18",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179121/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:09:30 23:49:18",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179122",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179122&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:09:30 23:49:07",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179122/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:09:30 23:49:07",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179123",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179123&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:09:30 23:21:24",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179123/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:09:30 23:21:24",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179124",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179124&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:09:30 23:21:15",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179124/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:09:30 23:21:15",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179125",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179125&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 00:11:24",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179125/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 00:11:24",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179126",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179126&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 00:09:14",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179126/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 00:09:14",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179127",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179127&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 00:14:31",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179127/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 00:14:31",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179128",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179128&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 00:13:52",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179128/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 00:13:52",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179129",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179129&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 00:28:37",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179129/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 00:28:37",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179130",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179130&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 00:15:18",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179130/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 00:15:18",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179131",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179131&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 00:35:42",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179131/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 00:35:42",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179132",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179132&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 01:49:02",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179132/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 01:49:02",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179133",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179133&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 03:33:34",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179133/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 03:33:34",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179134",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179134&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 02:49:14",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179134/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 02:49:14",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179135",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179135&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 04:52:11",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179135/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 04:52:11",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179136",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179136&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 04:50:34",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179136/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 04:50:34",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179137",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179137&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 04:21:43",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179137/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 04:21:43",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179138",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179138&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 02:36:49",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179138/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 02:36:49",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179139",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179139&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 03:41:27",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179139/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 03:41:27",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179140",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179140&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:09:30 23:03:12",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179140/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:09:30 23:03:12",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179141",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179141&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 00:08:53",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179141/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 00:08:53",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179142",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179142&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 00:10:32",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179142/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 00:10:32",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179143",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179143&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 01:49:23",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179143/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 01:49:23",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179144",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179144&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 00:17:33",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179144/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 00:17:33",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179145",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179145&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:09:30 23:01:27",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179145/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:09:30 23:01:27",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179146",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179146&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 00:36:08",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179146/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 00:36:08",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179147",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179147&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 05:39:48",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179147/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 05:39:48",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179148",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179148&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 05:35:09",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179148/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 05:35:09",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179149",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179149&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 05:25:26",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179149/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 05:25:26",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179150",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179150&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 04:52:25",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179150/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 04:52:25",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179151",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179151&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 06:13:09",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179151/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 06:13:09",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179152",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179152&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 06:10:03",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179152/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 06:10:03",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179153",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179153&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 05:51:01",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179153/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 05:51:01",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179154",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179154&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 05:44:13",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179154/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 05:44:13",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179155",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179155&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:30:17",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179155/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:30:17",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179156",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179156&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:09:35",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179156/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:09:35",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179157",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179157&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 06:14:03",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179157/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 06:14:03",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179158",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179158&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 20:00:53",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179158/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 20:00:53",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179159",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179159&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 19:24:48",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179159/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 19:24:48",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179160",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179160&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 19:22:47",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179160/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 19:22:47",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179161",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179161&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 22:39:51",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179161/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 22:39:51",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179162",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179162&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 05:43:38",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179162/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 05:43:38",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179163",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179163&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:45:16",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179163/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:45:16",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179164",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179164&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 05:27:14",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179164/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 05:27:14",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179165",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179165&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 05:42:12",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179165/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 05:42:12",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179166",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179166&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 20:03:19",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179166/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 20:03:19",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179167",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179167&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 06:12:44",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179167/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 06:12:44",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179168",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179168&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:32:25",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179168/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:32:25",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179169",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179169&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 06:35:56",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179169/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 06:35:56",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179170",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179170&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:06:04",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179170/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:06:04",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "179171",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=179171&b=2005/09/somethingfornothing/Cris_is_lazy/tinyindex.html",
+    "photographer": "Cris_is_lazy",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 19:06:49",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Cris_is_lazy/179171/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 19:06:49",
+      "Make": "FUJIFILM",
+      "Model": "FinePix F440",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178834",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178834&b=2005/09/somethingfornothing/Ralph_the_Wonder_Llama/tinyindex.html",
+    "photographer": "Ralph_the_Wonder_Llama",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 07:55:14",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Ralph_the_Wonder_Llama/178834/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 07:55:14",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178835",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178835&b=2005/09/somethingfornothing/Ralph_the_Wonder_Llama/tinyindex.html",
+    "photographer": "Ralph_the_Wonder_Llama",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 08:07:04",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Ralph_the_Wonder_Llama/178835/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 08:07:04",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178836",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178836&b=2005/09/somethingfornothing/Ralph_the_Wonder_Llama/tinyindex.html",
+    "photographer": "Ralph_the_Wonder_Llama",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 13:59:33",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Ralph_the_Wonder_Llama/178836/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 13:59:33",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178837",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178837&b=2005/09/somethingfornothing/Ralph_the_Wonder_Llama/tinyindex.html",
+    "photographer": "Ralph_the_Wonder_Llama",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 15:13:43",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Ralph_the_Wonder_Llama/178837/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 15:13:43",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178838",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178838&b=2005/09/somethingfornothing/Ralph_the_Wonder_Llama/tinyindex.html",
+    "photographer": "Ralph_the_Wonder_Llama",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 15:15:18",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Ralph_the_Wonder_Llama/178838/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 15:15:18",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  },
+  {
+    "pic_id": "178839",
+    "pic_url": "http://scoot.net/gallery/pic.html?pic=178839&b=2005/09/somethingfornothing/Ralph_the_Wonder_Llama/tinyindex.html",
+    "photographer": "Ralph_the_Wonder_Llama",
+    "date_rally": "2005-09",
+    "date_exif": "2005:10:01 16:09:26",
+    "date_canonical": null,
+    "date_source": "rally_slug",
+    "r2_thumb": "https://pub-298bb0f2fc0a4462bd54d403b1bddbca.r2.dev/gallery/200509-Ralph_the_Wonder_Llama/178839/thumb.jpg",
+    "r2_full": null,
+    "exif_meta": {
+      "DateTimeOriginal": "2005:10:01 16:09:26",
+      "Make": "Canon",
+      "Model": "Canon PowerShot A95",
+      "_warning": "Camera clock accuracy not guaranteed. Use date_canonical for trusted dates."
+    }
+  }
+]

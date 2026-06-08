@@ -1,0 +1,17 @@
+{
+  "slug": "tucson/nogales-rallies",
+  "title": "Tucson/Nogales rallies",
+  "year": 2002,
+  "description": "Information on the Tucson/Nogales rallies is limited.",
+  "city": "Tucson and Nogales",
+  "state_province": "Arizona",
+  "country": "US",
+  "notable_facts": [
+    "Held in 2002, possibly annually",
+    "Located on the US-Mexico border"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:29:09Z",
+  "enriched_provider": "Novita"
+}

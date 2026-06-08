@@ -1,0 +1,24 @@
+{
+  "url": "http://scoot.net/gallery/2006/03/dcdstpats/",
+  "slug": "2006/03/dcdstpats",
+  "title": "Denver Saint Patricks Day Parade",
+  "year": 2006,
+  "month": 3,
+  "date_rally": "2006-03",
+  "photo_count": 147,
+  "stories": [],
+  "description": "The Denver Saint Patricks Day Parade scooter rally in 2006 included scooter participants showcasing their rides during the event.",
+  "hosting_club": "null",
+  "city": "Denver",
+  "state_province": "Colorado",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Associated with Scoot.net"
+  ],
+  "related_clubs": [],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:50:34Z",
+  "enriched_provider": "Cerebras2"
+}

@@ -1,0 +1,23 @@
+{
+  "url": "http://scoot.net/gallery/2004/02/ritv/",
+  "slug": "2004/02/ritv",
+  "title": "Rally in the Valley - 2004",
+  "year": 2004,
+  "month": 2,
+  "date_rally": "2004-02",
+  "photo_count": 17,
+  "stories": [],
+  "description": "Rally in the Valley scooter rally held in 2004 in an unspecified location.",
+  "city": "Phoenix, Arizona area or surrounding valley; the exact 'valley' is not specified",
+  "state_province": "Arizona",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "The event had a gallery on scoot.net"
+  ],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:41:02Z",
+  "enriched_provider": "Cerebras3"
+}

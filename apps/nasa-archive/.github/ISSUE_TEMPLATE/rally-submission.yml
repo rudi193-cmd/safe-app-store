@@ -1,0 +1,67 @@
+name: Rally Submission
+description: Submit an upcoming rally for the calendar
+labels: ["rally-submission"]
+body:
+  - type: input
+    id: title
+    attributes:
+      label: Rally Name
+      placeholder: "Amerivespa 2026"
+    validations:
+      required: true
+
+  - type: input
+    id: date_start
+    attributes:
+      label: Start Date
+      description: Format YYYY-MM-DD
+      placeholder: "2026-07-10"
+    validations:
+      required: true
+
+  - type: input
+    id: date_end
+    attributes:
+      label: End Date
+      description: Format YYYY-MM-DD (leave blank for single-day events)
+      placeholder: "2026-07-13"
+
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: City, State or City, Province
+      placeholder: "Portland, OR"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: region
+    attributes:
+      label: Region
+      options:
+        - Northeast
+        - Southeast
+        - Midwest
+        - Southwest
+        - Mountain West
+        - Pacific Northwest
+        - Canada
+        - International
+        - National
+    validations:
+      required: true
+
+  - type: input
+    id: url
+    attributes:
+      label: Event URL
+      description: Facebook event, club website, registration page, etc.
+      placeholder: "https://..."
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything else worth knowing — theme, host club, registration info, etc.
+      placeholder: "Hosted by Portland Scooter Club. Pre-registration opens March 1."

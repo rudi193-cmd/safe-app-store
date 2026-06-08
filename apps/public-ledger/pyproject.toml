@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-public-ledger"
+version = "1.0.0"
+description = "Public records financial auditor — search government budgets and IRS Form 990 filings for nonprofits."
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.20.0",
+    "requests>=2.28.0",
+]

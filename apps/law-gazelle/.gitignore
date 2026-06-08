@@ -1,0 +1,36 @@
+# Local case material — never commit real PII (see Willow KB: Law Gazelle privacy gate)
+private/
+local/
+exports/
+drafts/
+
+# Environment / secrets
+.env
+*.env
+credentials.json
+
+# SQLite artifacts (migrated to PostgreSQL)
+*.db
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# IDE (commit .cursor/rules/ for agent guidance; keep mcp.json local)
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
+.vscode/
+.idea/
+.wrangler/
+target/

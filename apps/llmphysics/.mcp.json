@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "willow": {
+      "command": "python3",
+      "args": [
+        "-m",
+        "willow_mcp"
+      ]
+    }
+  }
+}

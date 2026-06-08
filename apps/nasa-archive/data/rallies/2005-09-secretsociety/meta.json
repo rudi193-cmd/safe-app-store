@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2005/09/secretsociety/",
+  "slug": "2005/09/secretsociety",
+  "title": "Secret Society SF XX anniversary celebration",
+  "year": 2005,
+  "month": 9,
+  "date_rally": "2005-09",
+  "photo_count": 174,
+  "stories": [],
+  "city": "San Francisco",
+  "state_province": "California",
+  "country": "US",
+  "notable_facts": [
+    "Celebrated its 20th year",
+    "Occurred on Scoot.net in 2005",
+    "Held in September"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:47:35Z",
+  "enriched_provider": "Cerebras3"
+}

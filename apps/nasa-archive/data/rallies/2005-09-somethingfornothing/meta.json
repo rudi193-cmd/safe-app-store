@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2005/09/somethingfornothing/",
+  "slug": "2005/09/somethingfornothing",
+  "title": "Something for Nothing",
+  "year": 2005,
+  "month": 9,
+  "date_rally": "2005-09",
+  "photo_count": 296,
+  "stories": [],
+  "description": "An annual event that allowed attendees to name their favorite feature.",
+  "state_province": "null",
+  "country": "null",
+  "recurring": true,
+  "notable_facts": [
+    "Held in September 2005 at the Something for Nothing rally",
+    "Web gallery available at http://scoot.net/gallery/2005/09/somethingfornothing/"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:48:04Z",
+  "enriched_provider": "Cerebras2"
+}

@@ -1,0 +1,177 @@
+---
+import Base from '../layouts/Base.astro';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+const DATA_DIR = join(process.cwd(), '..', 'data');
+
+let entries = [];
+try {
+  const raw = JSON.parse(readFileSync(join(DATA_DIR, 'index.json'), 'utf-8'));
+  entries = raw.calendar_entries_list || [];
+} catch (e) {}
+
+const regions = [...new Set(entries.map(e => e.region).filter(Boolean))].sort();
+
+// Split into upcoming and past based on today's date (client-side filtering handles region)
+const today = new Date().toISOString().slice(0, 10);
+const upcoming = entries.filter(e => (e.date_start || '') >= today).sort((a, b) => a.date_start > b.date_start ? 1 : -1);
+const past = entries.filter(e => (e.date_start || '') < today).sort((a, b) => a.date_start > b.date_start ? -1 : 1);
+---
+<Base title="Calendar — NASA Archive">
+  <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
+    <h1 class="text-2xl font-bold text-[#CC4444] uppercase tracking-widest">Calendar</h1>
+    <div class="flex gap-2 flex-wrap" id="region-filters">
+      <button data-region="all"
+        class="px-3 py-1 text-xs border region-btn border-[#CC4444] text-[#CC4444]">
+        All Regions
+      </button>
+      {regions.map(r => (
+        <button data-region={r}
+          class="px-3 py-1 text-xs border region-btn border-[#444] text-[#666] hover:border-[#CC4444] hover:text-[#CC4444]">
+          {r}
+        </button>
+      ))}
+    </div>
+  </div>
+
+  {entries.length === 0 ? (
+    <!-- Placeholder when no calendar data is scraped yet -->
+    <div>
+      <div class="mb-12">
+        <h2 class="text-[#888] text-xs uppercase tracking-wider mb-6 border-b border-[#333] pb-2 flex items-center gap-3">
+          <span class="text-[#CC4444]">◆</span> Upcoming Rallies
+        </h2>
+        <div class="text-center py-12 border border-[#222]">
+          <p class="text-[#555] mb-2">No upcoming rallies in the calendar yet.</p>
+          <p class="text-[#444] text-xs">Know of a rally? Help us keep the record going.</p>
+          <a href="/contribute?type=event"
+            class="inline-block mt-4 border border-[#CC4444] text-[#CC4444] px-4 py-2 text-xs uppercase tracking-wider hover:bg-[#CC4444] hover:text-white transition-colors">
+            Submit a Rally
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-[#888] text-xs uppercase tracking-wider mb-6 border-b border-[#333] pb-2 flex items-center gap-3">
+          <span class="text-[#CC4444]">◆</span> Past Rallies
+        </h2>
+        <p class="text-[#555] text-sm text-center py-8">
+          Past rally data loads from the scraper — run <code class="text-[#CC4444]">python scraper/build_data.py</code> once mapping is complete.
+        </p>
+      </div>
+    </div>
+  ) : (
+    <div>
+      <!-- Upcoming -->
+      <div class="mb-12">
+        <h2 class="text-[#888] text-xs uppercase tracking-wider mb-6 border-b border-[#333] pb-2 flex items-center gap-3">
+          <span class="text-[#CC4444]">◆</span> Upcoming
+          <span class="text-[#444] font-normal normal-case tracking-normal">{upcoming.length} rallies</span>
+        </h2>
+        {upcoming.length === 0 ? (
+          <div class="text-center py-8 border border-[#222]">
+            <p class="text-[#555] mb-3">No upcoming rallies listed.</p>
+            <a href="/contribute?type=event"
+              class="border border-[#CC4444] text-[#CC4444] px-4 py-2 text-xs uppercase tracking-wider hover:bg-[#CC4444] hover:text-white transition-colors">
+              Submit a Rally
+            </a>
+          </div>
+        ) : (
+          <div class="space-y-2">
+            {upcoming.map(e => (
+              <div class="calendar-row border border-[#222] hover:border-[#CC4444] transition-colors p-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6"
+                data-region={e.region || ''}>
+                <div class="text-[#CC4444] text-sm font-mono w-28 shrink-0">{e.date_start}</div>
+                <div class="flex-1">
+                  <div class="text-[#f5f0e8] font-medium">{e.title}</div>
+                  {e.location && <div class="text-[#666] text-xs mt-0.5">{e.location}</div>}
+                </div>
+                {e.region && <div class="text-[#444] text-xs uppercase tracking-wider">{e.region}</div>}
+                {e.url && (
+                  <a href={e.url} target="_blank" rel="noopener"
+                    class="text-[#666] text-xs hover:text-[#CC4444] shrink-0">Details →</a>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <!-- Past -->
+      <div>
+        <h2 class="text-[#888] text-xs uppercase tracking-wider mb-6 border-b border-[#333] pb-2 flex items-center gap-3">
+          <span class="text-[#CC4444]">◆</span> Past
+          <span class="text-[#444] font-normal normal-case tracking-normal">{past.length} rallies</span>
+        </h2>
+        <div class="space-y-2">
+          {past.map(e => (
+            <div class="calendar-row border border-[#222] hover:border-[#333] transition-colors p-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6"
+              data-region={e.region || ''}>
+              <div class="text-[#666] text-sm font-mono w-28 shrink-0">{e.date_start}</div>
+              <div class="flex-1">
+                <div class="text-[#888]">{e.title}</div>
+                {e.location && <div class="text-[#555] text-xs mt-0.5">{e.location}</div>}
+              </div>
+              {e.region && <div class="text-[#444] text-xs uppercase tracking-wider">{e.region}</div>}
+              {e.rally_slug && (
+                <a href={`/rally/${e.rally_slug}`}
+                  class="text-[#555] text-xs hover:text-[#CC4444] shrink-0">Archive →</a>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )}
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    let selected = params.get('region') || 'all';
+
+    function applyFilter(region) {
+      selected = region;
+      const url = new URL(window.location.href);
+      if (region === 'all') {
+        url.searchParams.delete('region');
+      } else {
+        url.searchParams.set('region', region);
+      }
+      window.history.replaceState({}, '', url);
+
+      document.querySelectorAll('.calendar-row').forEach(row => {
+        const el = row as HTMLElement;
+        el.style.display = (region === 'all' || el.dataset.region === region) ? '' : 'none';
+      });
+
+      document.querySelectorAll('.region-btn').forEach(btn => {
+        const b = btn as HTMLElement;
+        const active = b.dataset.region === region;
+        b.className = `px-3 py-1 text-xs border region-btn ${
+          active
+            ? 'border-[#CC4444] text-[#CC4444]'
+            : 'border-[#444] text-[#666] hover:border-[#CC4444] hover:text-[#CC4444]'
+        }`;
+      });
+    }
+
+    applyFilter(selected);
+
+    document.querySelectorAll('.region-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const b = btn as HTMLElement;
+        applyFilter(b.dataset.region || 'all');
+      });
+    });
+  </script>
+
+  <!-- Submit CTA always visible -->
+  <div class="mt-12 border border-[#333] p-6 text-sm text-[#666]">
+    <h3 class="text-[#f5f0e8] mb-2">Know of a rally?</h3>
+    <p class="mb-4">Help keep the calendar current — submit upcoming events or fill in missing past rallies.</p>
+    <a href="/contribute?type=event"
+      class="border border-[#CC4444] text-[#CC4444] px-4 py-2 text-xs uppercase tracking-wider hover:bg-[#CC4444] hover:text-white transition-colors">
+      Submit a Rally
+    </a>
+  </div>
+</Base>

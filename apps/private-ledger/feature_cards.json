@@ -1,0 +1,374 @@
+{
+  "meta": {
+    "app": "ledger",
+    "description": "Potential feature cards for the Textual ledger app. All local-first, no cloud required unless noted.",
+    "model": "yggdrasil:v9",
+    "created": "2026-05-18"
+  },
+  "cards": [
+    {
+      "id": "spending-forecast",
+      "title": "Spending Forecast",
+      "description": "LLM looks at last 90 days and predicts where you'll land by end of month per category. Shows projected overage in red before it happens.",
+      "complexity": "medium",
+      "requires_external": false,
+      "tag": "ai"
+    },
+    {
+      "id": "subscription-detector",
+      "title": "Subscription Detector",
+      "description": "Scan transactions for recurring charges (same merchant, ~same amount, ~monthly or ~annual). Surface them in a dedicated panel so you can see what you're actually paying for.",
+      "complexity": "low",
+      "requires_external": false,
+      "tag": "analysis"
+    },
+    {
+      "id": "net-worth-snapshot",
+      "title": "Net Worth Snapshot",
+      "description": "Sum all account balances, subtract manually-entered liabilities (mortgage, car loan, credit card debt). Single number updated live as transactions land.",
+      "complexity": "low",
+      "requires_external": false,
+      "tag": "tracking"
+    },
+    {
+      "id": "savings-goal",
+      "title": "Savings Goals",
+      "description": "Define a goal (e.g. 'New GPU — $800 by August'). App tracks progress from a nominated account and shows a progress bar. LLM can suggest how much to set aside per paycheck.",
+      "complexity": "low",
+      "requires_external": false,
+      "tag": "goals"
+    },
+    {
+      "id": "debt-payoff-planner",
+      "title": "Debt Payoff Planner",
+      "description": "Enter debts with balances, interest rates, and minimum payments. LLM compares avalanche vs snowball strategy and shows payoff timelines for each.",
+      "complexity": "medium",
+      "requires_external": false,
+      "tag": "ai"
+    },
+    {
+      "id": "cash-flow-chart",
+      "title": "Cash Flow Chart",
+      "description": "ASCII bar chart (Textual-rendered) of net income vs expenses by week or month. Instant visual read on whether you're trending positive or negative.",
+      "complexity": "low",
+      "requires_external": false,
+      "tag": "visualization"
+    },
+    {
+      "id": "income-tracker",
+      "title": "Paycheck & Income Tracker",
+      "description": "Tag transactions as income sources (salary, freelance, side income). Track irregular income across months and surface average monthly income for budget planning.",
+      "complexity": "low",
+      "requires_external": false,
+      "tag": "tracking"
+    },
+    {
+      "id": "merchant-aggregation",
+      "title": "Merchant Spending Summary",
+      "description": "Group transactions by merchant name (LLM normalizes variations like 'AMZN MKTP' → 'Amazon'). Show total spend per merchant all-time and month-to-date.",
+      "complexity": "medium",
+      "requires_external": false,
+      "tag": "ai"
+    },
+    {
+      "id": "tax-flag",
+      "title": "Tax Deduction Flagging",
+      "description": "Press T on any transaction to flag it as potentially tax-deductible. LLM suggests the likely deduction category. Export flagged transactions to CSV at tax time.",
+      "complexity": "low",
+      "requires_external": false,
+      "tag": "tax"
+    },
+    {
+      "id": "spending-alerts",
+      "title": "Budget Spike Alerts",
+      "description": "When a new transaction pushes a category past 80% of its monthly budget, show a warning banner. Configurable thresholds per category.",
+      "complexity": "low",
+      "requires_external": false,
+      "tag": "alerts"
+    },
+    {
+      "id": "historical-trends",
+      "title": "Historical Trends View",
+      "description": "Month-over-month comparison for each category. See whether Food spending is up or down vs last month and the 3-month average.",
+      "complexity": "medium",
+      "requires_external": false,
+      "tag": "analysis"
+    },
+    {
+      "id": "stock-portfolio",
+      "title": "Stock Portfolio Tracker",
+      "description": "Manually log buy/sell transactions (ticker, shares, price). Track current value via local price fetch (Yahoo Finance public endpoint, no API key). Show unrealized gain/loss.",
+      "complexity": "medium",
+      "requires_external": true,
+      "external_note": "Needs internet for price quotes (Yahoo Finance public JSON)",
+      "tag": "investments"
+    },
+    {
+      "id": "dividend-log",
+      "title": "Dividend Income Log",
+      "description": "Track dividend payments per holding. Show annualized yield based on what you paid. Separate income stream from salary/freelance in the income tracker.",
+      "complexity": "low",
+      "requires_external": false,
+      "tag": "investments"
+    },
+    {
+      "id": "crypto-tracker",
+      "title": "Crypto Holdings Tracker",
+      "description": "Log crypto positions (coin, quantity, avg cost basis). Fetch current prices from CoinGecko public API. Show P&L and portfolio weight.",
+      "complexity": "medium",
+      "requires_external": true,
+      "external_note": "CoinGecko public API, no key required",
+      "tag": "investments"
+    },
+    {
+      "id": "nl-query",
+      "title": "Natural Language Query Engine",
+      "description": "Ask the app questions like 'how much did I spend on food in March?' or 'what was my biggest purchase last month?' — LLM translates to SQL, runs it, returns the answer.",
+      "complexity": "high",
+      "requires_external": false,
+      "tag": "ai"
+    },
+    {
+      "id": "recurring-prediction",
+      "title": "Recurring Transaction Prediction",
+      "description": "Flag upcoming predicted charges based on recurring patterns (e.g. 'Netflix $15.99 due in 3 days'). Acts as a soft bill reminder without needing to enter bills manually.",
+      "complexity": "medium",
+      "requires_external": false,
+      "tag": "analysis"
+    },
+    {
+      "id": "anomaly-detection",
+      "title": "Anomaly / Fraud Flag",
+      "description": "LLM scans recent transactions and flags anything that looks out of pattern — unusual merchant, unusual amount, duplicate charge. Surfaces a warning, you dismiss or investigate.",
+      "complexity": "medium",
+      "requires_external": false,
+      "tag": "ai"
+    },
+    {
+      "id": "csv-import",
+      "title": "CSV Import",
+      "description": "Import a bank statement CSV. LLM auto-maps columns (date, description, amount) even if the format is non-standard, then batch-categorizes all rows.",
+      "complexity": "medium",
+      "requires_external": false,
+      "tag": "data"
+    },
+    {
+      "id": "csv-export",
+      "title": "CSV / Tax Export",
+      "description": "Export transactions to CSV with filters (date range, category, account, tax-flagged only). One keypress from the transaction table.",
+      "complexity": "low",
+      "requires_external": false,
+      "tag": "data"
+    },
+    {
+      "id": "multi-account-split",
+      "title": "Split Transactions",
+      "description": "Split a single transaction across multiple categories (e.g. Target run = $30 groceries + $20 household). LLM can suggest the split from the description.",
+      "complexity": "medium",
+      "requires_external": false,
+      "tag": "ai"
+    },
+    {
+      "id": "retirement-projection",
+      "title": "Retirement Projection",
+      "description": "Enter current savings, monthly contribution, assumed rate, target age. LLM adds commentary on whether you're on track and what changing variables would do.",
+      "complexity": "medium",
+      "requires_external": false,
+      "tag": "ai"
+    },
+    {
+      "id": "weekly-digest",
+      "title": "Weekly Digest Screen",
+      "description": "A summary screen (press W) that shows: total spent this week, biggest transaction, category over budget, one LLM-generated observation about the week.",
+      "complexity": "low",
+      "requires_external": false,
+      "tag": "ai"
+    },
+    {
+      "id": "envelope-budgeting",
+      "title": "Envelope Budgeting Mode",
+      "description": "Alternative to percentage budgets: allocate a fixed dollar amount per category at the start of the month, watch the envelopes drain. Visual empty-envelope warning.",
+      "complexity": "medium",
+      "requires_external": false,
+      "tag": "budgeting"
+    },
+    {
+      "id": "receipt-note",
+      "title": "Transaction Notes & Tags",
+      "description": "Add freeform notes and custom tags to any transaction. Search and filter by tag. Good for tracking reimbursable expenses, shared costs, or project spend.",
+      "complexity": "low",
+      "requires_external": false,
+      "tag": "tracking"
+    },
+    {
+      "id": "dark-pattern-scanner",
+      "title": "Dark Pattern Scanner",
+      "description": "LLM reviews subscriptions and recurring charges and calls out ones that are likely to auto-renew at a higher rate, have confusing cancellation, or look like trap services.",
+      "complexity": "medium",
+      "requires_external": false,
+      "tag": "ai"
+    },
+
+    {
+      "id": "inbox-watcher",
+      "title": "Statement Inbox Watcher",
+      "description": "Background thread watches ~/.willow/ledger-inbox/ using watchdog. When a file lands (CSV, PDF, OFX/QFX, Excel), it routes to the correct parser, shows a preview in the app, and moves the file to ledger-processed/ after import. Works with any bank — user just downloads and drops.",
+      "complexity": "medium",
+      "requires_external": false,
+      "implementation_notes": "watchdog library for inotify events. Route by extension: .csv → csv-parser, .pdf → pdf-parser, .ofx/.qfx → ofx-parser, .xlsx → excel-parser. Hash each transaction on ingest for dedup.",
+      "tag": "ingestion"
+    },
+    {
+      "id": "csv-statement-parser",
+      "title": "Bank CSV Auto-Parser",
+      "description": "Every bank exports CSV with different column names (Date vs Transaction Date vs Posted, Amount vs Debit/Credit split columns, etc). LLM reads the header row and maps it to the standard schema. Then batch-categorizes all rows. Works offline after the column-map is learned once per bank format.",
+      "complexity": "medium",
+      "requires_external": false,
+      "implementation_notes": "Send first 3 rows to yggdrasil with schema. Cache the column map keyed by header fingerprint so repeat imports from same bank skip the LLM call. Handle split debit/credit columns (common in Chase, BofA). Strip currency symbols, handle parenthetical negatives.",
+      "tag": "ingestion"
+    },
+    {
+      "id": "pdf-statement-parser",
+      "title": "PDF Statement Parser",
+      "description": "Extract text from bank statement PDFs using pdfplumber. Feed extracted text to LLM in chunks — it identifies the transaction table, pulls date/description/amount rows, and returns structured JSON. Handles multi-page statements.",
+      "complexity": "high",
+      "requires_external": false,
+      "implementation_notes": "pdfplumber for text extraction (better than pypdf for table detection). Send page-by-page; LLM finds the table boundaries. Watch for page-spanning transactions. Some banks produce image-only PDFs — flag those as unreadable.",
+      "tag": "ingestion"
+    },
+    {
+      "id": "ofx-parser",
+      "title": "OFX / QFX Native Parser",
+      "description": "OFX and QFX (Quicken) are structured XML-ish formats that most US banks can export. Parse them directly without LLM — they contain clean date, amount, description, and transaction ID fields. Most reliable import path when available.",
+      "complexity": "low",
+      "requires_external": false,
+      "implementation_notes": "ofxparse library handles both OFX and QFX. No LLM needed for parsing, but can still run categorization pass after import. Transaction ID field enables perfect dedup.",
+      "tag": "ingestion"
+    },
+    {
+      "id": "dedup-engine",
+      "title": "Transaction Deduplication",
+      "description": "When importing a statement, fingerprint each transaction (date + amount + description hash) and check against existing records. Flag probable duplicates before inserting — never double-count a transaction just because it appeared in two overlapping statements.",
+      "complexity": "low",
+      "requires_external": false,
+      "implementation_notes": "SHA256(date + str(amount) + description.lower().strip()) stored in ledger_transactions.fingerprint. OFX transaction IDs used directly when available. Show diff of new-only rows before confirming bulk import.",
+      "tag": "ingestion"
+    },
+    {
+      "id": "bank-format-library",
+      "title": "Bank Format Library",
+      "description": "After the LLM learns the column mapping for a bank's CSV format, save it as a named profile (e.g. 'Chase Checking', 'Ally Savings'). Future imports from the same bank skip LLM and parse instantly. User can also manually define profiles.",
+      "complexity": "low",
+      "requires_external": false,
+      "implementation_notes": "Store profiles in ledger_bank_formats table: (id, name, header_fingerprint, column_map JSON). Match by hashing the CSV header row. Fallback to LLM if no match.",
+      "tag": "ingestion"
+    },
+    {
+      "id": "import-preview-screen",
+      "title": "Bulk Import Preview Screen",
+      "description": "Before committing a statement import, show a full-screen preview: total rows found, date range, new vs duplicate transactions, category distribution, sum of debits and credits. User confirms or cancels the whole batch.",
+      "complexity": "medium",
+      "requires_external": false,
+      "implementation_notes": "Modal screen with DataTable of pending rows. Color-code: green=new, yellow=probable duplicate, red=parse error. Show summary stats at top. Enter=commit, Esc=discard.",
+      "tag": "ingestion"
+    },
+    {
+      "id": "investment-intelligence",
+      "title": "Investment Intelligence Bridge",
+      "description": "The layer that ties all three apps together. When you surface a company in Vor (public records), yggdrasil synthesizes across all three ledgers: what the public record says about this company (contracts, 990s, executive comp), what your personal ledger shows (existing exposure, spending at this company), and what Gjald shows (business relationship, client/vendor). Then it gives you a local, sovereign investment opinion — no subscription, no black-box algorithm. Your values are a first-class input: if public records show something that conflicts with what you care about, that filters before any quant analysis runs.",
+      "complexity": "high",
+      "requires_external": false,
+      "implementation_notes": "Requires all three apps sharing an entity graph layer. Entity resolution is the hard part — normalize 'Amazon', 'Amazon.com Inc', 'AWS', 'AMZN' to one node. Yggdrasil prompt includes: public record summary (from Vor), current portfolio position (from personal ledger stock tracker), business exposure (from Gjald), and user's stated values/filters. Output: opinion + reasoning, not just a number.",
+      "canonical_example": {
+        "user_filter": "Avoid tech companies with direct Department of Defense contracts at any threshold — not a percentage question, a presence question",
+        "data_source": "USASpending — filter awarding_agency = 'Department of Defense', recipient = entity",
+        "flagged_entities": [
+          {"name": "Microsoft", "reason": "JWCC participant, Azure DoD cloud, $21.9B ceiling contract"},
+          {"name": "Amazon / AWS", "reason": "JWCC participant, CIA/IC cloud, defense-adjacent at scale"},
+          {"name": "Google", "reason": "JWCC participant despite Maven withdrawal"},
+          {"name": "Palantir", "reason": "DoD/intelligence is core business model, ~55% govt revenue"},
+          {"name": "Oracle", "reason": "JWCC participant"},
+          {"name": "Anduril", "reason": "Defense-only, private — no stock but flag for awareness"}
+        ],
+        "secondary_surface": "Personal ledger spending data checked first — user likely already paying into several flagged entities via subscriptions and cloud services before any investment decision is reached",
+        "threshold_is_users": "What counts as 'significant' is a user setting, not an algorithm judgment. Sean's filter: any direct DoD contract = flagged, no percentage threshold",
+        "model_output_shape": "List of flagged holdings + flagged monthly spend + alternatives in same sector with no defense contracts + option to exit positions"
+      },
+      "tag": "cross-app",
+      "spans": ["personal", "public", "corporate"]
+    },
+    {
+      "id": "entity-graph",
+      "title": "Shared Entity Graph",
+      "description": "The connective tissue across all three apps. Companies, people, and organizations appear in all three ledgers — this layer normalizes them into a single node (entity resolution) so that 'Amazon' in a bank CSV, 'Amazon.com Inc' in USASpending, and 'AWS' on an invoice are recognized as the same entity. Enables cross-app lookup: click any entity in any app, see its presence in the others.",
+      "complexity": "high",
+      "requires_external": false,
+      "implementation_notes": "SQLite table: ledger_entities (id, canonical_name, aliases JSON, type). Fuzzy match + LLM disambiguation for edge cases. Each app's transactions/records carry an entity_id FK when resolved. The scout classifier also writes entity_id to the sidecar when it can identify the institution.",
+      "tag": "cross-app",
+      "spans": ["personal", "public", "corporate"]
+    },
+    {
+      "id": "direct-api-plaid",
+      "title": "Direct Bank API (Plaid)",
+      "description": "Connect to bank accounts directly via Plaid Link. Transactions sync automatically — no manual download required. Plaid supports 12,000+ US institutions. Requires a Plaid API key (free dev tier available).",
+      "complexity": "high",
+      "requires_external": true,
+      "external_note": "Plaid API key required. Free dev tier: 100 items. Data leaves local machine to Plaid servers — not sovereign.",
+      "tag": "ingestion"
+    },
+    {
+      "id": "global-scout",
+      "title": "Global File Scout",
+      "description": "A standalone background process (separate from the app) that watches one or more communal folders — ~/Downloads, ~/Documents, a Dropbox folder, whatever the user configures. It is bank and app agnostic. When any file lands that looks like a financial statement, it classifies it, writes a sidecar metadata file next to it, copies both to the target app's inbox, and fires a notification. The app doesn't need to know anything about Downloads.",
+      "complexity": "medium",
+      "requires_external": false,
+      "implementation_notes": "Runs as a persistent subprocess or systemd user service. Config file lists watched paths and target app inboxes. Uses watchdog inotify. First pass is pure filename pattern matching (fast, zero LLM cost). Ambiguous files go to LLM for a lightweight classification call. Moves file + sidecar atomically to target inbox so the app never sees a partial write.",
+      "tag": "scout"
+    },
+    {
+      "id": "scout-classifier",
+      "title": "Scout Classifier",
+      "description": "The scout's classification step. Tries pattern matching first: filename contains bank name, known CSV header patterns, .ofx/.qfx extensions, PDF containing the word 'Statement'. If confidence is low, sends the filename and first ~500 bytes to yggdrasil for a cheap classification call. Output: likely_bank, account_type, file_format, confidence, date_range (if detectable).",
+      "complexity": "medium",
+      "requires_external": false,
+      "implementation_notes": "Pattern library is a JSON of known bank filename patterns and CSV header fingerprints. LLM fallback only runs when pattern confidence < 0.7. LLM prompt is tiny — just the filename + first few lines, returns JSON classification. Cache new patterns learned by LLM back into the pattern library so future files from the same bank skip the LLM entirely.",
+      "tag": "scout"
+    },
+    {
+      "id": "sidecar-metadata",
+      "title": "Sidecar Metadata File",
+      "description": "When the scout routes a file to the app inbox, it writes a companion JSON sidecar (e.g. Chase_2026-05.csv → Chase_2026-05.csv.scout.json). The sidecar carries everything the scout already figured out: bank name, account type, format, confidence, date range, source path, timestamp. The app reads the sidecar first and skips redundant classification — it already knows what it's dealing with before opening the file.",
+      "complexity": "low",
+      "requires_external": false,
+      "implementation_notes": "Schema: { source_path, detected_at, file_type, classification: { likely_bank, account_type, confidence, method, date_range }, routing: { target_app, target_inbox } }. App checks for sidecar on inbox events. If sidecar absent (manual drop), app runs its own classification. Sidecar deleted after successful import.",
+      "tag": "scout"
+    },
+    {
+      "id": "scout-notification",
+      "title": "App Notification on File Arrival",
+      "description": "When the scout drops a file into the ledger inbox, the running app shows a Textual toast notification: 'Chase Checking statement detected — tap to review 47 transactions'. If the app is not running, write a pending-notification record to the DB so the next launch surfaces it immediately at startup.",
+      "complexity": "low",
+      "requires_external": false,
+      "implementation_notes": "Scout writes to ledger_notifications table (or a pending-imports record in the records table) so the app sees it on next mount. If app is running, use watchdog event → app reacts to inbox change and calls self.notify(). Textual notify() shows a dismissable toast in the corner.",
+      "tag": "scout"
+    },
+    {
+      "id": "scout-config",
+      "title": "Scout Watch Configuration",
+      "description": "A simple config file (~/.willow/scout.json) listing: watched folders, file patterns to ignore (already-processed, receipts, photos), target app inboxes, and which apps receive which file types. Lets the scout serve multiple apps from the same watch — e.g. route bank CSVs to ledger, route receipts to an expense tracker, ignore everything else.",
+      "complexity": "low",
+      "requires_external": false,
+      "implementation_notes": "Config: { watch_paths: [...], ignore_patterns: [...], routes: [ { match: { type, confidence_min }, target_inbox, target_app } ] }. Hot-reload on config file change — no restart needed. This is the extensibility hook that makes the scout app-agnostic.",
+      "tag": "scout"
+    },
+    {
+      "id": "direct-api-mx",
+      "title": "Direct Bank API (MX / Finicity)",
+      "description": "Alternative to Plaid. MX and Finicity offer similar bank aggregation APIs with better coverage for credit unions and smaller banks. Same tradeoff: automatic sync, but data goes through a third-party aggregator.",
+      "complexity": "high",
+      "requires_external": true,
+      "external_note": "MX or Finicity API key required. Better credit union coverage than Plaid but same sovereignty concern.",
+      "tag": "ingestion"
+    }
+  ]
+}

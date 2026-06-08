@@ -1,0 +1,25 @@
+{
+  "url": "http://scoot.net/gallery/2004/07/mayhem/",
+  "slug": "2004/07/mayhem",
+  "title": "Mile High Mayhem - 2004",
+  "year": 2004,
+  "month": 7,
+  "date_rally": "2004-07",
+  "photo_count": 0,
+  "description": "The Mile High Mayhem scooter rally was a meetup of scooter enthusiasts.",
+  "city": "Denver",
+  "state_province": "Colorado",
+  "country": "USA",
+  "recurring": false,
+  "notable_facts": [
+    "Held in July 2004",
+    "Features can be seen on Scoot.net"
+  ],
+  "related_clubs": [
+    "null"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:40:14Z",
+  "enriched_provider": "Cerebras3"
+}

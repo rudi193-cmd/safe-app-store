@@ -1,0 +1,23 @@
+{
+  "url": "http://scoot.net/gallery/2005/09/runfromthesun/",
+  "slug": "2005/09/runfromthesun",
+  "title": "Run from the Sun",
+  "year": 2005,
+  "month": 9,
+  "date_rally": "2005-09",
+  "photo_count": 599,
+  "stories": [],
+  "description": "Annual gathering of scoot enthusiasts, showcasing customized scooter art and camaraderie.",
+  "city": "Big Bear Lake",
+  "state_province": "California",
+  "country": "US",
+  "recurring": true,
+  "notable_facts": [
+    "Held in Big Bear Lake, California"
+  ],
+  "related_clubs": [],
+  "source_confidence": "high",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:47:00Z",
+  "enriched_provider": "Cerebras3"
+}

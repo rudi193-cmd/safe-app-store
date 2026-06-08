@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+venv/
+env/
+
+# Data
+saved_conversations/
+*.db
+*.sqlite
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Wrangler / Cloudflare
+.dev.vars
+.wrangler/
+
+# Environment / secrets
+.env
+.env.*
+credentials.json
+*.pyc
+.venv/
+target/

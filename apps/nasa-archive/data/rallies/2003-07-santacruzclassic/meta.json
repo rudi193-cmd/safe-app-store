@@ -1,0 +1,23 @@
+{
+  "url": "http://scoot.net/gallery/2003/07/santacruzclassic/",
+  "slug": "2003/07/santacruzclassic",
+  "title": "Santa Cruz Classic - 2003",
+  "year": 2003,
+  "month": 7,
+  "date_rally": "2003-07",
+  "photo_count": 76,
+  "stories": [],
+  "description": "description of the Santa Cruz Classic scooter rally",
+  "city": "Santa Cruz",
+  "state_province": "California",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Held in July 2003",
+    "Information available on Scoot.net"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:34:14Z",
+  "enriched_provider": "Cerebras"
+}

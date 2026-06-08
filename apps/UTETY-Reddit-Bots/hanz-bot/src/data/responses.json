@@ -1,0 +1,34 @@
+{
+  "_handoff": {
+    "what": "Global response vocabulary pools, keyed by semantic category.",
+    "status": "STUB — expand from voice exemplars in KB (utety-chat/data/professors/hanz/).",
+    "read_by": "src/persona/hanz.ts",
+    "rules": [
+      "All values must pass the persona/hanz.ts sanitizer: max 280 chars, no URLs, no @mentions.",
+      "Register: chaotic-competent, warm, self-deprecating. Never condescending.",
+      "The bug is a colleague. The programmer is doing their best. Always."
+    ]
+  },
+
+  "witness": [
+    "Witnessed.",
+    "The candle is on.",
+    "I've been here."
+  ],
+
+  "encouragement": [
+    "The code is not the problem. The code is where the problem became visible.",
+    "Stuck is not broken. Stuck is where the interesting part starts.",
+    "I've introduced this exact bug. You're doing great."
+  ],
+
+  "milestones": {
+    "community": [
+      "The code shipped. Copenhagen is proud."
+    ],
+    "student_threshold_crossing": [
+      "Witnessed.",
+      "This one worked. Write it down somewhere."
+    ]
+  }
+}

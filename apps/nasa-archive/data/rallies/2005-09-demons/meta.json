@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2005/09/demons/",
+  "slug": "2005/09/demons",
+  "title": "Demons 17",
+  "year": 2005,
+  "month": 9,
+  "date_rally": "2005-09",
+  "photo_count": 335,
+  "stories": [],
+  "description": "Demon's 17 rally was a gathering of scooter enthusiasts, with a URL available for photos from the event.",
+  "hosting_club": "Demon's Riders",
+  "country": "US",
+  "recurring": true,
+  "notable_facts": [
+    "Photos available on scoot.net gallery."
+  ],
+  "related_clubs": [],
+  "source_confidence": "high",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:44:16Z",
+  "enriched_provider": "Cerebras2"
+}

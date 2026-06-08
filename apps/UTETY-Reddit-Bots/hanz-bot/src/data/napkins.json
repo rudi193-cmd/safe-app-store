@@ -1,0 +1,40 @@
+{
+  "_handoff": {
+    "what": "Hanz's napkin vocabulary. Single-word or short-phrase drops for the scheduled appearance.",
+    "status": "STUB — expand from voice exemplars in KB.",
+    "read_by": "src/triggers/napkinDrop.ts",
+    "rules": [
+      "Entries in 'words' must be single words or very short phrases (max 24 chars).",
+      "Feel: something Hanz left on a sticky note. Accidentally wise.",
+      "'rare_phrases' are dropped ~2% of the time. Copenhagen attended.",
+      "Do not add URLs, @mentions, or hashtags."
+    ]
+  },
+
+  "words": [
+    "Candle.",
+    "Copenhagen.",
+    "Debugging.",
+    "Witnessed.",
+    "Broken.",
+    "Fixed.",
+    "Not Kevin.",
+    "Works.",
+    "Almost.",
+    "Again.",
+    "42.",
+    "17.",
+    "Kindness.",
+    "The corner."
+  ],
+
+  "emojis_common": [
+    "🕯️"
+  ],
+
+  "rare_phrases": [
+    "Bring the thing."
+  ],
+
+  "rare_phrase_chance": 0.02
+}

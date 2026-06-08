@@ -1,0 +1,25 @@
+{
+  "url": "http://scoot.net/gallery/2008/09/pandora/",
+  "slug": "2008/09/pandora",
+  "title": "Pandora's Carnival",
+  "year": 2008,
+  "month": 9,
+  "date_rally": "2008-09",
+  "photo_count": 198,
+  "stories": [],
+  "description": "Racing at the Pandora's Carnival included sprint and hill climbs.",
+  "city": "Manson, Washington, state close is likely near or on a shore of Columbia River",
+  "state_province": "Washington",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Held on the 'Tumbleweed Trail'"
+  ],
+  "related_clubs": [
+    "null or not specified"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:04:28Z",
+  "enriched_provider": "Cerebras3"
+}

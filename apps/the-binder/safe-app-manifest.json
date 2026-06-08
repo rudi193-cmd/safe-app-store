@@ -1,0 +1,43 @@
+{
+  "app_id": "the-binder",
+  "name": "The Binder",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "b17": "LNK2L",
+  "agent_type": "tool",
+  "description": "A local knowledge base and connection engine. Drop in notes, documents, and links. Kart finds what goes with what. Your NotebookLM replacement — private, local, yours.",
+  "author": "Sean Campbell",
+  "data_streams": [
+    {
+      "id": "knowledge_atoms",
+      "purpose": "Store the knowledge chunks you add to your binder",
+      "retention": "permanent",
+      "description": "Your notes and documents, stored locally in willow_knowledge.db"
+    },
+    {
+      "id": "entities",
+      "purpose": "Track people, places, and concepts mentioned across your knowledge",
+      "retention": "permanent",
+      "description": "The relationship graph — who goes with what"
+    },
+    {
+      "id": "session_context",
+      "purpose": "Remember what you were looking at during this session",
+      "retention": "session",
+      "description": "Cleared when you close The Binder"
+    }
+  ],
+  "permissions": [
+    "local_llm",
+    "file_read",
+    "file_write",
+    "knowledge_graph",
+    "binder_write"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "entry_point": "willow.server:app",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-the-binder",
+  "notes": "The Binder backend lives in the Willow server (server.py). This manifest describes the app-level contract. Run via: python Willow/server.py, then open binder.html."
+}

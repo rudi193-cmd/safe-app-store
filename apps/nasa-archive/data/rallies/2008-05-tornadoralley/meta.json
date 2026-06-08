@@ -1,0 +1,20 @@
+{
+  "url": "http://scoot.net/gallery/2008/05/tornadoralley/",
+  "slug": "2008/05/tornadoralley",
+  "title": "Tornado R'Alley",
+  "year": 2008,
+  "month": 5,
+  "date_rally": "2008-05",
+  "photo_count": 678,
+  "stories": [],
+  "description": "Information available about the event is limited, but it appears to have been a scooter rally.",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "The rally was documented on Scoot.net"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:06:55Z",
+  "enriched_provider": "Cerebras3"
+}

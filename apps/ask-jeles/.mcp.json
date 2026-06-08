@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "willow": {
+      "type": "stdio",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "exec \"${WILLOW_ROOT:-$HOME/github/willow-2.0}/sap/unified_mcp.sh\""
+      ],
+      "env": {
+        "WILLOW_AGENT_NAME": "ask-jeles"
+      }
+    }
+  }
+}

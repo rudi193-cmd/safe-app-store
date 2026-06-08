@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-ask-jeles"
+version = "0.1.0"
+description = "Jeles, your local-first AI librarian for KB, open web, maps, Special Collections, topic trivia, and consented learning events."
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.28.0",
+    "textual>=0.47.0",
+    "fastapi>=0.100.0",
+    "uvicorn>=0.23.0",
+    "pyspellchecker>=0.8.1",
+    "rapidfuzz>=3.0.0",
+    "mcp>=1.6.0,<2.0.0",
+]
+
+[project.scripts]
+ask-jeles = "askjeles.crown:main"
+
+[tool.setuptools]
+py-modules = ["safe_integration"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["askjeles*"]

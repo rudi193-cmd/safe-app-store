@@ -1,0 +1,23 @@
+{
+  "url": "http://scoot.net/gallery/2006/07/amerivespa/",
+  "slug": "2006/07/amerivespa",
+  "title": "Amerivespa",
+  "year": 2006,
+  "month": 7,
+  "date_rally": "2006-07",
+  "photo_count": 2915,
+  "stories": [],
+  "description": "Amerivespa is an annual Vespa scooter rally.",
+  "hosting_club": "International Vespa Club (IVC)",
+  "city": "San Francisco",
+  "state_province": "California",
+  "country": "US",
+  "recurring": true,
+  "first_year": 2002,
+  "notable_facts": [],
+  "related_clubs": [],
+  "source_confidence": "high",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:20:40Z",
+  "enriched_provider": "Cerebras2"
+}

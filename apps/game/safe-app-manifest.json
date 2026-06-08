@@ -1,0 +1,20 @@
+{
+  "app_id": "game",
+  "name": "game",
+  "version": "1.0.0",
+  "safe_version": ">=2.0.0",
+  "b17": "742CA",
+  "agent_type": "tool",
+  "description": "Jane GM — universal game master for TTRPGs, board games, and co-op play. Jane in your pocket.",
+  "author": "Sean Campbell",
+  "data_streams": [
+    {"id": "session_data", "purpose": "Active game session state", "retention": "session", "description": "Character stats, scene, dice history — deleted when session ends unless player opts to save"},
+    {"id": "saved_campaigns", "purpose": "Persistent campaign storage", "retention": "permanent", "description": "Saved characters and campaign progress — only stored with explicit player consent"}
+  ],
+  "permissions": ["local_llm", "cloud_llm_free", "pattern_storage", "file_write"],
+  "privacy_tier": "client_only",
+  "local_processing": 0.96,
+  "entry_point": "safe_integration:status",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-game"
+}

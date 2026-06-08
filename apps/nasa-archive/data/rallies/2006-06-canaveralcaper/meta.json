@@ -1,0 +1,23 @@
+{
+  "url": "http://scoot.net/gallery/2006/06/canaveralcaper/",
+  "slug": "2006/06/canaveralcaper",
+  "title": "Canaveral Scooter Caper II",
+  "year": 2006,
+  "month": 6,
+  "date_rally": "2006-06",
+  "photo_count": 147,
+  "stories": [],
+  "description": "A scooter rally hosted by several scooterists in Florida.",
+  "city": "Titusville",
+  "state_province": "Florida",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "http://scoot.net/gallery/2006/06/canaveralcaper/ is a reference to the event.",
+    "Location was at the Kennedy Space Center Visitor Complex vicinity"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:50:01Z",
+  "enriched_provider": "Cerebras2"
+}

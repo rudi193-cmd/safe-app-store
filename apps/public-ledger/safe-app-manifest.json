@@ -1,0 +1,53 @@
+{
+  "app_id": "public-ledger",
+  "name": "public-ledger",
+  "version": "1.0.0",
+  "safe_version": ">=2.0.0",
+  "b17": "C86E9",
+  "agent_type": "tool",
+  "description": "Public records financial auditor \u2014 search government budgets and IRS Form 990 filings for nonprofits.",
+  "author": "Sean Campbell",
+  "data_streams": [
+    {
+      "id": "cloud_llm_queries",
+      "purpose": "AI processing via free cloud tier",
+      "retention": "session",
+      "description": "Cloud LLM API calls"
+    },
+    {
+      "id": "network_requests",
+      "purpose": "Network data fetching",
+      "retention": "session",
+      "description": "Outbound network requests"
+    },
+    {
+      "id": "patterns",
+      "purpose": "Behavioral pattern storage",
+      "retention": "permanent",
+      "description": "User pattern data"
+    },
+    {
+      "id": "file_writes",
+      "purpose": "File system writes",
+      "retention": "permanent",
+      "description": "Files written by app"
+    }
+  ],
+  "permissions": [
+    "cloud_llm_free",
+    "network_fetch",
+    "pattern_storage",
+    "file_write"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 0.96,
+  "dev_server": {
+    "env_var": "PUBLIC_LEDGER_DEV_SERVER",
+    "port": 8422,
+    "scope": "localhost",
+    "note": "Local development only. Not started in production."
+  },
+  "entry_point": "safe_integration:status",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-public-ledger"
+}

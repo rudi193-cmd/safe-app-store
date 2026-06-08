@@ -1,0 +1,25 @@
+{
+  "url": "http://scoot.net/gallery/2004/09/keepitclean/",
+  "slug": "2004/09/keepitclean",
+  "title": "Keep It Clean - Vancouver Rally - 2004",
+  "year": 2004,
+  "month": 9,
+  "date_rally": "2004-09",
+  "photo_count": 0,
+  "lat": 49.260872,
+  "lng": -123.113952,
+  "description": "A scooter rally organized by the scooter community, no further details available.",
+  "hosting_club": "Vancouver-based scooter club is not specified",
+  "city": "Vancouver",
+  "state_province": "British Columbia",
+  "country": "Canada",
+  "recurring": false,
+  "notable_facts": [
+    "Held in 2004",
+    "Organized scooter community event"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:39:58Z",
+  "enriched_provider": "Cerebras2"
+}

@@ -1,0 +1,33 @@
+/* skins/mcm.css — Mid-Century Modern (1950s–60s) */
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Mono:wght@400;600&family=Lato:wght@300;400;700&display=swap');
+
+[data-skin="mcm"] {
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body:    'Lato', Helvetica, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'Courier New', monospace;
+  --color-bg:         #1a1510;
+  --color-surface:    #241d14;
+  --color-text:       #e8d8c0;
+  --color-muted:      #7a6a54;
+  --color-accent:     #c8a45a;
+  --color-accent-dim: #7a6030;
+  --border: 1px solid #352a1a;
+  --title-tracking: 0.2em;
+}
+
+[data-skin="mcm"] #header { background: #120e08; }
+[data-skin="mcm"] #title::before { content: "❧ "; }
+[data-skin="mcm"] #content a { border-bottom: 1px solid var(--color-accent-dim); text-decoration: none; }
+
+/* Nav */
+[data-skin="mcm"] #nav { background: #120e08; }
+[data-skin="mcm"] .nav-link { text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.08em; }
+[data-skin="mcm"] .nav-link--active { background: #241d14; }
+/* Cameo */
+[data-skin="mcm"] .cameo { border-color: #8a6030; background: #f0e8d0; }
+[data-skin="mcm"] .cameo-silhouette { color: #2a1a08; }
+/* Daguerreotype */
+[data-skin="mcm"] .dag-frame { border-color: #8a6030; background: #0e0a04; box-shadow: 0 0 0 2px #1a1208, 0 0 0 4px #8a6030, inset 0 0 20px rgba(0,0,0,0.6); }
+[data-skin="mcm"] .dag-frame .cameo-silhouette { color: #c8a45a; opacity: 0.5; }
+/* Stories */
+[data-skin="mcm"] .story-msg--jeles { font-family: var(--font-display); font-style: italic; }

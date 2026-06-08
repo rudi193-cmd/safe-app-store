@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2007/07/stumptown/",
+  "slug": "2007/07/stumptown",
+  "title": "Stumptown Classic",
+  "year": 2007,
+  "month": 7,
+  "date_rally": "2007-07",
+  "photo_count": 862,
+  "stories": [],
+  "city": "Portland",
+  "state_province": "Oregon",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Held in July 2007 in Portland, Oregon"
+  ],
+  "related_clubs": [],
+  "source_confidence": "high",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:00:52Z",
+  "enriched_provider": "Cerebras2"
+}

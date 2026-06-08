@@ -1,0 +1,20 @@
+{
+  "url": "http://scoot.net/gallery/2005/10/skutoberfest/",
+  "slug": "2005/10/skutoberfest",
+  "title": "Skutoberfest 9",
+  "year": 2005,
+  "month": 10,
+  "date_rally": "2005-10",
+  "photo_count": 105,
+  "stories": [],
+  "description": "A scooter rally hosted by a private group of enthusiasts.",
+  "recurring": false,
+  "notable_facts": [
+    "Held on the Scoot.net website as their gallery in 2005"
+  ],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:47:48Z",
+  "enriched_provider": "Cerebras2"
+}

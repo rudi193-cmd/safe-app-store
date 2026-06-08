@@ -1,0 +1,24 @@
+{
+  "url": "http://scoot.net/gallery/2005/04/moab/",
+  "slug": "2005/04/moab",
+  "title": "Scoot Moab",
+  "year": 2005,
+  "month": 4,
+  "date_rally": "2005-04",
+  "photo_count": 1019,
+  "stories": [],
+  "description": "Scoot Moab was a scooter rally that took place in the deserts of Moab, Utah.",
+  "city": "Moab",
+  "state_province": "Utah",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Held in April",
+    "Organized and hosted by Scoot.net"
+  ],
+  "related_clubs": [],
+  "source_confidence": "high",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:47:18Z",
+  "enriched_provider": "Cerebras3"
+}

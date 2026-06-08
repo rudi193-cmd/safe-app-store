@@ -1,0 +1,15 @@
+.env
+*.pyc
+__pycache__/
+scraper/output/
+downloader/output/
+.DS_Store
+.env.local
+*.db
+.venv/
+.wrangler
+target/
+*.log
+.dev.vars*
+!.dev.vars.example
+!.env.example

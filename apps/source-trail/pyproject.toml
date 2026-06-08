@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-source-trail"
+version = "1.0.0"
+description = "Citation and source tracker — log, verify, and link your research sources. AskJeles companion."
+requires-python = ">=3.10"
+dependencies = [
+    "psycopg2-binary>=2.9",
+    "textual>=0.50.0",
+]
+
+[project.scripts]
+source-trail = "source_trail.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["source_trail*"]

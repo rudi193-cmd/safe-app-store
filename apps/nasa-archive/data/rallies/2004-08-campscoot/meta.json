@@ -1,0 +1,19 @@
+{
+  "url": "http://scoot.net/gallery/2004/08/campscoot/",
+  "slug": "2004/08/campscoot",
+  "title": "Camp Scoot - 2004",
+  "year": 2004,
+  "month": 8,
+  "date_rally": "2004-08",
+  "photo_count": 0,
+  "description": "Camp Scoot was a scooter rally held in 2004.",
+  "recurring": false,
+  "notable_facts": [
+    "The event is documented at Scoot.net"
+  ],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:37:48Z",
+  "enriched_provider": "Cerebras2"
+}

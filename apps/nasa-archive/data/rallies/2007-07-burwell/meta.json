@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2007/07/burwell/",
+  "slug": "2007/07/burwell",
+  "title": "Port Burwell Race n Run",
+  "year": 2007,
+  "month": 7,
+  "date_rally": "2007-07",
+  "photo_count": 264,
+  "stories": [],
+  "description": "The Port Burwell Race n Run was a scooter rally that featured a race and a ride portion.",
+  "city": "Port Burwell",
+  "state_province": "Ontario",
+  "country": "Canada",
+  "notable_facts": [
+    "Held in July 2007",
+    "Features a race and ride portion as shown in the scoot.net gallery"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:59:04Z",
+  "enriched_provider": "Cerebras3"
+}

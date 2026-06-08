@@ -1,0 +1,20 @@
+{
+  "url": "http://scoot.net/gallery/chminigolf2002/",
+  "slug": "chminigolf2002",
+  "title": "ChiScooterList Mini Golf Tournament 2002",
+  "year": 2002,
+  "month": null,
+  "date_rally": "2002-??",
+  "photo_count": 50,
+  "stories": [],
+  "lat": 41.875562,
+  "lng": -87.624421,
+  "recurring": false,
+  "notable_facts": [
+    "Part of ChiScooterList Mini Golf Tournament 2002"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:25:50Z",
+  "enriched_provider": "Novita"
+}

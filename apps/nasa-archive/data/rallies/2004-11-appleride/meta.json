@@ -1,0 +1,27 @@
+{
+  "url": "http://scoot.net/gallery/2004/11/appleride/",
+  "slug": "2004/11/appleride",
+  "title": "Oak Glen Apple Ride - 2004",
+  "year": 2004,
+  "month": 11,
+  "date_rally": "2004-11",
+  "photo_count": 200,
+  "stories": [],
+  "description": "Details about 2004 Oak Glen Apple Ride scooter rally available on Scoot.net.",
+  "hosting_club": "null",
+  "city": "null",
+  "state_province": "California",
+  "country": "United States",
+  "recurring": false,
+  "notable_facts": [
+    "Held in November 2004",
+    "Information available on Scoot.net"
+  ],
+  "related_clubs": [
+    "null"
+  ],
+  "source_confidence": "high",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:40:31Z",
+  "enriched_provider": "Cerebras3"
+}

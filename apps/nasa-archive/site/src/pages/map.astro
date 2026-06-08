@@ -1,0 +1,99 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Rally Map — NASA Archive">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-[#CC4444] uppercase tracking-widest mb-1">Rally Map</h1>
+    <p class="text-[#666] text-sm">Every documented North American scooter rally, mapped.</p>
+  </div>
+
+  <div id="map" style="height: 620px; border: 1px solid #333; border-radius: 4px;"></div>
+
+  <div class="mt-4 flex gap-6 text-xs text-[#666]">
+    <span><span class="inline-block w-3 h-3 rounded-full bg-[#CC4444] mr-1"></span>Rally location</span>
+    <span id="legend-attended" class="hidden"><span class="inline-block w-3 h-3 rounded-full bg-[#44CC88] mr-1"></span>You attended</span>
+    <span id="legend-planning" class="hidden"><span class="inline-block w-3 h-3 rounded-full bg-[#4488CC] mr-1"></span>Planning to attend</span>
+  </div>
+</Base>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  const map = L.map('map', { center: [39.5, -98.35], zoom: 4 });
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
+
+  const dot = (color) => L.divIcon({
+    className: '',
+    html: `<div style="width:10px;height:10px;border-radius:50%;background:${color};border:1px solid rgba(255,255,255,0.25);"></div>`,
+    iconSize: [10, 10],
+    iconAnchor: [5, 5],
+  });
+
+  async function loadMap() {
+    const res = await fetch('/data/index.json');
+    const data = await res.json();
+    const rallies = data.rallies_list || [];
+
+    // User attendance overlay (optional — requires Supabase session)
+    let attended = new Set(), planning = new Set();
+    try {
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+      const SUPABASE_URL = import.meta.env?.PUBLIC_SUPABASE_URL;
+      const SUPABASE_KEY = import.meta.env?.PUBLIC_SUPABASE_ANON_KEY;
+      if (SUPABASE_URL && SUPABASE_KEY) {
+        const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+        const { data: { session } } = await sb.auth.getSession();
+        if (session?.user) {
+          const { data: rows } = await sb
+            .from('user_rally_attendance')
+            .select('rally_slug, status')
+            .eq('user_id', session.user.id);
+          (rows || []).forEach(r => {
+            if (r.status === 'attended') attended.add(r.rally_slug);
+            if (r.status === 'planning') planning.add(r.rally_slug);
+          });
+          if (attended.size || planning.size) {
+            document.getElementById('legend-attended')?.classList.remove('hidden');
+            document.getElementById('legend-planning')?.classList.remove('hidden');
+          }
+        }
+      }
+    } catch (_) {}
+
+    let placed = 0;
+    rallies.forEach(r => {
+      if (r.lat == null || r.lng == null) return;
+      const color = attended.has(r.slug) ? '#44CC88' : planning.has(r.slug) ? '#4488CC' : '#CC4444';
+      const photos = r.photo_count ? `${r.photo_count} photos` : 'no photos';
+      L.marker([r.lat, r.lng], { icon: dot(color) })
+        .addTo(map)
+        .bindPopup(`
+          <div style="font-family:monospace;font-size:12px;color:#f5f0e8;min-width:160px">
+            <div style="color:#CC4444;font-weight:bold;margin-bottom:4px">${r.title || r.slug}</div>
+            <div style="color:#888;margin-bottom:6px">${r.year || ''} · ${photos}</div>
+            <a href="/rally/${r.slug}" style="color:#CC4444;text-decoration:none;font-size:11px;border:1px solid #CC4444;padding:2px 8px;display:inline-block">View Gallery →</a>
+          </div>`, { className: 'nasa-popup' });
+      placed++;
+    });
+    console.log(`Map: ${placed}/${rallies.length} rallies placed`);
+  }
+
+  loadMap();
+</script>
+
+<style is:global>
+  .nasa-popup .leaflet-popup-content-wrapper {
+    background: #1a1a1a; border: 1px solid #333; border-radius: 2px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.6); color: #f5f0e8;
+  }
+  .nasa-popup .leaflet-popup-tip { background: #1a1a1a; }
+  .leaflet-popup-close-button { color: #666 !important; }
+  .leaflet-control-zoom a { background: #1a1a1a !important; color: #f5f0e8 !important; border-color: #333 !important; }
+  .leaflet-control-attribution { background: rgba(0,0,0,0.5) !important; color: #555 !important; }
+</style>

@@ -1,0 +1,19 @@
+{
+  "url": "http://scoot.net/gallery/rallyfromhell2001/",
+  "slug": "rallyfromhell2001",
+  "title": "Rally From Hell 2001",
+  "year": 2001,
+  "month": null,
+  "date_rally": "2001-??",
+  "photo_count": 141,
+  "stories": [],
+  "lat": 45.520247,
+  "lng": -122.674194,
+  "recurring": false,
+  "notable_facts": [],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:24:55Z",
+  "enriched_provider": "Cerebras2"
+}

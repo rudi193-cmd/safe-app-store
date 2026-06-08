@@ -1,0 +1,666 @@
+---
+import Base from '../../layouts/Base.astro';
+import { readFileSync, readdirSync, statSync } from 'fs';
+import { join } from 'path';
+
+const DATA_DIR = join(process.cwd(), '..', 'data', 'rallies');
+
+// Build static paths from available rally directories
+export async function getStaticPaths() {
+  const RALLIES_DIR = join(process.cwd(), '..', 'data', 'rallies');
+  try {
+    return readdirSync(RALLIES_DIR)
+      .filter(name => statSync(join(RALLIES_DIR, name)).isDirectory())
+      .map(slug => ({ params: { slug } }));
+  } catch (e) {
+    console.error('[getStaticPaths] Failed to read rally dirs:', e.message);
+    return [];
+  }
+}
+
+const { slug } = Astro.params;
+const rallyDir = join(DATA_DIR, slug);
+
+let meta = {};
+let photos = [];
+
+try {
+  meta = JSON.parse(readFileSync(join(rallyDir, 'meta.json'), 'utf-8'));
+  photos = JSON.parse(readFileSync(join(rallyDir, 'photos.json'), 'utf-8'));
+} catch (e) {}
+
+// Group photos by photographer
+const byPhotographer = photos.reduce((acc, p) => {
+  const key = p.photographer || 'Unknown';
+  if (!acc[key]) acc[key] = [];
+  acc[key].push(p);
+  return acc;
+}, {});
+
+const title = meta.title || slug;
+const dateLabel = meta.date_rally || (meta.year ? String(meta.year) : 'Unknown date');
+---
+<Base title={`${title} — NASA Archive`}>
+  <!-- Breadcrumb -->
+  <div class="text-xs text-[#555] mb-6">
+    <a href="/rallies" class="hover:text-[#CC4444]">Rallies</a>
+    <span class="mx-2">›</span>
+    <span class="text-[#888]">{title}</span>
+  </div>
+
+  <!-- Rally header -->
+  <div class="mb-8 border-b border-[#333] pb-6">
+    <div class="text-[#CC4444] text-sm uppercase tracking-widest mb-1">{dateLabel}</div>
+    <h1 class="text-3xl font-bold text-[#f5f0e8] mb-3">{title}</h1>
+    <div class="flex gap-6 text-sm text-[#666]">
+      <span>{photos.length.toLocaleString()} photos</span>
+      <span>{Object.keys(byPhotographer).length} photographers</span>
+      {meta.date_exif && <span class="text-[#444] text-xs">EXIF dates preserved but not verified</span>}
+    </div>
+
+    <!-- Album-level actions -->
+    <div class="flex flex-wrap gap-3 mt-5" id="album-claim-section">
+      <button id="claim-attendee"
+        class="border border-[#333] text-[#555] px-4 py-2 text-xs uppercase tracking-wider hover:border-[#CC4444] hover:text-[#CC4444] transition-colors">
+        I Was There
+      </button>
+      <button id="claim-originator"
+        class="border border-[#333] text-[#555] px-4 py-2 text-xs uppercase tracking-wider hover:border-[#CC4444] hover:text-[#CC4444] transition-colors">
+        I Shot These Photos
+      </button>
+      <button id="download-album"
+        class="border border-[#333] text-[#555] px-4 py-2 text-xs uppercase tracking-wider hover:border-[#CC4444] hover:text-[#CC4444] transition-colors">
+        ↓ Download Rally Data
+      </button>
+      <button id="end-session"
+        class="border border-[#CC4444] text-[#CC4444] px-4 py-2 text-xs uppercase tracking-wider hover:bg-[#CC4444] hover:text-white transition-colors hidden">
+        Done — Contribute
+      </button>
+    </div>
+  </div>
+
+  {photos.length === 0 ? (
+    <div class="text-center py-16 text-[#555]">
+      <p>No photos mapped for this rally yet.</p>
+      <p class="text-xs mt-2">This may be a legacy gallery with a different format.</p>
+    </div>
+  ) : (
+    <div>
+      <!-- Per-photographer sections -->
+      {Object.entries(byPhotographer).map(([photographer, pics]) => (
+        <div class="mb-10">
+          <h2 class="text-[#888] text-sm uppercase tracking-wider mb-4 flex items-center gap-3">
+            <span class="text-[#CC4444]">◆</span>
+            {photographer}
+            <span class="text-[#444] font-normal normal-case tracking-normal">
+              {pics.length} photos
+            </span>
+          </h2>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+            {pics.map(photo => (
+              <div
+                class="group relative aspect-square bg-[#111] border border-[#222] hover:border-[#CC4444] transition-colors overflow-hidden photo-card"
+                data-pic-id={photo.pic_id}
+                data-pic-url={photo.r2_thumb || photo.pic_url}
+                title={photo.alt || `Photo ${photo.pic_id}`}
+              >
+                {photo.r2_thumb ? (
+                  <a href={photo.r2_thumb} target="_blank" rel="noopener">
+                    <img
+                      src={photo.r2_thumb}
+                      alt={photo.alt || ''}
+                      class="w-full h-full object-cover group-hover:opacity-60 transition-opacity"
+                      loading="lazy"
+                    />
+                  </a>
+                ) : (
+                  <div class="w-full h-full flex items-center justify-center">
+                    <a href={photo.pic_url} target="_blank" class="text-[#444] text-xs text-center px-2 hover:text-[#CC4444]">
+                      #{photo.pic_id}
+                    </a>
+                  </div>
+                )}
+
+                <!-- Tag me button (hover) -->
+                <button
+                  class="tag-btn absolute top-1 right-1 bg-[#CC4444] text-white px-2 py-1 text-xs uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#aa3333]"
+                  data-pic-id={photo.pic_id}
+                  data-pic-url={photo.r2_thumb || photo.pic_url}>
+                  Tag me
+                </button>
+
+                <!-- Tagged indicator -->
+                <div class="tag-indicator absolute top-0 left-0 right-0 bg-[#CC4444] text-white text-xs py-0.5 text-center hidden pointer-events-none"
+                  data-for={photo.pic_id}>◆ You</div>
+
+                <!-- Community claim indicator -->
+                {photo.claims?.length > 0 && (
+                  <div class="absolute bottom-0 left-0 right-0 bg-[#CC4444]/70 text-white text-xs py-0.5 text-center">
+                    {photo.claims.length} claimed
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <!-- Contribute section -->
+      <div class="mt-12 border border-[#333] p-6 text-sm text-[#666]">
+        <h3 class="text-[#f5f0e8] mb-2">Were you there?</h3>
+        <p class="mb-4">Tag yourself in photos, add context, or share your story from this rally.</p>
+        <div class="flex gap-4">
+          <a href={`/contribute?rally=${slug}`}
+            class="border border-[#CC4444] text-[#CC4444] px-4 py-2 text-xs uppercase tracking-wider hover:bg-[#CC4444] hover:text-white transition-colors">
+            Claim a Photo
+          </a>
+          <button id="open-story-panel"
+            class="border border-[#555] text-[#666] px-4 py-2 text-xs uppercase tracking-wider hover:border-[#CC4444] hover:text-[#CC4444] transition-colors">
+            Add Your Story
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+
+  <!-- Oral History Section -->
+  <div class="mt-16 border-t border-[#222] pt-8" id="oral-history-root" data-slug={slug}>
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-[#CC4444] text-sm uppercase tracking-widest">
+        <span class="text-[#CC4444]">◆</span> Oral History
+      </h2>
+      <div class="flex gap-2">
+        <button id="open-chat-panel"
+          class="border border-[#CC4444] text-[#CC4444] px-3 py-1.5 text-xs uppercase tracking-wider hover:bg-[#CC4444] hover:text-white transition-colors">
+          Talk to the Historian
+        </button>
+        <button id="open-story-panel-2"
+          class="border border-[#555] text-[#555] px-3 py-1.5 text-xs uppercase tracking-wider hover:border-[#CC4444] hover:text-[#CC4444] transition-colors">
+          + Write Story
+        </button>
+      </div>
+    </div>
+
+    <!-- Stories load here client-side -->
+    <div id="stories-container">
+      <div class="text-[#444] text-sm text-center py-8" id="stories-loading">Loading stories...</div>
+    </div>
+  </div>
+
+  <!-- Story submission panel (slide-up) -->
+  <div id="story-panel"
+    class="fixed inset-0 bg-black/80 z-50 hidden items-end"
+    role="dialog" aria-modal="true" aria-label="Share your story">
+    <div class="bg-[#0a0a0a] border-t border-[#CC4444] w-full max-h-[85vh] overflow-y-auto p-6">
+      <div class="max-w-2xl mx-auto">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-[#CC4444] uppercase tracking-widest text-sm">Share Your Story</h3>
+          <button id="close-story-panel" class="text-[#555] hover:text-[#f5f0e8] text-lg">✕</button>
+        </div>
+
+        <p class="text-[#555] text-xs mb-6">
+          A funny moment, a breakdown on the highway, who you ran into, what broke down, what didn't.
+          The details that don't get saved anywhere else.
+        </p>
+
+        <!-- Not logged in state -->
+        <div id="story-auth-prompt" class="hidden">
+          <div class="border border-[#333] p-4 text-sm text-center">
+            <p class="text-[#666] mb-3">Sign in to add your story</p>
+            <a href="/login" class="border border-[#CC4444] text-[#CC4444] px-4 py-2 text-xs uppercase tracking-wider hover:bg-[#CC4444] hover:text-white transition-colors inline-block">
+              Sign In
+            </a>
+          </div>
+        </div>
+
+        <!-- Story form -->
+        <form id="story-form" class="hidden">
+          <div class="mb-4">
+            <label class="text-[#888] text-xs uppercase tracking-wider block mb-2">
+              Your name (as the community knows you)
+            </label>
+            <input type="text" id="story-narrator-name"
+              placeholder="Club name / handle"
+              class="w-full bg-transparent border border-[#333] px-4 py-3 text-sm text-[#f5f0e8] placeholder-[#444] focus:outline-none focus:border-[#CC4444]"
+              required />
+          </div>
+
+          <div class="mb-4">
+            <label class="text-[#888] text-xs uppercase tracking-wider block mb-2">
+              Your story
+            </label>
+            <textarea id="story-content" rows="6"
+              placeholder="Tell it like you'd tell it at the bar. First person is fine."
+              class="w-full bg-transparent border border-[#333] px-4 py-3 text-sm text-[#f5f0e8] placeholder-[#444] focus:outline-none focus:border-[#CC4444] resize-vertical"
+              required></textarea>
+          </div>
+
+          <div class="mb-6">
+            <label class="text-[#888] text-xs uppercase tracking-wider block mb-2">
+              Anything you want to correct or add context to? (optional)
+            </label>
+            <input type="text" id="story-corrections"
+              placeholder="e.g., The date was actually Saturday, not Sunday"
+              class="w-full bg-transparent border border-[#333] px-4 py-3 text-sm text-[#f5f0e8] placeholder-[#444] focus:outline-none focus:border-[#CC4444]" />
+          </div>
+
+          <div class="flex gap-3">
+            <button type="submit"
+              class="bg-[#CC4444] text-white px-6 py-3 text-xs uppercase tracking-wider hover:bg-[#aa3333] transition-colors">
+              Save Story
+            </button>
+            <button type="button" id="close-story-panel-2"
+              class="border border-[#333] text-[#555] px-6 py-3 text-xs uppercase tracking-wider hover:border-[#666] transition-colors">
+              Cancel
+            </button>
+          </div>
+
+          <div id="story-message" class="mt-4 text-sm hidden"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session End / Contribute Modal -->
+  <div id="session-end-modal"
+    class="fixed inset-0 bg-black/90 z-50 hidden items-center justify-center"
+    role="dialog" aria-modal="true">
+    <div class="bg-[#0a0a0a] border border-[#CC4444] max-w-md w-full mx-4 p-6">
+      <div class="text-[#CC4444] text-xs uppercase tracking-widest mb-4">◆ Session Complete</div>
+      <h3 class="text-[#f5f0e8] font-medium mb-3">You've contributed to the archive.</h3>
+      <div id="session-summary" class="text-[#888] text-sm mb-5 space-y-1"></div>
+      <p class="text-[#666] text-sm mb-6">
+        Would you like to upload your tags, claims, and conversation to the community archive?
+        Your session file will download either way.
+      </p>
+      <div class="flex gap-3">
+        <button id="contribute-yes"
+          class="bg-[#CC4444] text-white px-6 py-3 text-xs uppercase tracking-wider hover:bg-[#aa3333] transition-colors flex-1">
+          Contribute & Download
+        </button>
+        <button id="contribute-no"
+          class="border border-[#333] text-[#555] px-6 py-3 text-xs uppercase tracking-wider hover:border-[#666] transition-colors">
+          Just Download
+        </button>
+      </div>
+      <div id="contribute-status" class="mt-4 text-xs text-[#555] hidden"></div>
+    </div>
+  </div>
+
+  <!-- AI Oral History Chat Panel -->
+  <div id="chat-panel"
+    class="fixed bottom-0 right-0 w-full sm:w-[420px] bg-[#0a0a0a] border-t border-l border-[#CC4444] z-40 hidden"
+    style="max-height: 60vh; display: none;">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-[#1a1a1a]">
+      <div>
+        <span class="text-[#CC4444] text-xs uppercase tracking-widest font-medium">Prof. Riggs</span>
+        <span class="text-[#444] text-xs ml-2">Applied Reality Engineering · your words, your archive</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="save-chat"
+          class="text-[#555] text-xs uppercase tracking-wider hover:text-[#CC4444] transition-colors">
+          Save
+        </button>
+        <button id="close-chat-panel" class="text-[#555] hover:text-[#f5f0e8]">✕</button>
+      </div>
+    </div>
+
+    <!-- Message history -->
+    <div id="chat-messages"
+      class="overflow-y-auto px-4 py-3 space-y-3"
+      style="height: calc(60vh - 110px);">
+      <div class="text-[#888] text-xs leading-relaxed">
+        I'm here to help capture your memories of this rally for the archive.
+        What do you remember about it? Start anywhere — a moment, a person, a breakdown.
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="border-t border-[#1a1a1a] px-4 py-3 flex gap-2">
+      <input id="chat-input" type="text"
+        placeholder="Tell me what you remember..."
+        class="flex-1 bg-transparent border border-[#333] px-3 py-2 text-sm text-[#f5f0e8] placeholder-[#444] focus:outline-none focus:border-[#CC4444]" />
+      <button id="chat-send"
+        class="bg-[#CC4444] text-white px-4 py-2 text-xs uppercase tracking-wider hover:bg-[#aa3333] transition-colors">
+        →
+      </button>
+    </div>
+  </div>
+</Base>
+
+<script>
+  const WILLOW_API = import.meta.env.PUBLIC_WILLOW_API ?? 'http://localhost:8420';
+  const slug = (document.getElementById('oral-history-root') as HTMLElement)?.dataset.slug ?? '';
+  const rallyTitle = document.querySelector('h1')?.textContent ?? slug;
+
+  // ── Session state ────────────────────────────────────────────
+  interface NasaSession {
+    type: 'nasa_memory';
+    version: '1.0';
+    rally: string;
+    rally_title: string;
+    session_id: string;
+    timestamp: string;
+    photos_tagged: { pic_id: string; pic_url: string }[];
+    album_claim: 'attendee' | 'originator' | null;
+    oral_history: { role: 'user' | 'assistant'; content: string }[];
+    contributed: boolean;
+  }
+
+  const session: NasaSession = {
+    type: 'nasa_memory',
+    version: '1.0',
+    rally: slug,
+    rally_title: rallyTitle,
+    session_id: `${slug}-${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    photos_tagged: [],
+    album_claim: null,
+    oral_history: [],
+    contributed: false,
+  };
+
+  function hasActivity() {
+    return session.photos_tagged.length > 0 || session.album_claim !== null || session.oral_history.length > 0;
+  }
+
+  function showEndSessionBtn() {
+    if (hasActivity()) document.getElementById('end-session')?.classList.remove('hidden');
+  }
+
+  function downloadJson(data: object, filename: string) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // ── Photo tagging ────────────────────────────────────────────
+  document.querySelectorAll<HTMLButtonElement>('.tag-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const picId = btn.dataset.picId!;
+      const picUrl = btn.dataset.picUrl ?? '';
+
+      if (session.photos_tagged.find(p => p.pic_id === picId)) return; // already tagged
+      session.photos_tagged.push({ pic_id: picId, pic_url: picUrl });
+
+      // Visual feedback
+      const indicator = document.querySelector<HTMLElement>(`.tag-indicator[data-for="${picId}"]`);
+      indicator?.classList.remove('hidden');
+      btn.textContent = '✓';
+      btn.disabled = true;
+
+      showEndSessionBtn();
+    });
+  });
+
+  // ── Album claims ─────────────────────────────────────────────
+  document.getElementById('claim-attendee')?.addEventListener('click', () => {
+    session.album_claim = 'attendee';
+    const btn = document.getElementById('claim-attendee') as HTMLButtonElement;
+    btn.textContent = '◆ I Was There';
+    btn.classList.add('border-[#CC4444]', 'text-[#CC4444]');
+    document.getElementById('claim-originator')?.setAttribute('disabled', 'true');
+    showEndSessionBtn();
+  });
+
+  document.getElementById('claim-originator')?.addEventListener('click', () => {
+    session.album_claim = 'originator';
+    const btn = document.getElementById('claim-originator') as HTMLButtonElement;
+    btn.textContent = '◆ I Shot These Photos';
+    btn.classList.add('border-[#CC4444]', 'text-[#CC4444]');
+    document.getElementById('claim-attendee')?.setAttribute('disabled', 'true');
+    showEndSessionBtn();
+  });
+
+  // ── Download rally data ──────────────────────────────────────
+  document.getElementById('download-album')?.addEventListener('click', () => {
+    downloadJson({ rally: slug, title: rallyTitle, timestamp: new Date().toISOString() }, `nasa-rally-${slug}.json`);
+  });
+
+  // ── End session modal ────────────────────────────────────────
+  const sessionModal = document.getElementById('session-end-modal')!;
+
+  document.getElementById('end-session')?.addEventListener('click', () => {
+    // Build summary
+    const summary = document.getElementById('session-summary')!;
+    const lines: string[] = [];
+    if (session.photos_tagged.length) lines.push(`${session.photos_tagged.length} photo${session.photos_tagged.length > 1 ? 's' : ''} tagged`);
+    if (session.album_claim) lines.push(`Album claim: ${session.album_claim}`);
+    if (session.oral_history.length) lines.push(`${Math.ceil(session.oral_history.length / 2)} oral history exchange${session.oral_history.length > 2 ? 's' : ''}`);
+    summary.innerHTML = lines.map(l => `<div>◆ ${l}</div>`).join('');
+
+    sessionModal.classList.remove('hidden');
+    sessionModal.classList.add('flex');
+  });
+
+  document.getElementById('contribute-no')?.addEventListener('click', () => {
+    downloadJson(session, `nasa-memory-${slug}-${Date.now()}.json`);
+    sessionModal.classList.add('hidden');
+    sessionModal.classList.remove('flex');
+  });
+
+  document.getElementById('contribute-yes')?.addEventListener('click', async () => {
+    const statusEl = document.getElementById('contribute-status')!;
+    statusEl.textContent = 'Uploading to Willow...';
+    statusEl.classList.remove('hidden');
+
+    try {
+      const res = await fetch(`${WILLOW_API}/api/nasa/contribute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(session),
+      });
+      if (res.ok) {
+        session.contributed = true;
+        statusEl.textContent = 'Contributed to Willow. Thank you.';
+      } else {
+        statusEl.textContent = 'Willow unavailable — downloading locally.';
+      }
+    } catch {
+      statusEl.textContent = 'Willow offline — downloading locally.';
+    }
+
+    downloadJson({ ...session, contributed: session.contributed }, `nasa-memory-${slug}-${Date.now()}.json`);
+    setTimeout(() => {
+      sessionModal.classList.add('hidden');
+      sessionModal.classList.remove('flex');
+    }, 1500);
+  });
+
+  // ── Story panel open/close ──────────────────────────────────
+  const panel = document.getElementById('story-panel');
+  const openBtns = ['open-story-panel', 'open-story-panel-2'].map(id => document.getElementById(id));
+  const closeBtns = ['close-story-panel', 'close-story-panel-2'].map(id => document.getElementById(id));
+
+  function openPanel() {
+    panel.classList.remove('hidden');
+    panel.classList.add('flex');
+    checkAuth();
+  }
+  function closePanel() {
+    panel.classList.add('hidden');
+    panel.classList.remove('flex');
+  }
+
+  openBtns.forEach(btn => btn?.addEventListener('click', openPanel));
+  closeBtns.forEach(btn => btn?.addEventListener('click', closePanel));
+  panel?.addEventListener('click', (e) => { if (e.target === panel) closePanel(); });
+
+  // ── Auth check ──────────────────────────────────────────────
+  // Willow OAuth pending (#4) — show form directly for local testing
+  async function checkAuth() {
+    document.getElementById('story-auth-prompt')?.classList.add('hidden');
+    document.getElementById('story-form')?.classList.remove('hidden');
+  }
+
+  // ── Story submission ────────────────────────────────────────
+  document.getElementById('story-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('story-message');
+    const btn = e.target.querySelector('[type="submit"]');
+
+    const narratorName = (document.getElementById('story-narrator-name') as HTMLInputElement).value.trim();
+    const content = (document.getElementById('story-content') as HTMLTextAreaElement).value.trim();
+    const correctionText = (document.getElementById('story-corrections') as HTMLInputElement).value.trim();
+
+    btn.textContent = 'Saving...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${WILLOW_API}/api/nasa/story`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rally_slug: slug,
+          narrator_name: narratorName,
+          content,
+          correction: correctionText || null,
+          capture_date: new Date().toISOString().split('T')[0],
+        }),
+      });
+
+      if (res.ok) {
+        msg.textContent = 'Story saved to Willow. Thank you.';
+        msg.className = 'mt-4 text-sm text-[#888]';
+        msg.classList.remove('hidden');
+        setTimeout(() => { closePanel(); loadStories(); }, 1500);
+      } else {
+        msg.textContent = 'Error saving story. Try again.';
+        msg.className = 'mt-4 text-sm text-[#CC4444]';
+        msg.classList.remove('hidden');
+      }
+    } catch {
+      msg.textContent = 'Willow offline — story not saved.';
+      msg.className = 'mt-4 text-sm text-[#CC4444]';
+      msg.classList.remove('hidden');
+    }
+
+    btn.textContent = 'Save Story';
+    btn.disabled = false;
+  });
+
+  // ── Load stories ────────────────────────────────────────────
+  async function loadStories() {
+    const container = document.getElementById('stories-container')!;
+
+    try {
+      const res = await fetch(`${WILLOW_API}/api/nasa/stories?rally=${encodeURIComponent(slug)}`);
+      if (!res.ok) throw new Error('no stories');
+      const stories: { narrator_name: string; content: string; capture_date: string; correction?: string }[] = await res.json();
+
+      if (!stories?.length) throw new Error('empty');
+
+      container.innerHTML = stories.map(s => `
+        <div class="border border-[#222] p-5 mb-4 hover:border-[#333] transition-colors">
+          <div class="flex items-baseline gap-3 mb-3">
+            <span class="text-[#CC4444] text-xs font-medium uppercase tracking-wider">
+              ${escapeHtml(s.narrator_name || 'Anonymous')}
+            </span>
+            <span class="text-[#333] text-xs">${s.capture_date || ''}</span>
+          </div>
+          <p class="text-[#aaa] text-sm leading-relaxed whitespace-pre-wrap">${escapeHtml(s.content)}</p>
+          ${s.correction ? `
+            <div class="mt-3 pt-3 border-t border-[#1a1a1a]">
+              <div class="text-xs text-[#555] italic">Correction: ${escapeHtml(s.correction)}</div>
+            </div>` : ''}
+        </div>
+      `).join('');
+    } catch {
+      container.innerHTML = `
+        <div class="text-center py-8 text-[#444] text-sm">
+          <p>No stories yet for this rally.</p>
+          <p class="text-xs mt-1">Be the first to share what you remember.</p>
+        </div>`;
+    }
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  loadStories();
+
+  // ── AI Chat Panel ───────────────────────────────────────────
+  const chatPanel = document.getElementById('chat-panel') as HTMLElement;
+  const chatMessages = document.getElementById('chat-messages')!;
+  const chatInput = document.getElementById('chat-input') as HTMLInputElement;
+  const chatSend = document.getElementById('chat-send')!;
+  const ORAL_CHAT_URL = import.meta.env.PUBLIC_ORAL_CHAT_URL ?? 'https://ugsqthkacqebvbatitco.supabase.co';
+
+  let chatHistory: { role: 'user' | 'assistant'; content: string }[] = [];
+
+  document.getElementById('open-chat-panel')?.addEventListener('click', () => {
+    chatPanel.style.display = 'flex';
+    chatPanel.style.flexDirection = 'column';
+    chatInput.focus();
+  });
+
+  document.getElementById('close-chat-panel')?.addEventListener('click', () => {
+    chatPanel.style.display = 'none';
+  });
+
+  function appendMessage(role: 'user' | 'assistant', content: string) {
+    const div = document.createElement('div');
+    div.className = role === 'user'
+      ? 'text-[#f5f0e8] text-sm text-right'
+      : 'text-[#aaa] text-xs leading-relaxed';
+    div.textContent = content;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  async function sendChat() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    chatInput.value = '';
+    chatSend.textContent = '...';
+    (chatSend as HTMLButtonElement).disabled = true;
+
+    appendMessage('user', message);
+    chatHistory.push({ role: 'user', content: message });
+
+    try {
+      const res = await fetch(`${ORAL_CHAT_URL}/functions/v1/oral-chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, slug, history: chatHistory.slice(-8) }),
+      });
+
+      const data = await res.json();
+      const reply = data.reply || 'Something went wrong. Try again.';
+
+      appendMessage('assistant', reply);
+      chatHistory.push({ role: 'assistant', content: reply });
+      session.oral_history = [...chatHistory];
+      showEndSessionBtn();
+    } catch {
+      appendMessage('assistant', 'Connection error. The historian will be back shortly.');
+    }
+
+    chatSend.textContent = '→';
+    (chatSend as HTMLButtonElement).disabled = false;
+    chatInput.focus();
+  }
+
+  chatSend.addEventListener('click', sendChat);
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+  });
+
+  // Save chat as JSON
+  document.getElementById('save-chat')?.addEventListener('click', () => {
+    if (chatHistory.length === 0) return;
+    session.oral_history = [...chatHistory];
+    downloadJson({ ...session }, `nasa-oral-history-${slug}-${Date.now()}.json`);
+  });
+</script>

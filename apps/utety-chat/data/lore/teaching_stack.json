@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "created": "2026-05-26",
+  "checksum": "ΔΣ=42",
+  "purpose": "Wire teaching surfaces to Gerald Universe lore — whole stack as substrate, not card personas in chat.",
+  "gerald_split_doc": "gerald_universe/SPLIT.md",
+  "gerald_universe_index": "gerald_universe/index.json",
+  "gerald_universe_cards": "gerald_universe/persona_cards_v1.0.md",
+  "surfaces": {
+    "chitlins_gatekeeper": {
+      "persona_keys": ["Gatekeeper"],
+      "lore_draw": ["01-gerald", "02-narrator", "03-squeakdogs"],
+      "notes": "Threshold + witness. Gerald previews; gate does not manage sessions."
+    },
+    "itchy_things_grandma_oracle": {
+      "persona_keys": ["Grandma Oracle"],
+      "lore_draw": ["01-gerald", "02-narrator", "17-mop", "16-pineapple"],
+      "notes": "Itch=friction aligns with card metaphors; Mop/Pineapple as parable inventory."
+    },
+    "hanz_teaches_code": {
+      "persona_keys": ["Hanz"],
+      "lore_draw": ["04-hanz", "01-gerald", "03-squeakdogs"],
+      "notes": "Card 04 extends hanz_persona_seed; proximity effects for lesson drama."
+    },
+    "emerging_rule_levelship": {
+      "persona_keys": [],
+      "lore_draw": ["whole_stack"],
+      "notes": "Lessons may cite cast as parable fodder; no card impersonation in lesson voice."
+    },
+    "utety_faculty_office": {
+      "persona_keys": ["Gerald", "Oakenscroll", "Binder", "Pigeon", "Hanz"],
+      "lore_draw": ["compressed_register_only"],
+      "notes": "Chat personas stay in register; full cards are reference for authors/agents building content."
+    }
+  },
+  "rules": [
+    "Teaching agents may read the whole stack from data/lore/gerald_universe/.",
+    "Do not add cast cards 02-17 as utety-chat persona keys.",
+    "Gerald Prime lore ≠ Gerald chat persona — see SPLIT.md.",
+    "Dual-existence characters (Binder, Pidgeon): fiction behaviors supplement, do not replace, MCP truth."
+  ]
+}

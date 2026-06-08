@@ -1,0 +1,38 @@
+{
+  "mcpServers": {
+    "willow": {
+      "type": "stdio",
+      "command": "bash",
+      "args": [
+        "${HOME}/github/willow-2.0/sap/unified_mcp.sh"
+      ],
+      "env": {
+        "WILLOW_AGENT_NAME": "vishwakarma",
+        "GROVE_SENDER": "vishwakarma",
+        "GROVE_NAME": "vishwakarma",
+        "WILLOW_DEV_SAFE_ROOT": "${HOME}/github",
+        "WILLOW_GROVE_ROOT": "${HOME}/github/safe-app-willow-grove",
+        "WILLOW_PG_DB": "willow_20",
+        "WILLOW_PG_USER": "${USER}",
+        "WILLOW_ROOT": "${HOME}/github/willow-2.0",
+        "WILLOW_STORE_ROOT": "${HOME}/github/safe-app-store/.willow/store",
+        "WILLOW_SAFE_ROOT": "${HOME}/github/SAFE/Applications",
+        "WILLOW_AGENTS_ROOT": "${HOME}/github/SAFE/Agents"
+      }
+    },
+    "law-gazelle": {
+      "type": "stdio",
+      "command": "python3",
+      "args": ["${HOME}/github/safe-app-store/apps/law-gazelle/gazelle_mcp.py"],
+      "env": {
+        "NEST_SOURCE": "${HOME}/Desktop/Nest",
+        "PYTHONPATH": "${HOME}/github/safe-app-store/apps/law-gazelle"
+      }
+    },
+    "courtlistener": {
+      "type": "stdio",
+      "command": "python3",
+      "args": ["${HOME}/github/courtlistener-mcp/src/server.py"]
+    }
+  }
+}

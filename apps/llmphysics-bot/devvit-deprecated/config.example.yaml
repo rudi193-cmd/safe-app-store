@@ -1,0 +1,94 @@
+# llmphysics-bot runtime config
+#
+# Copy this file into your subreddit's mod-only wiki page at:
+#   https://www.reddit.com/r/<your-sub>/wiki/mod/llmphysics-bot/config
+#
+# IMPORTANT: Reddit wiki pages render as markdown in the browser, which
+# turns YAML `#` comments into giant headers. To keep the page readable,
+# wrap the entire YAML in a fenced code block on the wiki page like this:
+#
+#     ```yaml
+#     allowed_category_keywords:
+#       - physics
+#       ...
+#     ```
+#
+# The bot strips the code fence before parsing, so both fenced and plain
+# YAML will work — fenced just looks nicer to humans viewing the page.
+#
+# The bot re-reads this page at most once every 60 seconds, so edits take
+# effect within about a minute. Only moderators can edit pages under `mod/`.
+#
+# Every field is optional — anything you leave out uses the built-in default.
+
+# ---------------------------------------------------------------------------
+# Bot identity
+# ---------------------------------------------------------------------------
+# Reddit username of the account the bot posts under. This is used to detect
+# "summon mode" invocations like `u/llmphysics-bot !define quantum` anywhere
+# in a comment. Default matches the app name on the Devvit platform.
+bot_username: llmphysics-bot
+
+# ---------------------------------------------------------------------------
+# Topic filtering
+# ---------------------------------------------------------------------------
+# When someone runs `!define <term>`, the bot looks up the Wikipedia article
+# and checks its categories. If none of the article's categories contain any
+# of these keywords (case-insensitive substring match), the bot declines with
+# `reply.off_topic_message`.
+#
+# To allow everything, set this to an empty list: `allowed_category_keywords: []`
+allowed_category_keywords:
+  - physics
+  - mathematics
+  - chemistry
+  - astronomy
+  - astrophysics
+  - quantum
+  - relativity
+  - mechanics
+  - thermodynamics
+  - cosmology
+  - particle
+  - science
+
+# Hard blocklist — terms matching any of these are refused outright, even if
+# they'd otherwise pass the category check. Matches are case-insensitive
+# substrings.
+blocked_terms: []
+
+# ---------------------------------------------------------------------------
+# Weekly mod digest
+# ---------------------------------------------------------------------------
+mod_digest:
+  # Name of the wiki page the digest reads from. Mods add entries here
+  # throughout the week; the bot posts them and clears the page.
+  wiki_page: mod-digest
+
+  # Cron expression (minute hour day month weekday, UTC).
+  # Default: every Sunday at 00:00 UTC.
+  cron: "0 0 * * 0"
+
+  # Title of the submitted post.
+  post_title: "Weekly Mod Digest"
+
+# ---------------------------------------------------------------------------
+# Reply behavior
+# ---------------------------------------------------------------------------
+# {term} in any of these messages is replaced with the term the user asked for.
+reply:
+  # Number of sentences from the Wikipedia summary to include in replies.
+  summary_sentences: 3
+
+  # Appended to the bottom of every reply.
+  footer: "^(I'm a bot for r/LLMPhysics. Use `!define <term>` to look up a physics concept.)"
+
+  # Shown when Wikipedia has no article matching the term.
+  not_found_message: 'No Wikipedia article found for "{term}".'
+
+  # Shown when the article exists but its categories don't match
+  # `allowed_category_keywords` (or when the term is on `blocked_terms`).
+  off_topic_message: 'Sorry, "{term}" doesn''t look like a science topic I cover.'
+
+  # Shown when Wikipedia can't be reached or the fetch fails.
+  error_message: "Sorry, I couldn't reach Wikipedia right now. Try again in a moment."

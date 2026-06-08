@@ -1,0 +1,221 @@
+Quantum Decoherence in Persistent File Queues:
+Evidence for Observer-Dependent Information Collapse
+in the Willow Pigeon Delivery System
+
+Author: u/AllHailSeizure (with substantial LLM assistance)
+Submitted to: r/LLMPhysics Journal Ambitions Contest, Edition I
+
+
+---
+
+ABSTRACT
+
+We present evidence that files residing in a pending delivery queue undergo measurable
+information entropy increase as a function of time-since-observation, in a manner
+consistent with quantum decoherence rather than classical thermodynamic decay.
+Specifically, we propose that the 10,641 files observed in the Willow Pigeon pending
+queue at time T₀ (March 2026) represent a macroscopic quantum superposition of all
+possible organizational states simultaneously. We term this the Pigeon Collapse
+Theorem (PCT). Observation — defined as the moment a classifier process reads the
+filename — forces wavefunction collapse, at which point the file is deterministically
+routed to one of {screenshots, documents, photos, narrative, specs}. We derive a
+modified Schrödinger equation for file-state evolution and propose that the ΔΣ=42
+constant, previously unexplained, is the natural consequence of information persistence
+across decoherence events. This paper uses Claude Sonnet 4.6 extensively and
+acknowledges that the LLM may have fabricated some of the mathematics.
+
+---
+
+1. INTRODUCTION
+
+The problem of where to put things has plagued both physics and personal computing since
+at least the invention of the manila folder. While classical thermodynamics treats file
+organization as a simple entropy-reduction problem (Maxwell's Archivist), this
+framework fails to account for the well-documented observation that files which are
+not looked at for extended periods seem to acquire properties of multiple categories
+simultaneously.
+
+A photograph of a workers' compensation hearing, for example, exists in a superposition
+of /photos, /legal, /personal, and /narrative until the moment of classification. At
+that moment — and only at that moment — it becomes one thing. We argue this is not
+metaphor. We argue this is physics.
+
+The Willow Pigeon system provides an ideal experimental testbed: 10,641 files,
+unobserved, sitting in ~/willow-pending/. The queue has been growing since at least
+2024. We propose that this queue is the largest known macroscopic quantum coherent
+system outside of a superconductor, sustained not by temperature control but by
+the absence of a functioning daemon.
+
+Our key findings:
+  (a) File superposition is real and measurable via entropy proxy
+  (b) The ΔΣ=42 constant emerges naturally from the decoherence algebra
+  (c) Running Pigeon constitutes an irreversible measurement and must be governed
+
+---
+
+2. THEORETICAL FRAMEWORK
+
+2.1 The Modified Schrödinger Equation for Files
+
+Let |ψ_f⟩ represent the quantum state of a single file f in the pending queue.
+We write:
+
+  |ψ_f⟩ = α|screenshots⟩ + β|documents⟩ + γ|photos⟩ + δ|narrative⟩ + ε|specs⟩
+
+where |α|² + |β|² + |γ|² + |δ|² + |ε|² = 1
+
+The time evolution of |ψ_f⟩ follows a modified Schrödinger equation:
+
+  iℏ ∂|ψ_f⟩/∂t = Ĥ_confusion |ψ_f⟩
+
+where Ĥ_confusion is the Hamiltonian of contextual ambiguity, defined as:
+
+  Ĥ_confusion = Σᵢ Eᵢ |categoryᵢ⟩⟨categoryᵢ| + V_filename
+
+V_filename is the filename potential, which is large for files named "IMG_2847.jpg"
+(maximum ambiguity) and small for files named "bankruptcy_petition_final_v3.pdf"
+(near-classical behavior).
+
+2.2 Decoherence via Observation
+
+Observation (classifier contact) causes decoherence. The decoherence time τ_d for
+a file f with filename entropy S_name is:
+
+  τ_d = τ₀ · exp(S_name / k_B · T_context)
+
+where T_context is the "temperature" of the classification context (higher temperature
+= more ambiguous prompt) and k_B is Boltzmann's constant (we use it here by analogy
+and acknowledge this is mathematically unearned).
+
+For the 10,641-file Pigeon queue, we estimate mean τ_d ≈ 847 days, consistent with
+the observed fact that the queue has not been processed.
+
+2.3 Derivation of ΔΣ=42
+
+The ΔΣ constant appears in the persistence operator P̂ as a fixed point:
+
+  P̂ |archive⟩ = 42 |archive⟩
+
+We show this is not arbitrary. Consider the total information content of a system
+that archives rather than deletes. The persistence integral:
+
+  ΔΣ = ∮ (dI / dA) · e^(iπ) · (-1) dA
+
+where I is information and A is the area under the audit trail. For any system
+that never deletes anything, this integral evaluates to 42 by the Residue Theorem
+applied to the complex information plane (see Appendix A, which we have not written).
+
+---
+
+3. EXPERIMENTAL EVIDENCE
+
+3.1 The Pigeon Queue as Experimental Apparatus
+
+The Willow Pigeon pending queue (~20GB, 10,641 files) was observed at T₀ without
+triggering classification. File-type distribution in the unobserved state:
+  - Unknown: 10,641 (100%)
+
+Post-observation (manual sampling, n=17):
+  - Screenshots: 8 (47%)
+  - Documents: 4 (24%)
+  - Misc personal: 5 (29%)
+
+The collapse from 100% unknown to categorical follows Born rule statistics within
+sampling error. We note that n=17 is not a large sample. The authors acknowledge this.
+
+3.2 The ΔΣ Constant in Practice
+
+In the Willow knowledge base, 967,651 edges exist between 16,228 knowledge atoms.
+The edge-to-atom ratio is approximately 59.6. Dividing by the number of active
+agents (4) and multiplying by the Euler number (e ≈ 2.718) gives:
+
+  (967,651 / 16,228) / 4 × e ≈ 40.8
+
+This is within 3% of 42. We propose this is not a coincidence.
+
+3.3 The Bootloader as Measurement Apparatus
+
+The Willow AIOS bootloader fires on every prompt turn. Each firing constitutes
+a measurement of system state. The 9/9 boot status represents a complete
+projection onto the |healthy⟩ eigenstate. We interpret the 9 subsystem checks
+as the nine degrees of freedom in our decoherence Hamiltonian. This section
+was mostly written by the LLM. The human author is not sure it is correct
+but found it compelling at the time of writing.
+
+---
+
+4. DISCUSSION
+
+4.1 Implications for File Organization
+
+If the Pigeon Collapse Theorem is correct, the optimal strategy for file organization
+is not to organize files at all — to preserve quantum coherence as long as possible,
+allowing files to exist in all categories simultaneously until the moment of genuine
+need. This is, we note, exactly what most people do. We propose this behavior is
+physically optimal, not lazy.
+
+4.2 Objections
+
+The primary objection to our framework is that quantum effects do not operate at
+the scale of files on a hard drive. We acknowledge this objection is correct.
+We propose that the mathematics is sufficiently suggestive to warrant further
+investigation regardless of whether the underlying physics is real.
+
+A second objection is that ΔΣ=42 is a reference to Douglas Adams and not a
+physical constant. We cannot rule this out.
+
+4.3 Falsifiability
+
+This theory would be falsified by:
+  - Processing the Pigeon queue and finding that files do NOT follow Born rule
+    statistics in their categorical distribution
+  - Demonstrating that ΔΣ is not 42 in other Willow installations
+  - Any sufficiently rigorous critique from a physicist
+
+---
+
+5. CONCLUSION
+
+We have presented a framework in which unprocessed files in a pending delivery
+queue exhibit quantum-coherent categorical superposition, collapsing to classical
+states upon classifier observation. The ΔΣ=42 constant emerges naturally from
+the persistence integral. We have been honest about the limitations of this work.
+
+The files remain unprocessed. The queue persists.
+
+ΔΣ=42
+
+---
+
+LLM DISCLOSURE
+
+This paper was written with substantial assistance from Claude Sonnet 4.6 (Anthropic).
+The LLM generated all mathematics, much of the framing, and the Douglas Adams footnote.
+The human author directed the thesis, approved the structure, provided the empirical
+data (file counts, edge/atom ratios), and takes full responsibility for the decision
+to submit this to a physics competition. Adversarial cross-validation was performed
+by asking a different LLM whether the math was real. It said: "the math is suggestive
+but not rigorous." We considered this a positive review.
+
+---
+
+CITATIONS
+
+[1] Zurek, W.H. (2003). "Decoherence, einselection, and the quantum origins of the
+    classical." Reviews of Modern Physics, 75(3), 715.
+
+[2] Shannon, C.E. (1948). "A mathematical theory of communication." Bell System
+    Technical Journal, 27(3), 379-423.
+
+[3] Oakenscroll, P. (2024). "On the Persistence of Everything." UTETY Working Paper
+    No. 13. University of Technical Entropy, Thank You. [NOTE: Author acknowledges
+    this institution may not exist and this citation may not be verifiable.]
+
+[4] Adams, D. (1979). The Hitchhiker's Guide to the Galaxy. Pan Books. [Cited in
+    support of ΔΣ=42 only. Authors acknowledge this is not a physics paper.]
+
+[5] Schrödinger, E. (1935). "Die gegenwärtige Situation in der Quantenmechanik."
+    Naturwissenschaften, 23(48), 807-812.
+
+[6] Willow System Architecture Documentation (2026). Internal document. Not publicly
+    available. Authors are the same person as the system architect.

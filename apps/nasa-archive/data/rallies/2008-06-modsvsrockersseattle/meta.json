@@ -1,0 +1,27 @@
+{
+  "url": "http://scoot.net/gallery/2008/06/modsvsrockersseattle/",
+  "slug": "2008/06/modsvsrockersseattle",
+  "title": "Mods vs Rockers, Seattle",
+  "year": 2008,
+  "month": 6,
+  "date_rally": "2008-06",
+  "photo_count": 59,
+  "stories": [],
+  "description": "Annual rally featuring scooter riders dressed in a \"Mods vs Rockers\" theme.",
+  "city": "Seattle",
+  "state_province": "Washington",
+  "country": "US",
+  "recurring": true,
+  "notable_facts": [
+    "Features scooter riders dressed in a \"Mods vs Rockers\" theme.",
+    "Held during the month of June, according to the 2008 event photos",
+    "Attended by scooter enthusiasts and organized using local scooter communities"
+  ],
+  "related_clubs": [
+    null
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:03:51Z",
+  "enriched_provider": "Cerebras2"
+}

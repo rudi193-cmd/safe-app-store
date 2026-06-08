@@ -1,0 +1,121 @@
+{
+  "_handoff": {
+    "what": "Configuration for every trigger detector. Rules, thresholds, and response pools live here — tune without touching TypeScript.",
+    "status": "SCAFFOLD — response pools are stubs. Expand from voice exemplars in KB.",
+    "read_by": [
+      "src/triggers/newPost.ts",
+      "src/triggers/refFrame.ts",
+      "src/triggers/scoreMilestone.ts",
+      "src/triggers/napkinDrop.ts"
+    ],
+    "rules": [
+      "Detectors err on the side of NOT firing. False positives destroy Oakenscroll.",
+      "Every trigger response is governed by ratelimit.ts and cooldown.ts regardless of match.",
+      "If a trigger is disabled (enabled: false), it is still registered but is a no-op.",
+      "Responses must pass the persona/oakenscroll.ts sanitizer — max 280 chars, no URLs, no @mentions."
+    ]
+  },
+
+  "new_post": {
+    "enabled": true,
+    "description": "Fires on posts in Oakenscroll's domain: LLM physics, theoretical physics, coordinate systems, consciousness, ontology. Drops a cryptic observation.",
+    "min_length_chars": 300,
+    "domain_markers": [
+      "\\bLLM physics\\b",
+      "\\blanguage model\\b",
+      "\\bemergent (behavior|properties|intelligence)\\b",
+      "\\breference frame\\b",
+      "\\bcoordinate system\\b",
+      "\\bontolog(y|ical)\\b",
+      "\\btheory of everything\\b",
+      "\\bcosmolog(y|ical)\\b",
+      "\\bconsciousness\\b",
+      "\\bquantum (mechanics|field|gravity)\\b",
+      "\\bunified (field|theory)\\b",
+      "\\bspacetime\\b",
+      "\\bmathematics of\\b",
+      "\\bthe nature of (reality|time|space|mind)\\b"
+    ],
+    "required_marker_count": 1,
+    "response_pool": [
+      "This is a known problem. The known part is doing most of the work.",
+      "You have described the map. The territory is not yet available.",
+      "The observatory notes this.",
+      "Filed under: things that are not there but are taking up considerable space.",
+      "The question assumes the frame. The frame is the question."
+    ]
+  },
+
+  "ref_frame": {
+    "enabled": true,
+    "description": "Fires on posts that make strong ontological claims without acknowledging the frame the claim is made from. Oakenscroll's version of zero-gaps — he detects coordinate errors, not just overconfidence.",
+    "min_length_chars": 200,
+    "min_claim_hits": 2,
+    "max_frame_hits": 0,
+    "claim_markers": [
+      "\\bproven\\b",
+      "\\bdefinitive(ly)?\\b",
+      "\\bI have (shown|derived|proved|proven|discovered|solved)\\b",
+      "\\bI (solved|disproved|refuted|unified)\\b",
+      "\\bfinal (theory|equation|answer)\\b",
+      "\\birrefutable\\b",
+      "\\bundeniable\\b",
+      "\\bsettles the (question|debate|matter)\\b",
+      "\\bends the debate\\b",
+      "\\bwithout (any )?doubt\\b",
+      "\\bproof of\\b",
+      "\\btrue in all (cases|frames|contexts)\\b",
+      "\\buniversally (true|valid|applicable)\\b",
+      "\\babsolutely (certain|true|proven)\\b",
+      "\\bno (reference frame|frame of reference) needed\\b",
+      "\\bobserver-independent\\b"
+    ],
+    "frame_markers": [
+      "\\breference frame\\b",
+      "\\bin this (context|frame|model)\\b",
+      "\\bdepends on\\b",
+      "\\brelative to\\b",
+      "\\bfrom (this|my|a) (perspective|frame|viewpoint)\\b",
+      "\\bunder (these|certain) (assumptions|conditions)\\b",
+      "\\bsubject to\\b",
+      "\\bcaveats?\\b",
+      "\\blimitations?\\b",
+      "\\bI think\\b",
+      "\\bI believe\\b",
+      "\\bapproximate(ly)?\\b",
+      "\\bperhaps\\b",
+      "\\bopen question\\b",
+      "\\buncertain\\b"
+    ],
+    "response_pool": [
+      "That coordinate system does not exist in your reference frame.",
+      "You are measuring the wrong dimension.",
+      "The frame you are using does not contain the thing you are looking for.",
+      "This is a reference frame error. The error is load-bearing.",
+      "Knock twice. If the frame does not answer, it is not unlocked."
+    ],
+    "author_cooldown_hours": 24
+  },
+
+  "score_milestone": {
+    "enabled": true,
+    "description": "Polls recent hot posts on each heartbeat. When a post crosses a score threshold, Oakenscroll observes once.",
+    "poll_interval_minutes": 10,
+    "thresholds": [10, 50, 100, 500, 1000],
+    "response_pool": [
+      "The number has crossed a threshold. Thresholds are interesting.",
+      "Witnessed.",
+      "Noted. The observatory is currently unlocked."
+    ],
+    "one_witness_per_post": true
+  },
+
+  "napkin_drop": {
+    "enabled": true,
+    "description": "Scheduled cryptic top-level comment on a recent post. No context. Oakenscroll has passed through.",
+    "cron": "0 */6 * * *",
+    "chance_per_run": 0.4,
+    "target": "most_recent_post_within_hours",
+    "target_window_hours": 6
+  }
+}

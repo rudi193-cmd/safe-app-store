@@ -1,0 +1,40 @@
+{
+  "app_id": "source-trail",
+  "name": "source-trail",
+  "version": "1.0.0",
+  "safe_version": ">=2.0.0",
+  "b17": "K7NA1",
+  "agent_type": "tool",
+  "description": "Citation and source tracker \u2014 log, verify, and link your research sources. AskJeles companion.",
+  "author": "Sean Campbell",
+  "data_streams": [
+    {
+      "id": "file_reads",
+      "purpose": "File system access",
+      "retention": "session",
+      "description": "Files read by app"
+    },
+    {
+      "id": "patterns",
+      "purpose": "Behavioral pattern storage",
+      "retention": "permanent",
+      "description": "User pattern data"
+    },
+    {
+      "id": "network_requests",
+      "purpose": "Network data fetching",
+      "retention": "session",
+      "description": "Outbound network requests"
+    }
+  ],
+  "permissions": [
+    "file_read",
+    "pattern_storage",
+    "network_fetch"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 0.96,
+  "entry_point": "source_trail.app:main",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-source-trail"
+}

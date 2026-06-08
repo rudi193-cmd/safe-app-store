@@ -1,0 +1,27 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "hanz-utety",
+  "permissions": {
+    "reddit": {
+      "enable": true,
+      "scope": "moderator"
+    },
+    "http": {
+      "enable": false,
+      "domains": []
+    },
+    "redis": true
+  },
+  "blocks": {
+    "entry": "src/main.ts",
+    "triggers": [
+      "onPostSubmit",
+      "onCommentSubmit",
+      "onAppInstall",
+      "onAppUpgrade"
+    ]
+  },
+  "dev": {
+    "subreddit": "hanz_utety_dev"
+  }
+}

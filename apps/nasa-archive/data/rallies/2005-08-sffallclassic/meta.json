@@ -1,0 +1,28 @@
+{
+  "url": "http://scoot.net/gallery/2005/08/sffallclassic/",
+  "slug": "2005/08/sffallclassic",
+  "title": "San Francisco Fall Classic",
+  "year": 2005,
+  "month": 8,
+  "date_rally": "2005-08",
+  "photo_count": 1268,
+  "stories": [],
+  "hosting_club": "Golden Gate Rallye Club of California",
+  "city": "San Francisco",
+  "state_province": "California",
+  "country": "US",
+  "recurring": true,
+  "first_year": 2004,
+  "notable_facts": [
+    "held in August",
+    "organized by the Golden Gate Rallye Club",
+    "previous information on the same is also available from the Scoot.net website"
+  ],
+  "related_clubs": [
+    null
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:47:09Z",
+  "enriched_provider": "Cerebras"
+}

@@ -1,0 +1,41 @@
+{
+  "app_id": "law-gazelle",
+  "name": "law-gazelle",
+  "version": "1.0.0",
+  "safe_version": ">=2.0.0",
+  "b17": "E472A",
+  "agent_type": "tool",
+  "description": "Local-first case command center for private legal matter data. Syncs operator-provided Nest databases, surfaces Today workflow, deadlines, legal documents, stale-data signals, sidecar state, and MCP/local-AI tools for legal sessions. Public repository content is app code plus synthetic examples only.",
+  "author": "SAFE App Store",
+  "data_streams": [
+    {
+      "id": "nest_case_databases",
+      "purpose": "Canonical legal case data synced from Nest into local app data",
+      "retention": "local until user removes",
+      "description": "SQLite case DBs, export JSON, drafts, and letter artifacts copied from ~/Desktop/Nest"
+    },
+    {
+      "id": "sidecar_state",
+      "purpose": "Operational state for the TUI and MCP tools",
+      "retention": "permanent local",
+      "description": "Resolved/snoozed items, notes, activity, fact review state, and AI cache"
+    },
+    {
+      "id": "local_llm_prompts",
+      "purpose": "Optional local Ollama ranking, briefing, drafting, and fact inspection",
+      "retention": "7-day local cache",
+      "description": "Prompt inputs and model outputs cached locally by content fingerprint"
+    }
+  ],
+  "permissions": [
+    "file_read",
+    "file_write_sidecar",
+    "file_write_nest_drafts",
+    "local_llm"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "entry_point": "app:main",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-store"
+}

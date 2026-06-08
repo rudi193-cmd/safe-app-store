@@ -1,0 +1,47 @@
+{
+  "app_id": "private-ledger",
+  "name": "private-ledger",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "b17": "H7864",
+  "agent_type": "tool",
+  "description": "Local personal budgeting companion \u2014 fully private, no cloud sync, paired with Public Ledger.",
+  "author": "Sean Campbell",
+  "data_streams": [
+    {
+      "id": "llm_queries",
+      "purpose": "AI processing",
+      "retention": "session",
+      "description": "Local LLM inference requests"
+    },
+    {
+      "id": "patterns",
+      "purpose": "Behavioral pattern storage",
+      "retention": "permanent",
+      "description": "User pattern data"
+    },
+    {
+      "id": "file_reads",
+      "purpose": "File system access",
+      "retention": "session",
+      "description": "Files read by app"
+    },
+    {
+      "id": "file_writes",
+      "purpose": "File system writes",
+      "retention": "permanent",
+      "description": "Files written by app"
+    }
+  ],
+  "permissions": [
+    "local_llm",
+    "pattern_storage",
+    "file_read",
+    "file_write"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 0.96,
+  "entry_point": "private_ledger.app:main",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-private-ledger"
+}

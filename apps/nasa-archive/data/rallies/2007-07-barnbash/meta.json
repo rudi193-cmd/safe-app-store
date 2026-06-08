@@ -1,0 +1,20 @@
+{
+  "url": "http://scoot.net/gallery/2007/07/barnbash/",
+  "slug": "2007/07/barnbash",
+  "title": "Barn Bash",
+  "year": 2007,
+  "month": 7,
+  "date_rally": "2007-07",
+  "photo_count": 112,
+  "stories": [],
+  "description": "The Scoot.net gallery provides limited details about this 2007 rally, suggesting it was an annual event in Wisconsin, however I couldn't find any further information.",
+  "state_province": "Wisconsin",
+  "country": "United States",
+  "notable_facts": [
+    "Held in July 2007"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:55:54Z",
+  "enriched_provider": "Cerebras3"
+}

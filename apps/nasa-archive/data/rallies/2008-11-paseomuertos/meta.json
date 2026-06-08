@@ -1,0 +1,24 @@
+{
+  "url": "http://scoot.net/gallery/2008/11/paseomuertos/",
+  "slug": "2008/11/paseomuertos",
+  "title": "Paseo Con Los Muertos",
+  "year": 2008,
+  "month": 11,
+  "date_rally": "2008-11",
+  "photo_count": 124,
+  "stories": [],
+  "description": "Paseo Con Los Muertos was a scooter rally held on November 1, 2008, apparently in a procession, possibly in Los Angeles, but exact details are scarce.",
+  "city": "Los Angeles",
+  "state_province": "California",
+  "country": "USA",
+  "recurring": false,
+  "notable_facts": [
+    "Held on November 1, 2008",
+    "Featured on scoot.net"
+  ],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:23:03Z",
+  "enriched_provider": "Cerebras2"
+}

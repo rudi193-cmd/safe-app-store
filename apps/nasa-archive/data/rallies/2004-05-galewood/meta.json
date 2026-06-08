@@ -1,0 +1,21 @@
+{
+  "url": "http://scoot.net/gallery/2004/05/galewood/",
+  "slug": "2004/05/galewood",
+  "title": "Galewood - 2004",
+  "year": 2004,
+  "month": 5,
+  "date_rally": "2004-05",
+  "photo_count": 163,
+  "stories": [],
+  "description": "Information about the rally is available on scoot.net, but details are limited.",
+  "city": "Galewood",
+  "country": "US",
+  "notable_facts": [
+    "Held in May 2004",
+    "Photos available on scoot.net"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:39:09Z",
+  "enriched_provider": "Novita2"
+}

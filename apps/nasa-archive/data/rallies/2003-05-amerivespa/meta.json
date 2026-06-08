@@ -1,0 +1,23 @@
+{
+  "url": "http://scoot.net/gallery/2003/05/amerivespa/",
+  "slug": "2003/05/amerivespa",
+  "title": "Amerivespa - 2003",
+  "year": 2003,
+  "month": 5,
+  "date_rally": "2003-05",
+  "photo_count": 1390,
+  "stories": [],
+  "description": "Annual Vespa rally in the United States",
+  "hosting_club": "Piaggio's North American division",
+  "state_province": "California",
+  "country": "US",
+  "recurring": true,
+  "notable_facts": [
+    "Held at various locations each year"
+  ],
+  "related_clubs": [],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:20:20Z",
+  "enriched_provider": "Cerebras2"
+}

@@ -1,0 +1,26 @@
+{
+  "url": "http://scoot.net/gallery/2004/05/vwcvs/",
+  "slug": "2004/05/vwcvs",
+  "title": "Vespa Washington Classic Vespa Show - 2004",
+  "year": 2004,
+  "month": 5,
+  "date_rally": "2004-05",
+  "photo_count": 128,
+  "stories": [],
+  "description": "A Vespa rally and show in Washington state, showcasing Vespa scooters.",
+  "hosting_club": "Vespa Washington",
+  "city": "Seattle",
+  "state_province": "Washington",
+  "country": "US",
+  "recurring": true,
+  "notable_facts": [
+    " Held in May"
+  ],
+  "related_clubs": [
+    "null"
+  ],
+  "source_confidence": "high",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:42:47Z",
+  "enriched_provider": "Cerebras"
+}

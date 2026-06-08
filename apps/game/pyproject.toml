@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-game"
+version = "1.0.0"
+description = "Jane GM — universal game master for TTRPGs, board games, and co-op play. Jane in your pocket."
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.28.0",
+]

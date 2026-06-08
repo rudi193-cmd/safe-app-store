@@ -1,0 +1,140 @@
+{
+  "app_id": "story-timeline",
+  "name": "story-timeline",
+  "version": "2.2.0",
+  "description": "Writer tool and story protocol — reading shelf, commonplace notes, writing projects, named timelines, intelligence suggestions, and Willow graph edges.",
+  "author": "Professor Oakenscroll / Vishwakarma",
+  "entry_point": "app.py",
+  "permissions": [
+    "filesystem_write",
+    "store_read",
+    "store_write",
+    "store_add_edge",
+    "store_edges_for"
+  ],
+  "sap_scope": "user-{uuid}/story-timeline/**",
+  "protocol": {
+    "record_types": [
+      "commonplace_item",
+      "writing_project",
+      "timeline",
+      "timeline_entry",
+      "provenance",
+      "session_composite",
+      "slm_suggestion",
+      "research_packet"
+    ],
+    "collections": {
+      "commonplace": "user-{uuid}/story-timeline/commonplace/",
+      "timelines": "user-{uuid}/story-timeline/timelines/",
+      "timeline_entries": "user-{uuid}/story-timeline/timeline_entries/",
+      "atoms": "user-{uuid}/story-timeline/atoms/",
+      "edges": "user-{uuid}/story-timeline/_graph/edges"
+    },
+    "relations": [
+      "derived_from",
+      "belongs_to_project",
+      "appears_on_timeline",
+      "inspired_by",
+      "supports_scene",
+      "contradicts_or_tensions_with"
+    ],
+    "promotable_source_types": [
+      "note",
+      "book",
+      "author",
+      "commonplace_item",
+      "project",
+      "theme",
+      "character",
+      "place",
+      "event"
+    ],
+    "cli": {
+      "promote": "promote.py"
+    },
+    "intelligence": {
+      "research_key": "j",
+      "suggest_key": "s",
+      "mcp_tools": [
+        "mem_jeles_ask",
+        "mem_jeles_web_search",
+        "kb_search",
+        "infer_7b"
+      ]
+    }
+  },
+  "exposes": {
+    "session_composite": {
+      "path": "user-{uuid}/story-timeline/atoms/",
+      "access": "read",
+      "requires_user_approval": true,
+      "description": "Session composite atoms — writing activity summary"
+    },
+    "commonplace": {
+      "path": "user-{uuid}/story-timeline/commonplace/",
+      "access": "read",
+      "requires_user_approval": true,
+      "description": "Commonplace captures — ideas, quotes, research notes"
+    },
+    "timelines": {
+      "path": "user-{uuid}/story-timeline/timelines/",
+      "access": "read",
+      "requires_user_approval": true,
+      "description": "Named timelines owned by writing projects"
+    },
+    "timeline_entries": {
+      "path": "user-{uuid}/story-timeline/timeline_entries/",
+      "access": "read",
+      "requires_user_approval": true,
+      "description": "Scenes, beats, milestones, and facts on timelines"
+    },
+    "provenance": {
+      "path": "user-{uuid}/story-timeline/atoms/",
+      "access": "read",
+      "requires_user_approval": true,
+      "description": "Provenance atoms linking timeline entries to source material"
+    },
+    "research_packet": {
+      "path": "user-{uuid}/story-timeline/atoms/",
+      "access": "read",
+      "requires_user_approval": true,
+      "description": "Jeles/source-trail cited research attached to library nodes"
+    },
+    "slm_suggestion": {
+      "path": "user-{uuid}/story-timeline/atoms/",
+      "access": "read",
+      "requires_user_approval": true,
+      "description": "Pending or accepted SLM promotion suggestions"
+    },
+    "graph_edges": {
+      "path": "user-{uuid}/story-timeline/_graph/edges",
+      "access": "read",
+      "requires_user_approval": true,
+      "description": "Typed graph edges between nodes"
+    }
+  },
+  "reads_from": {
+    "willow_kb": {
+      "atom_type": "knowledge",
+      "path": "postgres://knowledge",
+      "purpose": "Find prior personal/fleet memory related to notes, books, and writing projects",
+      "optional": true
+    },
+    "jeles": {
+      "atom_type": "jeles_atoms",
+      "path": "postgres://jeles_atoms",
+      "purpose": "Trusted external research and citations for library notes and timeline inspiration",
+      "optional": true
+    }
+  },
+  "local": true,
+  "surfaces": ["tui", "web", "cli"],
+  "dependencies": {
+    "user_identity_json": "required — provisioned by willow-seed",
+    "willow_mcp": "optional — Jeles, KB search, and infer_7b suggestions",
+    "norn_pass_scope": "optional — needed for reflection/insight passes",
+    "cross_app_sap_spec": "optional — needed for cross-app atom reads"
+  },
+  "b17": "STLN2"
+}

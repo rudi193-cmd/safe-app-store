@@ -1,0 +1,23 @@
+{
+  "url": "http://scoot.net/gallery/2008/11/fallclassic/",
+  "slug": "2008/11/fallclassic",
+  "title": "Tucson-Nogales Fall Classic",
+  "year": 2008,
+  "month": 11,
+  "date_rally": "2008-11",
+  "photo_count": 410,
+  "stories": [],
+  "description": "Annual scooter rally in the fall season",
+  "city": "Tucson",
+  "state_province": "Arizona",
+  "country": "US",
+  "recurring": true,
+  "notable_facts": [
+    "Photo gallery available at scoot.net"
+  ],
+  "related_clubs": [],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:23:20Z",
+  "enriched_provider": "Novita2"
+}

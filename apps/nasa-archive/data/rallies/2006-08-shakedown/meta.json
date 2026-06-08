@@ -1,0 +1,19 @@
+{
+  "url": "http://scoot.net/gallery/2006/08/shakedown/",
+  "slug": "2006/08/shakedown",
+  "title": "Motor City Shakedown",
+  "year": 2006,
+  "month": 8,
+  "date_rally": "2006-08",
+  "photo_count": 695,
+  "stories": [],
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "http://scoot.net/gallery/2006/08/shakedown/ provided images of the rally"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:52:26Z",
+  "enriched_provider": "Cerebras"
+}

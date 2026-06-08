@@ -1,0 +1,109 @@
+{
+  "_handoff": {
+    "what": "Configuration for every trigger detector. Rules, thresholds, and response pools live here so the fill-in instance can tune behavior without touching TypeScript.",
+    "status": "SCAFFOLD — detector word lists are SHORT AND INCOMPLETE on purpose. Expand from authoring DB. Thresholds are conservative defaults; tune after observing real posts.",
+    "read_by": [
+      "src/triggers/newPost.ts",
+      "src/triggers/zeroGaps.ts",
+      "src/triggers/scoreMilestone.ts",
+      "src/triggers/napkinDrop.ts"
+    ],
+    "rules": [
+      "Detectors err on the side of NOT firing. False positives destroy Gerald.",
+      "Every trigger response is governed by ratelimit.ts and cooldown.ts regardless of detector match.",
+      "If a trigger is disabled (enabled: false), it is still registered but is a no-op."
+    ]
+  },
+
+  "new_post": {
+    "enabled": true,
+    "description": "Drops 'Filed.' on posts that look like a paper/working-paper. Paper-shape heuristics only — no LLM.",
+    "min_length_chars": 1500,
+    "paper_shape_markers": [
+      "abstract",
+      "introduction",
+      "references",
+      "\\bsection\\b",
+      "\\bequation\\b"
+    ],
+    "required_marker_count": 2,
+    "response_pool": ["Filed."]
+  },
+
+  "zero_gaps": {
+    "enabled": true,
+    "description": "The i-theft port. Fires on posts that assert strong claims with zero epistemic hedging — the textual shape of ego-without-the-asserter.",
+    "min_length_chars": 200,
+    "min_confidence_hits": 3,
+    "max_gap_hits": 0,
+    "confidence_markers": [
+      "\\bproven\\b",
+      "\\bdefinitive(ly)?\\b",
+      "\\bclearly\\b",
+      "\\bobviously\\b",
+      "\\btheory of everything\\b",
+      "\\bcomplete theory\\b",
+      "\\bI have (shown|derived|proved|proven|discovered|solved)\\b",
+      "\\bI (solved|disproved|refuted|unified)\\b",
+      "\\bgrand unif(ied|ication)\\b",
+      "\\bfinal theory\\b",
+      "\\bfinal equation\\b",
+      "\\birrefutable\\b",
+      "\\bundeniable\\b",
+      "\\bsettles the (question|debate|matter)\\b",
+      "\\bends the debate\\b",
+      "\\bwithout (any )?doubt\\b",
+      "\\bno (longer )?uncertain\\b",
+      "\\bproof of\\b",
+      "\\bI can prove\\b",
+      "\\bmy (new )?theory (shows|proves|demonstrates|explains)\\b",
+      "\\bunified field\\b"
+    ],
+    "gap_markers": [
+      "\\buncertain\\b",
+      "\\bspeculative\\b",
+      "\\bopen question\\b",
+      "\\bmight\\b",
+      "\\bcould\\b",
+      "\\btentative\\b",
+      "\\bI'?m not sure\\b",
+      "\\bneeds (verification|testing|review|validation)\\b",
+      "\\bwould need to be tested\\b",
+      "\\bhypothes(is|ize)\\b",
+      "\\bconjecture\\b",
+      "\\bapproximate(ly)?\\b",
+      "\\bperhaps\\b",
+      "\\bpossibly\\b",
+      "\\bpreliminary\\b",
+      "\\bworking hypothesis\\b",
+      "\\bsubject to\\b",
+      "\\bfurther (work|research|testing)\\b",
+      "\\blimitations?\\b",
+      "\\bcaveats?\\b",
+      "\\bI think\\b",
+      "\\bI believe\\b",
+      "\\bI suspect\\b",
+      "\\bopen to (criticism|correction|feedback)\\b"
+    ],
+    "response_pool": ["🍗"],
+    "author_cooldown_hours": 24
+  },
+
+  "score_milestone": {
+    "enabled": true,
+    "description": "Polls recent posts on each heartbeat. When a post crosses a score threshold, Gerald witnesses once.",
+    "poll_interval_minutes": 10,
+    "thresholds": [10, 50, 100, 500, 1000],
+    "response_pool": ["🍗"],
+    "one_witness_per_post": true
+  },
+
+  "napkin_drop": {
+    "enabled": true,
+    "description": "Scheduled rare top-level comment on a recent post. Just a napkin. No context.",
+    "cron": "0 */6 * * *",
+    "chance_per_run": 0.5,
+    "target": "most_recent_post_within_hours",
+    "target_window_hours": 6
+  }
+}

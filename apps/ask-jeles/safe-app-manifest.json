@@ -1,0 +1,50 @@
+{
+  "app_id": "ask-jeles",
+  "name": "AskJeles",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "b17": "L5509",
+  "agent_type": "tool",
+  "description": "Jeles, your local-first AI librarian. Search Willow/Binder first, then open web, maps, and Special Collections; build topic quizzes and optional session-consented learning events.",
+  "author": "Sean Campbell",
+  "data_streams": [
+    {
+      "id": "queries",
+      "purpose": "Process your search queries against local KB, open web, maps, and institutional sources",
+      "retention": "session",
+      "description": "Queries cleared when session ends — not stored or used for training"
+    },
+    {
+      "id": "binder_deposits",
+      "purpose": "Save search findings to your local Binder",
+      "retention": "permanent",
+      "description": "Only deposited if you explicitly choose to save — stored in local Binder database"
+    },
+    {
+      "id": "learning_events",
+      "purpose": "Capture small learning-event summaries for later pedagogical review",
+      "retention": "session_consented",
+      "description": "Off by default. Only captured for the current session after Ctrl+L consent; resets when the app closes."
+    }
+  ],
+  "permissions": [
+    "local_llm",
+    "network_read",
+    "binder_write",
+    "jeles_fetch",
+    "postgres_read",
+    "store_read"
+  ],
+  "privacy_tier": "mixed",
+  "local_processing": 0.80,
+  "dev_server": {
+    "env_var": "ASK_JELES_DEV_SERVER",
+    "port": 8421,
+    "scope": "localhost",
+    "note": "Also requires --serve flag. Local development only. Not started in production."
+  },
+  "entry_point": "askjeles.crown:main",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-ask-jeles",
+  "notes": "network_read is used for local search handoffs, open-web lookup, maps, and institutional source fetches. binder_write deposits findings into the local Binder only when the user saves. learning_events are off by default and session-consented with Ctrl+L."
+}

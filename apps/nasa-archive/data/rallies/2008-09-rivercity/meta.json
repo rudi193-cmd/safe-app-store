@@ -1,0 +1,25 @@
+{
+  "url": "http://scoot.net/gallery/2008/09/rivercity/",
+  "slug": "2008/09/rivercity",
+  "title": "River City Rally",
+  "year": 2008,
+  "month": 9,
+  "date_rally": "2008-09",
+  "photo_count": 71,
+  "stories": [],
+  "description": "The River City Rally was a scooter rally with participating scooters shown at the given Scoot.net URL",
+  "city": "River City (specific city unknown)",
+  "state_province": "null",
+  "country": "null",
+  "recurring": false,
+  "notable_facts": [
+    ""
+  ],
+  "related_clubs": [
+    ""
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:05:12Z",
+  "enriched_provider": "Cerebras3"
+}

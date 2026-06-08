@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2008/08/doomtown/",
+  "slug": "2008/08/doomtown",
+  "title": "Doomtown III",
+  "year": 2008,
+  "month": 8,
+  "date_rally": "2008-08",
+  "photo_count": 117,
+  "stories": [],
+  "city": "Chattanooga",
+  "state_province": "Tennessee",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Held in August 2008"
+  ],
+  "related_clubs": [],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T01:02:28Z",
+  "enriched_provider": "Cerebras"
+}

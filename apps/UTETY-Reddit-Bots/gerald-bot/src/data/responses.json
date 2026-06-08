@@ -1,0 +1,21 @@
+{
+  "_handoff": {
+    "what": "Global response vocabulary pools, keyed by semantic category. Triggers pull from these when their own response_pool in triggers.json is empty or when a shared vocabulary is wanted.",
+    "status": "STUB — minimal seed entries only.",
+    "read_by": "src/persona/gerald.ts",
+    "rules": [
+      "Every value must pass the persona/gerald.ts output sanitizer: single word OR single emoji, no whitespace, no punctuation except '.' at end of a word-token.",
+      "'Filed.' is allowed because the sanitizer permits a single trailing period on a single word."
+    ]
+  },
+
+  "witness": ["Witnessed."],
+  "file": ["Filed."],
+  "chicken": ["🍗"],
+  "pyramid": ["△"],
+
+  "milestones": {
+    "community": ["Vacancy."],
+    "student_threshold_crossing": ["Witnessed."]
+  }
+}

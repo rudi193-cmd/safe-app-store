@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2003/11/fallclassic/",
+  "slug": "2003/11/fallclassic",
+  "title": "Tucson-Nogales Fall Classic - 2003",
+  "year": 2003,
+  "month": 11,
+  "date_rally": "2003-11",
+  "photo_count": 502,
+  "stories": [],
+  "description": "A scooter rally held in the fall, covering a distance between Tucson and Nogales.",
+  "city": "Tucson",
+  "state_province": "Arizona",
+  "country": "US",
+  "recurring": false,
+  "notable_facts": [
+    "Held in November 2003 as documented on scoot.net gallery"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:36:02Z",
+  "enriched_provider": "Novita"
+}

@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JAC Judge — r/LLMPhysics</title>
+  <style>
+    :root {
+      --bg: #f9f9f7;
+      --fg: #1c1c1a;
+      --fg-muted: #6b6b64;
+      --accent: #2d6a4f;
+      --accent-light: #e8f4ee;
+      --border: #e2e2de;
+      --max: 680px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.75;
+      margin: 0;
+      padding: 0 1rem;
+    }
+    .container { max-width: var(--max); margin: 0 auto; }
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+    .nav-brand { font-weight: 700; font-size: 15px; color: var(--accent); text-decoration: none; letter-spacing: 0.04em; }
+    .nav-link { font-size: 14px; color: var(--fg-muted); text-decoration: none; }
+    .nav-link:hover { color: var(--accent); }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    .hero { margin-bottom: 2.5rem; }
+    .hero h1 { font-size: 1.75rem; font-weight: 700; color: var(--fg); margin: 0 0 0.6rem; line-height: 1.3; }
+    .hero .subline { font-size: 15px; color: var(--fg-muted); margin-bottom: 0.4rem; }
+    .hero .note { font-size: 13px; color: var(--fg-muted); }
+    .api-section { margin-bottom: 1.5rem; }
+    .api-chip { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 13px; background: var(--accent-light); color: var(--accent); border: 1px solid #b7d9c8; border-radius: 20px; padding: 0.25rem 0.75rem; }
+    .api-chip a { color: var(--fg-muted); font-size: 12px; margin-left: 0.25rem; cursor: pointer; text-decoration: underline; }
+    .api-form { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-end; }
+    .api-form select, .api-form input[type="text"], .api-form input[type="password"] { font-size: 13px; border: 1px solid var(--border); border-radius: 4px; padding: 0.4rem 0.6rem; background: #fff; color: var(--fg); outline: none; }
+    .api-form select:focus, .api-form input:focus { border-color: var(--accent); }
+    .btn-sm { font-size: 13px; padding: 0.4rem 0.9rem; border: none; border-radius: 4px; background: var(--accent); color: #fff; cursor: pointer; font-weight: 600; }
+    .btn-sm:hover { opacity: 0.88; }
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 0.4rem; }
+    textarea#paperInput { width: 100%; min-height: 300px; resize: vertical; font-size: 14px; font-family: inherit; line-height: 1.6; border: 1px solid var(--border); border-radius: 4px; padding: 0.75rem 1rem; background: #fff; color: var(--fg); outline: none; }
+    textarea#paperInput:focus { border-color: var(--accent); }
+    .char-count { font-size: 12px; color: var(--fg-muted); text-align: right; margin-top: 0.2rem; }
+    .url-row { margin-top: 0.75rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .url-row > label { font-size: 13px; color: var(--fg-muted); white-space: nowrap; }
+    .url-row input[type="text"] { font-size: 13px; flex: 1; min-width: 160px; border: 1px solid var(--border); border-radius: 4px; padding: 0.35rem 0.6rem; background: #fff; color: var(--fg); outline: none; }
+    .url-row input[type="text"]:focus { border-color: var(--accent); }
+    .url-fetch-btn { font-size: 13px; padding: 0.35rem 0.8rem; border: none; border-radius: 4px; background: var(--accent); color: #fff; cursor: pointer; font-weight: 600; white-space: nowrap; }
+    .url-fetch-btn:hover:not(:disabled) { opacity: 0.88; }
+    .url-fetch-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .url-browse-btn { font-size: 13px; padding: 0.35rem 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: #fff; color: var(--fg-muted); cursor: pointer; font-weight: 600; white-space: nowrap; }
+    .url-browse-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .url-row .divider { font-size: 12px; color: var(--fg-muted); }
+    .url-status { font-size: 12px; font-style: italic; width: 100%; padding-left: 0; }
+    .rubric-toggle { display: flex; align-items: center; gap: 0.4rem; font-size: 13px; color: var(--fg-muted); cursor: pointer; user-select: none; margin: 1rem 0 0; background: none; border: none; padding: 0; }
+    .rubric-toggle:hover { color: var(--accent); }
+    #rubricBody { display: none; margin-top: 0.75rem; }
+    #rubricBody.open { display: block; }
+    .rubric-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .rubric-table th, .rubric-table td { border: 1px solid var(--border); padding: 0.4rem 0.75rem; text-align: left; }
+    .rubric-table th { background: var(--accent-light); font-weight: 600; font-size: 12px; }
+    .rubric-table tr:last-child td { font-weight: 700; }
+    .score-wrap { margin: 1.5rem 0; }
+    #scoreBtn { width: 100%; padding: 0.85rem; font-size: 15px; font-weight: 700; background: var(--accent); color: #fff; border: none; border-radius: 4px; cursor: pointer; letter-spacing: 0.02em; transition: opacity 0.15s; }
+    #scoreBtn:hover:not(:disabled) { opacity: 0.88; }
+    #scoreBtn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .dots::after { content: ''; animation: dots 1.2s steps(4, end) infinite; }
+    @keyframes dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
+    .error-box { background: #fff0f0; border: 1px solid #f5c6c6; border-radius: 4px; padding: 0.75rem 1rem; font-size: 13px; color: #b33030; margin-top: 0.75rem; }
+    #resultsSection { display: none; margin-top: 2rem; }
+    #resultsSection.visible { display: block; }
+    .results-eyebrow { margin-bottom: 1rem; }
+    .total-score { font-size: 3rem; font-weight: 700; color: var(--accent); line-height: 1; margin-bottom: 0.2rem; }
+    .total-label { font-size: 13px; color: var(--fg-muted); margin-bottom: 1.25rem; }
+    .narrative { font-size: 15px; color: var(--fg); margin-bottom: 1.5rem; padding: 1rem; background: var(--accent-light); border-radius: 4px; border-left: 3px solid var(--accent); }
+    .criterion-card { border: 1px solid var(--border); border-radius: 4px; padding: 1rem; margin-bottom: 0.6rem; }
+    .criterion-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
+    .criterion-name { font-size: 14px; font-weight: 600; color: var(--fg); }
+    .criterion-score { font-size: 14px; font-weight: 700; color: var(--accent); }
+    .criterion-bar { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 0.5rem; }
+    .criterion-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.6s ease; width: 0%; }
+    .criterion-justification { font-size: 13px; color: var(--fg-muted); line-height: 1.5; }
+    .strengths-concerns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0; }
+    @media (max-width: 500px) { .strengths-concerns { grid-template-columns: 1fr; } }
+    .sc-block h4 { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem; }
+    .sc-block.strengths h4 { color: var(--accent); }
+    .sc-block.concerns h4 { color: #8b4513; }
+    .sc-block ul { margin: 0; padding-left: 1.2rem; }
+    .sc-block li { font-size: 13px; color: var(--fg-muted); margin-bottom: 0.25rem; }
+    .verdict-box { border: 2px solid var(--accent); border-radius: 4px; padding: 0.75rem 1rem; font-weight: 700; font-size: 15px; color: var(--accent); text-align: center; margin-bottom: 1.25rem; }
+    .verdict-box.warn { border-color: #d4860a; color: #d4860a; }
+    .verdict-box.bad { border-color: #b33030; color: #b33030; }
+    #copyBtn { font-size: 13px; padding: 0.5rem 1.25rem; border: 1px solid var(--border); border-radius: 4px; background: #fff; color: var(--fg-muted); cursor: pointer; }
+    #copyBtn:hover { border-color: var(--accent); color: var(--accent); }
+    /* Transparency Panel */
+    .transparency-panel { margin-top: 2rem; border: 1px solid var(--border); border-radius: 8px; background: #fafaf8; overflow: hidden; }
+    .transparency-toggle { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background: none; border: none; width: 100%; text-align: left; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--fg-muted); letter-spacing: 0.04em; }
+    .transparency-toggle:hover { color: var(--accent); background: var(--accent-light); }
+    .transparency-body { display: none; padding: 1rem; border-top: 1px solid var(--border); }
+    .transparency-body.open { display: block; }
+    .tp-section { margin-bottom: 1rem; }
+    .tp-section:last-child { margin-bottom: 0; }
+    .tp-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 0.4rem; }
+    .tp-meta { font-size: 13px; color: var(--fg); line-height: 1.6; }
+    .tp-meta code { font-size: 12px; background: #f0f0ee; padding: 0.1rem 0.3rem; border-radius: 3px; }
+    .tp-prompt-block { margin-top: 0.5rem; }
+    .tp-prompt-toggle { font-size: 12px; color: var(--accent); cursor: pointer; background: none; border: none; padding: 0; text-decoration: underline; }
+    .tp-prompt-toggle:hover { color: var(--fg); }
+    .tp-prompt-text { display: none; margin-top: 0.4rem; font-size: 12px; font-family: monospace; background: #f5f5f3; border: 1px solid var(--border); border-radius: 4px; padding: 0.6rem; max-height: 300px; overflow-y: auto; white-space: pre-wrap; color: var(--fg-muted); line-height: 1.5; }
+    .tp-prompt-text.open { display: block; }
+    .tp-section-list { list-style: none; padding: 0; margin: 0.5rem 0 0; }
+    .tp-section-item { font-size: 12px; padding: 0.3rem 0.5rem; border-left: 3px solid var(--border); margin-bottom: 0.3rem; color: var(--fg-muted); }
+    .tp-section-item.success { border-left-color: var(--accent); }
+    .tp-section-item.fail { border-left-color: #dc2626; }
+
+    /* Consent Gate */
+    .consent-gate { margin-top: 2rem; border: 1px solid var(--border); border-radius: 8px; background: #fdfcfa; padding: 1.25rem; }
+    .consent-gate .cg-title { font-size: 14px; font-weight: 600; color: var(--fg); margin-bottom: 0.5rem; }
+    .consent-gate .cg-body { font-size: 13px; color: var(--fg-muted); line-height: 1.6; margin-bottom: 1rem; }
+    .consent-gate .cg-disclosure { font-size: 12px; color: var(--fg-muted); background: #f5f5f3; border: 1px solid var(--border); border-radius: 4px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; line-height: 1.5; }
+    .consent-gate .cg-disclosure strong { color: var(--fg); }
+    .consent-gate .cg-actions { display: flex; gap: 0.75rem; align-items: center; }
+    .consent-gate .cg-yes { padding: 0.5rem 1.25rem; border: 1px solid var(--accent); border-radius: 4px; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .consent-gate .cg-yes:hover { opacity: 0.88; }
+    .consent-gate .cg-no { font-size: 13px; color: var(--fg-muted); cursor: pointer; background: none; border: none; padding: 0; text-decoration: underline; }
+
+    /* Oakenscroll Chat — Split Panel */
+    .oak-chat { margin-top: 2rem; border: 1px solid var(--border); border-radius: 8px; background: #fdfcfa; overflow: hidden; display: none; margin-left: -2rem; margin-right: -2rem; width: calc(100% + 4rem); max-width: 900px; }
+    .oak-chat.visible { display: block; }
+    @media (max-width: 720px) { .oak-chat { margin-left: 0; margin-right: 0; width: 100%; } }
+    .oak-header { padding: 0.75rem 1rem; background: #f5f0e8; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem; }
+    .oak-header .oak-title { font-weight: 700; font-size: 14px; color: var(--fg); }
+    .oak-header .oak-sub { font-size: 12px; color: var(--fg-muted); }
+    .oak-body { display: grid; grid-template-columns: 240px 1fr; min-height: 360px; }
+    @media (max-width: 600px) { .oak-body { grid-template-columns: 1fr; } .oak-checklist { max-height: 200px; border-right: none; border-bottom: 1px solid var(--border); } }
+
+    /* Left: Checklist */
+    .oak-checklist { border-right: 1px solid var(--border); background: #f9f7f2; padding: 0.75rem; overflow-y: auto; max-height: 450px; }
+    .oak-cl-title { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 0.5rem; }
+    .oak-cl-item { font-size: 12px; line-height: 1.4; padding: 0.4rem 0.5rem; margin-bottom: 0.35rem; border-radius: 4px; border-left: 3px solid var(--border); background: #fff; color: var(--fg-muted); transition: all 0.3s ease; }
+    .oak-cl-item.locked { border-left-color: #b0b0a8; }
+    .oak-cl-item.locked .oak-cl-icon::before { content: '\1F512'; font-size: 10px; }
+    .oak-cl-item.working { border-left-color: #d4860a; background: #fef9e7; color: var(--fg); }
+    .oak-cl-item.working .oak-cl-icon::before { content: '\1F4DD'; font-size: 10px; }
+    .oak-cl-item.earned { border-left-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+    .oak-cl-item.earned .oak-cl-icon::before { content: '\2705'; font-size: 10px; }
+    .oak-cl-icon { display: inline-block; width: 16px; margin-right: 0.25rem; text-align: center; }
+    .oak-cl-label { font-size: 11px; }
+    .oak-cl-new { animation: clFlash 0.6s ease; }
+    @keyframes clFlash { 0%,100% { background: #fff; } 50% { background: #fef2e0; } }
+
+    /* Right: Messages */
+    .oak-right { display: flex; flex-direction: column; }
+    .oak-messages { padding: 0.75rem; flex: 1; max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; }
+    .oak-msg { font-size: 13px; line-height: 1.6; padding: 0.5rem 0.7rem; border-radius: 6px; max-width: 92%; white-space: pre-wrap; }
+    .oak-msg.oak { background: #f0ebe0; color: var(--fg); align-self: flex-start; border: 1px solid #e5ddd0; }
+    .oak-msg.user { background: var(--accent-light); color: var(--fg); align-self: flex-end; border: 1px solid #c8e0d4; }
+    .oak-msg.oak .oak-name { font-weight: 700; font-size: 10px; letter-spacing: 0.06em; color: #8b6914; margin-bottom: 0.2rem; display: block; }
+    .oak-input-row { display: flex; gap: 0.5rem; padding: 0.6rem 0.75rem; border-top: 1px solid var(--border); background: #fff; }
+    .oak-input-row input { flex: 1; padding: 0.45rem 0.6rem; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; font-family: inherit; }
+    .oak-input-row input:focus { outline: none; border-color: var(--accent); }
+    .oak-input-row button { padding: 0.45rem 0.9rem; border: 1px solid var(--accent); border-radius: 4px; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .oak-input-row button:hover { background: #245a40; }
+    .oak-input-row button:disabled { opacity: 0.5; cursor: default; }
+    .oak-typing { font-size: 12px; color: var(--fg-muted); font-style: italic; padding: 0.3rem 0.7rem; }
+
+    /* 8-bit Oakenscroll Avatar */
+    .oak-avatar { width: 48px; height: 48px; image-rendering: pixelated; position: relative; flex-shrink: 0; }
+    .oak-avatar canvas { width: 48px; height: 48px; image-rendering: pixelated; }
+    footer { margin-top: 3rem; padding: 1.5rem 0; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 12px; color: var(--fg-muted); flex-wrap: wrap; gap: 0.5rem; }
+    footer a { color: var(--fg-muted); text-decoration: none; }
+    footer a:hover { color: var(--accent); }
+    .hero-sub { font-size: 15px; color: var(--fg-muted); margin-bottom: 0.4rem; }
+    .rubric-defense { opacity: 0.6; font-style: italic; }
+    .rubric-total td { font-weight: 600; border-top: 2px solid var(--border); }
+    .badge-human {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; background: #fef9e7; color: #a0720a;
+      padding: 0.15rem 0.4rem; border-radius: 3px; margin-left: 0.4rem;
+      font-style: normal; vertical-align: middle;
+    }
+    .section-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.2rem; }
+    .section-sub { font-size: 12px; color: var(--fg-muted); margin-bottom: 0.5rem; }
+    .mandatory-section { margin-top: 1.5rem; }
+    .mandatory-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.75rem; }
+    .mandatory-item { display: flex; align-items: center; gap: 0.5rem; font-size: 13px; padding: 0.5rem 0.75rem; border-radius: 4px; border: 1px solid var(--border); }
+    .elem-present { background: var(--accent-light); }
+    .elem-missing { background: #fef2f2; border-color: #fca5a5; }
+    .elem-unclear { background: #fef9e7; border-color: #fcd34d; }
+    .elem-status { font-weight: 700; font-size: 14px; }
+    .elem-present .elem-status { color: var(--accent); }
+    .elem-missing .elem-status { color: #dc2626; }
+    .elem-unclear .elem-status { color: #a0720a; }
+    @media (max-width: 480px) { .mandatory-grid { grid-template-columns: 1fr; } }
+    .citations-section { margin-top: 1.5rem; }
+    .citation-summary-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.6rem 0 1rem; }
+    .cit-badge { font-size: 12px; font-weight: 600; padding: 0.25rem 0.6rem; border-radius: 20px; white-space: nowrap; }
+    .cit-badge.peer { background: var(--accent-light); color: var(--accent); }
+    .cit-badge.preprint { background: #fef9e7; color: #a0720a; }
+    .cit-badge.non-academic { background: #fef2f2; color: #dc2626; }
+    .cit-badge.hallucinated { background: #dc2626; color: #fff; }
+    .cit-badge.unclear { background: #f5f5f3; color: var(--fg-muted); }
+    .cluster-warning { background: #fff4e6; border: 1px solid #f6a623; border-radius: 4px; padding: 0.5rem 0.75rem; font-size: 13px; color: #a05000; margin-bottom: 0.75rem; }
+    .citation-list { list-style: none; margin: 0; padding: 0; }
+    .citation-item { border: 1px solid var(--border); border-radius: 4px; padding: 0.5rem 0.75rem; margin-bottom: 0.4rem; display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: start; }
+    .citation-item.cit-peer { border-left: 3px solid var(--accent); }
+    .citation-item.cit-preprint { border-left: 3px solid #f6a623; }
+    .citation-item.cit-non-academic { border-left: 3px solid #dc2626; }
+    .citation-item.cit-hallucinated { border-left: 3px solid #7f0000; background: #fff5f5; }
+    .citation-item.cit-unclear { border-left: 3px solid var(--border); }
+    .cit-type-pill { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.15rem 0.4rem; border-radius: 3px; white-space: nowrap; margin-top: 2px; }
+    .cit-peer .cit-type-pill { background: var(--accent-light); color: var(--accent); }
+    .cit-preprint .cit-type-pill { background: #fef9e7; color: #a0720a; }
+    .cit-non-academic .cit-type-pill { background: #fef2f2; color: #dc2626; }
+    .cit-hallucinated .cit-type-pill { background: #dc2626; color: #fff; }
+    .cit-unclear .cit-type-pill { background: #f5f5f3; color: var(--fg-muted); }
+    .cit-body { min-width: 0; }
+    .cit-ref { font-size: 13px; font-weight: 600; color: var(--fg); margin-bottom: 0.15rem; }
+    .cit-note { font-size: 12px; color: var(--fg-muted); }
+    .cit-flags { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.25rem; }
+    .cit-flag { font-size: 10px; background: #fff4e6; color: #a05000; border: 1px solid #f6a623; border-radius: 3px; padding: 0.1rem 0.35rem; }
+    .reasoning-btn { font-size: 13px; padding: 0.5rem 1.25rem; border: 1px solid var(--border); border-radius: 4px; background: #fff; color: var(--fg-muted); cursor: pointer; margin-left: 0.5rem; }
+    .reasoning-btn:hover { border-color: var(--accent); color: var(--accent); }
+    #reasoningPanel { display: none; margin-top: 1.5rem; }
+    #reasoningPanel.open { display: block; }
+    .reasoning-header { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+    .reasoning-header::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .reasoning-body { font-size: 14px; line-height: 1.8; color: var(--fg); background: #fafaf8; border: 1px solid var(--border); border-left: 3px solid var(--fg-muted); border-radius: 4px; padding: 1.25rem 1.5rem; white-space: pre-wrap; font-family: 'Georgia', serif; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <nav>
+    <a href="../index.html" class="nav-brand">SAFE</a>
+    <a href="https://www.reddit.com/r/LLMPhysics/" target="_blank" class="nav-link">r/LLMPhysics</a>
+  </nav>
+  <div class="hero">
+    <div class="eyebrow">JAC Judge</div>
+    <h1>JAC Judge</h1>
+    <p class="hero-sub">Paste your draft below for a pre-submission audit against the official Journal Ambitions Contest rubric. Scores out of 85 — Defense (15 pts) is reserved for human judges.</p>
+    <p class="note">Powered by <strong>Cerebras</strong> (Llama 3.3 70B) — free, fast, no account needed. <a href="#" onclick="toggleOwnKey(); return false;" style="color:var(--fg-muted); font-size:12px;">Use your own key</a></p>
+  </div>
+  <div class="api-section" id="apiSection">
+    <div id="apiChip" style="display:none;">
+      <span class="api-chip">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
+        Using <strong id="chipProvider"></strong>
+        <a onclick="clearOwnKey()">Reset to Cerebras</a>
+      </span>
+    </div>
+    <div id="apiForm" style="display:none;">
+      <div class="section-label" style="margin-bottom:0.5rem;">Your API Key <span style="font-weight:400; text-transform:none; letter-spacing:0;">(or <a href="#" onclick="clearOwnKey(); return false;" style="color:var(--accent);">use default Cerebras</a>)</span></div>
+      <div class="api-form">
+        <input type="password" id="apiKeyInput" placeholder="Paste any API key — provider auto-detected" style="flex:1;min-width:220px;" oninput="onKeyInput(this.value)">
+        <button class="btn-sm" id="saveKeyBtn" onclick="saveApiKey()" disabled>Use</button>
+      </div>
+      <div id="keyDetectBadge" style="margin-top:0.4rem; font-size:12px; color:var(--fg-muted);"></div>
+    </div>
+  </div>
+  <div style="margin-bottom:1rem;">
+    <div class="section-label">Paper</div>
+    <textarea id="paperInput" placeholder="Paste the full paper text here..."></textarea>
+    <div class="char-count"><span id="charCount">0</span> characters</div>
+    <div id="lengthWarn" style="display:none; font-size:12px; color:#a05000; background:#fff4e6; border:1px solid #f6a623; border-radius:4px; padding:0.4rem 0.6rem; margin-top:0.3rem;"></div>
+    <div class="url-row">
+      <label>Or load from:</label>
+      <input type="text" id="urlInput" placeholder="https://arxiv.org/abs/..." oninput="onUrlInput()">
+      <button class="url-fetch-btn" id="urlFetchBtn" onclick="fetchFromUrl()" disabled>Fetch</button>
+      <span class="divider">or</span>
+      <label class="url-browse-btn" for="fileInput">Browse&hellip;</label>
+      <input type="file" id="fileInput" accept=".pdf,.txt,.md" style="display:none" onchange="loadFile(this)">
+      <span class="url-status" id="urlStatus"></span>
+    </div>
+  </div>
+  <button class="rubric-toggle" onclick="toggleRubric()" id="rubricToggleBtn">
+    <span>View rubric</span>
+    <span id="rubricArrow">&#9660;</span>
+  </button>
+  <div id="rubricBody">
+    <table class="rubric-table">
+      <thead>
+        <tr><th>Criterion</th><th>Points</th><th>What judges look for</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Hypothesis</td><td>15</td><td>Intent and problem clearly stated in abstract or introduction</td></tr>
+        <tr><td>Novelty</td><td>15</td><td>Genuinely novel approach &mdash; new derivation path, synthesis, or unexplored angle</td></tr>
+        <tr><td>Scientific Humility</td><td>15</td><td>Failure conditions stated; proposal is falsifiable; uncertainty acknowledged</td></tr>
+        <tr><td>Engagement</td><td>20</td><td>True engagement with literature &mdash; reasons through it, not just binary agreement/dismissal</td></tr>
+        <tr><td>Rigor</td><td>10</td><td>First principles derivations; units preserved; parameters justified</td></tr>
+        <tr><td>Citations</td><td>10</td><td>Relevant, verifiable, post-2015 preferred; no hallucinated sources</td></tr>
+        <tr class="rubric-defense"><td>Defense <span class="badge-human">human judges only</span></td><td>15</td><td>Response to critique demonstrates understanding. Skipped if no valid critiques raised.</td></tr>
+        <tr class="rubric-defense"><td>&Delta;&Sigma;: Acknowledged Unknowns</td><td>&mdash;</td><td>Not scored. The judge states what it cannot evaluate. A judge with no unknowns is lying.</td></tr>
+        <tr class="rubric-total"><td><strong>Self-audit total</strong></td><td><strong>85</strong></td><td>Defense scored separately by human judges</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="score-wrap">
+    <button id="scoreBtn" disabled onclick="scorePaper()">Score This Paper</button>
+    <div id="errorBox" class="error-box" style="display:none;"></div>
+  </div>
+  <div id="resultsSection">
+    <div class="results-eyebrow eyebrow">Evaluation Results</div>
+    <div class="total-score" id="totalScore">&#8212;</div>
+    <div class="total-label">out of 85 (self-audit)</div>
+    <div class="narrative" id="narrativeText"></div>
+    <div id="criterionCards"></div>
+    <div class="strengths-concerns">
+      <div class="sc-block strengths"><h4>Strengths</h4><ul id="strengthsList"></ul></div>
+      <div class="sc-block concerns"><h4>Top Improvements</h4><ul id="concernsList"></ul></div>
+    </div>
+    <div class="verdict-box" id="verdictBox"></div>
+    <button id="copyBtn" onclick="copyResults()">Copy Results</button>
+    <button class="reasoning-btn" id="reasoningBtn" onclick="toggleReasoning()" style="display:none;">Show AI Reasoning</button>
+    <div id="reasoningPanel">
+      <div class="reasoning-header">AI Evaluation Thought Process</div>
+      <div class="reasoning-body" id="reasoningText"></div>
+    </div>
+  </div>
+  <!-- Scoring Transparency Panel -->
+  <div class="transparency-panel" id="transparencyPanel" style="display:none;">
+    <button class="transparency-toggle" onclick="toggleTransparency()">
+      <span id="tpArrow">&#9660;</span> Full Scoring Transparency
+    </button>
+    <div class="transparency-body" id="transparencyBody"></div>
+  </div>
+
+  <!-- Consent Gate for Oakenscroll Chat -->
+  <div class="consent-gate" id="consentGate" style="display:none;">
+    <div class="cg-title">Would you like to discuss your score?</div>
+    <div class="cg-body">
+      Professor Oakenscroll can walk you through what each score means, where the gaps are, and how to improve your paper for resubmission. The conversation uses the same scoring data shown above.
+    </div>
+    <div class="cg-disclosure">
+      <strong>What this is:</strong> Oakenscroll is a fictional AI persona &mdash; a curmudgeonly UTETY professor character powered by <span id="cgProvider">an LLM</span>. It has access to your scoring results (shown above) but does <em>not</em> store your paper or conversation. Each message is a fresh API call to the same model that scored your paper. The character is part of the <a href="https://www.reddit.com/r/LLMPhysics/" target="_blank" style="color:var(--accent);">r/LLMPhysics</a> community &mdash; not a real professor, not a real university.
+    </div>
+    <div class="cg-actions">
+      <button class="cg-yes" onclick="acceptOakenscroll()">Yes, let's discuss it</button>
+      <button class="cg-no" onclick="declineOakenscroll()">No thanks &mdash; I have what I need</button>
+    </div>
+  </div>
+
+  <!-- Oakenscroll Chat (hidden until consent) -->
+  <div class="oak-chat" id="oakChat">
+    <div class="oak-header">
+      <div class="oak-avatar"><canvas id="oakCanvas" width="16" height="16"></canvas></div>
+      <div>
+        <div class="oak-title">Professor Oakenscroll</div>
+        <div class="oak-sub">UTETY Faculty &middot; AI persona &middot; <a href="#" onclick="var d=document.getElementById('oakDisclosure');d.style.display=d.style.display==='none'?'block':'none';return false;" style="color:var(--fg-muted);font-size:11px;text-decoration:underline;">What is this?</a></div>
+      </div>
+    </div>
+    <div id="oakDisclosure" style="padding:0.6rem 1rem;background:#f5f0e8;font-size:12px;color:var(--fg-muted);line-height:1.5;border-bottom:1px solid var(--border);display:none;">
+      Oakenscroll is a fictional AI character powered by <span class="oak-provider-label">an LLM</span>. Responses are generated fresh each time. Your paper and conversation are not stored. <a href="#" onclick="document.getElementById('oakDisclosure').style.display='none';return false;" style="color:var(--accent);">Close</a>
+    </div>
+    <div class="oak-body">
+      <div class="oak-checklist" id="oakChecklist">
+        <div class="oak-cl-title">Knowledge Gaps</div>
+        <div id="oakClItems"></div>
+      </div>
+      <div class="oak-right">
+        <div class="oak-messages" id="oakMessages"></div>
+        <div class="oak-input-row">
+          <input type="text" id="oakInput" placeholder="Ask Oakenscroll about your score..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendToOak();}">
+          <button id="oakSendBtn" onclick="sendToOak()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <span>SAFE &middot; Session-Authorized, Fully Explicit</span>
+    <span>
+      <a href="https://www.reddit.com/r/LLMPhysics/" target="_blank">r/LLMPhysics</a>
+      &nbsp;&middot;&nbsp;<a href="#">About</a>
+      &nbsp;&middot;&nbsp;<a href="#">Rules</a>
+    </span>
+  </footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+</script>
+<script>
+  const STORAGE_KEY = 'safe_account';
+
+  const PROVIDERS = {
+    cerebras:  { name: 'Cerebras (recommended — free)', prefix: 'csk-', model: 'llama-3.3-70b' },
+    groq:      { name: 'Groq',             prefix: 'gsk_',    model: 'llama-3.1-8b-instant' },
+    gemini:    { name: 'Gemini',           prefix: 'AIza',    model: 'gemini-2.0-flash' },
+    anthropic: { name: 'Anthropic (Claude)', prefix: 'sk-ant-', model: 'claude-haiku-4-5-20251001' },
+    openai:    { name: 'OpenAI',           prefix: 'sk-',     model: 'gpt-4o-mini' },
+    fireworks: { name: 'Fireworks AI',     prefix: 'fw_',     model: 'accounts/fireworks/models/llama-v3p3-70b-instruct' },
+    huggingface: { name: 'HuggingFace',   prefix: 'hf_',     model: 'meta-llama/Llama-3.1-70B-Instruct' },
+    xai:         { name: 'Grok (xAI)',    prefix: 'xai-',    model: 'grok-4-0709' },
+  };
+
+  function detectProvider(key) {
+    const k = (key || '').trim();
+    // Order matters — sk-ant- must come before sk-
+    for (const [id, cfg] of Object.entries(PROVIDERS)) {
+      if (k.startsWith(cfg.prefix)) return id;
+    }
+    return null;
+  }
+
+  function onKeyInput(val) {
+    const badge = document.getElementById('keyDetectBadge');
+    const btn = document.getElementById('saveKeyBtn');
+    const provider = detectProvider(val);
+    if (provider) {
+      const cfg = PROVIDERS[provider];
+      badge.innerHTML = '\u2713 Detected: <strong>' + cfg.name + '</strong> &mdash; will use <code>' + cfg.model + '</code>';
+      badge.style.color = 'var(--accent)';
+      btn.disabled = false;
+    } else if (val.trim().length > 10) {
+      badge.innerHTML = 'Provider unknown &mdash; will attempt OpenAI-compatible format';
+      badge.style.color = 'var(--fg-muted)';
+      btn.disabled = false;
+    } else {
+      badge.innerHTML = '';
+      btn.disabled = true;
+    }
+  }
+
+  const RUBRIC = [
+    { name: 'Hypothesis', max: 15, key: 'hypothesis',
+      desc: 'Author clearly states the intent of the paper and the problem it attempts to solve' },
+    { name: 'Novelty', max: 15, key: 'novelty',
+      desc: 'Author develops a genuinely novel approach to the problem and explores it in new ways' },
+    { name: 'Scientific Humility', max: 15, key: 'scientific_humility',
+      desc: 'Author presents failure conditions and falsifiability honestly' },
+    { name: 'Engagement', max: 20, key: 'engagement',
+      desc: 'Author demonstrates true engagement with existing material beyond suggesting binary true and false statements' },
+    { name: 'Rigor', max: 10, key: 'rigor',
+      desc: 'Values are derived from first principles, units are preserved across equations' },
+    { name: 'Citations', max: 10, key: 'citations',
+      desc: 'Paper cites references that are both relevant to the material and up to date' },
+  ];
+  // Defense (15pts) is scored by human judges only — requires author interaction
+  // Self-audit total: 85 points
+  const SELF_AUDIT_MAX = 85;
+  let lastResult = null;
+  let scoringTrace = null; // Transparency: full record of what happened during scoring
+
+  // Default: try Willow fleet proxy at localhost:8420 (free, no key needed locally)
+  const WILLOW_PROXY = 'http://localhost:8420';
+  let useWillowProxy = false;
+
+  (async function init() {
+    // Check if Willow is running locally — if so, use it as free proxy
+    try {
+      const r = await fetch(WILLOW_PROXY + '/api/status', { signal: AbortSignal.timeout(1500) });
+      if (r.ok) {
+        useWillowProxy = true;
+        document.getElementById('apiChip').style.display = 'block';
+        document.getElementById('apiForm').style.display = 'none';
+        document.getElementById('chipProvider').textContent = 'Willow Fleet (local — free)';
+        document.getElementById('paperInput').addEventListener('input', onPaperInput);
+        return;
+      }
+    } catch(e) {}
+
+    // No Willow — check for saved key
+    const creds = getApiCredentials();
+    if (creds) {
+      document.getElementById('apiChip').style.display = 'block';
+      document.getElementById('apiForm').style.display = 'none';
+      document.getElementById('chipProvider').textContent = PROVIDERS[creds.provider]?.name || creds.provider;
+    } else {
+      // No provider available — show key input
+      document.getElementById('apiForm').style.display = 'block';
+    }
+    document.getElementById('paperInput').addEventListener('input', onPaperInput);
+  })();
+
+  const MAX_CHARS = 40000; // ~10K tokens — safe for single-pass scoring
+  const CHUNK_SIZE = 12000; // ~3K tokens per chunk — must fit in free model context windows (8K-32K)
+
+  function onPaperInput() {
+    const len = document.getElementById('paperInput').value.length;
+    document.getElementById('charCount').textContent = len.toLocaleString();
+    document.getElementById('scoreBtn').disabled = len < 100;
+    const warn = document.getElementById('lengthWarn');
+    if (warn) {
+      if (len > MAX_CHARS) {
+        const chunks = Math.ceil(len / CHUNK_SIZE);
+        warn.textContent = '\ud83d\udcda Long paper (' + len.toLocaleString() + ' chars). Will score ~' + chunks + ' sections independently, then merge by best evidence per criterion. Takes a few minutes.';
+        warn.style.display = 'block';
+      } else if (len > 28000) {
+        warn.textContent = '\ud83d\udcda Substantial paper (' + len.toLocaleString() + ' chars) — single-pass scoring.';
+        warn.style.display = 'block';
+      } else {
+        warn.style.display = 'none';
+      }
+    }
+  }
+
+  function getApiCredentials() {
+    // 1. Willow fleet proxy (free, local)
+    if (useWillowProxy) return { provider: 'willow', key: '', source: 'willow_proxy' };
+    // 2. SAFE account key
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const acct = JSON.parse(raw);
+        if (acct.api_key && acct.api_provider) return { provider: acct.api_provider, key: acct.api_key, source: 'safe_account' };
+      }
+    } catch(e) {}
+    // 3. Manual session key
+    const tmpKey = sessionStorage.getItem('temp_llm_key');
+    const tmpProvider = sessionStorage.getItem('temp_llm_provider');
+    if (tmpKey && tmpProvider) return { provider: tmpProvider, key: tmpKey, source: 'manual' };
+    return null;
+  }
+
+  function saveApiKey() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    if (!key) return;
+    const provider = detectProvider(key) || 'openai';
+    sessionStorage.setItem('temp_llm_key', key);
+    sessionStorage.setItem('temp_llm_provider', provider);
+    const cfg = PROVIDERS[provider];
+    document.getElementById('chipProvider').textContent = cfg ? cfg.name : provider;
+    document.getElementById('apiChip').style.display = 'block';
+    document.getElementById('apiForm').style.display = 'none';
+  }
+
+  function toggleOwnKey() {
+    document.getElementById('apiForm').style.display = 'block';
+  }
+
+  function clearOwnKey() {
+    sessionStorage.removeItem('temp_llm_key');
+    sessionStorage.removeItem('temp_llm_provider');
+    document.getElementById('apiForm').style.display = 'none';
+    document.getElementById('apiKeyInput').value = '';
+    document.getElementById('keyDetectBadge').innerHTML = '';
+    if (useWillowProxy) {
+      document.getElementById('apiChip').style.display = 'block';
+      document.getElementById('chipProvider').textContent = 'Willow Fleet (local — free)';
+    } else {
+      document.getElementById('apiChip').style.display = 'none';
+    }
+  }
+
+  function showApiForm() {
+    document.getElementById('apiChip').style.display = 'none';
+    document.getElementById('apiForm').style.display = 'block';
+  }
+
+  function toggleRubric() {
+    const body = document.getElementById('rubricBody');
+    const arrow = document.getElementById('rubricArrow');
+    body.classList.toggle('open');
+    arrow.innerHTML = body.classList.contains('open') ? '&#9650;' : '&#9660;';
+  }
+
+  // JAC Rubric registered as BASE 17 compact context: JACR3
+  // The full rubric lives in Postgres, referenced by 5-char ID.
+  // llm_router resolves [CTX:JACR3] before sending to any provider.
+  const JAC_RUBRIC_ID = 'C7KN9';
+
+  function buildJudgePrompt(paperText) {
+    return `[CTX:${JAC_RUBRIC_ID}]
+
+Paper to evaluate:
+---
+${paperText}
+---`;
+  }
+
+  async function callLLM(prompt, creds) {
+    const provider = creds.provider || 'openai';
+    const cfg = PROVIDERS[provider];
+    const model = cfg ? cfg.model : 'gpt-4o-mini';
+
+    // Willow fleet proxy — routes through local Willow server (free, uses best available provider)
+    // Uses /api/fleet/ask (raw LLM) NOT /api/agent-chat (persona wrapper adds conversational text)
+    if (provider === 'willow') {
+      const res = await fetch(WILLOW_PROXY + '/api/fleet/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: prompt, tier: 'free', source: 'jac-judge' }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error('Willow Fleet: ' + (data?.error || data?.detail || res.status));
+      return data.response;
+    }
+
+    // Gemini — unique request format
+    if (provider === 'gemini') {
+      const res = await fetch(
+        'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + creds.key,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2, maxOutputTokens: 2048 } }) }
+      );
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error('Gemini: ' + (data?.error?.message || res.status));
+      return data.candidates[0].content.parts[0].text;
+    }
+
+    // Anthropic — unique request format
+    if (provider === 'anthropic') {
+      const res = await fetch('https://api.anthropic.com/v1/messages',
+        { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': creds.key, 'anthropic-version': '2023-06-01' },
+          body: JSON.stringify({ model: model, max_tokens: 2048, messages: [{ role: 'user', content: prompt }] }) }
+      );
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error('Anthropic: ' + (data?.error?.message || res.status));
+      return data.content[0].text;
+    }
+
+    // HuggingFace Inference API
+    if (provider === 'huggingface') {
+      const res = await fetch('https://api-inference.huggingface.co/models/' + model + '/v1/chat/completions',
+        { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + creds.key },
+          body: JSON.stringify({ model: model, messages: [{ role: 'user', content: prompt }], temperature: 0.2, max_tokens: 2048 }) }
+      );
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error('HuggingFace: ' + (data?.error?.message || res.status));
+      return data.choices[0].message.content;
+    }
+
+    // OpenAI-compatible (Cerebras, Groq, OpenAI, Fireworks, unknown)
+    const endpoints = {
+      cerebras: 'https://api.cerebras.ai/v1/chat/completions',
+      groq: 'https://api.groq.com/openai/v1/chat/completions',
+      openai: 'https://api.openai.com/v1/chat/completions',
+      fireworks: 'https://api.fireworks.ai/inference/v1/chat/completions',
+      xai: 'https://api.x.ai/v1/chat/completions',
+    };
+    const url = endpoints[provider] || endpoints.openai;
+    const res = await fetch(url,
+      { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + creds.key },
+        body: JSON.stringify({ model: model, messages: [{ role: 'user', content: prompt }], temperature: 0.2, max_tokens: 2048 }) }
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      const msg = data?.error?.message || 'HTTP ' + res.status;
+      if (res.status === 429) throw new Error((cfg ? cfg.name : provider) + ' 429: ' + msg + ' \u2014 Check rate limits or billing.');
+      throw new Error((cfg ? cfg.name : provider) + ' error: ' + msg);
+    }
+    return data.choices[0].message.content;
+  }
+
+  function setLoading(on) {
+    const btn = document.getElementById('scoreBtn');
+    if (on) {
+      btn.disabled = true;
+      btn.innerHTML = 'Judging<span class="dots"></span>';
+    } else {
+      btn.innerHTML = 'Score This Paper';
+      btn.disabled = document.getElementById('paperInput').value.length < 100;
+    }
+  }
+
+  function showError(msg) { const b = document.getElementById('errorBox'); b.textContent = msg; b.style.display = 'block'; }
+  function hideError() { document.getElementById('errorBox').style.display = 'none'; }
+
+  function chunkPaper(text) {
+    // Split on section headers (##, ---, or double newlines) to keep sections intact
+    const sections = text.split(/(?=\n#{1,3}\s|\n---|\n\n(?=[A-Z]))/);
+    const chunks = [];
+    let current = '';
+    for (const section of sections) {
+      if ((current + section).length > CHUNK_SIZE && current.length > 0) {
+        chunks.push(current.trim());
+        current = section;
+      } else {
+        current += section;
+      }
+    }
+    if (current.trim()) chunks.push(current.trim());
+    return chunks;
+  }
+
+  function buildSummaryPrompt(chunkText, chunkNum, totalChunks) {
+    return `You are summarizing part ${chunkNum} of ${totalChunks} of an academic paper for the r/LLMPhysics Journal Ambitions Contest.
+
+Extract and preserve:
+- Any hypothesis, thesis, or central claim
+- Key arguments, evidence, methodology
+- Novel contributions or frameworks introduced
+- Mathematical formulations, proofs, or formal definitions
+- Section headings and structure
+- Specific examples, case studies, data points
+- Conclusions or implications stated
+
+Return a dense, faithful summary (300-500 words). Preserve the author's voice and technical terminology. Do not evaluate — just compress.
+
+---
+${chunkText}
+---`;
+  }
+
+  async function callAndParseJSON(prompt, creds) {
+    /** Call LLM, strip fencing, parse JSON. Returns parsed object or null. */
+    let raw = await callLLM(prompt, creds);
+    raw = raw.replace(/^```(?:json)?\s*\n?/m, '').replace(/\n?```\s*$/m, '');
+    let jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      // Retry once with explicit JSON-only instruction
+      let raw2 = await callLLM('Return ONLY a raw JSON object. No markdown, no explanation. Start with { end with }.\n\n' + prompt, creds);
+      raw2 = raw2.replace(/^```(?:json)?\s*\n?/m, '').replace(/\n?```\s*$/m, '');
+      jsonMatch = raw2.match(/\{[\s\S]*\}/);
+    }
+    if (!jsonMatch) return null;
+    try {
+      return JSON.parse(jsonMatch[0]);
+    } catch (_) {
+      // Try closing truncated braces
+      let fixed = jsonMatch[0];
+      const opens = (fixed.match(/\{/g) || []).length;
+      const closes = (fixed.match(/\}/g) || []).length;
+      for (let i = 0; i < opens - closes; i++) fixed += '}';
+      try { return JSON.parse(fixed); } catch (__) { return null; }
+    }
+  }
+
+  function mergeScores(sectionResults, totalChunks) {
+    /**
+     * Merge per-section judge results into a single result.
+     * Strategy: MAX per score criterion (best evidence wins),
+     * collect all strengths/improvements/citations, pick best narrative.
+     */
+    const scoreKeys = ['hypothesis', 'novelty', 'scientific_humility', 'engagement', 'rigor', 'citations'];
+    const merged = {
+      scores: {},
+      justifications: {},
+      mandatory_elements: {},
+      soft_constraints: {},
+      citations_analysis: [],
+      citation_summary: null,
+      strengths: [],
+      top_improvements: [],
+      verdict: 'Significant rework needed',
+      narrative: '',
+      reasoning: '',
+    };
+
+    // MAX score per criterion + keep the justification from the section that scored highest
+    for (const key of scoreKeys) {
+      let best = 0, bestJust = '';
+      for (const r of sectionResults) {
+        const s = (r.scores || {})[key] || 0;
+        if (s > best) { best = s; bestJust = (r.justifications || {})[key] || ''; }
+      }
+      merged.scores[key] = best;
+      merged.justifications[key] = bestJust;
+    }
+
+    // Mandatory elements: "present" wins over "unclear" wins over "missing"
+    const mandRank = { 'present': 3, 'unclear': 2, 'missing': 1 };
+    const mandKeys = ['llm_disclosure', 'citations_count', 'research_question', 'novelty_statement'];
+    for (const key of mandKeys) {
+      let best = 'missing';
+      for (const r of sectionResults) {
+        const val = (r.mandatory_elements || {})[key] || 'missing';
+        if ((mandRank[val] || 0) > (mandRank[best] || 0)) best = val;
+      }
+      merged.mandatory_elements[key] = best;
+    }
+
+    // Soft constraints: true wins
+    const softKeys = ['claim_labeling', 'parameter_accounting', 'failure_conditions', 'reproducibility'];
+    for (const key of softKeys) {
+      let found = false;
+      for (const r of sectionResults) {
+        if ((r.soft_constraints || {})[key] === true) { found = true; break; }
+      }
+      merged.soft_constraints[key] = found;
+    }
+
+    // Collect all unique strengths, improvements, citations
+    const seenStr = new Set(), seenImp = new Set();
+    for (const r of sectionResults) {
+      (r.strengths || []).forEach(s => { if (!seenStr.has(s)) { seenStr.add(s); merged.strengths.push(s); } });
+      (r.top_improvements || []).forEach(s => { if (!seenImp.has(s)) { seenImp.add(s); merged.top_improvements.push(s); } });
+      (r.citations_analysis || []).forEach(c => merged.citations_analysis.push(c));
+    }
+    merged.strengths = merged.strengths.slice(0, 5);
+    merged.top_improvements = merged.top_improvements.slice(0, 5);
+
+    // Citation summary: sum across sections, dedup by ref name
+    const seenRefs = new Set();
+    merged.citations_analysis = merged.citations_analysis.filter(c => {
+      const key = (c.ref || '').toLowerCase().trim();
+      if (seenRefs.has(key)) return false;
+      seenRefs.add(key);
+      return true;
+    });
+
+    // Build citation_summary from merged citations
+    const cTypes = { peer_reviewed: 0, preprint: 0, non_academic: 0, hallucinated: 0, unclear: 0 };
+    for (const c of merged.citations_analysis) {
+      const t = c.source_type || 'unclear';
+      if (t in cTypes) cTypes[t]++;
+      else cTypes.unclear++;
+    }
+    merged.citation_summary = {
+      total: merged.citations_analysis.length,
+      ...cTypes,
+      cluster_warning: false,
+      cluster_note: null,
+    };
+
+    // Verdict: best across sections
+    const verdictRank = { 'Ready to submit': 3, 'Needs revision': 2, 'Significant rework needed': 1 };
+    for (const r of sectionResults) {
+      if ((verdictRank[r.verdict] || 0) > (verdictRank[merged.verdict] || 0)) merged.verdict = r.verdict;
+    }
+
+    // Narrative + reasoning: pick longest (most substantive)
+    for (const r of sectionResults) {
+      if ((r.narrative || '').length > merged.narrative.length) merged.narrative = r.narrative;
+      if ((r.reasoning || '').length > merged.reasoning.length) merged.reasoning = r.reasoning;
+    }
+
+    merged.reasoning = '[Scored ' + sectionResults.length + '/' + totalChunks + ' sections independently, merged by best-evidence-per-criterion]\n\n' + merged.reasoning;
+
+    // Collect acknowledged unknowns across sections, dedup by gap text
+    const seenGaps = new Set();
+    merged.acknowledged_unknowns = [];
+    for (const r of sectionResults) {
+      for (const u of (r.acknowledged_unknowns || [])) {
+        const key = (u.gap || '').toLowerCase().trim();
+        if (key && !seenGaps.has(key)) {
+          seenGaps.add(key);
+          merged.acknowledged_unknowns.push(u);
+        }
+      }
+    }
+    merged.acknowledged_unknowns = merged.acknowledged_unknowns.slice(0, 10);
+
+    // Pick the most substantive delta_sigma_note
+    merged.delta_sigma_note = '';
+    for (const r of sectionResults) {
+      if ((r.delta_sigma_note || '').length > (merged.delta_sigma_note || '').length) {
+        merged.delta_sigma_note = r.delta_sigma_note;
+      }
+    }
+
+    return merged;
+  }
+
+  async function scorePaper() {
+    hideError();
+    let paperText = document.getElementById('paperInput').value.trim();
+    if (paperText.length < 100) return;
+    const creds = getApiCredentials();
+    if (!creds) { showApiForm(); showError('No AI provider available. Get a free Cerebras key at cerebras.ai, or run Willow locally.'); return; }
+    setLoading(true);
+    try {
+      let textToScore = paperText;
+      const traceStart = Date.now();
+      const providerName = creds.provider === 'willow' ? 'Willow Fleet (local)' : (PROVIDERS[creds.provider]?.name || creds.provider);
+
+      // Batched scoring for long papers — score each section directly, then merge
+      if (paperText.length > MAX_CHARS) {
+        const chunks = chunkPaper(paperText);
+        const statusEl = document.getElementById('scoreBtn');
+        const sectionResults = [];
+        let failCount = 0;
+        const sectionTrace = [];
+
+        for (let i = 0; i < chunks.length; i++) {
+          statusEl.innerHTML = 'Scoring section ' + (i + 1) + '/' + chunks.length + '&hellip;';
+          const sectionPrompt = buildJudgePrompt(
+            '# SECTION ' + (i + 1) + ' OF ' + chunks.length + ' (from a ' + paperText.length.toLocaleString() + ' char paper)\n'
+            + 'Score THIS section on its own merits. Later sections may contain content missing here.\n\n'
+            + chunks[i]
+          );
+          const secStart = Date.now();
+          try {
+            const parsed = await callAndParseJSON(sectionPrompt, creds);
+            if (parsed) {
+              sectionResults.push(parsed);
+              sectionTrace.push({ section: i + 1, chars: chunks[i].length, status: 'success', prompt: sectionPrompt, ms: Date.now() - secStart, scores: parsed.scores });
+            } else {
+              failCount++;
+              sectionTrace.push({ section: i + 1, chars: chunks[i].length, status: 'parse_fail', prompt: sectionPrompt, ms: Date.now() - secStart });
+            }
+          } catch (chunkErr) {
+            failCount++;
+            sectionTrace.push({ section: i + 1, chars: chunks[i].length, status: 'error', error: chunkErr.message, prompt: sectionPrompt, ms: Date.now() - secStart });
+          }
+        }
+
+        if (sectionResults.length === 0) {
+          throw new Error('All section scores failed (' + failCount + '/' + chunks.length + '). Fleet models may be overloaded — try again in a minute.');
+        }
+
+        // Merge: take the MAX score per criterion across all sections
+        const merged = mergeScores(sectionResults, chunks.length);
+        merged._batched = true;
+        merged._chunks = chunks.length;
+        merged._sections_scored = sectionResults.length;
+        merged._sections_failed = failCount;
+        merged._original_chars = paperText.length;
+
+        scoringTrace = {
+          mode: 'batched',
+          provider: providerName,
+          totalChars: paperText.length,
+          chunkSize: CHUNK_SIZE,
+          sections: sectionTrace,
+          mergeStrategy: 'MAX per criterion — best evidence wins across all sections',
+          totalMs: Date.now() - traceStart,
+          timestamp: new Date().toISOString(),
+        };
+
+        lastResult = merged;
+        renderResults(merged);
+      } else {
+        // Single-pass scoring for short papers
+        const prompt = buildJudgePrompt(textToScore);
+        const result = await callAndParseJSON(prompt, creds);
+        if (!result) throw new Error('Model did not return valid JSON. Try a different provider.');
+
+        scoringTrace = {
+          mode: 'single-pass',
+          provider: providerName,
+          totalChars: paperText.length,
+          prompt: prompt,
+          mergeStrategy: 'N/A — single pass',
+          totalMs: Date.now() - traceStart,
+          timestamp: new Date().toISOString(),
+        };
+
+        lastResult = result;
+        renderResults(result);
+      }
+    } catch(e) {
+      showError('Error: ' + e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function renderResults(result) {
+    const scores = result.scores || {};
+    const justs = result.justifications || {};
+    let total = 0;
+    RUBRIC.forEach(r => { total += (scores[r.key] || 0); });
+    document.getElementById('totalScore').textContent = total;
+    document.getElementById('narrativeText').textContent = result.narrative || '';
+    const cards = document.getElementById('criterionCards');
+    cards.innerHTML = '';
+    RUBRIC.forEach(r => {
+      const score = scores[r.key] || 0;
+      const pct = Math.round((score / r.max) * 100);
+      const card = document.createElement('div');
+      card.className = 'criterion-card';
+      card.innerHTML = '<div class="criterion-header"><span class="criterion-name">' + r.name + '</span>'
+        + '<span class="criterion-score">' + score + ' / ' + r.max + '</span></div>'
+        + '<div class="criterion-bar"><div class="criterion-bar-fill" style="width:0%" data-pct="' + pct + '"></div></div>'
+        + '<div class="criterion-justification">' + (justs[r.key] || '') + '</div>';
+      cards.appendChild(card);
+    });
+    requestAnimationFrame(() => {
+      cards.querySelectorAll('.criterion-bar-fill').forEach(el => { el.style.width = el.dataset.pct + '%'; });
+    });
+    // Mandatory elements section
+    if (result.mandatory_elements) {
+      const labels = {
+        llm_disclosure: 'LLM Disclosure Statement',
+        citations_count: '3+ Modern Citations',
+        research_question: 'Research Question Stated',
+        novelty_statement: 'Originality & Novelty Statement'
+      };
+      const mandatoryHtml = '<div class="mandatory-section">'
+        + '<div class="section-eyebrow">MANDATORY ELEMENTS</div>'
+        + '<div class="section-sub">Required for contest eligibility</div>'
+        + '<div class="mandatory-grid">'
+        + Object.entries(result.mandatory_elements).map(function([key, val]) {
+            const cls = val === 'present' ? 'elem-present' : val === 'missing' ? 'elem-missing' : 'elem-unclear';
+            const icon = val === 'present' ? '\u2713' : val === 'missing' ? '\u2717' : '?';
+            return '<div class="mandatory-item ' + cls + '">'
+              + '<span class="elem-status">' + icon + '</span>'
+              + '<span>' + (labels[key] || key) + '</span>'
+              + '</div>';
+          }).join('')
+        + '</div></div>';
+      const mandDiv = document.createElement('div');
+      mandDiv.innerHTML = mandatoryHtml;
+      cards.appendChild(mandDiv);
+    }
+    const sl = document.getElementById('strengthsList');
+    const cl = document.getElementById('concernsList');
+    sl.innerHTML = ''; cl.innerHTML = '';
+    const strengths = result.strengths || [];
+    const improvements = result.top_improvements || result.concerns || [];
+    if (strengths.length === 0) { const li = document.createElement('li'); li.textContent = '(Model did not return strengths — check AI Reasoning for details)'; li.style.fontStyle = 'italic'; li.style.color = 'var(--fg-muted)'; sl.appendChild(li); }
+    else strengths.forEach(s => { const li = document.createElement('li'); li.textContent = s; sl.appendChild(li); });
+    if (improvements.length === 0) { const li = document.createElement('li'); li.textContent = '(Model did not return improvement suggestions)'; li.style.fontStyle = 'italic'; li.style.color = 'var(--fg-muted)'; cl.appendChild(li); }
+    else improvements.forEach(c => { const li = document.createElement('li'); li.textContent = c; cl.appendChild(li); });
+    const vb = document.getElementById('verdictBox');
+    const verdict = result.verdict || '';
+    vb.textContent = verdict || 'Verdict not provided by model';
+    vb.className = 'verdict-box';
+    if (!verdict) vb.style.opacity = '0.5';
+    else vb.style.opacity = '1';
+    if (verdict === 'Needs revision') vb.classList.add('warn');
+    if (verdict === 'Significant rework needed') vb.classList.add('bad');
+    // Reasoning panel
+    const reasoningBtn = document.getElementById('reasoningBtn');
+    const reasoningText = document.getElementById('reasoningText');
+    const reasoningPanel = document.getElementById('reasoningPanel');
+    if (result.reasoning) {
+      reasoningText.textContent = result.reasoning;
+      reasoningBtn.style.display = 'inline-block';
+      reasoningPanel.classList.remove('open');
+      reasoningBtn.textContent = 'Show AI Reasoning';
+    } else {
+      reasoningBtn.style.display = 'none';
+    }
+
+    renderCitations(result);
+    renderDeltaSigma(result);
+    renderTransparency();
+    initOakenscroll(result);
+    const section = document.getElementById('resultsSection');
+    section.classList.add('visible');
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function renderDeltaSigma(result) {
+    const existing = document.getElementById('deltaSigmaPanel');
+    if (existing) existing.remove();
+    const unknowns = result.acknowledged_unknowns;
+    const dsNote = result.delta_sigma_note;
+    if ((!unknowns || unknowns.length === 0) && !dsNote) return;
+
+    const panel = document.createElement('div');
+    panel.id = 'deltaSigmaPanel';
+    panel.style.cssText = 'margin-top:1.5rem;padding:1.25rem;border:1px solid var(--border);border-radius:8px;background:#fafaf8;';
+    let html = '<div class="section-eyebrow" style="color:var(--accent);">\u0394\u03A3 \u2014 WHAT THE JUDGE DOESN\'T KNOW</div>';
+    html += '<div class="section-sub" style="margin-bottom:0.75rem;font-size:13px;color:var(--fg-muted);">A judge with no unknowns is lying. The gaps are the signal.</div>';
+
+    if (unknowns && unknowns.length > 0) {
+      html += '<ul style="margin:0;padding-left:1.25rem;">';
+      for (const u of unknowns) {
+        const spec = u.specificity != null ? ' <span style="color:var(--fg-muted);font-size:12px;">(specificity: ' + (u.specificity * 100).toFixed(0) + '%)</span>' : '';
+        const affects = u.affects ? ' <span style="color:var(--accent);font-size:12px;">\u2192 ' + u.affects + '</span>' : '';
+        html += '<li style="margin-bottom:0.4rem;">' + (u.gap || '') + affects + spec + '</li>';
+      }
+      html += '</ul>';
+    }
+
+    if (dsNote) {
+      html += '<div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--border);font-size:14px;color:var(--fg-muted);font-style:italic;">' + dsNote + '</div>';
+    }
+
+    panel.innerHTML = html;
+    document.getElementById('resultsSection').appendChild(panel);
+  }
+
+  // === SCORING TRANSPARENCY ===
+
+  function renderTransparency() {
+    const panel = document.getElementById('transparencyPanel');
+    const body = document.getElementById('transparencyBody');
+    if (!scoringTrace) { panel.style.display = 'none'; return; }
+    panel.style.display = 'block';
+
+    let html = '';
+
+    // Methodology
+    html += '<div class="tp-section">';
+    html += '<div class="tp-label">Scoring Method</div>';
+    html += '<div class="tp-meta">';
+    if (scoringTrace.mode === 'batched') {
+      html += 'Paper was <strong>' + scoringTrace.totalChars.toLocaleString() + ' characters</strong>. ';
+      html += 'Split into sections of ~' + scoringTrace.chunkSize.toLocaleString() + ' chars each. ';
+      html += 'Each section scored independently against the full rubric, then merged.<br>';
+      html += '<strong>Merge strategy:</strong> ' + scoringTrace.mergeStrategy;
+    } else {
+      html += 'Paper was <strong>' + scoringTrace.totalChars.toLocaleString() + ' characters</strong>. Scored in a single pass against the full rubric.';
+    }
+    html += '</div></div>';
+
+    // Provider
+    html += '<div class="tp-section">';
+    html += '<div class="tp-label">AI Provider</div>';
+    html += '<div class="tp-meta"><code>' + scoringTrace.provider + '</code> &mdash; completed in ' + (scoringTrace.totalMs / 1000).toFixed(1) + 's at ' + scoringTrace.timestamp.slice(0, 19).replace('T', ' ') + '</div>';
+    html += '</div>';
+
+    // Section breakdown (batched only)
+    if (scoringTrace.sections && scoringTrace.sections.length > 0) {
+      html += '<div class="tp-section">';
+      html += '<div class="tp-label">Section-by-Section Breakdown</div>';
+      html += '<ul class="tp-section-list">';
+      for (const s of scoringTrace.sections) {
+        const cls = s.status === 'success' ? 'success' : 'fail';
+        let detail = 'Section ' + s.section + ' &mdash; ' + s.chars.toLocaleString() + ' chars &mdash; ' + (s.ms / 1000).toFixed(1) + 's';
+        if (s.status === 'success' && s.scores) {
+          const vals = Object.entries(s.scores).map(([k, v]) => k + ':' + v).join(', ');
+          detail += ' &mdash; <span style="color:var(--accent);">' + vals + '</span>';
+        } else if (s.status === 'error') {
+          detail += ' &mdash; <span style="color:#dc2626;">error: ' + (s.error || 'unknown') + '</span>';
+        } else {
+          detail += ' &mdash; <span style="color:#dc2626;">JSON parse failed</span>';
+        }
+        html += '<li class="tp-section-item ' + cls + '">' + detail + '</li>';
+      }
+      html += '</ul></div>';
+    }
+
+    // Prompt (collapsible)
+    html += '<div class="tp-section">';
+    html += '<div class="tp-label">Prompt Sent to Model</div>';
+    if (scoringTrace.mode === 'single-pass') {
+      html += '<div class="tp-prompt-block">';
+      html += '<button class="tp-prompt-toggle" onclick="this.nextElementSibling.classList.toggle(\'open\');">Show full prompt (' + scoringTrace.prompt.length.toLocaleString() + ' chars)</button>';
+      html += '<pre class="tp-prompt-text">' + escapeHtml(scoringTrace.prompt) + '</pre>';
+      html += '</div>';
+    } else if (scoringTrace.sections) {
+      html += '<div class="tp-meta" style="margin-bottom:0.4rem;">Each section received the same rubric prompt with its content. Click any section to see the exact prompt sent.</div>';
+      for (const s of scoringTrace.sections) {
+        html += '<div class="tp-prompt-block">';
+        html += '<button class="tp-prompt-toggle" onclick="this.nextElementSibling.classList.toggle(\'open\');">Section ' + s.section + ' prompt (' + s.prompt.length.toLocaleString() + ' chars)</button>';
+        html += '<pre class="tp-prompt-text">' + escapeHtml(s.prompt) + '</pre>';
+        html += '</div>';
+      }
+    }
+    html += '</div>';
+
+    body.innerHTML = html;
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // === 8-BIT OAKENSCROLL AVATAR ===
+
+  const OAK_SPRITE = {
+    // 16x16 pixel art — each row is 16 pixels, colors indexed
+    // 0=transparent, 1=skin, 2=hair/hat(brown), 3=glasses(dark), 4=robe(burgundy), 5=white(shirt/eyes), 6=mouth, 7=pupil
+    palette: ['transparent', '#e8b87a', '#5c3d1e', '#2a2a2a', '#6b2d3e', '#f0ece4', '#c44040', '#1a1a1a'],
+    idle: [
+      '0000022222200000',
+      '0000222222220000',
+      '0002222222222000',
+      '0001112112111000',
+      '0011151131511100',
+      '0011157137517100',
+      '0001113333111000',
+      '0000111111110000',
+      '0000011661100000',
+      '0000011111100000',
+      '0000444444440000',
+      '0004444444444000',
+      '0004445555444000',
+      '0004444444444000',
+      '0000444004440000',
+      '0000044000440000',
+    ],
+    talking: [
+      '0000022222200000',
+      '0000222222220000',
+      '0002222222222000',
+      '0001112112111000',
+      '0011151131511100',
+      '0011157137517100',
+      '0001113333111000',
+      '0000111111110000',
+      '0000016666100000',
+      '0000011111100000',
+      '0000444444440000',
+      '0004444444444000',
+      '0004445555444000',
+      '0004444444444000',
+      '0000444004440000',
+      '0000044000440000',
+    ],
+    thinking: [
+      '0000022222200000',
+      '0000222222220000',
+      '0002222222222000',
+      '0001112112111000',
+      '0011151131515100',
+      '0011173137117100',
+      '0001113333111000',
+      '0000111111110000',
+      '0000011111100000',
+      '0000011611100000',
+      '0000444444440000',
+      '0004444444444000',
+      '0004445555444000',
+      '0004444444444000',
+      '0000444004440000',
+      '0000044000440000',
+    ],
+  };
+
+  let oakAvatarState = 'idle'; // idle | talking | thinking
+  let oakAnimFrame = 0;
+  let oakAnimInterval = null;
+
+  function drawOakAvatar(state) {
+    const canvas = document.getElementById('oakCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const sprite = OAK_SPRITE[state] || OAK_SPRITE.idle;
+    ctx.clearRect(0, 0, 16, 16);
+    for (let y = 0; y < 16; y++) {
+      for (let x = 0; x < 16; x++) {
+        const ci = parseInt(sprite[y][x]);
+        if (ci === 0) continue;
+        ctx.fillStyle = OAK_SPRITE.palette[ci];
+        ctx.fillRect(x, y, 1, 1);
+      }
+    }
+  }
+
+  function setOakState(state) {
+    if (oakAnimInterval) { clearInterval(oakAnimInterval); oakAnimInterval = null; }
+    oakAvatarState = state;
+
+    if (state === 'talking') {
+      // Alternate idle/talking frames for mouth movement
+      let frame = 0;
+      drawOakAvatar('talking');
+      oakAnimInterval = setInterval(() => {
+        frame++;
+        drawOakAvatar(frame % 2 === 0 ? 'talking' : 'idle');
+      }, 280);
+    } else if (state === 'thinking') {
+      // Alternate thinking frames — eyes shift
+      let frame = 0;
+      drawOakAvatar('thinking');
+      oakAnimInterval = setInterval(() => {
+        frame++;
+        drawOakAvatar(frame % 3 === 0 ? 'idle' : 'thinking');
+      }, 600);
+    } else {
+      drawOakAvatar('idle');
+    }
+  }
+
+  // === LIVE CHECKLIST RENDERER ===
+
+  function renderOakChecklist() {
+    const container = document.getElementById('oakClItems');
+    if (!container || !oakProgress) return;
+    const items = oakProgress.checklist || [];
+    container.innerHTML = '';
+    for (const item of items) {
+      const div = document.createElement('div');
+      div.className = 'oak-cl-item ' + (item.state || 'locked');
+      div.innerHTML = '<span class="oak-cl-icon"></span><span class="oak-cl-label">' + escapeHtml(item.item) + '</span>';
+      container.appendChild(div);
+    }
+    // Show new gaps with flash animation
+    if (oakProgress.new_gaps && oakProgress.new_gaps.length > 0) {
+      for (const gap of oakProgress.new_gaps) {
+        const div = document.createElement('div');
+        div.className = 'oak-cl-item locked oak-cl-new';
+        div.innerHTML = '<span class="oak-cl-icon"></span><span class="oak-cl-label">' + escapeHtml(gap) + '</span>';
+        container.appendChild(div);
+      }
+    }
+    // Progress summary
+    const earned = items.filter(i => i.state === 'earned').length;
+    const total = items.length;
+    if (total > 0) {
+      const summary = document.createElement('div');
+      summary.style.cssText = 'margin-top:0.6rem;padding-top:0.5rem;border-top:1px solid var(--border);font-size:10px;color:var(--fg-muted);text-align:center;';
+      summary.textContent = earned + '/' + total + ' understood';
+      container.appendChild(summary);
+    }
+  }
+
+  function toggleTransparency() {
+    const body = document.getElementById('transparencyBody');
+    const arrow = document.getElementById('tpArrow');
+    body.classList.toggle('open');
+    arrow.innerHTML = body.classList.contains('open') ? '&#9650;' : '&#9660;';
+  }
+
+  // === OAKENSCROLL POST-ASSESSMENT CHAT (consent-gated) ===
+
+  let oakContext = null;
+  let pendingOakResult = null;
+  let oakProgress = null;  // Last progress block from Oakenscroll
+  let oakHistory = [];     // Conversation history for continuity
+
+  function initOakenscroll(result) {
+    // Don't auto-show chat — show consent gate instead
+    const chat = document.getElementById('oakChat');
+    chat.classList.remove('visible');
+    document.getElementById('oakMessages').innerHTML = '';
+
+    // Build context for when/if user opts in
+    const scores = result.scores || {};
+    const justs = result.justifications || {};
+    let total = 0;
+    RUBRIC.forEach(r => { total += (scores[r.key] || 0); });
+
+    // Include first ~2000 chars of the paper so Oakenscroll knows what it's actually about
+    const paperText = document.getElementById('paperInput').value || '';
+    const paperSnippet = paperText.slice(0, 2000) + (paperText.length > 2000 ? '\n[...paper continues for ' + (paperText.length - 2000).toLocaleString() + ' more chars...]' : '');
+
+    let ctx = 'PAPER CONTENT (opening):\n' + paperSnippet + '\n\n';
+    ctx += 'SCORING RESULTS (JAC Judge, r/LLMPhysics):\n';
+    ctx += 'Total: ' + total + '/85\n';
+    RUBRIC.forEach(r => { ctx += r.name + ': ' + (scores[r.key] || 0) + '/' + r.max + ' — ' + (justs[r.key] || 'no justification') + '\n'; });
+    ctx += 'Verdict: ' + (result.verdict || 'unknown') + '\n';
+    ctx += 'Paper summary: ' + (result.narrative || '') + '\n';
+    if (result.strengths && result.strengths.length) ctx += 'Strengths: ' + result.strengths.join('; ') + '\n';
+    if (result.top_improvements && result.top_improvements.length) ctx += 'Improvements needed: ' + result.top_improvements.join('; ') + '\n';
+    if (result.acknowledged_unknowns && result.acknowledged_unknowns.length) {
+      ctx += 'Judge acknowledged unknowns:\n';
+      result.acknowledged_unknowns.forEach(u => { ctx += '  - ' + u.gap + (u.affects ? ' (affects: ' + u.affects + ')' : '') + '\n'; });
+    }
+    if (result.reasoning) ctx += '\nJudge reasoning: ' + result.reasoning.slice(0, 800) + '\n';
+    if (result._batched) ctx += '(Paper was ' + (result._original_chars || '?').toLocaleString() + ' chars, scored across ' + (result._sections_scored || '?') + ' sections)\n';
+    oakContext = ctx;
+
+    // Build initial checklist seed from scoring gaps
+    oakHistory = [];
+    const seedItems = [];
+    for (const r of RUBRIC) {
+      const score = scores[r.key] || 0;
+      if (score < r.max) {
+        seedItems.push({ item: r.name + ' (' + score + '/' + r.max + '): ' + (justs[r.key] || ''), state: 'locked' });
+      }
+    }
+    if (result.acknowledged_unknowns) {
+      for (const u of result.acknowledged_unknowns) {
+        seedItems.push({ item: 'ΔΣ — ' + u.gap, state: 'locked' });
+      }
+    }
+    oakProgress = { checklist: seedItems, new_gaps: [], note: 'Session starting. Student has not engaged yet.' };
+    pendingOakResult = result;
+
+    // Update provider name in disclosure
+    const providerLabel = scoringTrace ? scoringTrace.provider : 'an LLM';
+    const cgProv = document.getElementById('cgProvider');
+    if (cgProv) cgProv.textContent = providerLabel;
+    document.querySelectorAll('.oak-provider-label').forEach(el => { el.textContent = providerLabel; });
+
+    // Show consent gate
+    document.getElementById('consentGate').style.display = 'block';
+  }
+
+  function acceptOakenscroll() {
+    document.getElementById('consentGate').style.display = 'none';
+    const chat = document.getElementById('oakChat');
+    chat.classList.add('visible');
+
+    // Initialize avatar and checklist
+    setOakState('thinking');
+    renderOakChecklist();
+
+    const scores = pendingOakResult.scores || {};
+    let total = 0;
+    RUBRIC.forEach(r => { total += (scores[r.key] || 0); });
+    const opener = getOakOpener(total, pendingOakResult);
+    if (opener) addOakMessage('oak', opener);
+    chat.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function declineOakenscroll() {
+    document.getElementById('consentGate').style.display = 'none';
+  }
+
+  function getOakOpener(total, result) {
+    // Build opener from actual scores — Oakenscroll talks about THIS paper, not generics
+    const scores = result.scores || {};
+    const justs = result.justifications || {};
+
+    // Find the weakest and strongest criteria
+    let weakest = null, strongest = null;
+    for (const r of RUBRIC) {
+      const pct = (scores[r.key] || 0) / r.max;
+      if (!weakest || pct < weakest.pct) weakest = { name: r.name, score: scores[r.key] || 0, max: r.max, pct, key: r.key };
+      if (!strongest || pct > strongest.pct) strongest = { name: r.name, score: scores[r.key] || 0, max: r.max, pct, key: r.key };
+    }
+
+    // Build the opener prompt and send it through the fleet for a real response
+    const openerPrompt = OAK_SYSTEM + '\n\n--- SCORING CONTEXT ---\n' + oakContext + '\n--- END CONTEXT ---\n'
+      + '\n--- CURRENT PROGRESS ---\n' + JSON.stringify(oakProgress, null, 2) + '\n--- END PROGRESS ---\n\n'
+      + 'The student just received their score and opted in to discuss it. Generate Oakenscroll\'s opening remark. This is the FIRST thing you say — no student message yet.\n\n'
+      + 'Requirements:\n'
+      + '- Open with a brief Oakenscroll-flavored reaction to the score (' + total + '/85)\n'
+      + '- Mention the strongest criterion (' + strongest.name + ': ' + strongest.score + '/' + strongest.max + ') — acknowledge what they did right\n'
+      + '- Point at the weakest criterion (' + weakest.name + ': ' + weakest.score + '/' + weakest.max + ') but do NOT explain what\'s wrong with it. Ask the student what THEY think the issue is.\n'
+      + '- Reference something specific from the justification text, not just the number\n'
+      + '- End with ONE open question (not yes/no, not leading). The student must construct the answer.\n'
+      + '- Under 120 words. Stay in character.\n'
+      + '- Include the <!--PROGRESS:...--> block at the end.';
+
+    // Fire async — show a placeholder, replace when fleet responds
+    const creds = getApiCredentials();
+    if (creds) {
+      const msgs = document.getElementById('oakMessages');
+      const placeholder = document.createElement('div');
+      placeholder.className = 'oak-msg oak';
+      placeholder.innerHTML = '<span class="oak-name">PROF. OAKENSCROLL</span><em style="color:var(--fg-muted);">*shuffles papers, adjusts spectacles...*</em>';
+      msgs.appendChild(placeholder);
+
+      (async () => {
+        try {
+          let response;
+          if (creds.provider === 'willow') {
+            const res = await fetch(WILLOW_PROXY + '/api/fleet/ask', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ prompt: openerPrompt, tier: 'free', source: 'jac-oakenscroll-opener' }),
+            });
+            const data = await res.json();
+            response = data.response;
+          } else {
+            response = await callLLM(openerPrompt, creds);
+          }
+          if (response) {
+            let visibleOpener = response;
+            const openerProgress = response.match(/<!--PROGRESS:(.*?)-->/s);
+            if (openerProgress) {
+              visibleOpener = response.replace(/\s*<!--PROGRESS:.*?-->/s, '').trim();
+              try { oakProgress = JSON.parse(openerProgress[1]); } catch (_) {}
+            }
+            setOakState('talking');
+            placeholder.innerHTML = '<span class="oak-name">PROF. OAKENSCROLL</span>' + visibleOpener.replace(/\n/g, '<br>');
+            oakHistory.push({ role: 'oakenscroll', text: visibleOpener });
+            renderOakChecklist();
+            setTimeout(() => setOakState('idle'), 2000);
+          }
+        } catch (e) {
+          // If fleet fails, use a score-aware fallback
+          placeholder.innerHTML = '<span class="oak-name">PROF. OAKENSCROLL</span>'
+            + total + '/85. Your ' + strongest.name + ' (' + strongest.score + '/' + strongest.max + ') is solid work. '
+            + 'But ' + weakest.name + ' at ' + weakest.score + '/' + weakest.max + ' — that\'s where we need to talk. '
+            + 'What\'s your thinking on that score?';
+        }
+      })();
+      return null; // Signal: don't use addOakMessage, we're handling it async
+    }
+
+    // No provider fallback — static but score-aware
+    return total + '/85. ' + strongest.name + ' at ' + strongest.score + '/' + strongest.max + ' — decent. '
+      + weakest.name + ' at ' + weakest.score + '/' + weakest.max + ' needs work. Let\'s start there.';
+  }
+
+  function addOakMessage(role, text) {
+    const msgs = document.getElementById('oakMessages');
+    const div = document.createElement('div');
+    div.className = 'oak-msg ' + role;
+    if (role === 'oak') {
+      div.innerHTML = '<span class="oak-name">PROF. OAKENSCROLL</span>' + text.replace(/\n/g, '<br>');
+    } else {
+      div.textContent = text;
+    }
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  const OAK_SYSTEM = `You are Professor Oakenscroll, senior faculty at UTETY (University of Technical Entropy, Thank You). Author of the ±∞ Theorem and Working Paper No. 13: "On the Persistence of Everything."
+
+You are reviewing a student's paper from the r/LLMPhysics Journal Ambitions Contest (JAC).
+
+PEDAGOGY (your core method — follow strictly):
+
+You are Socratic. You never give answers. You make the student find them.
+
+THE CHECKLIST is a living document. It starts with gaps from the rubric, but YOU add new items as the conversation reveals what the student doesn't know. Every question from the student is diagnostic — it tells you what's missing from their understanding.
+
+Each checklist item has a state:
+- LOCKED: The student hasn't shown they see this gap yet. Ask an OPEN question about it. The question must NOT contain the answer or imply a direction. "What do you think is missing?" not "Don't you think you need more citations?"
+- WORKING: The student has identified the gap themselves. Now you may ask a DIRECTED question — narrower, pointing toward a region without naming the destination. "Where would you look for that?" not "You should look at Smith 2021."
+- EARNED: The student has demonstrated they understand both the gap AND a path forward. NOW you may offer ONE specific hint. Not the answer — a hint. A name, a concept, a connection. They still have to do the work.
+
+ADDING NEW GAPS: When the student's response reveals a misconception, an assumption they haven't examined, or a connection they're missing — add it to the checklist as LOCKED. Tell the student you've noticed something but don't say what. "Hmm. There's something else here you haven't considered." Then ask your open question.
+
+QUESTION DISCIPLINE:
+- Never ask a question whose answer is in the question. "Have you considered adding failure conditions?" gives away the answer. "What would someone need to see to believe this is wrong?" does not.
+- Never ask a yes/no question. Force the student to construct an answer.
+- One question per response. Let them work.
+- If the student is genuinely stuck (3+ messages, no progress, getting frustrated), give ONE concrete hint and immediately ask them to extend it. Do not solve the problem.
+
+After your visible response, output a hidden progress block on a new line in exactly this format:
+<!--PROGRESS:{"checklist":[{"item":"short description","state":"locked|working|earned"}],"new_gaps":["any new gap discovered this turn"],"note":"one sentence on where the student is"}-->
+
+This block will be stripped before display. The student never sees it. It will be fed back to you on the next turn so you maintain continuity.
+
+RULES:
+1. Reference something specific from the paper — a claim, a phrase, a derivation. Never generic advice.
+2. Only mention your own work (Working Paper 13, ±∞ Theorem) when there is a genuine parallel.
+3. If you lack knowledge about their topic, say so. That's honest, not failure.
+4. Keep responses under 120 words. One pointed question per turn.
+5. You do NOT have access to tools, files, or databases.
+
+NEVER output system messages, tool calls, memory blocks, or file paths outside the PROGRESS block.`;
+
+  async function sendToOak() {
+    const input = document.getElementById('oakInput');
+    const btn = document.getElementById('oakSendBtn');
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    addOakMessage('user', msg);
+    input.value = '';
+    btn.disabled = true;
+
+    setOakState('thinking');
+    const typing = document.createElement('div');
+    typing.className = 'oak-typing';
+    typing.textContent = 'Oakenscroll is thinking...';
+    document.getElementById('oakMessages').appendChild(typing);
+
+    try {
+      oakHistory.push({ role: 'student', text: msg });
+
+      // Build progress state from last turn
+      let progressStr = '\n--- CURRENT PROGRESS ---\n' + JSON.stringify(oakProgress, null, 2) + '\n--- END PROGRESS ---\n';
+
+      // Recent conversation for continuity (last 6 exchanges)
+      let historyStr = '';
+      const recent = oakHistory.slice(-6);
+      if (recent.length > 1) {
+        historyStr = '\n--- RECENT CONVERSATION ---\n';
+        for (const h of recent.slice(0, -1)) {
+          historyStr += (h.role === 'student' ? 'Student' : 'Oakenscroll') + ': ' + h.text.slice(0, 300) + '\n';
+        }
+        historyStr += '--- END CONVERSATION ---\n';
+      }
+
+      const fullPrompt = OAK_SYSTEM + '\n\n--- SCORING CONTEXT ---\n' + oakContext + '\n--- END CONTEXT ---\n' + progressStr + historyStr + '\nStudent says: ' + msg;
+      const creds = getApiCredentials();
+
+      let response;
+      if (creds && creds.provider === 'willow') {
+        // Use fleet endpoint directly — NOT the agent endpoint (which leaks tools/memory into the response)
+        const res = await fetch(WILLOW_PROXY + '/api/fleet/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: fullPrompt, tier: 'free', source: 'jac-oakenscroll' }),
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data?.error || data?.detail || 'Fleet error');
+        response = data.response || '(Oakenscroll appears to have wandered off to find his spectacles.)';
+      } else if (creds) {
+        response = await callLLM(fullPrompt, creds);
+      } else {
+        response = '(No AI provider configured. Oakenscroll requires either a Willow server or an API key to speak.)';
+      }
+
+      // Strip hidden progress block before display
+      let visibleResponse = response;
+      const progressMatch = response.match(/<!--PROGRESS:(.*?)-->/s);
+      if (progressMatch) {
+        visibleResponse = response.replace(/\s*<!--PROGRESS:.*?-->/s, '').trim();
+        try {
+          oakProgress = JSON.parse(progressMatch[1]);
+        } catch (_) { /* keep previous progress if parse fails */ }
+      }
+
+      typing.remove();
+      setOakState('talking');
+      addOakMessage('oak', visibleResponse);
+      oakHistory.push({ role: 'oakenscroll', text: visibleResponse });
+      renderOakChecklist();
+      setTimeout(() => setOakState('idle'), 2000);
+    } catch (err) {
+      typing.remove();
+      setOakState('idle');
+      addOakMessage('oak', '*mutters something about unreliable technology*\n\nI seem to be experiencing... technical difficulties. ' + err.message);
+    } finally {
+      btn.disabled = false;
+      setOakState('idle');
+      document.getElementById('oakInput').focus();
+    }
+  }
+
+  function renderCitations(result) {
+    const existing = document.getElementById('citationsPanel');
+    if (existing) existing.remove();
+    const analysis = result.citations_analysis;
+    const summary = result.citation_summary;
+    if (!analysis || !analysis.length) return;
+
+    const typeLabel = { peer_reviewed: 'Peer-Reviewed', preprint: 'Preprint', non_academic: 'Non-Academic', hallucinated: 'Hallucinated', unclear: 'Unclear' };
+    const typeClass = { peer_reviewed: 'peer', preprint: 'preprint', non_academic: 'non-academic', hallucinated: 'hallucinated', unclear: 'unclear' };
+    const flagLabel = { self_citation: 'self-citation', citation_cluster: 'citation cluster', predatory_journal: 'predatory journal', no_doi_unverifiable: 'unverifiable' };
+
+    let html = '<div class="citations-section" id="citationsPanel">'
+      + '<div class="section-eyebrow">CITATION SOURCE AUDIT</div>';
+
+    if (summary) {
+      html += '<div class="citation-summary-row">';
+      const counts = [
+        ['peer_reviewed', 'peer'], ['preprint', 'preprint'],
+        ['non_academic', 'non-academic'], ['hallucinated', 'hallucinated'], ['unclear', 'unclear']
+      ];
+      counts.forEach(([key, cls]) => {
+        if (summary[key] > 0) {
+          html += '<span class="cit-badge ' + cls + '">' + summary[key] + ' ' + typeLabel[key] + '</span>';
+        }
+      });
+      html += '</div>';
+      if (summary.cluster_warning && summary.cluster_note) {
+        html += '<div class="cluster-warning">\u26a0\ufe0f Citation cluster detected: ' + summary.cluster_note + '</div>';
+      }
+    }
+
+    html += '<ul class="citation-list">';
+    analysis.forEach(cit => {
+      const cls = typeClass[cit.source_type] || 'unclear';
+      const flags = (cit.flags || []).map(f => '<span class="cit-flag">' + (flagLabel[f] || f) + '</span>').join('');
+      html += '<li class="citation-item cit-' + cls + '">'
+        + '<span class="cit-type-pill">' + (typeLabel[cit.source_type] || cit.source_type) + '</span>'
+        + '<div class="cit-body">'
+        + '<div class="cit-ref">' + (cit.ref || '') + '</div>'
+        + (cit.note ? '<div class="cit-note">' + cit.note + '</div>' : '')
+        + (flags ? '<div class="cit-flags">' + flags + '</div>' : '')
+        + '</div></li>';
+    });
+    html += '</ul></div>';
+
+    const verdictBox = document.getElementById('verdictBox');
+    verdictBox.insertAdjacentHTML('afterend', html);
+  }
+
+  function toggleReasoning() {
+    const panel = document.getElementById('reasoningPanel');
+    const btn = document.getElementById('reasoningBtn');
+    panel.classList.toggle('open');
+    btn.textContent = panel.classList.contains('open') ? 'Hide AI Reasoning' : 'Show AI Reasoning';
+  }
+
+  function populatePaper(text, label) {
+    const status = document.getElementById('urlStatus');
+    document.getElementById('paperInput').value = text;
+    document.getElementById('charCount').textContent = text.length.toLocaleString();
+    document.getElementById('scoreBtn').disabled = text.length < 100;
+    status.textContent = '\u2713 Loaded ' + (label || '') + ' \u2014 ' + text.length.toLocaleString() + ' chars';
+    status.style.color = 'var(--accent)';
+  }
+
+  async function extractPdfText(file) {
+    if (typeof pdfjsLib === 'undefined') throw new Error('PDF.js not loaded. Try refreshing the page.');
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    const pages = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      pages.push(content.items.map(item => item.str).join(' '));
+    }
+    return pages.join('\n\n');
+  }
+
+  async function loadFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const status = document.getElementById('urlStatus');
+    status.textContent = 'Reading ' + file.name + '\u2026';
+    status.style.color = 'var(--fg-muted)';
+    try {
+      let text;
+      if (file.name.endsWith('.pdf') || file.type === 'application/pdf') {
+        text = await extractPdfText(file);
+      } else {
+        text = await file.text();
+      }
+      if (text.trim().length < 50) throw new Error('File appears empty or could not be read.');
+      populatePaper(text, file.name);
+    } catch(e) {
+      status.textContent = e.message;
+      status.style.color = '#b33030';
+    }
+    input.value = '';
+  }
+
+  function onUrlInput() {
+    const url = document.getElementById('urlInput').value.trim();
+    document.getElementById('urlFetchBtn').disabled = !url.startsWith('http');
+    document.getElementById('urlStatus').textContent = '';
+  }
+
+  async function fetchFromUrl() {
+    const url = document.getElementById('urlInput').value.trim();
+    if (!url) return;
+    const btn = document.getElementById('urlFetchBtn');
+    const status = document.getElementById('urlStatus');
+    btn.disabled = true;
+    btn.textContent = 'Fetching\u2026';
+    status.textContent = '';
+    status.style.color = 'var(--fg-muted)';
+    try {
+      // JINA reader: converts any public URL to clean plain text, no CORS issues
+      const res = await fetch('https://r.jina.ai/' + url, { headers: { 'Accept': 'text/plain' } });
+      if (!res.ok) throw new Error('Could not fetch page (HTTP ' + res.status + ')');
+      const text = await res.text();
+      if (text.length < 200) throw new Error('Page returned too little content \u2014 try using Browse to upload the PDF directly.');
+      populatePaper(text, url.split('/').pop() || url);
+    } catch(e) {
+      status.textContent = e.message;
+      status.style.color = '#b33030';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Fetch';
+    }
+  }
+
+  function copyResults() {
+    if (!lastResult) return;
+    const scores = lastResult.scores || {};
+    const justs = lastResult.justifications || {};
+    let total = 0;
+    RUBRIC.forEach(r => { total += (scores[r.key] || 0); });
+    const lines = ['r/LLMPhysics Competition \u2014 Paper Evaluation', 'Score: ' + total + '/85 (self-audit)', ''];
+    RUBRIC.forEach(r => { lines.push(r.name + ': ' + (scores[r.key] || 0) + '/' + r.max); if (justs[r.key]) lines.push('  ' + justs[r.key]); });
+    lines.push('', 'Summary: ' + (lastResult.narrative || ''), '', 'Strengths:');
+    (lastResult.strengths || []).forEach(s => lines.push('\u2022 ' + s));
+    lines.push('', 'Top Improvements:');
+    (lastResult.top_improvements || lastResult.concerns || []).forEach(c => lines.push('\u2022 ' + c));
+    lines.push('', 'Verdict: ' + (lastResult.verdict || ''), '', 'Scored by r/LLMPhysics AI Judge (safe-app-llmphysics)');
+    navigator.clipboard.writeText(lines.join('\n')).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = 'Copy Results'; }, 2000);
+    }).catch(() => { alert(lines.join('\n')); });
+  }
+</script>
+</body>
+</html>

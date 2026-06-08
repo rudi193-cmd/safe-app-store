@@ -1,0 +1,40 @@
+{
+  "app_id": "field-notes",
+  "name": "field-notes",
+  "version": "1.0.0",
+  "safe_version": ">=2.0.0",
+  "b17": "H9EL2",
+  "agent_type": "tool",
+  "description": "Quick-capture notebook for observations, ideas, and research notes. Feeds into The Binder.",
+  "author": "Sean Campbell",
+  "data_streams": [
+    {
+      "id": "llm_queries",
+      "purpose": "AI processing",
+      "retention": "session",
+      "description": "Local LLM inference requests"
+    },
+    {
+      "id": "patterns",
+      "purpose": "Behavioral pattern storage",
+      "retention": "permanent",
+      "description": "User pattern data"
+    },
+    {
+      "id": "file_writes",
+      "purpose": "File system writes",
+      "retention": "permanent",
+      "description": "Files written by app"
+    }
+  ],
+  "permissions": [
+    "local_llm",
+    "pattern_storage",
+    "file_write"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 0.96,
+  "entry_point": "safe_integration:status",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-field-notes"
+}

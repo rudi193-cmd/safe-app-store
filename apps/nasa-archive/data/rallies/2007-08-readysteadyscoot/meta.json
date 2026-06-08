@@ -1,0 +1,19 @@
+{
+  "url": "http://scoot.net/gallery/2007/08/readysteadyscoot/",
+  "slug": "2007/08/readysteadyscoot",
+  "title": "Ready, Steady, Scoot!",
+  "year": 2007,
+  "month": 8,
+  "date_rally": "2007-08",
+  "photo_count": 317,
+  "stories": [],
+  "description": "Scooter ride organized by the scooter community to meet up and ride together.",
+  "recurring": false,
+  "notable_facts": [
+    "Featured on Scoot.net"
+  ],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:59:18Z",
+  "enriched_provider": "Cerebras2"
+}

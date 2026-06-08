@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScooterBBS</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box }
+
+:root {
+  --term-bg: #0a0a0a;
+  --term-fg: #33ff33;
+  --term-dim: #1a6b1a;
+  --term-bright: #66ff66;
+  --term-amber: #ffb000;
+  --term-cyan: #00cccc;
+  --term-white: #cccccc;
+  --term-red: #cc4444;
+  --scanline: rgba(0, 0, 0, 0.08);
+}
+
+html, body {
+  height: 100%;
+  background: #000;
+  color: var(--term-fg);
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 16px;
+  line-height: 1.4;
+  overflow: hidden;
+}
+
+.crt {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: 1rem;
+}
+
+/* CRT scanline effect */
+.crt::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    var(--scanline) 2px,
+    var(--scanline) 4px
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* CRT vignette */
+.crt::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.term-header {
+  flex-shrink: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--term-dim);
+  margin-bottom: 0.5rem;
+}
+
+.term-title {
+  color: var(--term-amber);
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+}
+
+.term-status {
+  color: var(--term-dim);
+  font-size: 0.85rem;
+}
+
+.term-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--term-dim) var(--term-bg);
+}
+
+.term-body::-webkit-scrollbar { width: 6px }
+.term-body::-webkit-scrollbar-track { background: var(--term-bg) }
+.term-body::-webkit-scrollbar-thumb { background: var(--term-dim) }
+
+.term-input-row {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid var(--term-dim);
+  padding-top: 0.5rem;
+}
+
+.term-prompt {
+  color: var(--term-amber);
+  margin-right: 0.5rem;
+  white-space: nowrap;
+}
+
+.term-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--term-bright);
+  font-family: inherit;
+  font-size: inherit;
+  caret-color: var(--term-bright);
+}
+
+/* Text colors */
+.c-amber { color: var(--term-amber) }
+.c-cyan { color: var(--term-cyan) }
+.c-white { color: var(--term-white) }
+.c-dim { color: var(--term-dim) }
+.c-red { color: var(--term-red) }
+.c-green { color: var(--term-fg) }
+.c-bright { color: var(--term-bright) }
+
+.line { min-height: 1.4em }
+.line-break { height: 0.7em }
+
+/* Login form styling */
+.login-field {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--term-dim);
+  outline: none;
+  color: var(--term-bright);
+  font-family: inherit;
+  font-size: inherit;
+  width: 20ch;
+  padding: 0.1rem 0;
+  caret-color: var(--term-bright);
+}
+.login-field:focus {
+  border-bottom-color: var(--term-amber);
+}
+
+/* Cursor blink */
+@keyframes blink {
+  0%, 49% { opacity: 1 }
+  50%, 100% { opacity: 0 }
+}
+.cursor {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.1em;
+  background: var(--term-fg);
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+
+/* Back link */
+.back-link {
+  position: fixed;
+  top: 0.75rem;
+  right: 1rem;
+  color: var(--term-dim);
+  text-decoration: none;
+  font-size: 0.85rem;
+  z-index: 20;
+  transition: color 0.2s;
+}
+.back-link:hover { color: var(--term-amber) }
+</style>
+</head>
+<body>
+
+<a href="index.html" class="back-link">[ESC] Exit to NASA</a>
+
+<div class="crt">
+  <div class="term-header">
+    <div class="term-title">ScooterBBS v2.1 &mdash; North American Scooter Community</div>
+    <div class="term-status" id="term-status">Connecting...</div>
+  </div>
+
+  <div class="term-body" id="term-body"></div>
+
+  <div class="term-input-row" id="input-row" style="display:none">
+    <span class="term-prompt" id="term-prompt">&gt;</span>
+    <input type="text" class="term-input" id="term-input" autocomplete="off" spellcheck="false">
+  </div>
+</div>
+
+<script>
+(function () {
+  var body = document.getElementById('term-body');
+  var inputRow = document.getElementById('input-row');
+  var input = document.getElementById('term-input');
+  var prompt = document.getElementById('term-prompt');
+  var statusEl = document.getElementById('term-status');
+
+  var state = 'boot'; // boot -> login -> main -> board -> thread
+  var user = null;
+  var currentBoard = null;
+
+  // Board data
+  var boards = {
+    general: {
+      name: 'General Discussion',
+      threads: [
+        { id: 1, title: 'Welcome to ScooterBBS - READ FIRST', author: 'SysOp', date: '03/14/26', replies: 42, pinned: true },
+        { id: 2, title: 'Best rally you ever went to?', author: 'DamnDirtyDave', date: '03/12/26', replies: 18 },
+        { id: 3, title: 'ISO: Vespa P200 wiring harness', author: 'spark_plug_steve', date: '03/10/26', replies: 7 },
+        { id: 4, title: 'ScooterBBS is BACK from the dead', author: 'SysOp', date: '03/08/26', replies: 31 }
+      ]
+    },
+    rallies: {
+      name: 'Rally Talk',
+      threads: [
+        { id: 5, title: 'High Rollers 2026 ride report', author: 'VegasVespa', date: '03/13/26', replies: 24 },
+        { id: 6, title: 'Amerivespa 2026 - whos going?', author: 'two_stroke_tony', date: '03/11/26', replies: 56 },
+        { id: 7, title: 'Camp Scoot memories thread', author: 'pharaoh_phil', date: '03/09/26', replies: 89 },
+        { id: 8, title: 'whatever happened to Slaughterhouse?', author: 'old_timer_jim', date: '03/05/26', replies: 14 }
+      ]
+    },
+    technical: {
+      name: 'Wrenching & Tech',
+      threads: [
+        { id: 9, title: 'PX150 top end rebuild - step by step', author: 'wrench_monkey', date: '03/14/26', replies: 33 },
+        { id: 10, title: 'Best 2-stroke oil? (here we go again)', author: 'premix_pete', date: '03/12/26', replies: 147 },
+        { id: 11, title: 'Lambretta SX200 clutch slipping', author: 'LambrettaLarry', date: '03/07/26', replies: 11 }
+      ]
+    },
+    clubs: {
+      name: 'Club News',
+      threads: [
+        { id: 12, title: 'Pharaohs 35th Anniversary - planning thread', author: 'pharaoh_phil', date: '03/13/26', replies: 19 },
+        { id: 13, title: 'Secret Society winter ride recap', author: 'ss_rider', date: '03/06/26', replies: 8 },
+        { id: 14, title: 'Starting a club in Portland - advice?', author: 'pdx_newbie', date: '03/01/26', replies: 22 }
+      ]
+    },
+    forsale: {
+      name: 'For Sale / WTB',
+      threads: [
+        { id: 15, title: 'FS: 1965 Vespa GL - running, titled $3800', author: 'garage_clearout', date: '03/14/26', replies: 5 },
+        { id: 16, title: 'WTB: Lambretta TV175 fork dampers', author: 'LambrettaLarry', date: '03/10/26', replies: 3 },
+        { id: 17, title: 'FS: Box of random Vespa parts - $200 takes all', author: 'moving_sale', date: '03/08/26', replies: 12 }
+      ]
+    }
+  };
+
+  // Thread content (sample)
+  var threadContent = {
+    1: [
+      { author: 'SysOp', date: '03/08/26', text: 'Welcome back to ScooterBBS.\n\nThis is a resurrection of the original forum that ran from 1997-2012 on scoot.net. The conversations that built the North American scooter scene happened here. Ride reports, tech advice, rally planning, arguments about oil, arguments about everything.\n\nWe recovered what we could from the Wayback Machine. The original threads are being added to the NASA archive. New conversations happen here.\n\nRules are the same as always:\n1. Don\'t be a jerk\n2. Search before you post\n3. Give credit where it\'s due\n4. What happens at rally stays at rally (unless you post photos)\n\n- SysOp' },
+      { author: 'DamnDirtyDave', date: '03/08/26', text: 'Holy crap it\'s back. I thought this was gone forever.' },
+      { author: 'pharaoh_phil', date: '03/08/26', text: 'The internet never forgets. Neither do scooter people.' },
+      { author: 'two_stroke_tony', date: '03/09/26', text: '*logs in for the first time in 14 years*\n\nI still remember my password. That says something about me.' }
+    ],
+    7: [
+      { author: 'pharaoh_phil', date: '03/09/26', text: 'Camp Scoot. Where do you even start.\n\nMy first one was 2003. Drove down from Oceanside with half the Pharaohs. Somebody\'s Vespa broke down on the 101 and we all pulled over. Fixed it with zip ties and somebody\'s belt. Made it to camp just as the sun went down.' },
+      { author: 'DamnDirtyDave', date: '03/09/26', text: 'I have 298 photos from Camp Scoot in the NASA archive. Some of them I don\'t even remember taking.' },
+      { author: 'old_timer_jim', date: '03/10/26', text: 'The talent show. Does anyone else remember the talent show? Someone did a dramatic reading of their Vespa\'s repair manual and it was genuinely the funniest thing I\'ve ever seen.' }
+    ]
+  };
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function addLine(text, cls) {
+    var div = document.createElement('div');
+    div.className = 'line' + (cls ? ' ' + cls : '');
+    div.innerHTML = text;
+    body.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function addBreak() {
+    var div = document.createElement('div');
+    div.className = 'line-break';
+    body.appendChild(div);
+  }
+
+  function clear() {
+    body.innerHTML = '';
+  }
+
+  function pad(s, n) {
+    s = String(s);
+    while (s.length < n) s += ' ';
+    return s;
+  }
+
+  function rpad(s, n) {
+    s = String(s);
+    while (s.length < n) s = ' ' + s;
+    return s;
+  }
+
+  function typeText(lines, delay, callback) {
+    var i = 0;
+    function next() {
+      if (i >= lines.length) {
+        if (callback) callback();
+        return;
+      }
+      var line = lines[i];
+      if (typeof line === 'string') {
+        addLine(line);
+      } else {
+        addLine(line.text, line.cls);
+      }
+      i++;
+      setTimeout(next, delay);
+    }
+    next();
+  }
+
+  // BOOT SEQUENCE
+  function bootSequence() {
+    statusEl.textContent = 'Initializing...';
+    var bootLines = [
+      { text: '&nbsp;', cls: '' },
+      { text: '  ____                  _            ____  ____  ____', cls: 'c-amber' },
+      { text: ' / ___|  ___ ___   ___ | |_ ___ _ __| __ )| __ )/ ___|', cls: 'c-amber' },
+      { text: ' \\___ \\ / __/ _ \\ / _ \\| __/ _ \\ \'__|  _ \\|  _ \\\\___ \\', cls: 'c-amber' },
+      { text: '  ___) | (_| (_) | (_) | ||  __/ |  | |_) | |_) |___) |', cls: 'c-amber' },
+      { text: ' |____/ \\___\\___/ \\___/ \\__\\___|_|  |____/|____/|____/', cls: 'c-amber' },
+      { text: '&nbsp;', cls: '' },
+      { text: '  <span class="c-dim">North American Scooter Community Forum</span>', cls: '' },
+      { text: '  <span class="c-dim">Est. 1997 on scoot.net &middot; Recovered 2026</span>', cls: '' },
+      { text: '&nbsp;', cls: '' },
+      { text: '<span class="c-dim">Checking connection...</span> <span class="c-green">OK</span>', cls: '' },
+      { text: '<span class="c-dim">Loading board index...</span> <span class="c-green">5 boards, 17 threads</span>', cls: '' },
+      { text: '<span class="c-dim">Recovering archives...</span> <span class="c-amber">in progress</span>', cls: '' },
+      { text: '&nbsp;', cls: '' },
+    ];
+
+    typeText(bootLines, 80, function () {
+      showLogin();
+    });
+  }
+
+  // LOGIN
+  function showLogin() {
+    state = 'login-user';
+    addLine('<span class="c-cyan">Login or create a new handle to post.</span>');
+    addLine('<span class="c-cyan">Guest access: type "guest" to browse without posting.</span>');
+    addBreak();
+    prompt.textContent = 'Handle:';
+    inputRow.style.display = '';
+    input.focus();
+    statusEl.textContent = 'Login';
+  }
+
+  // MAIN MENU
+  function showMainMenu() {
+    state = 'main';
+    currentBoard = null;
+    clear();
+    statusEl.textContent = 'Main Menu | ' + (user || 'guest');
+
+    addLine('<span class="c-amber">ScooterBBS Main Menu</span>');
+    addLine('<span class="c-dim">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>');
+    addBreak();
+
+    var boardKeys = Object.keys(boards);
+    for (var i = 0; i < boardKeys.length; i++) {
+      var b = boards[boardKeys[i]];
+      var threadCount = b.threads.length;
+      addLine('  <span class="c-bright">[' + (i + 1) + ']</span>  ' + pad(b.name, 28) + '<span class="c-dim">' + threadCount + ' threads</span>');
+    }
+
+    addBreak();
+    addLine('  <span class="c-bright">[N]</span>  New post');
+    addLine('  <span class="c-bright">[S]</span>  Search');
+    addLine('  <span class="c-bright">[A]</span>  NASA Photo Archive');
+    addLine('  <span class="c-bright">[Q]</span>  Quit');
+    addBreak();
+    addLine('<span class="c-dim">Navigate: type a number or command</span>');
+
+    prompt.textContent = 'BBS>';
+    input.focus();
+  }
+
+  // BOARD VIEW
+  function showBoard(boardKey) {
+    state = 'board';
+    currentBoard = boardKey;
+    var board = boards[boardKey];
+    if (!board) { showMainMenu(); return; }
+
+    clear();
+    statusEl.textContent = board.name + ' | ' + (user || 'guest');
+
+    addLine('<span class="c-amber">' + board.name + '</span>');
+    addLine('<span class="c-dim">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>');
+    addBreak();
+
+    addLine('<span class="c-dim"> #   ' + pad('Subject', 40) + pad('Author', 18) + pad('Date', 10) + 'Re</span>');
+    addLine('<span class="c-dim">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>');
+
+    board.threads.forEach(function (t) {
+      var pin = t.pinned ? '<span class="c-red">*</span>' : ' ';
+      var title = t.title.length > 38 ? t.title.substring(0, 35) + '...' : t.title;
+      addLine(pin + '<span class="c-bright">' + rpad(String(t.id), 3) + '</span>  '
+        + pad(title, 40)
+        + '<span class="c-cyan">' + pad(t.author, 18) + '</span>'
+        + '<span class="c-dim">' + pad(t.date, 10) + '</span>'
+        + '<span class="c-white">' + t.replies + '</span>');
+    });
+
+    addBreak();
+    addLine('<span class="c-dim">Type thread # to read, [B]ack to menu, [N]ew post</span>');
+
+    prompt.textContent = board.name.substring(0, 12) + '>';
+    input.focus();
+  }
+
+  // THREAD VIEW
+  function showThread(threadId) {
+    state = 'thread';
+    var thread = null;
+    Object.keys(boards).forEach(function (bk) {
+      boards[bk].threads.forEach(function (t) {
+        if (t.id === threadId) thread = t;
+      });
+    });
+
+    if (!thread) {
+      addLine('<span class="c-red">Thread not found.</span>');
+      return;
+    }
+
+    clear();
+    statusEl.textContent = 'Thread #' + threadId + ' | ' + (user || 'guest');
+
+    addLine('<span class="c-amber">' + thread.title + '</span>');
+    addLine('<span class="c-dim">Started by ' + thread.author + ' on ' + thread.date + ' &middot; ' + thread.replies + ' replies</span>');
+    addLine('<span class="c-dim">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>');
+
+    var posts = threadContent[threadId];
+    if (posts) {
+      posts.forEach(function (p) {
+        addBreak();
+        addLine('<span class="c-cyan">' + p.author + '</span> <span class="c-dim">' + p.date + '</span>');
+        p.text.split('\n').forEach(function (line) {
+          addLine('<span class="c-white">' + line + '</span>');
+        });
+      });
+    } else {
+      addBreak();
+      addLine('<span class="c-dim">[Thread content being recovered from archive...]</span>');
+      addBreak();
+      addLine('<span class="c-dim">This thread was part of the original ScooterBBS (1997-2012).</span>');
+      addLine('<span class="c-dim">We\'re working on recovering the full conversation from the Wayback Machine.</span>');
+    }
+
+    addBreak();
+    addLine('<span class="c-dim">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>');
+    addLine('<span class="c-dim">[B]ack to board, [R]eply' + (user === 'guest' ? ' (login required)' : '') + '</span>');
+
+    prompt.textContent = '#' + threadId + '>';
+    input.focus();
+  }
+
+  // SEARCH
+  function showSearch(query) {
+    clear();
+    statusEl.textContent = 'Search: ' + query;
+
+    addLine('<span class="c-amber">Search results for: ' + escapeHtml(query) + '</span>');
+    addLine('<span class="c-dim">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>');
+    addBreak();
+
+    var q = query.toLowerCase();
+    var found = [];
+    Object.keys(boards).forEach(function (bk) {
+      boards[bk].threads.forEach(function (t) {
+        if (t.title.toLowerCase().indexOf(q) !== -1 || t.author.toLowerCase().indexOf(q) !== -1) {
+          found.push(t);
+        }
+      });
+    });
+
+    if (found.length === 0) {
+      addLine('<span class="c-dim">No threads found matching "' + escapeHtml(query) + '"</span>');
+    } else {
+      found.forEach(function (t) {
+        addLine('<span class="c-bright">[' + t.id + ']</span> ' + t.title + ' <span class="c-dim">by ' + t.author + '</span>');
+      });
+    }
+
+    addBreak();
+    addLine('<span class="c-dim">Type thread # to read, [B]ack to menu</span>');
+    state = 'search';
+    prompt.textContent = 'Search>';
+    input.focus();
+  }
+
+  // INPUT HANDLER
+  input.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+
+    var val = input.value.trim();
+    input.value = '';
+
+    if (state === 'login-user') {
+      if (!val) return;
+      if (val.toLowerCase() === 'guest') {
+        user = 'guest';
+        addLine('<span class="c-green">Logged in as guest (read-only)</span>');
+      } else {
+        user = val;
+        addLine('<span class="c-green">Welcome back, ' + escapeHtml(user) + '.</span>');
+      }
+      addBreak();
+      setTimeout(showMainMenu, 500);
+      return;
+    }
+
+    if (state === 'main') {
+      var cmd = val.toLowerCase();
+      if (cmd === 'q' || cmd === 'quit') {
+        clear();
+        addLine('<span class="c-amber">Thanks for visiting ScooterBBS.</span>');
+        addLine('<span class="c-dim">Keep the shiny side up.</span>');
+        addBreak();
+        addLine('<span class="c-dim">Returning to NASA archive...</span>');
+        setTimeout(function () { window.location.href = 'index.html'; }, 2000);
+        return;
+      }
+      if (cmd === 'a' || cmd === 'archive') {
+        window.location.href = 'rallies.html';
+        return;
+      }
+      if (cmd === 's' || cmd === 'search') {
+        addLine('<span class="c-cyan">Search for:</span>');
+        state = 'search-input';
+        prompt.textContent = 'Find:';
+        input.focus();
+        return;
+      }
+      if (cmd === 'n' || cmd === 'new') {
+        if (user === 'guest') {
+          addLine('<span class="c-red">Login required to post. Refresh and login with a handle.</span>');
+        } else {
+          addLine('<span class="c-amber">New post coming soon. For now, share stories through the NASA archive.</span>');
+          addLine('<span class="c-dim">Visit </span><span class="c-cyan">contribute.html</span><span class="c-dim"> to contribute.</span>');
+        }
+        return;
+      }
+      var boardNum = parseInt(cmd);
+      if (boardNum >= 1 && boardNum <= Object.keys(boards).length) {
+        showBoard(Object.keys(boards)[boardNum - 1]);
+        return;
+      }
+      addLine('<span class="c-red">Unknown command. Type a number (1-5), S, N, A, or Q.</span>');
+      return;
+    }
+
+    if (state === 'search-input') {
+      if (val) showSearch(val);
+      else { state = 'main'; prompt.textContent = 'BBS>'; }
+      return;
+    }
+
+    if (state === 'board' || state === 'search') {
+      var cmd2 = val.toLowerCase();
+      if (cmd2 === 'b' || cmd2 === 'back') {
+        showMainMenu();
+        return;
+      }
+      if (cmd2 === 'n' || cmd2 === 'new') {
+        if (user === 'guest') {
+          addLine('<span class="c-red">Login required to post.</span>');
+        } else {
+          addLine('<span class="c-amber">New post coming soon.</span>');
+        }
+        return;
+      }
+      var tid = parseInt(val);
+      if (tid > 0) {
+        showThread(tid);
+        return;
+      }
+      addLine('<span class="c-red">Type a thread #, [B]ack, or [N]ew.</span>');
+      return;
+    }
+
+    if (state === 'thread') {
+      var cmd3 = val.toLowerCase();
+      if (cmd3 === 'b' || cmd3 === 'back') {
+        if (currentBoard) showBoard(currentBoard);
+        else showMainMenu();
+        return;
+      }
+      if (cmd3 === 'r' || cmd3 === 'reply') {
+        if (user === 'guest') {
+          addLine('<span class="c-red">Login required to reply.</span>');
+        } else {
+          addLine('<span class="c-amber">Reply posting coming soon. Share stories at contribute.html for now.</span>');
+        }
+        return;
+      }
+      addLine('<span class="c-dim">Type [B]ack or [R]eply.</span>');
+      return;
+    }
+  });
+
+  // Boot on load
+  bootSequence();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-field-notes"
+version = "1.0.0"
+description = "Quick-capture notebook for observations, ideas, and research notes. Feeds into The Binder."
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.28.0",
+]

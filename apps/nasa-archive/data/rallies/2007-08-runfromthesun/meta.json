@@ -1,0 +1,22 @@
+{
+  "url": "http://scoot.net/gallery/2007/08/runfromthesun/",
+  "slug": "2007/08/runfromthesun",
+  "title": "Run from the Sun",
+  "year": 2007,
+  "month": 8,
+  "date_rally": "2007-08",
+  "photo_count": 408,
+  "stories": [],
+  "description": "Annual scooter rally, typically held in August.",
+  "hosting_club": "Scoot.net or possibly user-organized, exact details unknown",
+  "country": "US",
+  "recurring": true,
+  "notable_facts": [
+    "Held annually by scooter enthusiasts, possibly organized in part by Scoot.net users"
+  ],
+  "related_clubs": [],
+  "source_confidence": "low",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:59:35Z",
+  "enriched_provider": "Cerebras2"
+}

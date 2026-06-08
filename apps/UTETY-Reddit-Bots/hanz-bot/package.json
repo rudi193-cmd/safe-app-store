@@ -1,0 +1,19 @@
+{
+  "//": "Professor Hanz Christian Anderthon. Department of Code, UTETY. Bring your broken code and yourself.",
+  "name": "hanz-utety",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "devvit build",
+    "upload": "devvit upload"
+  },
+  "dependencies": {
+    "@devvit/public-api": "0.12.19"
+  },
+  "devDependencies": {
+    "devvit": "0.12.19",
+    "typescript": "5.8.3"
+  },
+  "type": "module",
+  "license": "BSD-3-Clause"
+}

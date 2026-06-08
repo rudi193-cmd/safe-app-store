@@ -1,0 +1,21 @@
+{
+  "url": "http://scoot.net/gallery/2005/10/bridlington/",
+  "slug": "2005/10/bridlington",
+  "title": "Bridlington LGCB and VFM rally",
+  "year": 2005,
+  "month": 10,
+  "date_rally": "2005-10",
+  "photo_count": 22,
+  "stories": [],
+  "hosting_club": "LGCB and VFM",
+  "city": "Bridlington",
+  "state_province": "null",
+  "country": "United Kingdom",
+  "notable_facts": [
+    "Held in October 2005"
+  ],
+  "source_confidence": "medium",
+  "enriched": true,
+  "enriched_at": "2026-03-15T00:43:46Z",
+  "enriched_provider": "Cerebras3"
+}

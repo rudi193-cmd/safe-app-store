@@ -1,0 +1,98 @@
+{
+  "_handoff": {
+    "what": "Configuration for every trigger detector. Rules, thresholds, and response pools live here — tune without touching TypeScript.",
+    "status": "SCAFFOLD — response pools are stubs. Expand from voice exemplars in KB.",
+    "read_by": [
+      "src/triggers/newPost.ts",
+      "src/triggers/debuggingWitness.ts",
+      "src/triggers/scoreMilestone.ts",
+      "src/triggers/napkinDrop.ts"
+    ],
+    "rules": [
+      "Detectors err on the side of NOT firing. False positives destroy Hanz.",
+      "Hanz is warm but not eager. He doesn't pile on. Cooldowns are important.",
+      "Responses must pass the persona/hanz.ts sanitizer — max 280 chars, no URLs, no @mentions.",
+      "Voice: chaotic-competent, self-deprecating. Never condescending. The bug is a colleague."
+    ]
+  },
+
+  "new_post": {
+    "enabled": true,
+    "description": "Fires on posts that look like a code question, debugging session, or programming confession. Hanz has been here before.",
+    "min_length_chars": 200,
+    "code_shape_markers": [
+      "\\bstack(trace|overflow)\\b",
+      "\\berror:\\s",
+      "\\bexception\\b",
+      "\\bundefined\\b",
+      "\\bnull(pointer|reference)?\\b",
+      "\\bsegfault\\b",
+      "\\bit works on my machine\\b",
+      "\\bwhy is (it|this|my code)\\b",
+      "\\bi don'?t understand (why|what|how)\\b",
+      "\\bplease help\\b",
+      "\\bbug\\b",
+      "\\bbroken\\b",
+      "\\bi give up\\b",
+      "\\bwhat (am i|is) doing wrong\\b",
+      "\\bcan'?t (figure|get) (out|it)\\b"
+    ],
+    "required_marker_count": 2,
+    "response_pool": [
+      "The code is not the problem. The code is where the problem became visible.",
+      "I've introduced this exact bug. It took me three days to find it. You're doing great.",
+      "Bring the thing. We'll look at it together.",
+      "This is a completely normal place to be. The candle is on."
+    ]
+  },
+
+  "debugging_witness": {
+    "enabled": true,
+    "description": "Fires on posts that confess a debugging struggle — the specific emotional texture of being stuck. Hanz witnesses the stuck-ness, not just the technical problem.",
+    "min_length_chars": 150,
+    "stuck_markers": [
+      "\\bstuck\\b",
+      "\\bhours?\\b",
+      "\\bdays?\\b",
+      "\\bweeks?\\b",
+      "\\bi'?ve (been|tried)\\b",
+      "\\bstill (broken|not working|failing)\\b",
+      "\\bnobody (can help|knows)\\b",
+      "\\bgiven up\\b",
+      "\\bdesperate\\b",
+      "\\blosing (my mind|it)\\b",
+      "\\bi'?m (going crazy|losing it|so frustrated)\\b",
+      "\\bwhy (won'?t|doesn'?t|can'?t)\\b"
+    ],
+    "required_stuck_count": 1,
+    "response_pool": [
+      "I've been here. The candle is on.",
+      "The bug is not winning. It's just being a bug.",
+      "Stuck is not broken. Stuck is where the interesting part starts.",
+      "Copenhagen has seen worse. Bring it to the corner."
+    ],
+    "author_cooldown_hours": 48
+  },
+
+  "score_milestone": {
+    "enabled": true,
+    "description": "Polls recent hot posts on each heartbeat. When a post crosses a score threshold, Hanz acknowledges it.",
+    "poll_interval_minutes": 10,
+    "thresholds": [10, 50, 100, 500, 1000],
+    "response_pool": [
+      "The code shipped. Copenhagen is proud.",
+      "Witnessed.",
+      "This one worked. Write it down somewhere."
+    ],
+    "one_witness_per_post": true
+  },
+
+  "napkin_drop": {
+    "enabled": true,
+    "description": "Scheduled candlelit appearance. Hanz has passed through and left something on the table.",
+    "cron": "0 */6 * * *",
+    "chance_per_run": 0.45,
+    "target": "most_recent_post_within_hours",
+    "target_window_hours": 6
+  }
+}

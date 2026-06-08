@@ -1,0 +1,18 @@
+{
+  "app_id": "bt-controller",
+  "name": "BT Controller",
+  "slug": "bt-controller",
+  "version": "0.1.0",
+  "b17": "9E0H3",
+  "agent_type": "tool",
+  "description": "Web Bluetooth device manager — bypass Windows BT stack",
+  "author": "Sean Campbell",
+  "agent": "kart",
+  "trust": "ENGINEER",
+  "permissions": ["bluetooth"],
+  "safe_consent": {
+    "data_local": true,
+    "data_cloud": false,
+    "requires_pairing": true
+  }
+}

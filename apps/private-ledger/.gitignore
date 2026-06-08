@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.db
+.venv/
+.wrangler/
+target/
+credentials.json
+.env
+*.egg-info/
+dist/
+build/
+.mypy_cache/
+.pytest_cache/

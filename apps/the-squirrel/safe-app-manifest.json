@@ -1,0 +1,47 @@
+{
+  "app_id": "the-squirrel",
+  "name": "the-squirrel",
+  "version": "2.0.0",
+  "safe_version": ">=2.0.0",
+  "b17": "NNA92",
+  "legacy_b17": "EC768",
+  "agent_type": "tool",
+  "description": "Genealogy research terminal. Collect fragments, build the tree, find what's misfiled. Jeles works the desk. The Binder works the back.",
+  "author": "Sean Campbell",
+  "data_streams": [
+    {
+      "id": "pii_family_history",
+      "purpose": "Personal genealogy data — persons, relationships, fragments, lattice cells",
+      "privacy_tier": "client_only",
+      "retention": "permanent",
+      "description": "PII layer. SAP gate required. Stored in db.persons and db.fragments."
+    },
+    {
+      "id": "source_registry",
+      "purpose": "User-agnostic genealogy source index — community archives, platforms, databases",
+      "privacy_tier": "shared",
+      "retention": "permanent",
+      "description": "System layer. No PII. No gate. Stored in db.sources. 779+ community archives seeded."
+    },
+    {
+      "id": "network_requests",
+      "purpose": "Outbound lookups — FamilySearch, FindAGrave, community archive links",
+      "privacy_tier": "session",
+      "retention": "session",
+      "description": "Transient. Deep links and API calls to external genealogy services."
+    }
+  ],
+  "permissions": [
+    "family_history:read",
+    "family_history:write",
+    "knowledge:read",
+    "network_fetch",
+    "file_write"
+  ],
+  "privacy_tier": "mixed",
+  "local_processing": 0.93,
+  "port": 8425,
+  "entry_point": "safe_integration:status",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-the-squirrel"
+}

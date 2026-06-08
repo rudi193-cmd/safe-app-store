@@ -1,0 +1,39 @@
+{
+  "app_id": "safe-app-store",
+  "name": "Vishwakarma — SAFE App Store",
+  "version": "1.0.0",
+  "safe_version": ">=2.0.0",
+  "b17": "SAPS1",
+  "agent": "vishwakarma",
+  "agent_type": "builder",
+  "description": "The SAFE App Store. Keeps the catalog, guides users to what they need, builds new apps, and scaffolds new projects. Divine architect of the SAFE ecosystem.",
+  "author": "Sean Campbell",
+  "data_streams": [
+    {
+      "id": "catalog",
+      "purpose": "Registry of all SAFE apps — metadata, status, permissions",
+      "retention": "permanent",
+      "description": "Authoritative catalog in .willow/store/catalog/"
+    },
+    {
+      "id": "session_context",
+      "purpose": "Active build context and scaffolding state",
+      "retention": "session",
+      "description": "Cleared at session end"
+    }
+  ],
+  "permissions": [
+    "store_read",
+    "store_write",
+    "postgres_read",
+    "knowledge_write",
+    "local_llm",
+    "task_submit",
+    "pipeline"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-store",
+  "notes": "Vishwakarma is the divine architect of the SAFE ecosystem. Keeper, builder, guide, creator."
+}
