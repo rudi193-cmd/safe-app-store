@@ -11,6 +11,14 @@ from datetime import datetime
 
 # Willow via Pigeon bus — one drop point for all Willow interactions
 import safe_integration as _willow
+from consult_engine import build_prompt as _build_prompt_shared
+
+try:
+    import chat_db as _chat_db
+    _DB_AVAILABLE = True
+except ImportError:
+    _chat_db = None  # type: ignore[assignment]
+    _DB_AVAILABLE = False
 
 
 def _willow_context(query: str, limit: int = 3) -> str:
@@ -61,6 +69,21 @@ class ChatSession:
         # Load pre-seeded Willow memory for this professor (if available)
         self.professor_memory = self._load_professor_memory(professor_name)
 
+        # Postgres session row — None when DB is unavailable
+        self._db_session_id: Optional[int] = None
+        if _DB_AVAILABLE:
+            try:
+                conn = _chat_db.get_connection()
+                row = _chat_db.add_session(
+                    conn,
+                    faculty_member=professor_name,
+                    session_title=f"Session {session_id}",
+                )
+                self._db_session_id = row["id"]
+                _chat_db.release_connection(conn)
+            except Exception:
+                pass
+
     @classmethod
     def _load_professor_memory(cls, name: str) -> str:
         """Load pre-seeded Willow memory from data/professors/{name}_context.md."""
@@ -71,18 +94,20 @@ class ChatSession:
 
     def send_message(self, user_message: str) -> str:
         """Send a message to the professor and get response."""
-
-        # Add user message to history
         self.history.append({
             "role": "user",
             "content": user_message,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         })
 
-        # Build prompt with context
-        prompt = self._build_prompt(user_message)
+        willow_ctx = _willow_context(user_message)
+        prompt = _build_prompt_shared(
+            self.professor_name,
+            self.history,
+            professor_memory=self.professor_memory,
+            willow_context=willow_ctx,
+        )
 
-        # Get response from LLM
         if LLM_AVAILABLE:
             response = _fleet_ask(prompt, tier="free")
             if response:
@@ -95,51 +120,36 @@ class ChatSession:
             reply = f"[Demo mode - {self.professor_name} would respond here]"
             provider = "demo"
 
-        # Add response to history
         self.history.append({
             "role": "assistant",
             "content": reply,
             "timestamp": datetime.now().isoformat(),
             "professor": self.professor_name,
-            "provider": provider
+            "provider": provider,
         })
 
+        if self._db_session_id is not None:
+            try:
+                conn = _chat_db.get_connection()
+                _chat_db.add_message(
+                    conn,
+                    session_id=self._db_session_id,
+                    sender="user",
+                    role="user",
+                    content=user_message,
+                )
+                _chat_db.add_message(
+                    conn,
+                    session_id=self._db_session_id,
+                    sender=self.professor_name,
+                    role="assistant",
+                    content=reply,
+                )
+                _chat_db.release_connection(conn)
+            except Exception:
+                pass
+
         return reply
-
-    def _build_prompt(self, user_message: str) -> str:
-        """Build LLM prompt with professor persona and chat history."""
-
-        # Start with persona prompt
-        willow_ctx = _willow_context(user_message)
-        prompt_parts = [
-            self.persona_prompt,
-            "",
-            UTETY_CONTEXT,
-            "",
-        ]
-        # Inject professor-specific Willow memory (pre-seeded, stable context)
-        if self.professor_memory:
-            prompt_parts += [
-                f"### {self.professor_name}'s Willow Memory:",
-                self.professor_memory,
-                "",
-            ]
-        # Inject query-specific atoms (dynamic, per-message)
-        if willow_ctx:
-            prompt_parts += [willow_ctx, ""]
-        prompt_parts.append("### Conversation History:")
-
-        # Add recent history (last 10 messages for context)
-        recent_history = self.history[-10:] if len(self.history) > 10 else self.history
-        for msg in recent_history:
-            role = "User" if msg["role"] == "user" else self.professor_name
-            prompt_parts.append(f"{role}: {msg['content']}")
-
-        # Add current user message
-        prompt_parts.append(f"User: {user_message}")
-        prompt_parts.append(f"{self.professor_name}:")
-
-        return "\n".join(prompt_parts)
 
     def clear_history(self):
         """Clear conversation history (session data deleted)."""

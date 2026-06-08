@@ -14,3 +14,6 @@ dependencies = [
 
 [project.scripts]
 source-trail = "source_trail.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["source_trail*"]
