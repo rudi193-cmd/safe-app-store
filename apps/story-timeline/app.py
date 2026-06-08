@@ -2032,7 +2032,7 @@ class LibraryApp(App):
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
-if __name__ == "__main__":
+def main() -> None:
     uuid = safe_integration.get_user_uuid()
     if not uuid:
         sys.stderr.write(
@@ -2042,3 +2042,7 @@ if __name__ == "__main__":
     if boot["migrated"]:
         print(f"Migrated {boot['migrated']} v1 event(s).")
     LibraryApp(uuid=uuid).run()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,108 +1,227 @@
+@markdownai v1.0
+
 # Story Timeline
 
-> Writer tool for readers and writers. Local. Free. Willow-integrated.
+> A local-first writer's workbench in the terminal. Reading shelf, commonplace notebook, writing projects, named timelines — and a graph that ties it all together.
 
-Track your reading shelf, author research, project notes, and the connections between them — then wire commonplace material into named story timelines with provenance.
+---
 
-## What it does
+## What is it?
 
-- **Books tab** — reading shelf with Read / Reading / To Read / DNF counts, top tags, search
-- **Authors tab** — author nodes linked from imports or created manually
-- **Notes tab** — research notes, quotes, ideas (commonplace source material)
-- **Writing tab** — protocol writing projects, named timelines, and promoted timeline entries
-- **All Nodes tab** — every library entity type: book, author, note, project, theme, character, place, event
-- **Import** — Goodreads, StoryGraph, or LibraryThing CSV (`i` in TUI); creates author nodes + `written_by` edges
-- **Link** — searchable node picker + relation label (no UUID paste)
-- **Story protocol** — promote notes/books/ideas into timeline entries on named timelines (CLI)
-- **Willow edges** — graph relationships persist in SOIL when user identity is provisioned
+Story Timeline is a Textual TUI for writers who read seriously. It keeps your books, research notes, and writing projects in one place and lets you trace the line from source material to scene.
 
-## Run
+You keep a reading shelf. You keep a commonplace notebook — quotes, ideas, passages that matter. When you start a writing project you build named timelines (world chronology, draft beats, process log). Then you **promote** material: a note becomes a timeline entry with a provenance link back to the source. The graph is yours, local, and queryable.
+
+Willow integration is optional. When it's running you get cited Jeles research on any node, local SLM promotion suggestions, and edges stored in a personal SOIL graph. When it's not, the app still works as a fully self-contained SQLite library.
+
+---
+
+## Screenshots
+
+```
+┌─ Story Timeline ─────────────────────────────────────────────────────────────────┐
+│ Desk  Shelves  Authors  Commonplace  Timelines  Jeles Inbox  Constellation       │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│ READING SHELF                        │ NODE DETAIL                               │
+│ ┌──────────────────────────────────┐ │ ┌──────────────────────────────────────┐  │
+│ │ Title               Status  ★   │ │ │ The Name of the Rose                 │  │
+│ │ The Name of the Rose  Read   ★★★★│ │ │ Umberto Eco · 1980                   │  │
+│ │ Piranesi              Read   ★★★★│ │ │                                      │  │
+│ │ The Left Hand…        Reading    │ │ │ Tags: medieval, semiotics, mystery    │  │
+│ │ The Atlas Six         To Read    │ │ │ Linked: Umberto Eco (author)          │  │
+│ │ Piranesi              DNF        │ │ │        "Sign and meaning" (note)      │  │
+│ └──────────────────────────────────┘ │ │        "Medieval library" (note)      │  │
+│                        18 books       │ └──────────────────────────────────────┘  │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│  a add  e edit  d del  l link  p promote  j research  s suggest  i import  q quit│
+└──────────────────────────────────────────────────────────────────────────────────┘
+```
+
+```
+┌─ Story Timeline · Timelines ──────────────────────────────────────────────────────┐
+│ PROJECTS           │ TIMELINES               │ ENTRIES                             │
+│ ┌────────────────┐ │ ┌─────────────────────┐ │ ┌──────────────────────────────┐   │
+│ │ My Novel       │ │ │ World chronology    │ │ │ The Library Fire    [beat]   │   │
+│ │ Essay draft    │ │ │ Draft beats         │ │ │ First Signs         [beat]   │   │
+│ │ World Notes    │ │ │ Research log        │ │ │ Adso arrives        [scene]  │   │
+│ └────────────────┘ │ └─────────────────────┘ │ └──────────────────────────────┘   │
+│                    │                         │ provenance: "The Name of the Rose"  │
+└───────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Install
+
+Requires Python 3.10+. Works on Linux, macOS, Windows, and WSL.
+
+### Linux / macOS — one command
 
 ```bash
+./dev.sh
+```
+
+The launcher creates a venv at `~/.willow/apps/story-timeline/.venv`, installs dependencies, and starts the TUI. Run it again any time — it skips setup if the venv already exists.
+
+### Windows PowerShell
+
+```powershell
+.\dev.ps1
+```
+
+If PowerShell blocks local scripts:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+### Manual / any platform
+
+```bash
+python -m venv .venv
+source .venv/bin/activate       # Windows: .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python3 app.py
+python app.py
 ```
 
-Browser mirror (same codebase):
+### pip install (editable)
 
 ```bash
-textual serve app.py
+pip install -e .
+story-timeline
 ```
 
-CLI import (without TUI):
-
-```bash
-python3 import_csv.py ~/Downloads/goodreads_library_export.csv --authors
-```
-
-## Story protocol CLI
-
-Promote commonplace material into named timelines (multiple timelines per writing project):
-
-```bash
-# Create a writing project and timeline
-python3 promote.py create-project --title "My Novel"
-python3 promote.py create-timeline --project <project_id> --name "World chronology"
-
-# Promote a note or book into a timeline entry (provenance + edges)
-python3 promote.py promote <source_node_id> --timeline <timeline_id>
-python3 promote.py promote <source_node_id> --project <project_id> --timeline-name "World chronology"
-
-# Inspect
-python3 promote.py list-projects
-python3 promote.py list-timelines --project <project_id>
-python3 promote.py list-entries --timeline <timeline_id>
-```
+---
 
 ## Keys
 
 | Key | Action |
 |-----|--------|
-| `a` | Add node (template picker for book / author / note / project / …) |
-| `e` | Edit selected node |
-| `d` | Delete selected node |
-| `l` | Link selected node to another (search + relation) |
-| `p` | Promote selected note/book into a timeline |
-| `j` | Research selected note/book with Jeles (cited sources) |
-| `s` | Suggest promotion via local SLM + Jeles/KB context |
-| `v` | View node detail (Markdown review rendering, provenance) |
+| `a` | Add node — book, author, note, project, timeline, theme, character, place, event |
+| `e` | Edit selected |
+| `d` | Delete selected |
+| `l` | Link — searchable node picker + relation label |
+| `v` | View node detail (Markdown render, provenance chain) |
+| `p` | Promote selected note/book into a timeline entry |
+| `j` | Research selected node with Jeles (cited sources saved locally) |
+| `s` | Suggest promotion — SLM proposal, Jeles context, KB — you review and accept |
 | `i` | Import CSV (Goodreads / StoryGraph / LibraryThing) |
-| `/` | Focus search (Books tab) |
+| `o` | Export trip list + Goodreads CSV |
+| `/` | Search (Books tab) |
 | `r` | Refresh |
-| `q` | Quit (writes session composite to Willow) |
+| `h` / `?` | Help |
+| `q` | Quit (writes session composite to Willow if connected) |
+
+---
+
+## Import your reading history
+
+```bash
+# From inside the TUI — press i
+# Or from the command line:
+python import_csv.py ~/Downloads/goodreads_library_export.csv --authors
+```
+
+Supported: Goodreads, StoryGraph, LibraryThing. Creates author nodes and `written_by` edges automatically.
+
+---
+
+## Story protocol CLI
+
+Promote commonplace material into named timelines from the command line:
+
+```bash
+# Create a project and a timeline
+python promote.py create-project --title "My Novel"
+python promote.py create-timeline --project <project_id> --name "World chronology"
+
+# Promote a note or book into a timeline entry
+python promote.py promote <node_id> --timeline <timeline_id>
+python promote.py promote <node_id> --project <project_id> --timeline-name "World chronology"
+
+# Inspect
+python promote.py list-projects
+python promote.py list-timelines --project <project_id>
+python promote.py list-entries --timeline <timeline_id>
+```
+
+---
+
+## Browser mirror
+
+The same app runs in a browser tab — useful on small screens or for sharing a view:
+
+```bash
+textual serve app.py
+# or
+./dev.sh --serve
+```
+
+---
+
+## Willow integration (optional)
+
+When [Willow](https://github.com/yourusername/willow-2.0) is running locally:
+
+- **`j`** — Jeles research pulls cited sources for any node and saves a research packet
+- **`s`** — SLM suggestion gathers KB context, Jeles results, and local inference to propose a timeline promotion
+- Edges persist in a personal SOIL graph under `~/.willow/store/`
+- Session composite written on quit
+
+Without Willow, the TUI works fully — SQLite only, no graph edges, no Jeles.
+
+Set `STORY_TIMELINE_DISABLE_MCP=1` to explicitly skip MCP startup.
+
+---
 
 ## Data
 
-- **Nodes:** `~/.willow/store/story-timeline/timeline.db` — local SQLite (books, notes, library projects, protocol records)
-- **Edges:** `user-{uuid}/story-timeline/_graph/edges` — Willow SOIL graph (requires `~/.willow/user_identity.json`)
-- **Protocol collections:** `commonplace/`, `timelines/`, `timeline_entries/`, `atoms/` (provenance, session composite)
+| Path | Contents |
+|------|----------|
+| `~/.willow/store/story-timeline/timeline.db` | Local SQLite — books, notes, authors, projects, protocol records |
+| `~/.willow/store/user-{uuid}/story-timeline/` | Willow SOIL atoms — timelines, entries, provenance, session composites |
+| `~/.willow/story-timeline-mcp.log` | MCP stderr log |
 
-### Protocol record types
+Override the DB path for tests:
+
+```bash
+STORY_TIMELINE_DB=/tmp/test.db python app.py
+```
+
+---
+
+## Protocol record types
 
 | Type | Role |
 |------|------|
 | `commonplace_item` | Captured idea, quote, or research note |
 | `writing_project` | Container for a story, essay, world, or draft |
-| `timeline` | Named timeline under a project (world, draft, process) |
-| `timeline_entry` | Scene, beat, milestone, or fact on a timeline |
-| `provenance` | Atom linking an entry back to its source material |
+| `timeline` | Named timeline under a project |
+| `timeline_entry` | Scene, beat, milestone, or fact |
+| `provenance` | Link from a timeline entry back to its source material |
+| `session_composite` | Activity summary written at quit |
+| `slm_suggestion` | Pending or accepted SLM promotion proposals |
+| `research_packet` | Jeles-cited research attached to a library node |
 
-`project` remains a normal library/commonplace node. `writing_project` is only the protocol container used by the Writing tab and promotion flow.
+Standard relations: `derived_from`, `belongs_to_project`, `appears_on_timeline`, `inspired_by`, `supports_scene`, `contradicts_or_tensions_with`
 
-### Standard relations
+---
 
-`derived_from`, `belongs_to_project`, `appears_on_timeline`, `inspired_by`, `supports_scene`, `contradicts_or_tensions_with`
+## Why local-first?
 
-Override DB path for tests: `STORY_TIMELINE_DB=/tmp/timeline.db`
+Your reading history and writing notes are yours. Nothing leaves your machine unless you explicitly push it to Willow — and Willow is also local. The app works with no network, no accounts, no subscriptions.
 
-## Intelligence (Jeles + SLM)
+---
 
-Proposal-first assistance — nothing becomes canon until you accept.
+## Part of the SAFE App Store
 
-| Key | Action |
-|-----|--------|
-| `j` | Jeles research on selected note/book (cited sources saved locally) |
-| `s` | Suggest promotion — gathers Jeles + KB + local SLM, shows review modal |
+Story Timeline is one app in a local-first personal AI toolkit. The shared Willow layer lets apps find each other's atoms — Ask Jeles can surface research you saved here; the Binder can pick up provenance links. Each app owns its namespace; cross-app reads require explicit consent.
 
-Requires Willow MCP (`WILLOW_ROOT` + unified MCP) and optional Ollama for `infer_7b`.
-When MCP is offline, suggestions fall back to a local heuristic.
+---
+
+## Requirements
+
+- Python 3.10+
+- [Textual](https://github.com/Textualize/textual) 0.47+
+- `mcp` package (for Willow integration — gracefully skipped if absent)
+- Willow 2.0 (optional — Jeles research, SOIL graph, SLM suggestions)
