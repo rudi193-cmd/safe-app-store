@@ -16,7 +16,7 @@ from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
 from textual.widgets import (
     Button, DataTable, Footer, Header, Input, Label,
-    ListItem, ListView, Markdown, Static, TabbedContent,
+    ListItem, ListView, Markdown, Select, Static, TabbedContent,
     TabPane, TextArea, Tree,
 )
 
@@ -34,6 +34,21 @@ _SHELF_LABEL = {
     "currently-reading": "Reading",
     "to-read": "To Read",
     "dnf": "DNF",
+}
+
+LITERARY_TYPES = (
+    "book", "author", "note", "project", "theme", "character", "place", "event",
+)
+
+ENTITY_TEMPLATES = {
+    "book": "title: \nauthor: \nshelf: to-read\nrating: 0\ntags: \nreview: ",
+    "author": "name: \nnotes: ",
+    "note": "title: \ncontent: \ntags: ",
+    "project": "title: \nstatus: planning\nsummary: ",
+    "theme": "name: \nnotes: ",
+    "character": "name: \nrole: \nnotes: ",
+    "place": "name: \ndescription: ",
+    "event": "title: \nworld_date: \nsummary: ",
 }
 
 
@@ -197,8 +212,18 @@ class CreateNodeScreen(ModalScreen):
         if self._node:
             f = self._node.get("fields", {})
             existing_fields = "\n".join(f"{k}: {v}" for k, v in f.items())
-        yield Vertical(
+        else:
+            existing_fields = ENTITY_TEMPLATES.get(existing_type, "")
+        widgets = [
             Label("Edit Node" if self._node else "Create Node", id="modal-title"),
+        ]
+        if not self._node:
+            type_opts = [(t, t) for t in LITERARY_TYPES]
+            widgets += [
+                Label("Template"),
+                Select(type_opts, id="template-select", value=existing_type),
+            ]
+        widgets += [
             Label("Type  (book / author / note / theme / project / …)"),
             Input(value=existing_type, id="type-input"),
             Label("Fields — one  key: value  per line"),
@@ -207,11 +232,23 @@ class CreateNodeScreen(ModalScreen):
                 Button("Save", variant="primary", id="save-btn"),
                 Button("Cancel", id="cancel-btn"),
             ),
-            id="modal-content",
-        )
+        ]
+        yield Vertical(*widgets, id="modal-content")
 
     def on_mount(self) -> None:
-        self.query_one("#type-input", Input).focus()
+        if self._node:
+            self.query_one("#type-input", Input).focus()
+        else:
+            self.query_one("#template-select", Select).focus()
+
+    def on_select_changed(self, event: Select.Changed) -> None:
+        if event.select.id != "template-select":
+            return
+        type_ = str(event.value)
+        self.query_one("#type-input", Input).value = type_
+        fields = self.query_one("#fields-input", TextArea)
+        if not fields.text.strip():
+            fields.text = ENTITY_TEMPLATES.get(type_, "")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "cancel-btn":
@@ -325,6 +362,9 @@ class LibraryApp(App):
         super().__init__()
         self._uuid = uuid
         self._book_ids: list[str] = []
+        self._author_ids: list[str] = []
+        self._note_ids: list[str] = []
+        self._all_ids: list[str] = []
         self._shelf_filter: Optional[str] = None
         self._tag_filter: Optional[str] = None
         self._search: Optional[str] = None
@@ -473,7 +513,9 @@ class LibraryApp(App):
         table = self.query_one("#author-table", DataTable)
         table.clear(columns=True)
         table.add_columns("Name", "Notes")
-        for a in db.get_nodes(type_="author"):
+        authors = db.get_nodes(type_="author")
+        self._author_ids = [a["id"] for a in authors]
+        for a in authors:
             f = a["fields"]
             table.add_row(f.get("name", "—"), f.get("notes", "")[:60])
 
@@ -481,7 +523,9 @@ class LibraryApp(App):
         table = self.query_one("#notes-table", DataTable)
         table.clear(columns=True)
         table.add_columns("Title", "Preview")
-        for n in db.get_nodes(type_="note"):
+        notes = db.get_nodes(type_="note")
+        self._note_ids = [n["id"] for n in notes]
+        for n in notes:
             f = n["fields"]
             title = f.get("title") or f.get("name") or "—"
             preview = f.get("content") or f.get("summary") or ""
@@ -491,7 +535,9 @@ class LibraryApp(App):
         table = self.query_one("#all-table", DataTable)
         table.clear(columns=True)
         table.add_columns("Type", "Summary", "ID")
-        for n in db.get_nodes():
+        nodes = db.get_nodes()
+        self._all_ids = [n["id"] for n in nodes]
+        for n in nodes:
             table.add_row(n["type"], _node_title(n)[:60], n["id"][:16] + "…")
 
     # ── Helpers ───────────────────────────────────────────────────────────────
@@ -503,12 +549,24 @@ class LibraryApp(App):
         self._rebuild_notes_table()
         self._rebuild_all_table()
 
-    def _selected_book_node(self) -> Optional[dict]:
-        table = self.query_one("#node-table", DataTable)
+    def _selected_from_table(self, table_id: str, ids: list[str]) -> Optional[dict]:
+        table = self.query_one(table_id, DataTable)
         row = table.cursor_row
-        if row < 0 or row >= len(self._book_ids):
+        if row < 0 or row >= len(ids):
             return None
-        return db.get_node(self._book_ids[row])
+        return db.get_node(ids[row])
+
+    def _selected_node(self) -> Optional[dict]:
+        tab = self._active_tab()
+        if tab == "tab-books":
+            return self._selected_from_table("#node-table", self._book_ids)
+        if tab == "tab-authors":
+            return self._selected_from_table("#author-table", self._author_ids)
+        if tab == "tab-notes":
+            return self._selected_from_table("#notes-table", self._note_ids)
+        if tab == "tab-all":
+            return self._selected_from_table("#all-table", self._all_ids)
+        return None
 
     def _active_tab(self) -> str:
         try:
@@ -540,7 +598,7 @@ class LibraryApp(App):
         self.push_screen(CreateNodeScreen(default_type=self._default_type_for_tab()), on_dismiss)
 
     def action_edit_node(self) -> None:
-        node = self._selected_book_node()
+        node = self._selected_node()
         if not node:
             return
         def on_dismiss(result):
@@ -551,13 +609,13 @@ class LibraryApp(App):
         self.push_screen(CreateNodeScreen(node=node), on_dismiss)
 
     def action_delete_node(self) -> None:
-        node = self._selected_book_node()
+        node = self._selected_node()
         if node and db.delete_node(node["id"]):
             self._refresh_all()
             self.notify("Deleted.")
 
     def action_link_node(self) -> None:
-        node = self._selected_book_node()
+        node = self._selected_node()
         if not node:
             return
 
@@ -579,7 +637,7 @@ class LibraryApp(App):
         self.push_screen(NodePickerScreen(), on_picker)
 
     def action_view_node(self) -> None:
-        node = self._selected_book_node()
+        node = self._selected_node()
         if not node:
             return
         edges = willow_edges.edges_for(node["id"], uuid=self._uuid)
@@ -594,11 +652,18 @@ class LibraryApp(App):
                 self.notify(f"Not found: {path}", severity="error")
                 return
             import import_csv
-            r = import_csv.run_import(path, source=result.get("source"))
-            self._refresh_all()
-            self.notify(
-                f"Imported {r['imported']} · Skipped {r['skipped']} · Errors {r['errors']}"
+            r = import_csv.run_import(
+                path,
+                source=result.get("source"),
+                create_authors=True,
+                uuid=self._uuid,
             )
+            self._refresh_all()
+            msg = (
+                f"Imported {r['imported']} · Skipped {r['skipped']} · "
+                f"Errors {r['errors']} · Authors {r.get('author_nodes', 0)}"
+            )
+            self.notify(msg)
         self.push_screen(ImportScreen(), on_dismiss)
 
     def action_focus_search(self) -> None:

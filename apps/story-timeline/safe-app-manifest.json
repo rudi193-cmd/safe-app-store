@@ -1,7 +1,7 @@
 {
   "name": "story-timeline",
   "version": "2.0.0",
-  "description": "Open node graph writing tool. Any entity type, user-defined. Local, private, Willow-integrated.",
+  "description": "Literary knowledge base — reading shelf, author research, notes, projects, and Willow graph edges. Local, private, Textual TUI.",
   "author": "Professor Oakenscroll / Vishwakarma",
   "entry_point": "app.py",
   "permissions": [
