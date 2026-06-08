@@ -10,7 +10,20 @@ import pytest
 from pathlib import Path
 
 _APP_PATH = str(Path(__file__).parents[2] / "apps" / "story-timeline")
-_CONFLICT_MODULES = {"migrate", "safe_integration", "timeline_db", "willow_edges", "app", "import_csv"}
+_CONFLICT_MODULES = {
+    "migrate",
+    "safe_integration",
+    "timeline_db",
+    "willow_edges",
+    "story_protocol",
+    "soil_protocol",
+    "promote",
+    "mcp_client",
+    "suggestion_store",
+    "intelligence",
+    "app",
+    "import_csv",
+}
 
 
 @pytest.fixture(autouse=True)
