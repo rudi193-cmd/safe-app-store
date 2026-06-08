@@ -61,6 +61,19 @@ def add_node(type_: str, fields: dict) -> str:
         conn.close()
 
 
+def add_node_with_id(node_id: str, type_: str, fields: dict) -> str:
+    conn = _conn()
+    try:
+        conn.execute(
+            "INSERT OR IGNORE INTO nodes (id, type, fields) VALUES (?, ?, ?)",
+            (node_id, type_, json.dumps(fields))
+        )
+        conn.commit()
+        return node_id
+    finally:
+        conn.close()
+
+
 def get_node(node_id: str) -> Optional[dict]:
     conn = _conn()
     try:
