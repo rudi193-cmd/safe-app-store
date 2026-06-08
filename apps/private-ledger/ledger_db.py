@@ -19,7 +19,12 @@ from typing import Optional, List, Dict, Any
 _WILLOW_CORE = os.environ.get("WILLOW_CORE", os.path.expanduser("~/github/Willow/core"))
 if _WILLOW_CORE not in sys.path:
     sys.path.insert(0, _WILLOW_CORE)
-from user_lattice import DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE
+try:
+    from user_lattice import DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE
+except ImportError:
+    # Standalone mode: no Willow checkout. Fall back to app-local constants.
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from lattice_fallback import DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE
 
 # ---------------------------------------------------------------------------
 # Connection
