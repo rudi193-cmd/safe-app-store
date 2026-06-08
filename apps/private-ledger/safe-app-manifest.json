@@ -41,7 +41,7 @@
   ],
   "privacy_tier": "client_only",
   "local_processing": 0.96,
-  "entry_point": "safe_integration:status",
+  "entry_point": "private_ledger.app:main",
   "license": "MIT",
   "repository": "https://github.com/rudi193-cmd/safe-app-private-ledger"
 }
