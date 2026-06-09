@@ -10,7 +10,7 @@
 
 | Name | Role |
 |------|------|
-| **Sean Campbell** | Founder, architect, author of the Gerald dispatches, witness |
+| **USER** | Founder, architect, author of the Gerald dispatches, witness |
 
 ---
 

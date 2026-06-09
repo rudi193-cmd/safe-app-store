@@ -6,7 +6,7 @@
   "b17": "H7864",
   "agent_type": "tool",
   "description": "Local personal budgeting companion \u2014 fully private, no cloud sync, paired with Public Ledger.",
-  "author": "Sean Campbell",
+  "author": "USER",
   "data_streams": [
     {
       "id": "llm_queries",

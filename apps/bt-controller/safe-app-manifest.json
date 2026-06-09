@@ -6,7 +6,7 @@
   "b17": "9E0H3",
   "agent_type": "tool",
   "description": "Web Bluetooth device manager — bypass Windows BT stack",
-  "author": "Sean Campbell",
+  "author": "USER",
   "agent": "kart",
   "trust": "ENGINEER",
   "permissions": ["bluetooth"],

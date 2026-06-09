@@ -223,7 +223,7 @@ This isn't a problem to "fix" — it was a **strategic choice**, and we've made 
 - **TUI-only** for most of the suite — no mobile/browser path for non-terminal users.
 
 ### 5.5 Honesty / public-repo risks (ties to the earlier public-facing audit)
-- **law-gazelle** embeds **real legal case numbers** and "Sean's active legal matters" in its manifest
+- **law-gazelle** embeds **real legal case numbers** and "USER's active legal matters" in its manifest
   description, in a **public** repo. Recommend genericizing the manifest (data already lives outside git).
 - **nasa-archive** — the name is a **deliberate backronym** (**N**orth **A**merica **S**cootering
   **A**rchive) and is being kept. *However*, the `safe-app-manifest.json` description text still claims

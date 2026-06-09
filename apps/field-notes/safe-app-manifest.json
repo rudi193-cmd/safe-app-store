@@ -6,7 +6,7 @@
   "b17": "H9EL2",
   "agent_type": "tool",
   "description": "Quick-capture notebook for observations, ideas, and research notes. Feeds into The Binder.",
-  "author": "Sean Campbell",
+  "author": "USER",
   "data_streams": [
     {
       "id": "llm_queries",

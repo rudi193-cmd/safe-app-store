@@ -41,7 +41,7 @@ This document is a personality schema that defines an AI system named Willow. It
 
 | Field | Value |
 |-------|-------|
-| Owner | Sean Campbell |
+| Owner | USER |
 | Ve
 
 ## file_0000000096d471fd88b257261fb85abc-1000010136.jpg

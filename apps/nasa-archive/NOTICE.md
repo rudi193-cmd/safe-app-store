@@ -20,7 +20,7 @@ For files containing both code and documentation:
 
 ## Attribution
 
-**Copyright (c) 2025-2026 Sean Campbell**
+**Copyright (c) 2025-2026 USER**
 
 Contact: https://github.com/rudi193-cmd
 
@@ -33,7 +33,7 @@ All licensing terms in this repository are negotiable.
 Any party seeking commercial use, modified redistribution, or alternative
 arrangements may initiate negotiations with the project steward.
 
-**Negotiation requires written consent from Sean Campbell.**
+**Negotiation requires written consent from USER.**
 
 No alternative terms are implied, assumed, or granted without explicit
 written agreement. Existing license terms apply until superseded by

@@ -1,6 +1,6 @@
 # The Squirrel — Full-Stack Genealogical App Design
 **Date:** 2026-04-15
-**Status:** Approved (conversational brainstorm with Sean Campbell)
+**Status:** Approved (conversational brainstorm with USER)
 
 ---
 

@@ -310,10 +310,10 @@ class PreTrainingPipeline:
         Import scootering narrative atoms from Willow's knowledge table
         (schema sweet_pea_rudi19, table knowledge / knowledge_entities).
 
-        Confidence weighting by graph distance from Sean Campbell entity[2]:
-          Direct Sean connection -> oral_history_consented, high
-          1-hop (atoms sharing an entity with Sean's atoms) -> public_record, medium
-          No Sean connection -> public_record, low
+        Confidence weighting by graph distance from USER entity[2]:
+          Direct USER connection -> oral_history_consented, high
+          1-hop (atoms sharing an entity with USER's atoms) -> public_record, medium
+          No USER connection -> public_record, low
 
         Returns dict with inserted counts per table.
         """
@@ -392,13 +392,13 @@ class PreTrainingPipeline:
 
         sean_in_batch = sum(1 for a in atoms if a["id"] in sean_atom_ids)
         log.info(
-            "Willow import: %d scootering atoms (%d Sean-direct, %d 1-hop, %d other)",
+            "Willow import: %d scootering atoms (%d USER-direct, %d 1-hop, %d other)",
             len(atoms), sean_in_batch,
             sum(1 for a in atoms if a["id"] in hop1_ids),
             sum(1 for a in atoms if a["id"] not in sean_atom_ids and a["id"] not in hop1_ids),
         )
 
-        # -- Upsert Sean's oral_persons record (narrator anchor) --------------
+        # -- Upsert USER's oral_persons record (narrator anchor) --------------
 
         sean_narrator_id: str | None = None
         if not self.dry_run:

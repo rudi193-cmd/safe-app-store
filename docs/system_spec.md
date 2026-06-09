@@ -472,7 +472,7 @@ Cerebras (fast, cheap — holds Loki persona on small models)
         ↓
 Grove: posted as `loki` sender
         ↓
-Full Claude session (expensive, rare — only when Sean wants depth)
+Full Claude session (expensive, rare — only when USER wants depth)
 ```
 
 **Cerebras system prompt:**

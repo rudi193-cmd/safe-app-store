@@ -1,6 +1,6 @@
 # Gerald split — lore vs chat (ratified 2026-05-26)
 
-Sean: scope **2 + 4** — reference corpus + split identity — **not** installed as card personas in utety-chat.
+USER: scope **2 + 4** — reference corpus + split identity — **not** installed as card personas in utety-chat.
 
 ## Two Gerals, one universe
 

@@ -7,7 +7,7 @@
   "legacy_b17": "EC768",
   "agent_type": "tool",
   "description": "Genealogy research terminal. Collect fragments, build the tree, find what's misfiled. Jeles works the desk. The Binder works the back.",
-  "author": "Sean Campbell",
+  "author": "USER",
   "data_streams": [
     {
       "id": "pii_family_history",

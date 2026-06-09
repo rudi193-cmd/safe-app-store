@@ -18,8 +18,8 @@ Environment variables:
   WILLOW_USERNAME Willow username whose knowledge schema to read        (default: Sweet-Pea-Rudi19)
 
 Confidence weighting (same model as NASA Archive):
-  Sean-direct atom (entity[2] tagged) -> HIGH
-  1-hop atom (shares entity with Sean atom) -> MEDIUM
+  USER-direct atom (entity[2] tagged) -> HIGH
+  1-hop atom (shares entity with USER atom) -> MEDIUM
   Other -> LOW
 """
 

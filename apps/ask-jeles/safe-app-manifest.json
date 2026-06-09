@@ -6,7 +6,7 @@
   "b17": "L5509",
   "agent_type": "tool",
   "description": "Jeles, your local-first AI librarian. Search Willow/Binder first, then open web, maps, and Special Collections; build topic quizzes and optional session-consented learning events.",
-  "author": "Sean Campbell",
+  "author": "USER",
   "data_streams": [
     {
       "id": "queries",

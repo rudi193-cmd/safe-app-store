@@ -6,7 +6,7 @@
   "b17": "98LAL",
   "agent_type": "app",
   "description": "Chat with UTETY professors - privacy-first conversational AI",
-  "author": "Sean Campbell",
+  "author": "USER",
   "data_streams": [
     {
       "id": "chat_history",

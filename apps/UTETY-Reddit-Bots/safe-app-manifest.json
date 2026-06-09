@@ -6,7 +6,7 @@
   "b17": "6HANC",
   "agent_type": "bot",
   "description": "Reddit bots for the UTETY University faculty. Each bot is a Devvit app installed per-subreddit.",
-  "author": "Sean Campbell",
+  "author": "USER",
   "data_streams": [],
   "permissions": [
     "knowledge:read"

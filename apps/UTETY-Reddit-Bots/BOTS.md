@@ -122,4 +122,4 @@ All 4 triggers live and passing. Do not redeploy without explicit instruction.
 - **One appearance per post** per bot (except explicit summons, which bypass the per-post cap)
 - **Daily sub cap** — both bots track appearances per subreddit per day
 - **Never post as themselves** to a post authored by the bot account
-- `devvit publish` requires explicit Sean gate — do not run without confirmation
+- `devvit publish` requires explicit USER gate — do not run without confirmation

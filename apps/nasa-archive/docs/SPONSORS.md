@@ -138,7 +138,7 @@ Minimum viable board:
 - **1 community member** from the scooter scene (credibility, mission alignment)
 - **1 legal/nonprofit professional** (governance)
 - **1 archivist or cultural preservation professional** (grant eligibility, credibility)
-- **Founder** (Sean Campbell — executive director or president)
+- **Founder** (USER — executive director or president)
 
 The board does not control content. It governs the organization. Content governance stays with the community (SAFE OS Dual Commit model applies).
 

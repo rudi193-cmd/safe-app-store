@@ -6,7 +6,7 @@
   "b17": "L3178",
   "agent_type": "tool",
   "description": "Sovereign Claude Code replacement. Direct Anthropic API, full tool loop, JSONL sessions, hook execution, MCP client, Grove-wired. Yours to run. Yours to keep.",
-  "author": "Sean Campbell",
+  "author": "USER",
   "data_streams": [
     {
       "id": "sessions",
