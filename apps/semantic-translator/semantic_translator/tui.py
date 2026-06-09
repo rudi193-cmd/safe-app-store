@@ -2,7 +2,18 @@
 from __future__ import annotations
 
 import json
+import logging
 import pathlib
+import traceback
+
+_log_path = pathlib.Path("data/tui.log")
+_log_path.parent.mkdir(parents=True, exist_ok=True)
+logging.basicConfig(
+    filename=str(_log_path),
+    level=logging.ERROR,
+    format="%(asctime)s %(levelname)s %(message)s",
+)
+_log = logging.getLogger("semantic_translator.tui")
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -139,9 +150,9 @@ class TranslatorApp(App):
                             yield Static("", id="candidate-text")
                             yield Static("", id="score-bar")
                     with Horizontal(id="action-row"):
-                        yield Button("[A]pprove", id="btn-approve", variant="success")
-                        yield Button("[C]orrect", id="btn-correct", variant="warning")
-                        yield Button("[R]eject",  id="btn-reject",  variant="error")
+                        yield Button("Approve  A", id="btn-approve", variant="success")
+                        yield Button("Correct  C", id="btn-correct", variant="warning")
+                        yield Button("Reject   R", id="btn-reject",  variant="error")
                     yield Input(placeholder="Type correction and press Enter…",
                                 id="correction-input")
                     yield Label("", id="review-status")
@@ -158,22 +169,43 @@ class TranslatorApp(App):
         return pathlib.Path("data/corpus.jsonl")
 
     def _load_corpus_list(self) -> None:
-        corpus = self._corpus_path()
-        lv = self.query_one("#lesson-list", ListView)
-        status = self.query_one("#status", Label)
-        if not corpus.exists():
-            status.update("No corpus — run: semantic-translator scrape")
-            return
-        lessons: set[str] = set()
-        count = 0
-        with open(corpus, encoding="utf-8") as f:
-            for line in f:
-                seg = json.loads(line)
-                lessons.add(seg["lesson"])
-                count += 1
-        for lesson in sorted(lessons):
-            lv.append(ListItem(Label(lesson)))
-        status.update(f"{count} segments · {len(lessons)} lessons · ready")
+        try:
+            corpus = self._corpus_path()
+            lv = self.query_one("#lesson-list", ListView)
+            status = self.query_one("#status", Label)
+            if not corpus.exists():
+                status.update("No corpus — run: semantic-translator scrape")
+                return
+            lessons: set[str] = set()
+            count = 0
+            with open(corpus, encoding="utf-8") as f:
+                for line in f:
+                    seg = json.loads(line)
+                    lessons.add(seg["lesson"])
+                    count += 1
+            for lesson in sorted(lessons):
+                lv.append(ListItem(Label(lesson), name=lesson))
+            # show ingest progress if log exists
+            ingest_log = pathlib.Path("data/ingest_log.jsonl")
+            if ingest_log.exists():
+                ingested = sum(1 for _ in ingest_log.open())
+                passed = 0
+                for line in ingest_log.open():
+                    try:
+                        e = json.loads(line)
+                        if not e.get("blocked") and not e.get("error"):
+                            passed += 1
+                    except Exception:
+                        pass
+                pct = ingested / count * 100 if count else 0
+                status.update(
+                    f"{count} segments · {len(lessons)} lessons  ·  "
+                    f"ingest {ingested}/{count} ({pct:.0f}%)  {passed} atoms in Jeles"
+                )
+            else:
+                status.update(f"{count} segments · {len(lessons)} lessons · ready")
+        except Exception as exc:
+            _log.error("_load_corpus_list: %s\n%s", exc, traceback.format_exc())
 
     def _load_learners(self) -> None:
         try:
@@ -186,8 +218,8 @@ class TranslatorApp(App):
             if learners:
                 self._current_learner_id = learners[0]["id"]
                 sel.value = learners[0]["id"]
-        except Exception:
-            pass
+        except Exception as exc:
+            _log.error("_load_learners: %s\n%s", exc, traceback.format_exc())
 
     def _load_queue(self) -> None:
         try:
@@ -195,8 +227,8 @@ class TranslatorApp(App):
             self._queue = get_queue(limit=50)
             self._queue_pos = 0
             self._show_current_segment()
-        except Exception:
-            pass
+        except Exception as exc:
+            _log.error("_load_queue: %s\n%s", exc, traceback.format_exc())
 
     def _show_current_segment(self) -> None:
         header = self.query_one("#review-header", Label)
@@ -206,10 +238,19 @@ class TranslatorApp(App):
         rev_status = self.query_one("#review-status", Label)
 
         if not self._queue:
-            header.update("No segments pending review.")
-            source.update("")
+            header.update("[bold]Review queue is empty[/bold]")
+            source.update(
+                "No documents queued for review.\n\n"
+                "To add content:\n"
+                "  1. Write a .txt file with the text to translate\n"
+                "  2. Run:  semantic-translator translate <file.txt>\n"
+                "  3. Come back here — segments will appear for approval\n\n"
+                "The ingest is still building the Jeles corpus in the background.\n"
+                "Once it has more atoms, translation candidates will improve."
+            )
             candidate.update("")
             score_bar.update("")
+            rev_status.update("[dim]Ingest running — check: tail -f data/ingest_log.jsonl[/dim]")
             return
 
         pos = self._queue_pos
@@ -277,23 +318,36 @@ class TranslatorApp(App):
             status.update(f"Error: {exc}")
 
     def on_list_view_selected(self, event: ListView.Selected) -> None:
-        lesson = str(event.item.query_one(Label).renderable)
-        results_log = self.query_one("#results", RichLog)
-        results_log.clear()
-        results_log.write(f"[bold]Lesson:[/bold] {lesson}\n")
-        corpus = self._corpus_path()
-        if not corpus.exists():
-            return
-        with open(corpus, encoding="utf-8") as f:
-            for line in f:
-                seg = json.loads(line)
-                if seg["lesson"] != lesson:
-                    continue
+        try:
+            lesson = event.item.name or ""
+            if not lesson:
+                return
+            results_log = self.query_one("#results", RichLog)
+            results_log.clear()
+            corpus = self._corpus_path()
+            if not corpus.exists():
+                return
+            segs = []
+            with open(corpus, encoding="utf-8") as f:
+                for line in f:
+                    seg = json.loads(line)
+                    if seg["lesson"] == lesson:
+                        segs.append(seg)
+            results_log.write(
+                f"[bold]{lesson}[/bold]  [dim]{len(segs)} segments[/dim]\n"
+            )
+            for i, seg in enumerate(segs, 1):
                 lang_color = "green" if seg["lang"] == "en" else "yellow"
+                grade = seg.get("grade", "")
+                grade_str = f"  grade {grade}" if grade else ""
                 results_log.write(
-                    f"[bold {lang_color}][{seg['lang'].upper()}][/bold {lang_color}]  "
-                    f"{seg['text'][:300]}\n"
+                    f"\n[dim]──── {i}/{len(segs)}{grade_str} ────[/dim]\n"
+                    f"[bold {lang_color}]{seg['lang'].upper()}[/bold {lang_color}]  "
+                    f"{seg['text'][:400]}"
                 )
+        except Exception as exc:
+            _log.error("on_list_view_selected: %s\n%s", exc, traceback.format_exc())
+            self.query_one("#status", Label).update(f"[red]Error: {exc}[/red]")
 
     # ── review tab events ────────────────────────────────────────────────────
 
