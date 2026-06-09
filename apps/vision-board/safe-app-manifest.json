@@ -6,7 +6,7 @@
   "b17": "91HH8",
   "agent_type": "tool",
   "description": "Visual goal and intention tracking. Pin images, set categories, and build a private vision board — no cloud, no account.",
-  "author": "Sean Campbell",
+  "author": "USER",
   "data_streams": [
     {
       "id": "board_state",

@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "safe-app-utety-chat"
 version = "1.0.0"
 description = "Chat with UTETY professors - privacy-first conversational AI for SAFE framework"
-authors = [{name = "Sean Campbell"}]
+authors = [{name = "USER"}]
 requires-python = ">=3.10"
 license = {text = "MIT"}
 readme = "README.md"

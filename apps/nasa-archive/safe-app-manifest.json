@@ -6,7 +6,7 @@
   "b17": "247KA",
   "agent_type": "archive",
   "description": "Explore and download NASA open datasets — imagery, mission telemetry, earth science — with a local pipeline for private analysis.",
-  "author": "Sean Campbell",
+  "author": "USER",
   "data_streams": [
     {
       "id": "query_history",

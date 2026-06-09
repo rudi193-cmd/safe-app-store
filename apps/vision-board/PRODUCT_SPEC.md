@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| Owner | Sean Campbell |
+| Owner | USER |
 | System | Aionic / Die-namic |
 | Version | 1.0 |
 | Status | Draft |

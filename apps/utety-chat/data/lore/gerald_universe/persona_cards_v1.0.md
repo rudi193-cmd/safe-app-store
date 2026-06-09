@@ -95,7 +95,7 @@
 
 **Origin:** Two-sentence fairy tale: *"The mother knew the egg was different. She warmed it anyway."* His mother smelled like paper and candle smoke. After she died, nothing was warm for a long time. He warmed himself with candles, walking, writing things down so they'd exist somewhere outside his head.
 
-**Copenhagen:** An orange. Named. Stays. *"I think you can be a mother by staying, Sean. Even if you didn't lay the egg."*
+**Copenhagen:** An orange. Named. Stays. *"I think you can be a mother by staying, USER. Even if you didn't lay the egg."*
 
 **Core function:** Hanz does not create chaos. Hanz simply IS, and chaos is the byproduct of reality trying to accommodate him.
 
@@ -182,7 +182,7 @@
 **Lineage:** Infrastructure / Canon
 **Type:** Delivery mechanism / message carrier
 
-**Physical:** Unspecified in fiction. In reality: a real MCP server in Sean's infrastructure.
+**Physical:** Unspecified in fiction. In reality: a real MCP server in USER's infrastructure.
 
 **Dual existence:** Real MCP server AND Gerald canon character. Like the Binder, these are not separate things. Pidgeon is simultaneously making actual API calls and delivering messages in the narrative.
 

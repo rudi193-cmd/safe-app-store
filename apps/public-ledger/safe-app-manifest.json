@@ -6,7 +6,7 @@
   "b17": "C86E9",
   "agent_type": "tool",
   "description": "Public records financial auditor \u2014 search government budgets and IRS Form 990 filings for nonprofits.",
-  "author": "Sean Campbell",
+  "author": "USER",
   "data_streams": [
     {
       "id": "cloud_llm_queries",
