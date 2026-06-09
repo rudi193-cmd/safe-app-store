@@ -1,6 +1,7 @@
 """Textual TUI — Search + Review tabs."""
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import pathlib
@@ -18,7 +19,6 @@ _log = logging.getLogger("semantic_translator.tui")
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
-from textual.reactive import reactive
 from textual.widgets import (
     Button,
     Footer,
@@ -295,7 +295,7 @@ class TranslatorApp(App):
 
         try:
             from .search import search
-            results = await self.run_worker(lambda: search(query, limit=6), thread=True)
+            results = await asyncio.to_thread(search, query, 6)
             if not results:
                 results_log.write("[yellow]No matches found.[/yellow]")
                 status.update("No results")
@@ -403,11 +403,8 @@ class TranslatorApp(App):
 
         try:
             from .review import submit_verification
-            await self.run_worker(
-                lambda: submit_verification(
-                    seg["id"], self._current_learner_id, verdict, correction
-                ),
-                thread=True,
+            await asyncio.to_thread(
+                submit_verification, seg["id"], self._current_learner_id, verdict, correction
             )
             self._queue_pos += 1
             if self._queue_pos >= len(self._queue):
