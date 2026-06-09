@@ -101,22 +101,50 @@ REVIEW_CSS = """
 #learner-select { width: 40; }
 """
 
+LEARN_CSS = """
+#learn-container { padding: 1 2; height: 1fr; }
+#learn-stats { height: 3; color: $text-muted; padding: 0 0 1 0; }
+#flashcard {
+    height: 1fr;
+    border: solid $primary-darken-2;
+    padding: 2 3;
+}
+#card-front-label { color: $accent; text-style: bold; margin-bottom: 1; }
+#card-front-text  { margin-bottom: 2; }
+#card-back-label  { color: $success; text-style: bold; margin-bottom: 1; }
+#card-hint        { color: $text-muted; margin-top: 2; }
+#rating-row       { height: 5; padding: 1 0; align: center middle; display: none; }
+#rating-row.visible { display: block; }
+#btn-again { margin: 0 1; }
+#btn-hard  { margin: 0 1; }
+#btn-good  { margin: 0 1; }
+#btn-easy  { margin: 0 1; }
+#learn-status { height: 1; color: $text-muted; padding: 0 1; }
+"""
+
 
 class TranslatorApp(App):
     TITLE = "Semantic Translator — Emerging Rule"
-    CSS = SEARCH_CSS + REVIEW_CSS
+    CSS = SEARCH_CSS + REVIEW_CSS + LEARN_CSS
     BINDINGS = [
         Binding("ctrl+q", "quit", "Quit"),
         Binding("ctrl+l", "clear_results", "Clear"),
         Binding("escape", "blur_input", "Blur"),
         Binding("1", "show_search", "Search"),
         Binding("2", "show_review", "Review"),
+        Binding("3", "show_learn",  "Learn"),
+        Binding("space", "flip_card", "Flip"),
     ]
 
     # Review state
     _queue: list[dict] = []
     _queue_pos: int = 0
     _current_learner_id: str = ""
+
+    # Learn state
+    _study_queue: list[dict] = []
+    _study_pos: int = 0
+    _card_flipped: bool = False
 
     # ── compose ─────────────────────────────────────────────────────────────
 
@@ -156,6 +184,21 @@ class TranslatorApp(App):
                     yield Input(placeholder="Type correction and press Enter…",
                                 id="correction-input")
                     yield Label("", id="review-status")
+            with TabPane("Learn [3]", id="tab-learn"):
+                with Vertical(id="learn-container"):
+                    yield Label("", id="learn-stats")
+                    with Vertical(id="flashcard"):
+                        yield Label("FRONT", id="card-front-label")
+                        yield Static("", id="card-front-text")
+                        yield Label("", id="card-back-label")
+                        yield Static("", id="card-back-text")
+                        yield Static("", id="card-hint")
+                    with Horizontal(id="rating-row"):
+                        yield Button("Again  1", id="btn-again", variant="error")
+                        yield Button("Hard   2", id="btn-hard",  variant="warning")
+                        yield Button("Good   3", id="btn-good",  variant="success")
+                        yield Button("Easy   4", id="btn-easy",  variant="primary")
+                    yield Label("", id="learn-status")
         yield Footer()
 
     # ── mount ───────────────────────────────────────────────────────────────
@@ -164,6 +207,7 @@ class TranslatorApp(App):
         self._load_corpus_list()
         self._load_learners()
         self._load_queue()
+        self._load_study_queue()
 
     def _corpus_path(self) -> pathlib.Path:
         return pathlib.Path("data/corpus.jsonl")
@@ -354,11 +398,26 @@ class TranslatorApp(App):
     def on_select_changed(self, event: Select.Changed) -> None:
         if event.select.id == "learner-select" and event.value:
             self._current_learner_id = str(event.value)
+            self._load_study_queue()
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
+        btn_id = event.button.id
+        # Learn tab ratings
+        if btn_id == "btn-again":
+            await self._submit_rating(1)
+            return
+        if btn_id == "btn-hard":
+            await self._submit_rating(2)
+            return
+        if btn_id == "btn-good":
+            await self._submit_rating(3)
+            return
+        if btn_id == "btn-easy":
+            await self._submit_rating(4)
+            return
+        # Review tab
         if not self._queue or self._queue_pos >= len(self._queue):
             return
-        btn_id = event.button.id
         if btn_id == "btn-approve":
             await self._submit_verdict("approved")
         elif btn_id == "btn-correct":
@@ -369,6 +428,17 @@ class TranslatorApp(App):
             await self._submit_verdict("rejected")
 
     async def on_key(self, event) -> None:
+        tab = self.query_one(TabbedContent)
+        if tab.active == "tab-learn":
+            if event.key == "1":
+                await self._submit_rating(1)
+            elif event.key == "2":
+                await self._submit_rating(2)
+            elif event.key == "3":
+                await self._submit_rating(3)
+            elif event.key == "4":
+                await self._submit_rating(4)
+            return
         if event.key == "a":
             await self._try_quick_verdict("approved")
         elif event.key == "r":
@@ -414,6 +484,109 @@ class TranslatorApp(App):
         except Exception as exc:
             status.update(f"[red]Error: {exc}[/red]")
 
+    # ── learn tab ────────────────────────────────────────────────────────────
+
+    def _load_study_queue(self) -> None:
+        try:
+            if not self._current_learner_id:
+                return
+            from .learn import get_study_queue, seed_cards, study_stats
+            seeded = seed_cards(self._current_learner_id)
+            self._study_queue = get_study_queue(self._current_learner_id, limit=30)
+            self._study_pos = 0
+            self._card_flipped = False
+            self._show_current_card()
+            self._refresh_learn_stats()
+        except Exception as exc:
+            _log.error("_load_study_queue: %s\n%s", exc, traceback.format_exc())
+
+    def _refresh_learn_stats(self) -> None:
+        try:
+            if not self._current_learner_id:
+                return
+            from .learn import study_stats
+            stats = study_stats(self._current_learner_id)
+            self.query_one("#learn-stats", Label).update(
+                f"Due: [bold]{stats['due']}[/bold]  "
+                f"New: [bold]{stats['new']}[/bold]  "
+                f"Total cards: [bold]{stats['total']}[/bold]  "
+                f"Studied today: [bold]{stats['studied_today']}[/bold]"
+            )
+        except Exception as exc:
+            _log.error("_refresh_learn_stats: %s\n%s", exc, traceback.format_exc())
+
+    def _show_current_card(self) -> None:
+        front_label  = self.query_one("#card-front-label", Label)
+        front_text   = self.query_one("#card-front-text", Static)
+        back_label   = self.query_one("#card-back-label", Label)
+        back_text    = self.query_one("#card-back-text", Static)
+        hint         = self.query_one("#card-hint", Static)
+        rating_row   = self.query_one("#rating-row")
+        learn_status = self.query_one("#learn-status", Label)
+
+        if not self._study_queue:
+            front_label.update("All caught up!")
+            front_text.update(
+                "No cards due right now.\n\n"
+                "Add a learner first:  semantic-translator learner add <name>\n"
+                "Then cards seed automatically from the corpus and Jeles atoms."
+            )
+            back_label.update("")
+            back_text.update("")
+            hint.update("")
+            rating_row.remove_class("visible")
+            learn_status.update("")
+            return
+
+        if self._study_pos >= len(self._study_queue):
+            front_label.update("[bold green]Session complete![/bold green]")
+            front_text.update(f"Reviewed {len(self._study_queue)} cards this session.")
+            back_label.update("")
+            back_text.update("")
+            hint.update("")
+            rating_row.remove_class("visible")
+            learn_status.update("")
+            return
+
+        card = self._study_queue[self._study_pos]
+        remaining = len(self._study_queue) - self._study_pos
+        lang_front = card.get("lang_front", "en").upper()
+        lang_back  = card.get("lang_back", "es").upper()
+        lesson = card.get("lesson", "")
+
+        front_label.update(f"{lang_front}  [dim]— {lesson}[/dim]")
+        front_text.update(card.get("front", "[dim]no content[/dim]"))
+
+        if self._card_flipped:
+            back = card.get("back", "")
+            back_label.update(f"{lang_back}")
+            back_text.update(back if back else "[dim]No translation in corpus yet — this atom needs a verified translation[/dim]")
+            hint.update("")
+            rating_row.add_class("visible")
+        else:
+            back_label.update("")
+            back_text.update("")
+            hint.update("[dim]Think of the translation… then press Space to flip[/dim]")
+            rating_row.remove_class("visible")
+
+        source = card.get("source", "")
+        source_tag = f"  [{source}]" if source else ""
+        learn_status.update(f"Card {self._study_pos + 1}/{len(self._study_queue)}{source_tag}  ·  {remaining - 1} remaining")
+
+    async def _submit_rating(self, rating_int: int) -> None:
+        if not self._study_queue or self._study_pos >= len(self._study_queue):
+            return
+        card = self._study_queue[self._study_pos]
+        try:
+            from .learn import submit_rating
+            await asyncio.to_thread(submit_rating, self._current_learner_id, card["atom_id"], rating_int)
+        except Exception as exc:
+            _log.error("_submit_rating: %s\n%s", exc, traceback.format_exc())
+        self._study_pos += 1
+        self._card_flipped = False
+        self._show_current_card()
+        self._refresh_learn_stats()
+
     # ── actions ──────────────────────────────────────────────────────────────
 
     def action_clear_results(self) -> None:
@@ -428,3 +601,16 @@ class TranslatorApp(App):
     def action_show_review(self) -> None:
         self.query_one(TabbedContent).active = "tab-review"
         self._load_queue()
+
+    def action_show_learn(self) -> None:
+        self.query_one(TabbedContent).active = "tab-learn"
+        self._load_study_queue()
+
+    def action_flip_card(self) -> None:
+        tab = self.query_one(TabbedContent)
+        if tab.active != "tab-learn":
+            return
+        if not self._study_queue or self._study_pos >= len(self._study_queue):
+            return
+        self._card_flipped = not self._card_flipped
+        self._show_current_card()
