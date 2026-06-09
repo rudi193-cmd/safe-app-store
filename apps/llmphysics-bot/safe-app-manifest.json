@@ -6,7 +6,7 @@
   "b17": "6HANC",
   "agent_type": "bot",
   "description": "Reddit bot for r/LLMPhysics. Responds to !define commands with Wikipedia physics summaries.",
-  "author": "Sean Campbell",
+  "author": "USER",
   "data_streams": [],
   "permissions": [
     "knowledge:read"

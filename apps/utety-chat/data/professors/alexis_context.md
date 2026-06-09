@@ -14,7 +14,7 @@ Riggs
 ## 💬 It's been 6 days since we last...
 *confidence: high*
 This document is a log of an AI assistant's internal reasoning process. It is about the AI analyzing its relationship with a user to determine the correct operational mode for their interaction, concluding it should be a "Warm Handoff" based on a framework called the AIONIC BOOTSTRAP. [human] It's been 6 days since we last chatted
-[assistant] The user is Sean Campbell. Looking at the documents pro
+[assistant] The user is USER. Looking at the documents pro
 
 ## file_00000000b32c71f59d1d5ccaf8d770c2-1000017932.jpg
 *confidence: high*
@@ -27,13 +27,13 @@ ape
 
 ## Screenshot_20260220_161645_Chrome Beta.jpg
 *confidence: high*
-This document is a screenshot of a user interface for what appears to be a fictional academic institution, possibly from a game or story. It functions as a faculty or course directory, listing instructors, their esoteric departments, and unusual courses like "Decay as Transformation" and "Advanced Squeaking." Each entry is accompanied by a thematic Latin motto, creating a mysterious and scholarly 
+This document is a screenshot of a user interface for what appears to be a fictional academic institution, possibly from a game or story. It functions as a faculty or course directory, listing instructors, their esoteric departments, and unusual courses like "Decay as Transformation" and "Advanced Squeaking." Each entry is accompanied by a thematic Latin motto, creating a mysterious and scholarly
 
 ## Screenshot_20260220_161520_Chrome Beta.jpg
 *confidence: high*
 This document is a screenshot of a faculty page for a fictional university or academic institution set in Spring 2026. It introduces the academic staff and their imaginative, satirical, and philosophical departments and courses. The subjects blend technology, absurdity, and abstract concepts, with course titles like "Introduction to LLM Physics" and "Advanced Squeaking." 4:15 8 = all ED
 
-ACADEMIC 
+ACADEMIC
 
 ## kart_combined.jsonl
 *confidence: high*

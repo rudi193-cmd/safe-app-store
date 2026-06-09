@@ -6,7 +6,7 @@
   "b17": "LNK2L",
   "agent_type": "tool",
   "description": "A local knowledge base and connection engine. Drop in notes, documents, and links. Kart finds what goes with what. Your NotebookLM replacement — private, local, yours.",
-  "author": "Sean Campbell",
+  "author": "USER",
   "data_streams": [
     {
       "id": "knowledge_atoms",

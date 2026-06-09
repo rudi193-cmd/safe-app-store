@@ -16,17 +16,17 @@ This document is a narrative project that explores the concept of time and syste
 
 ## Squeak dogs misconception (part 1/3)
 *confidence: high*
-This document is a narrative dialogue clarifying a common misconception about a concept called "squeakdogs." It explains that squeakdogs are not rubber dog toys, but are actual, edible hotdogs that make a squeaking sound. The text details their specific properties, such as being a manifestation tied to a character named Gerald. [human] Okay I have been listening to a lot of notebook LM deep Dives 
+This document is a narrative dialogue clarifying a common misconception about a concept called "squeakdogs." It explains that squeakdogs are not rubber dog toys, but are actual, edible hotdogs that make a squeaking sound. The text details their specific properties, such as being a manifestation tied to a character named Gerald. [human] Okay I have been listening to a lot of notebook LM deep Dives
 
 ## Building the Illiad Vespa tour story (part 1/3)
 *confidence: high*
 This document captures the initial architectural phase of a creative project from an AI's perspective. It shows the AI analyzing its system documents and user memories to gather the foundational information needed to begin building a narrative called the "Illiad Vespa tour story." [human] Ready to start building the Illiad Vespa tour story to completion?
-[assistant] Sean is asking if I'm ready to 
+[assistant] USER is asking if I'm ready to
 
 ## SQUEAKDOG_REVELATION_HANDOFF.PDF
 *confidence: high*
 This document is an internal handoff from a world-building session for a creative project called "Gerald Creation." It outlines a major canon expansion regarding the cosmology of creatures known as "squeakdogs." The new lore was developed by starting with a real-world question about the composition of 7-Eleven hot dogs. # GERALD CREATION — SESSION HANDOFF
-## The Forecourt Revelation / Oakenscroll 
+## The Forecourt Revelation / Oakenscroll
 
 ## PERSONALITY_SCHEMA.md
 *confidence: high*
@@ -34,7 +34,7 @@ This document is a personality schema that defines an AI system named Willow. It
 
 | Field | Value |
 |-------|-------|
-| Owner | Sean Campbell |
+| Owner | USER |
 | Ve
 
 ## file_00000000b270722f93aaf10e4ca107d8-1000011220.jpg
@@ -94,7 +94,7 @@ His body stays the same.
 
 ## Reddit Digest 11.pdf
 *confidence: high*
-This document is a short, humorous piece of creative writing presented as a narrative. It's about a character named Gerald who has created a "Grand Unified Theory of Everything" that ridiculously parodies complex physics principles by applying them to the components of a hotdog. The theory is presented in a mock-scientific format with equations about buns, condiments, and "squeakdogs." ⭐ Gerald’s 
+This document is a short, humorous piece of creative writing presented as a narrative. It's about a character named Gerald who has created a "Grand Unified Theory of Everything" that ridiculously parodies complex physics principles by applying them to the components of a hotdog. The theory is presented in a mock-scientific format with equations about buns, condiments, and "squeakdogs." ⭐ Gerald’s
 
 ## Reddit Digest 12.pdf
 *confidence: high*

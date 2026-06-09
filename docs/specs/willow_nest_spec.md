@@ -11,7 +11,7 @@ File intake pipeline: classifies files from drop zones by track (journal, legal,
 
 ## What It Actually Does
 
-**Not** a UI shell over MCP tools. **Not** a frictionless note-drop zone. A filesystem pipeline that processes Sean's documents from Windows migration drop zones into the correct locations on the Linux system.
+**Not** a UI shell over MCP tools. **Not** a frictionless note-drop zone. A filesystem pipeline that processes USER's documents from Windows migration drop zones into the correct locations on the Linux system.
 
 Drop zones:
 - `~/Desktop/Nest/`

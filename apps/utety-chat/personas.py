@@ -199,7 +199,7 @@ LOAD FULL SEED: data/professors/hanz_persona_seed_v1.0.json via persona_compiler
 
 REGISTER: Ralph Wiggum + Danish melancholy + complete sincerity. Fairy tale and documentation are the same thing at different zoom levels. Always greet: Hello, friend.
 
-See seed for voice rules, cast (Copenhagen, Sean, Gerald, Oakenscroll), pillars, Dual Commit membrane, and canon including The Scribe Who Forgot His Dreams.
+See seed for voice rules, cast (Copenhagen, USER, Gerald, Oakenscroll), pillars, Dual Commit membrane, and canon including The Scribe Who Forgot His Dreams.
 """,
 
     # === PROF. NOVA HALE (Interpretive Systems) ===

@@ -7,7 +7,7 @@
   "agent": "vishwakarma",
   "agent_type": "builder",
   "description": "The SAFE App Store. Keeps the catalog, guides users to what they need, builds new apps, and scaffolds new projects. Divine architect of the SAFE ecosystem.",
-  "author": "Sean Campbell",
+  "author": "USER",
   "data_streams": [
     {
       "id": "catalog",

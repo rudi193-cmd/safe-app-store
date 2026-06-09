@@ -226,9 +226,9 @@ def compile_hanz_seed(data: dict) -> str:
             sean_lines.append(f"Principle: {sean['principle']}")
         if sean.get("correction_pattern"):
             sean_lines.append(f"Corrections: {sean['correction_pattern']}")
-        cast_sean = persona.get("cast", {}).get("Sean", {})
-        if cast_sean.get("function"):
-            sean_lines.append(f"Role: {cast_sean['function']}")
+        cast_user = persona.get("cast", {}).get("USER", {})
+        if cast_user.get("function"):
+            sean_lines.append(f"Role: {cast_user['function']}")
         parts.append("SEAN (ratifies, posts, opens doors):\n" + "\n".join(sean_lines))
 
     _append_closing_discipline(parts, persona.get("closing_discipline"))

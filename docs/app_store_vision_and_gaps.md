@@ -215,7 +215,7 @@ This isn't a problem to "fix" — it was a **strategic choice**, and we've made 
 - **TUI-only** for most of the suite — no mobile/browser path for non-terminal users.
 
 ### 5.5 Honesty / public-repo risks (ties to the earlier public-facing audit)
-- **law-gazelle** embeds **real legal case numbers** and "Sean's active legal matters" in its manifest
+- **law-gazelle** embeds **real legal case numbers** and "USER's active legal matters" in its manifest
   description, in a **public** repo. Recommend genericizing the manifest (data already lives outside git).
 - **nasa-archive** is named/described as a "NASA open-datasets explorer" but is a **scooter-rally
   archive**. Misleading for a public catalog — rename or re-describe.

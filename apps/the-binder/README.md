@@ -25,7 +25,7 @@ The Binder is a skin on Kart. Kart does the connections. The relationship graph 
 
 ```bash
 # Start Willow node
-cd C:\Users\Sean\Documents\GitHub\Willow
+cd C:\Users\USER\Documents\GitHub\Willow
 python server.py
 
 # Open The Binder

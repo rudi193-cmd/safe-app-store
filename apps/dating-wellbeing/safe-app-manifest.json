@@ -6,7 +6,7 @@
   "b17": "2NCAL",
   "agent_type": "tool",
   "description": "Privacy-first dating profile analysis with red flag detection and pattern learning",
-  "author": "Sean Campbell",
+  "author": "USER",
   "data_streams": [
     {
       "id": "profiles",

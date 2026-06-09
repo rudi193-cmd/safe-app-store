@@ -54,9 +54,9 @@ This PR is the tracking doc. No patches here — patches go in separate PRs.
 | R10 | Predictable temp paths, world-readable `/tmp` state | ✅ PASS | No /tmp usage found. Temp files use system default (safe). |
 | R11 | Race conditions / missing locks | ⚠️ P2 | Database operations use connection pooling. No explicit locking in multi-user paths. See ST-RACE-01. |
 | R12 | `safe_integration.py` status() correctness | ⚠️ P1 | **CRITICAL:** Many safe_integration.py files import from hardcoded dev paths. See ST-INT-01. |
-| R13 | Entry point in manifest is importable | ⚠️ P1 | Apps fail to import on non-Sean systems due to hardcoded paths. See ST-INT-01. |
+| R13 | Entry point in manifest is importable | ⚠️ P1 | Apps fail to import on non-USER systems due to hardcoded paths. See ST-INT-01. |
 | R14 | `requirements.txt` with pinned deps | ⚠️ P2 | Most apps use version ranges instead of pinned versions. See ST-DEP-01. |
-| R15 | No hardcoded developer home paths | 🚨 **P0** | **CRITICAL:** 40+ hardcoded paths to Sean's machine. See ST-PATH-01. |
+| R15 | No hardcoded developer home paths | 🚨 **P0** | **CRITICAL:** 40+ hardcoded paths to USER's machine. See ST-PATH-01. |
 
 ---
 
@@ -64,11 +64,11 @@ This PR is the tracking doc. No patches here — patches go in separate PRs.
 
 ### ST-PATH-01 — Hardcoded Developer Paths (P0 — CRITICAL)
 
-**Severity:** P0 (Blocks execution on any non-Sean system)  
-**Files affected:** 12+ safe-apps  
+**Severity:** P0 (Blocks execution on any non-USER system)
+**Files affected:** 12+ safe-apps
 **Status:** Open
 
-Across the monorepo, paths are hardcoded to Sean's machine, making apps non-portable:
+Across the monorepo, paths are hardcoded to USER's machine, making apps non-portable:
 
 ```python
 # dating-wellbeing/wellbeing_db.py:20
@@ -88,7 +88,7 @@ Examples found:
 - `~/github/...` (Windows paths, non-portable)
 - `~/persona.md` (developer-specific)
 
-This prevents all these apps from running on any system except Sean's.
+This prevents all these apps from running on any system except USER's.
 
 **Fix:** Use environment variables with portable fallbacks:
 
@@ -107,8 +107,8 @@ WILLOW_CORE = Path(__file__).parent.parent.parent / "willow-1.9" / "core"
 
 ### ST-SQL-01 — f-Strings in SQL WHERE/Schema Clauses (P2)
 
-**Files:** Multiple database modules (dating-wellbeing/wellbeing_db.py, the-squirrel/squirrel_db.py, etc.)  
-**Severity:** P2 (Code smell, not injection risk)  
+**Files:** Multiple database modules (dating-wellbeing/wellbeing_db.py, the-squirrel/squirrel_db.py, etc.)
+**Severity:** P2 (Code smell, not injection risk)
 **Status:** Open
 
 Schema and field names are interpolated using f-strings:
@@ -143,11 +143,11 @@ cur.execute(f"UPDATE ... SET {field} = %s", (value,))
 
 ### ST-INT-01 — safe_integration.py Import Failures (P1 — BLOCKS DEPLOYMENT)
 
-**Files:** All safe_integration.py files  
-**Severity:** P1 (Blocks safe-app deployment)  
+**Files:** All safe_integration.py files
+**Severity:** P1 (Blocks safe-app deployment)
 **Status:** Open
 
-Each safe_integration.py depends on hardcoded paths that fail on non-Sean systems:
+Each safe_integration.py depends on hardcoded paths that fail on non-USER systems:
 
 ```python
 # From dating-wellbeing/safe_integration.py
@@ -194,8 +194,8 @@ from user_lattice import ...
 
 ### ST-EXC-01 — Bare `except:` Clauses (P2)
 
-**File:** law-gazelle/src/gazelle_engine.py (lines 160, 179, 206, 249, 270, 438, 609, 624)  
-**Severity:** P2  
+**File:** law-gazelle/src/gazelle_engine.py (lines 160, 179, 206, 249, 270, 438, 609, 624)
+**Severity:** P2
 **Status:** Open
 
 Multiple bare `except:` clauses that swallow all exceptions:
@@ -222,8 +222,8 @@ except (ValueError, TypeError, KeyError):
 
 ### ST-HTTP-01 — CORS or XSS in Web Frontends (P2)
 
-**Files:** story-timeline/web.py, nasa-archive web frontend  
-**Severity:** P2  
+**Files:** story-timeline/web.py, nasa-archive web frontend
+**Severity:** P2
 **Status:** Open
 
 Web endpoints in story-timeline and nasa-archive expose HTTP servers without documented CORS policy. If used in production (not just local dev), CORS wildcards or missing headers could expose data to cross-origin requests.
@@ -234,8 +234,8 @@ Web endpoints in story-timeline and nasa-archive expose HTTP servers without doc
 
 ### ST-RACE-01 — Missing Locks in Multi-User Database Paths (P2)
 
-**Files:** Multiple database modules  
-**Severity:** P2  
+**Files:** Multiple database modules
+**Severity:** P2
 **Status:** Open
 
 Apps use connection pooling (safe) but some update operations may have race conditions in multi-user scenarios:
@@ -277,7 +277,7 @@ requests==2.31.0
 | P1 | 2 | ST-INT-01 (safe_integration import failures), ST-SQL-01 (schema injection risk) |
 | P2 | 4 | ST-EXC-01, ST-HTTP-01, ST-RACE-01, ST-DEP-01 |
 
-**CRITICAL BLOCKER:** ST-PATH-01 (hardcoded paths) must be fixed before any safe-app-store app can run on a non-Sean system. This affects 12+ apps.
+**CRITICAL BLOCKER:** ST-PATH-01 (hardcoded paths) must be fixed before any safe-app-store app can run on a non-USER system. This affects 12+ apps.
 
 ---
 

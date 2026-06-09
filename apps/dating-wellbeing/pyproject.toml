@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "safe-app-dating-wellbeing"
 version = "1.0.0"
 description = "Privacy-first dating profile analyzer for SAFE framework"
-authors = [{name = "Sean Campbell"}]
+authors = [{name = "USER"}]
 requires-python = ">=3.10"
 license = {text = "MIT"}
 readme = "README.md"

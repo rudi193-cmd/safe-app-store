@@ -291,7 +291,7 @@
           {"name": "Anduril", "reason": "Defense-only, private — no stock but flag for awareness"}
         ],
         "secondary_surface": "Personal ledger spending data checked first — user likely already paying into several flagged entities via subscriptions and cloud services before any investment decision is reached",
-        "threshold_is_users": "What counts as 'significant' is a user setting, not an algorithm judgment. Sean's filter: any direct DoD contract = flagged, no percentage threshold",
+        "threshold_is_users": "What counts as 'significant' is a user setting, not an algorithm judgment. USER's filter: any direct DoD contract = flagged, no percentage threshold",
         "model_output_shape": "List of flagged holdings + flagged monthly spend + alternatives in same sector with no defense contracts + option to exit positions"
       },
       "tag": "cross-app",

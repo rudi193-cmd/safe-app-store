@@ -152,7 +152,7 @@
       "id": "ratatosk",
       "name": "Ratatosk",
       "description": "Sovereign Claude Code replacement. Direct Anthropic API, full tool loop, JSONL sessions, MCP client, Grove-wired. Yours to run. Yours to keep.",
-      "author": "Sean Campbell",
+      "author": "USER",
       "status": "beta",
       "path": "apps/ratatosk",
       "repository": "https://github.com/rudi193-cmd/safe-app-store",
@@ -161,8 +161,8 @@
     {
       "id": "grove",
       "name": "Grove",
-      "description": "Sovereign p2p messaging. Chat directly with Sean and other users over an encrypted peer-to-peer connection (u2u). Each user runs their own local node — no central server.",
-      "author": "Sean Campbell",
+      "description": "Sovereign p2p messaging. Chat directly with USER and other users over an encrypted peer-to-peer connection (u2u). Each user runs their own local node — no central server.",
+      "author": "USER",
       "status": "beta",
       "repository": "https://github.com/rudi193-cmd/safe-app-grove",
       "tags": ["messaging", "p2p", "chat", "u2u", "encrypted"]
