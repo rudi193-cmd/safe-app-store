@@ -24,12 +24,36 @@ _SNIP_RE = re.compile(
 )
 _TAG_RE = re.compile(r"<[^>]+>")
 
-# Subset of safe_integration.VERIFIED_SOURCES — hostname suffixes
+# Hostname suffixes for trusted-source filtering.
+# Covers all sources registered in core/jeles_sources.py SOURCES dict.
 _TRUSTED_SUFFIXES = (
+    # Broad TLD catches (.gov, .edu, .museum, .go.jp for NDL, .ac.uk for CORE)
+    "gov", "edu", "museum", "go.jp", "ac.uk",
+    # Already-present institutions
     "si.edu", "loc.gov", "archive.org", "louvre.fr", "nasa.gov", "nih.gov",
     "unesco.org", "europeana.eu", "metmuseum.org", "vam.ac.uk", "britishmuseum.org",
     "nature.com", "jstor.org", "wikipedia.org", "stanford.edu", "britannica.com",
-    "gov", "edu", "museum",
+    # Academic / open-access repositories
+    "openalex.org", "crossref.org", "europepmc.org", "semanticscholar.org",
+    "arxiv.org", "zenodo.org", "datacite.org", "doaj.org", "openaire.eu",
+    "base-search.net", "dblp.org",
+    # Reference / encyclopedic
+    "wikidata.org", "eol.org",
+    # Museums / cultural heritage
+    "clevelandart.org", "rijksmuseum.nl",
+    # Libraries / archives
+    "openlibrary.org", "gutenberg.org", "biodiversitylibrary.org",
+    "dp.la", "bnf.fr", "archives-ouvertes.fr", "hal.science",
+    # International
+    "scielo.org", "europa.eu",
+    # Music
+    "musicbrainz.org",
+    # Species / ecology / geography
+    "gbif.org", "inaturalist.org", "openstreetmap.org",
+    # Law
+    "courtlistener.com",
+    # Clinical trade press / science misc
+    "psychiatrictimes.com", "improbable.com",
 )
 
 

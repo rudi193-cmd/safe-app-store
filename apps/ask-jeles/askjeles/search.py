@@ -248,7 +248,8 @@ def _search_queries(question: str, intent: str) -> list[str]:
 
 def _institutional_via_mcp(queries: list[str], sources: list[str], per_source: int) -> list[dict[str, Any]]:
     hits: list[dict[str, Any]] = []
-    if not _MCP_IMPORT or not mcp_client.ensure_started(timeout=30):
+    # Short timeout — caller already verified MCP is up via search_stacks ensure_started check
+    if not _MCP_IMPORT or not mcp_client.ensure_started(timeout=5):
         return hits
     for query in queries[:2]:
         try:
