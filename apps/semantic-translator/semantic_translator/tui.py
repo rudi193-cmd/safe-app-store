@@ -115,7 +115,7 @@ class TranslatorApp(App):
 
     # Review state
     _queue: list[dict] = []
-    _queue_pos: reactive[int] = reactive(0)
+    _queue_pos: int = 0
     _current_learner_id: str = ""
 
     # ── compose ─────────────────────────────────────────────────────────────
