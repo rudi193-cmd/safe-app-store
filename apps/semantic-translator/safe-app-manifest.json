@@ -1,0 +1,41 @@
+{
+  "app_id": "semantic-translator",
+  "name": "SemanticTranslator",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "b17": "STRANS1",
+  "agent_type": "tool",
+  "description": "Semantic translation memory for Emerging Rule curriculum. Scrapes lessons from GitHub, ingests into Jeles, and surfaces meaning-matched prior translations across languages.",
+  "author": "USER",
+  "data_streams": [
+    {
+      "id": "corpus",
+      "purpose": "Scraped lesson segments from Emerging-Rule/community GitHub repo",
+      "retention": "permanent",
+      "description": "Local JSONL corpus of lesson text segments with language tags"
+    },
+    {
+      "id": "queries",
+      "purpose": "Semantic search queries against the ingested corpus",
+      "retention": "session",
+      "description": "Query text cleared when session ends"
+    }
+  ],
+  "permissions": [
+    "jeles_fetch",
+    "jeles_write",
+    "network_read",
+    "postgres_read"
+  ],
+  "privacy_tier": "public",
+  "local_processing": 0.9,
+  "dev_server": {
+    "env_var": "SEMANTIC_TRANSLATOR_DEV_SERVER",
+    "port": 8432,
+    "scope": "localhost",
+    "note": "Start with: semantic-translator serve"
+  },
+  "entry_point": "semantic_translator.cli:main",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-semantic-translator"
+}

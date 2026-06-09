@@ -1,0 +1,6 @@
+data/*.jsonl
+data/*.json
+__pycache__/
+*.egg-info/
+.venv/
+*.pyc

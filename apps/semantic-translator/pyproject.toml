@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-semantic-translator"
+version = "0.1.0"
+description = "Semantic translation memory for Emerging Rule AI literacy curriculum."
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.28.0",
+    "textual>=0.47.0",
+    "fastapi>=0.100.0",
+    "uvicorn>=0.23.0",
+    "mcp>=1.6.0,<2.0.0",
+]
+
+[project.scripts]
+semantic-translator = "semantic_translator.cli:main"
+
+[tool.setuptools]
+py-modules = ["safe_integration"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["semantic_translator*"]
