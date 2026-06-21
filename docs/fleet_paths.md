@@ -20,7 +20,7 @@ Fleet configs that reference `~/github/safe-app-store` still resolve correctly v
 
 | Item | Location |
 |------|----------|
-| Branch | `feat/store-console-tui` |
+| Branch | **master** (merged PR #5, 2026-06-21) |
 | Files | `tui.py`, `store_mcp.py`, `dev_tui.sh`, `VISION.md`, `_shot.py` |
 | Run | `cd ~/github/safe-app-store && ./dev_tui.sh` |
 | Runtime | `data/` at repo root (gitignored — logs, consent, screenshots) |
