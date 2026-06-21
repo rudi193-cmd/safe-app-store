@@ -1,20 +1,31 @@
 {
   "mcpServers": {
     "willow": {
-      "command": "${HOME}/github/willow-1.7/willow.sh",
+      "type": "stdio",
+      "command": "bash",
+      "args": ["${HOME}/github/willow-2.0/sap/unified_mcp.sh"],
       "env": {
-        "WILLOW_STORE_ROOT": "${HOME}/.willow/store",
-        "WILLOW_PG_DB": "willow",
+        "WILLOW_AGENT_NAME": "vishwakarma",
+        "GROVE_SENDER": "vishwakarma",
+        "GROVE_NAME": "vishwakarma",
+        "WILLOW_DEV_SAFE_ROOT": "${HOME}/github",
+        "WILLOW_GROVE_ROOT": "${HOME}/github/safe-app-willow-grove",
+        "WILLOW_PG_DB": "willow_20",
         "WILLOW_PG_USER": "${USER}",
-        "WILLOW_HANDOFF_DB": "${HOME}/Ashokoa/agents/hanuman/index/haumana_handoffs/handoffs.db"
+        "WILLOW_ROOT": "${HOME}/github/willow-2.0",
+        "WILLOW_STORE_ROOT": "${HOME}/github/safe-app-store/.willow/store",
+        "WILLOW_SAFE_ROOT": "${HOME}/github/SAFE/Applications",
+        "WILLOW_AGENTS_ROOT": "${HOME}/github/SAFE/Agents"
       }
     },
     "law-gazelle": {
+      "type": "stdio",
       "command": "python3",
       "args": ["${HOME}/github/safe-app-store/apps/law-gazelle/gazelle_mcp.py"]
     },
     "courtlistener": {
-      "command": "python3",
+      "type": "stdio",
+      "command": "${HOME}/github/willow-2.0/.venv-dev/bin/python3",
       "args": ["${HOME}/github/courtlistener-mcp/src/server.py"]
     }
   }
