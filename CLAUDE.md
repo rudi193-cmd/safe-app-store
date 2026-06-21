@@ -63,4 +63,15 @@ If MCP tools return `unauthorized`, check that `WILLOW_DEV_SAFE_ROOT` is set and
 
 ---
 
+## Fleet paths (agents)
+
+**Read `docs/fleet_paths.md`** — symlink layout, store TUI branch, Law Gazelle data map.  
+KB atom `1D1FD1F4` · SOIL `saps1/paths-2026-06-21`.
+
+- Git: `~/github/safe-app-store-public` (canonical); `~/github/safe-app-store` → symlink
+- Law Gazelle PII: `~/Desktop/Nest/`, `~/.willow/apps/law-gazelle/` — never in git
+- Store TUI: branch `feat/store-console-tui`, run `./dev_tui.sh` from repo root
+
+---
+
 ΔΣ=42

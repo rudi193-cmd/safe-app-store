@@ -11,3 +11,6 @@ __pycache__/
 apps/story-timeline/exports/
 apps/utety-chat/data/exports/
 =*
+
+# Store console TUI (repo-root runtime artifacts)
+/data/
