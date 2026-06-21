@@ -27,7 +27,7 @@
       "type": "stdio",
       "command": "python3",
       "args": [
-        "/home/sean-campbell/github/safe-app-store-public/apps/law-gazelle/gazelle_mcp.py"
+        "${HOME}/github/safe-app-store-public/apps/law-gazelle/gazelle_mcp.py"
       ],
       "env": {
         "NEST_SOURCE": "/home/sean-campbell/Desktop/Nest",
