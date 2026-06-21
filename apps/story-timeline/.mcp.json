@@ -7,9 +7,9 @@
         "/home/sean-campbell/github/willow-2.0/sap/unified_mcp.sh"
       ],
       "env": {
-        "WILLOW_AGENT_NAME": "ask-jeles",
-        "GROVE_SENDER": "ask-jeles",
-        "GROVE_NAME": "ask-jeles",
+        "WILLOW_AGENT_NAME": "story-timeline",
+        "GROVE_SENDER": "story-timeline",
+        "GROVE_NAME": "story-timeline",
         "WILLOW_GROVE_ROOT": "/home/sean-campbell/github/safe-app-willow-grove",
         "WILLOW_PG_DB": "willow_20",
         "WILLOW_SAFE_ROOT": "/home/sean-campbell/github/SAFE/Applications",

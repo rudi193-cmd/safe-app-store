@@ -8,9 +8,19 @@
       ],
       "env": {
         "WILLOW_AGENT_NAME": "semantic-translator",
+        "GROVE_SENDER": "semantic-translator",
+        "GROVE_NAME": "semantic-translator",
         "WILLOW_GROVE_ROOT": "/home/sean-campbell/github/safe-app-willow-grove",
         "WILLOW_PG_DB": "willow_20",
-        "WILLOW_SAFE_ROOT": "/home/sean-campbell/github/SAFE/Applications"
+        "WILLOW_SAFE_ROOT": "/home/sean-campbell/github/SAFE/Applications",
+        "WILLOW_AGENTS_ROOT": "/home/sean-campbell/github/SAFE/Agents",
+        "WILLOW_ROOT": "/home/sean-campbell/github/willow-2.0",
+        "WILLOW_HOME": "/home/sean-campbell/github/.willow",
+        "WILLOW_CONFIG_MODE": "private-config",
+        "WILLOW_INFERENCE_PROVIDER": "auto",
+        "WILLOW_MCP_PROFILE": "standard",
+        "WILLOW_DEV_SAFE_ROOT": "/home/sean-campbell/github",
+        "WILLOW_STORE_ROOT": "/home/sean-campbell/github/safe-app-store-public/.willow/store"
       }
     }
   }
