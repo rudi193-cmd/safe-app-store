@@ -114,6 +114,39 @@ _EVENT_WORDS = re.compile(
     re.IGNORECASE,
 )
 
+# Two Capitalized words ("General Insurance", "State Farm", "United States") sail
+# through _CAPITALIZED_NAME and become bogus `person` fragments. Reject a candidate
+# when EITHER token is an organisation/place/role marker — these never name a person.
+_ORG_TOKENS = frozenset((
+    # corporate / legal forms
+    "insurance", "llc", "inc", "incorporated", "corp", "corporation", "company",
+    "co", "ltd", "limited", "gmbh", "plc", "group", "holdings", "partners",
+    "associates", "enterprises", "industries", "ventures", "capital",
+    # financial / institutional
+    "bank", "trust", "fund", "foundation", "financial", "mutual", "savings",
+    "credit", "union", "insurer", "underwriters", "brokerage",
+    # public bodies / civic
+    "department", "dept", "agency", "bureau", "office", "court", "county",
+    "state", "federal", "national", "commission", "authority", "administration",
+    "council", "committee", "board", "division", "district", "municipal",
+    "ministry", "embassy", "consulate", "tribunal",
+    # institutions / services
+    "university", "college", "school", "academy", "institute", "hospital",
+    "clinic", "center", "centre", "services", "service", "systems", "solutions",
+    "technologies", "tech", "media", "press", "network", "society", "association",
+    "organization", "organisation", "corp",
+    # generic descriptors that pair with the above to form org names
+    "general", "united", "international", "global", "american", "northern",
+    "southern", "eastern", "western", "central", "first", "premier", "allied",
+    "standard", "republic", "states", "kingdom", "province",
+))
+
+
+def _looks_like_org(name: str) -> bool:
+    """True when a capitalized two-word phrase reads as an org/place, not a person."""
+    return any(w in _ORG_TOKENS for w in name.lower().split())
+
+
 _IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".tiff", ".tif", ".bmp", ".webp")
 
 
@@ -141,7 +174,7 @@ def _titled_person_fragments(text: str, seen: set[str]) -> list[Fragment]:
     frags: list[Fragment] = []
     for m in _PERSON_PREFIXES.finditer(text):
         name = m.group(2)
-        if name not in seen:
+        if name not in seen and not _looks_like_org(name):
             seen.add(name)
             frags.append(Fragment(fragment_type="person", content=name,
                                   label=m.group(1).rstrip(".").lower(), confidence="likely"))
@@ -317,7 +350,7 @@ def _classify_regex(text: str, filename: str, name_lower: str,
     frags.extend(_titled_person_fragments(text, seen_names))
     for m in _CAPITALIZED_NAME.finditer(text):
         name = m.group(1)
-        if name not in seen_names and not any(
+        if name not in seen_names and not _looks_like_org(name) and not any(
             w in name.lower() for w in ("the", "this", "that", "dear", "from", "with")
         ):
             seen_names.add(name)
