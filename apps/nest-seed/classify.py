@@ -44,10 +44,12 @@ except ImportError:
 # Absolute cosine is NOT discriminative (nomic rates everything ~0.55-0.74), so
 # confidence is judged by the MARGIN over the mean category similarity — how far
 # the winner stands out from the field.
-# NOTE: these defaults are PROVISIONAL. Lock them from a margin histogram over
-# the full dump (scripts: nest_histogram3) once the host is cool enough to run
-# the embed pass without thermal throttling.
-MARGIN_CONFIDENT = float(os.environ.get("NEST_EMBED_MARGIN", "0.06"))
+# Calibrated on the full 186-file dump with exemplar centroids: margin spans
+# 0.042–0.140 (mean 0.087). At 0.07, ~69% of files resolve on this cheap tier
+# and the least-distinctive ~31% escalate to the LLM — the right safety balance.
+# Lower NEST_EMBED_MARGIN for more speed (fewer escalations), raise for more
+# LLM verification.
+MARGIN_CONFIDENT = float(os.environ.get("NEST_EMBED_MARGIN", "0.07"))
 MARGIN_FLOOR = float(os.environ.get("NEST_EMBED_MARGIN_FLOOR", "0.03"))
 
 _DATE_RE = re.compile(
