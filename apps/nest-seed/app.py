@@ -60,19 +60,43 @@ def main() -> None:
     parser.add_argument("--digest", action="store_true",
                         help="Write/print a one-page Markdown map of the Nest DB "
                              "(runs after ingest, or standalone on an existing --db).")
+    parser.add_argument("--ask", metavar="QUERY", default=None,
+                        help="Semantic search: return the fragments most relevant to "
+                             "QUERY (builds a cached index; standalone on an existing --db).")
+    parser.add_argument("--reindex", action="store_true",
+                        help="Rebuild the --ask embedding index from scratch.")
     parser.add_argument("--verbose", "-v", action="store_true")
     args = parser.parse_args()
 
     db_path = Path(args.db).expanduser().resolve()
-    digest_only = args.digest and not args.folder
+    report_only = (args.digest or args.ask) and not args.folder
 
-    if not digest_only:
+    if not report_only:
         if not args.folder:
-            sys.exit("ERROR: --folder is required (or use --digest on an existing --db)")
+            sys.exit("ERROR: --folder is required (or use --digest / --ask on an existing --db)")
         _ingest(args, db_path)
+
+    if args.ask:
+        _run_ask(db_path, args.ask, args.reindex)
 
     if args.digest:
         _write_digest(db_path)
+
+
+def _run_ask(db_path: "Path", query: str, reindex: bool) -> None:
+    try:
+        from .ask import ask as _ask
+    except ImportError:
+        from ask import ask as _ask
+    res = _ask(str(db_path), query, rebuild=reindex)
+    if res.get("status") != "ok":
+        print(f"[nest-seed] ask    : {res}", file=sys.stderr)
+        return
+    print(f'\n🔎 "{query}"  ({res["indexed"]} fragments indexed)\n')
+    for h in res["hits"]:
+        tag = f"{h['fragment_type']}/{h['label']}" if h['label'] else h['fragment_type']
+        print(f"  [{h['score']:.3f}] {h['source']}  ({tag})")
+        print(f"          {h['snippet'][:120].strip()}")
 
 
 def _write_digest(db_path: "Path") -> None:
