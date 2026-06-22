@@ -8,7 +8,7 @@ Supported:
   Images (.jpg .jpeg .png .tiff .bmp .webp)  → pytesseract (requires tesseract)
   PDF (.pdf)                                  → pdfplumber (text), fallback pdf2image+tesseract
   Office (.docx)                              → python-docx
-  Plaintext (.txt .md .csv .rst .tex .lean)  → read directly
+  Plaintext (.txt .md code/markup …)          → read directly
 """
 from __future__ import annotations
 
@@ -17,7 +17,13 @@ from pathlib import Path
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".tiff", ".tif", ".bmp", ".webp"}
 PDF_SUFFIX = ".pdf"
 OFFICE_SUFFIXES = {".docx"}
-TEXT_SUFFIXES = {".txt", ".md", ".csv", ".rst", ".tex", ".lean", ".json", ".yaml", ".yml"}
+# Anything we can read as UTF-8 and hand to the classifier as-is. Source code
+# counts: a .py / .sh / .jsx file is text the LLM can categorise (code, config…).
+TEXT_SUFFIXES = {
+    ".txt", ".md", ".csv", ".rst", ".tex", ".lean", ".json", ".yaml", ".yml",
+    ".py", ".sh", ".js", ".jsx", ".ts", ".tsx", ".html", ".xml",
+    ".toml", ".ini", ".cfg", ".log", ".sql",
+}
 
 
 def extract(path: Path) -> tuple[str, str]:

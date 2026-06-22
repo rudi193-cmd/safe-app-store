@@ -1,0 +1,40 @@
+{
+  "app_id": "nest-seed",
+  "name": "nest-seed",
+  "version": "0.2.0",
+  "safe_version": ">=2.0.0",
+  "b17": "N5EED",
+  "agent_type": "tool",
+  "description": "Portable Nest bootstrap. Walks a folder of personal files, extracts text (OCR/PDF/docx), classifies fragments (regex or local AI via Ollama), and writes a canonical SQLite Nest DB.",
+  "author": "USER",
+  "data_streams": [
+    {
+      "id": "file_reads",
+      "purpose": "Read source files from a drop folder",
+      "retention": "session",
+      "description": "Reads the user's documents, images, and PDFs for extraction"
+    },
+    {
+      "id": "llm_queries",
+      "purpose": "Local AI classification",
+      "retention": "session",
+      "description": "Local Ollama inference requests (only with --llm; no cloud)"
+    },
+    {
+      "id": "db_writes",
+      "purpose": "Write the canonical Nest SQLite DB",
+      "retention": "permanent",
+      "description": "sources + fragments + nest_meta rows"
+    }
+  ],
+  "permissions": [
+    "file_read",
+    "file_write",
+    "local_llm"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "entry_point": "app.py",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-store"
+}
