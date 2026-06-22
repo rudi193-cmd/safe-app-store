@@ -38,3 +38,24 @@ def test_min_year_guard_is_configurable(monkeypatch):
     # default floor rejects 1985; nothing real in this corpus predates ~1990
     assert cl._plausible_date("1985-06-01") is False
     assert cl._plausible_date("1995-06-01") is True
+
+
+def _names(text):
+    return [f.content for f in cl._titled_person_fragments(text, set())]
+
+
+def test_titled_person_accepts_real_name():
+    assert _names("met Mr. David Martinez today") == ["David Martinez"]
+    assert _names("per Dr. Archimedes Oakenscroll") == ["Archimedes Oakenscroll"]
+
+
+def test_titled_person_rejects_lowercase_trailing_word():
+    # the re.IGNORECASE bug used to yield "Martinez gave" / "Seuss books" / "Savanah if"
+    assert _names("Mr. Martinez gave the keys back") == []
+    assert _names("Dr. Seuss books are fun") == []
+    assert _names("spoke with Ms. Savanah if she calls") == []
+
+
+def test_titled_person_title_case_insensitive():
+    # title may be any case, name still must be Capitalized
+    assert _names("mr. David Martinez") == ["David Martinez"]

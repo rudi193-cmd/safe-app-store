@@ -89,9 +89,11 @@ def _plausible_date(s: str) -> bool:
     return False
 
 
+# Case-insensitivity is scoped to the TITLE only — a global re.IGNORECASE makes
+# the name group's [A-Z][a-z]+ match any case, so "Mr. Martinez gave" yields the
+# junk name "Martinez gave". The name must stay genuinely Capitalized.
 _PERSON_PREFIXES = re.compile(
-    r"\b(mr\.?|mrs\.?|ms\.?|dr\.?|prof\.?|rev\.?)\s+([A-Z][a-z]+ [A-Z][a-z]+)",
-    re.IGNORECASE,
+    r"\b(?i:(mr|mrs|ms|dr|prof|rev)\.?)\s+([A-Z][a-z]+ [A-Z][a-z]+)\b"
 )
 _CAPITALIZED_NAME = re.compile(r"\b([A-Z][a-z]{2,} [A-Z][a-z]{2,})\b")
 _LOCATION_WORDS = re.compile(
