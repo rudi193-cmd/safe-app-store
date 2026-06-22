@@ -47,6 +47,16 @@ except ImportError:
 LEARN_MIN_MARGIN = float(os.environ.get("NEST_LEARN_MIN_MARGIN", "0.10"))
 LEARN_MAX_PER_CAT = int(os.environ.get("NEST_LEARN_MAX_PER_CAT", "50"))
 
+# Cluster-promotion gates (phase 2b). A discovered cluster becomes a new category
+# only when it is big enough, internally cohesive, and genuinely novel — i.e. its
+# centroid does NOT rank confidently into any existing category (margin-over-mean
+# below PROMOTE_MAX_MARGIN, the same discriminative signal classify() uses).
+PROMOTE_MIN_SIZE = int(os.environ.get("NEST_PROMOTE_MIN_SIZE", "4"))
+PROMOTE_MAX_MARGIN = float(os.environ.get("NEST_PROMOTE_MAX_MARGIN", "0.06"))
+PROMOTE_MIN_COHESION = float(os.environ.get("NEST_PROMOTE_MIN_COHESION", "0.50"))
+PROMOTE_MAX_NEW = int(os.environ.get("NEST_PROMOTE_MAX_NEW", "5"))
+DISCOVERED_PREFIX = "auto:"
+
 # Type of the per-doc hook classify() calls: (category, vec, margin, confidence).
 LearnSink = Callable[[str, list, float, str], None]
 
@@ -140,21 +150,25 @@ def merge_learned(model: str, observations: list[dict], *,
 
 def _adaptive_cache_path(model: str) -> Path:
     safe = model.replace("/", "_").replace(":", "_")
-    return _cache_dir() / f"centroids_adaptive_{safe}_{_tax._seeds_hash()}_{learned_hash(model)}.json"
+    return (_cache_dir() /
+            f"centroids_adaptive_{safe}_{_tax._seeds_hash()}"
+            f"_{learned_hash(model)}_{discovered_hash(model)}.json")
 
 
 def build_adaptive_centroids(model: str = _embed.DEFAULT_EMBED_MODEL,
                              use_cache: bool = True) -> Optional[dict[str, list[float]]]:
-    """Exemplar centroids folded with the user's learned members.
+    """Exemplar centroids folded with learned members and discovered categories.
 
     Drop-in for taxonomy.build_centroids(): identical result when nothing has
-    been learned yet. Returns None only if exemplar embeddings are unavailable.
+    been learned or discovered yet. Returns None only if exemplar embeddings are
+    unavailable.
     """
     base = _tax.build_centroids(model=model, use_cache=use_cache)
     if base is None:
         return None
     learned = load_learned(model)
-    if not learned:
+    discovered = load_discovered(model)
+    if not learned and not discovered:
         return base
 
     cache = _adaptive_cache_path(model)
@@ -165,6 +179,7 @@ def build_adaptive_centroids(model: str = _embed.DEFAULT_EMBED_MODEL,
             pass
 
     out: dict[str, list[float]] = {}
+    # exemplar categories, each folded with its learned members
     for cat, centroid in base.items():
         members = [e["vec"] for e in learned.get(cat, []) if e.get("vec")]
         n_ex = len(_tax.EXEMPLARS.get(cat, [])) or 1
@@ -178,6 +193,10 @@ def build_adaptive_centroids(model: str = _embed.DEFAULT_EMBED_MODEL,
             (centroid[i] * n_ex + sum(v[i] for v in members)) / n_total
             for i in range(dim)
         ]
+    # discovered categories enter as standalone centroids
+    for name, entry in discovered.items():
+        if entry.get("vec") and name not in out:
+            out[name] = entry["vec"]
 
     if use_cache:
         try:
@@ -227,6 +246,29 @@ def _dot(a: list[float], b: list[float]) -> float:
     return sum(x * y for x, y in zip(a, b))
 
 
+def _kmeans(vecs: list[list[float]], k: int, iters: int = 25) -> tuple[list[int], list[list[float]]]:
+    """Spherical k-means over already-normalized vectors. Deterministic init."""
+    step = max(1, len(vecs) // k)
+    centers = [vecs[i * step][:] for i in range(k)]
+    labels = [0] * len(vecs)
+    for _ in range(iters):
+        changed = False
+        for i, v in enumerate(vecs):
+            best = max(range(k), key=lambda c: _dot(v, centers[c]))
+            if best != labels[i]:
+                labels[i] = best
+                changed = True
+        for c in range(k):
+            members = [v for v, lab in zip(vecs, labels) if lab == c]
+            if members:
+                dim = len(members[0])
+                centers[c] = _normalize(
+                    [sum(m[i] for m in members) / len(members) for i in range(dim)])
+        if not changed:
+            break
+    return labels, centers
+
+
 def discover(items: list[dict], k: int = 6, iters: int = 25) -> dict:
     """Cluster (vec, snippet) items into k groups by spherical k-means.
 
@@ -237,26 +279,8 @@ def discover(items: list[dict], k: int = 6, iters: int = 25) -> dict:
     if len(pts) < k:
         return {"status": "noop", "reason": f"only {len(pts)} items for k={k}"}
 
-    # deterministic init: evenly spaced picks across the list
-    step = max(1, len(pts) // k)
-    centers = [pts[i * step][0][:] for i in range(k)]
-    labels = [0] * len(pts)
-
-    for _ in range(iters):
-        changed = False
-        for i, (v, _s) in enumerate(pts):
-            best = max(range(k), key=lambda c: _dot(v, centers[c]))
-            if best != labels[i]:
-                labels[i] = best
-                changed = True
-        for c in range(k):
-            members = [v for (v, _s), lab in zip(pts, labels) if lab == c]
-            if members:
-                dim = len(members[0])
-                mean = [sum(m[i] for m in members) / len(members) for i in range(dim)]
-                centers[c] = _normalize(mean)
-        if not changed:
-            break
+    vecs = [v for v, _s in pts]
+    labels, centers = _kmeans(vecs, k, iters)
 
     clusters = []
     for c in range(k):
@@ -264,9 +288,129 @@ def discover(items: list[dict], k: int = 6, iters: int = 25) -> dict:
         if not idx:
             continue
         rep_i = max(idx, key=lambda i: _dot(pts[i][0], centers[c]))
-        clusters.append({
-            "size": len(idx),
-            "representative": pts[rep_i][1][:140],
-        })
+        clusters.append({"size": len(idx), "representative": pts[rep_i][1][:140]})
     clusters.sort(key=lambda c: c["size"], reverse=True)
     return {"status": "ok", "n_items": len(pts), "clusters": clusters}
+
+
+# --- cluster promotion (phase 2b): clusters → new categories -----------------
+
+def _discovered_path(model: str) -> Path:
+    safe = model.replace("/", "_").replace(":", "_")
+    return _cache_dir() / f"discovered_{safe}.json"
+
+
+def load_discovered(model: str) -> dict[str, dict]:
+    """Return {category_name: {"vec","label","size","cohesion"}}."""
+    p = _discovered_path(model)
+    if not p.exists():
+        return {}
+    try:
+        data = json.loads(p.read_text())
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def save_discovered(model: str, store: dict[str, dict]) -> None:
+    p = _discovered_path(model)
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps(store))
+    except OSError:
+        pass
+
+
+def discovered_hash(model: str) -> str:
+    store = load_discovered(model)
+    sig = {name: e.get("size", 0) for name, e in store.items()}
+    return hashlib.sha256(json.dumps(sig, sort_keys=True).encode()).hexdigest()[:12]
+
+
+def _slug(text: str, used: set[str]) -> str:
+    words = [w for w in "".join(c.lower() if c.isalnum() else " " for c in text).split()][:4]
+    base = DISCOVERED_PREFIX + ("-".join(words) or "cluster")
+    name, n = base, 2
+    while name in used:
+        name = f"{base}-{n}"
+        n += 1
+    return name
+
+
+def promote_clusters(model: str, items: list[dict], *, k: int = 8, iters: int = 25,
+                     min_size: int | None = None, max_margin: float | None = None,
+                     min_cohesion: float | None = None, max_new: int | None = None) -> dict:
+    """Cluster the uncertain tail and persist qualifying clusters as new categories.
+
+    A cluster is promoted when it is (a) at least `min_size` documents, (b)
+    internally cohesive (mean member→centroid cosine ≥ `min_cohesion`), and (c)
+    novel — its centroid does not rank confidently into any existing category
+    (margin-over-mean < `max_margin`). Rejections are returned with reasons; the
+    strongest `max_new` qualifying clusters are kept. Returns a summary dict.
+    """
+    if min_size is None:
+        min_size = PROMOTE_MIN_SIZE
+    if max_margin is None:
+        max_margin = PROMOTE_MAX_MARGIN
+    if min_cohesion is None:
+        min_cohesion = PROMOTE_MIN_COHESION
+    if max_new is None:
+        max_new = PROMOTE_MAX_NEW
+
+    pts = [(_normalize(it["vec"]), it.get("snippet", "")) for it in items if it.get("vec")]
+    if len(pts) < k:
+        return {"status": "noop", "reason": f"only {len(pts)} tail items for k={k}"}
+
+    base = _tax.build_centroids(model=model)
+    if base is None:
+        return {"status": "skipped", "reason": "exemplar centroids unavailable"}
+
+    vecs = [v for v, _s in pts]
+    labels, centers = _kmeans(vecs, k, iters)
+
+    existing = load_discovered(model)
+    used = set(base) | set(existing)
+    candidates = []  # (cohesion, size, name, centroid, rep)
+    rejected = []
+    for c in range(k):
+        idx = [i for i, lab in enumerate(labels) if lab == c]
+        if not idx:
+            continue
+        size = len(idx)
+        centroid = centers[c]
+        cohesion = sum(_dot(vecs[i], centroid) for i in idx) / size
+        novelty = _tax.margin_stats(_tax.rank(centroid, base))["margin"]
+        rep = pts[max(idx, key=lambda i: _dot(vecs[i], centroid))][1]
+        if size < min_size:
+            rejected.append({"size": size, "reason": "too_small"})
+            continue
+        if cohesion < min_cohesion:
+            rejected.append({"size": size, "reason": f"incoherent({cohesion:.2f})"})
+            continue
+        if novelty >= max_margin:
+            rejected.append({"size": size, "reason": f"matches_existing(margin={novelty:.2f})"})
+            continue
+        candidates.append((cohesion, size, centroid, rep))
+
+    # keep the strongest (most cohesive) clusters, capped
+    candidates.sort(key=lambda t: (t[0], t[1]), reverse=True)
+    promoted = []
+    for cohesion, size, centroid, rep in candidates[:max_new]:
+        name = _slug(rep, used)
+        used.add(name)
+        existing[name] = {"vec": centroid, "label": rep[:140],
+                          "size": size, "cohesion": round(cohesion, 4)}
+        promoted.append({"name": name, "size": size, "cohesion": round(cohesion, 4),
+                         "representative": rep[:80]})
+
+    if promoted:
+        save_discovered(model, existing)
+    capped = len(candidates) - len(candidates[:max_new])
+    return {
+        "status": "ok",
+        "tail_items": len(pts),
+        "promoted": promoted,
+        "rejected": rejected,
+        "capped_out": capped if capped > 0 else 0,
+        "total_discovered": len(existing),
+    }
