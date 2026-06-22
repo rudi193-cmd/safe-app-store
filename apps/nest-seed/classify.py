@@ -52,11 +52,43 @@ except ImportError:
 MARGIN_CONFIDENT = float(os.environ.get("NEST_EMBED_MARGIN", "0.07"))
 MARGIN_FLOOR = float(os.environ.get("NEST_EMBED_MARGIN_FLOOR", "0.03"))
 
+# Loose candidate finder; _plausible_date() does the real validation so we reject
+# version strings ("0.4.27"), out-of-range numbers, and epoch-sentinel artifacts.
 _DATE_RE = re.compile(
-    r"\b(\d{1,2}[/\-\.]\d{1,2}[/\-\.]\d{2,4}"
+    r"\b(\d{1,2}[/\-\.]\d{1,2}[/\-\.]\d{1,4}"
     r"|\w+ \d{1,2},? \d{4}"
-    r"|\d{4}[/\-\.]\d{2}[/\-\.]\d{2})\b"
+    r"|\d{4}[/\-\.]\d{1,2}[/\-\.]\d{1,2})\b"
 )
+
+_MONTH_ABBR = {"jan", "feb", "mar", "apr", "may", "jun",
+               "jul", "aug", "sep", "oct", "nov", "dec"}
+
+# Personal dumps don't contain real pre-1990 events; what looks like one is an
+# epoch-zero timestamp (1970-01-xx from a 0-ms export) or a null/default date.
+MIN_PLAUSIBLE_YEAR = int(os.environ.get("NEST_MIN_DATE_YEAR", "1990"))
+
+
+def _plausible_date(s: str) -> bool:
+    """True only for a real calendar date — not a semver/version string."""
+    s = s.strip()
+    m = re.fullmatch(r"(\d{1,4})([/\-.])(\d{1,2})\2(\d{1,4})", s)
+    if m:
+        a, sep, c = m.group(1), m.group(2), m.group(4)
+        ai, bi, ci = int(a), int(m.group(3)), int(c)
+        if len(a) == 4:                       # ISO yyyy-mm-dd
+            return 1 <= bi <= 12 and 1 <= ci <= 31 and ai >= MIN_PLAUSIBLE_YEAR
+        if sep == ".":                        # dotted → need 4-digit year (else semver)
+            return len(c) == 4 and 1 <= ai <= 31 and 1 <= bi <= 12 and ci >= MIN_PLAUSIBLE_YEAR
+        if len(c) in (2, 4):                  # slash/dash dd-mm-yy(yy)
+            yr = ci if len(c) == 4 else (2000 + ci if ci < 70 else 1900 + ci)
+            return 1 <= ai <= 31 and 1 <= bi <= 31 and (ai <= 12 or bi <= 12) and yr >= MIN_PLAUSIBLE_YEAR
+        return False
+    mm = re.fullmatch(r"([A-Za-z]+) \d{1,2},? (\d{4})", s)
+    if mm:
+        return mm.group(1).lower()[:3] in _MONTH_ABBR and int(mm.group(2)) >= MIN_PLAUSIBLE_YEAR
+    return False
+
+
 _PERSON_PREFIXES = re.compile(
     r"\b(mr\.?|mrs\.?|ms\.?|dr\.?|prof\.?|rev\.?)\s+([A-Z][a-z]+ [A-Z][a-z]+)",
     re.IGNORECASE,
@@ -97,6 +129,7 @@ def _date_fragments(text: str) -> list[Fragment]:
         Fragment(fragment_type="date", content=m.group(),
                  confidence="likely", date_ref=m.group())
         for m in _DATE_RE.finditer(text)
+        if _plausible_date(m.group())
     ]
 
 
