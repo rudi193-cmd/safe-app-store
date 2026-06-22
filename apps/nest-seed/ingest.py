@@ -26,7 +26,7 @@ def run(folder: Path, db_path: Path, owner: str, dry_run: bool = False,
         verbose: bool = False, use_llm: bool = False, use_embed: bool = True,
         text_model: str | None = None, vision_model: str | None = None,
         embed_model: str | None = None, learn: bool = False,
-        discover: int = 0) -> dict:
+        discover: int = 0, promote: bool = False) -> dict:
     conn = None if dry_run else _db.open_db(db_path)
     if conn:
         _db.init_meta(conn, owner=owner, description=f"Seeded from {folder}")
@@ -45,7 +45,7 @@ def run(folder: Path, db_path: Path, owner: str, dry_run: bool = False,
 
     # Recorder collects per-doc observations (reusing the embedding the
     # classifier already computes) for self-learning and clustering discovery.
-    recorder = _learn.Recorder() if (learn or discover) else None
+    recorder = _learn.Recorder() if (learn or discover or promote) else None
 
     supported = _ocr.supported_suffixes()
     files = [p for p in sorted(folder.rglob("*"))
@@ -124,5 +124,12 @@ def run(folder: Path, db_path: Path, owner: str, dry_run: bool = False,
         counts["discovery"] = _learn.discover(recorder.tail, k=discover)
         if verbose:
             print(f"  [discover] {counts['discovery']}", file=sys.stderr)
+
+    # Promote qualifying tail clusters into new persisted categories.
+    if recorder is not None and promote:
+        counts["promotion"] = _learn.promote_clusters(
+            model, recorder.tail, k=(discover or 8))
+        if verbose:
+            print(f"  [promote] {counts['promotion']}", file=sys.stderr)
 
     return counts

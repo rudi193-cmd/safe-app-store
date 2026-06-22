@@ -53,6 +53,9 @@ def main() -> None:
     parser.add_argument("--discover", type=int, metavar="K", default=0,
                         help="Cluster the uncertain tail into K groups to surface "
                              "candidate categories the exemplars miss (report only).")
+    parser.add_argument("--promote", action="store_true",
+                        help="Persist qualifying tail clusters as new categories "
+                             "(big, cohesive, novel) so future runs classify into them.")
     parser.add_argument("--verbose", "-v", action="store_true")
     args = parser.parse_args()
 
@@ -90,7 +93,7 @@ def main() -> None:
     counts = run(folder, db_path, owner=owner, dry_run=args.dry_run, verbose=args.verbose,
                  use_llm=args.llm, use_embed=use_embed, text_model=args.text_model,
                  vision_model=args.vision_model, embed_model=args.embed_model,
-                 learn=args.learn, discover=args.discover)
+                 learn=args.learn, discover=args.discover, promote=args.promote)
 
     print(f"\n[nest-seed] files    : {counts['files']}", file=sys.stderr)
     print(f"[nest-seed] extracted: {counts['extracted']}", file=sys.stderr)
@@ -103,6 +106,8 @@ def main() -> None:
         print(f"[nest-seed] learned  : {json.dumps(counts['learned'])}", file=sys.stderr)
     if "discovery" in counts:
         print(f"[nest-seed] discovery: {json.dumps(counts['discovery'])}", file=sys.stderr)
+    if "promotion" in counts:
+        print(f"[nest-seed] promotion: {json.dumps(counts['promotion'])}", file=sys.stderr)
 
 
 if __name__ == "__main__":

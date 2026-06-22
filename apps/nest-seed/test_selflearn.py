@@ -109,3 +109,58 @@ def test_discover_returns_clusters():
 def test_discover_noop_when_too_few():
     res = _learn.discover([{"vec": [1.0] * _DIM, "snippet": "x"}], k=4)
     assert res["status"] == "noop"
+
+
+# --- cluster promotion (phase 2b) -------------------------------------------
+
+# A controlled 4-d base taxonomy so novelty/distinctness is deterministic.
+_BASE = {"a": [1.0, 0, 0, 0], "b": [0, 1.0, 0, 0]}
+
+
+@pytest.fixture
+def _base_centroids(monkeypatch):
+    monkeypatch.setattr(_tax, "build_centroids", lambda model=None, use_cache=True: dict(_BASE))
+
+
+def test_promote_accepts_novel_cohesive_cluster(_base_centroids):
+    model = "fake"
+    items = [{"vec": [0, 0, 1.0, 0], "snippet": "tax invoice receipt total"}] * 6
+    res = _learn.promote_clusters(model, items, k=1, min_size=4)
+    assert res["status"] == "ok"
+    assert len(res["promoted"]) == 1
+    assert res["promoted"][0]["name"].startswith("auto:")
+    # persisted and visible to the adaptive centroids
+    assert res["promoted"][0]["name"] in _learn.load_discovered(model)
+
+
+def test_promote_rejects_cluster_matching_existing(_base_centroids):
+    model = "fake"
+    items = [{"vec": [1.0, 0, 0, 0], "snippet": "looks like category a"}] * 6
+    res = _learn.promote_clusters(model, items, k=1, min_size=4)
+    assert res["promoted"] == []
+    assert any("matches_existing" in r["reason"] for r in res["rejected"])
+
+
+def test_promote_rejects_too_small(_base_centroids):
+    model = "fake"
+    items = [{"vec": [0, 0, 1.0, 0], "snippet": "novel but tiny"}] * 3
+    res = _learn.promote_clusters(model, items, k=1, min_size=4)
+    assert res["promoted"] == []
+    assert any(r["reason"] == "too_small" for r in res["rejected"])
+
+
+def test_discovered_categories_enter_adaptive_centroids(monkeypatch):
+    model = "fake"
+    monkeypatch.setattr(_tax, "build_centroids", lambda model=None, use_cache=True: dict(_BASE))
+    _learn.save_discovered(model, {"auto:foo": {"vec": [0, 0, 1.0, 0], "label": "foo",
+                                                "size": 5, "cohesion": 0.9}})
+    adaptive = _learn.build_adaptive_centroids(model=model, use_cache=False)
+    assert "auto:foo" in adaptive
+    assert adaptive["a"] == _BASE["a"]
+
+
+def test_slug_is_unique():
+    used = set()
+    a = _learn._slug("tax invoice receipt total amount", used); used.add(a)
+    b = _learn._slug("tax invoice receipt total amount", used)
+    assert a != b and a.startswith("auto:tax-invoice")
