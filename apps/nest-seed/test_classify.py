@@ -59,3 +59,28 @@ def test_titled_person_rejects_lowercase_trailing_word():
 def test_titled_person_title_case_insensitive():
     # title may be any case, name still must be Capitalized
     assert _names("mr. David Martinez") == ["David Martinez"]
+
+
+def _spec_names(text):
+    # speculative person fragments from the pure-regex tier (the offender path)
+    frags = cl._classify_regex(text, "f.txt", "f.txt", False)
+    return [f.content for f in frags if f.fragment_type == "person"]
+
+
+def test_org_names_rejected_as_people():
+    # the "General Insurance" class of false positives must not become persons
+    for org in ("General Insurance", "State Farm", "United States", "First National",
+                "American Express", "Wells Trust", "Allied Services", "County Court"):
+        assert cl._looks_like_org(org) is True, org
+        assert _spec_names(f"paid the {org} balance in full") == [], org
+
+
+def test_real_two_word_name_still_extracted():
+    # a genuine person with no org token survives the stoplist
+    assert cl._looks_like_org("David Martinez") is False
+    assert "David Martinez" in _spec_names("David Martinez signed the form")
+
+
+def test_titled_org_rejected():
+    # org tokens are filtered even with a title prefix
+    assert _names("per Dr. General Insurance today") == []
