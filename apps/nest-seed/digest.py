@@ -52,6 +52,7 @@ def build_digest(db_path: str, model: str = _embed.DEFAULT_EMBED_MODEL) -> str:
                 ('document','note','receipt') group by 1 order by 2 desc""")
     names = Counter(v for (v,) in q("select content from fragments where fragment_type='person'")
                     if _NAME_RE.match(v))
+    secrets = Counter(lbl for (lbl,) in q("select label from fragments where fragment_type='secret'"))
     dates = [d for (d,) in q("select date_ref from fragments where fragment_type='date' and date_ref!=''")]
     big = q("""select s.filename,count(*) n from fragments f join sources s on s.id=f.source_id
                group by 1 order by 2 desc limit 6""")
@@ -72,6 +73,14 @@ def build_digest(db_path: str, model: str = _embed.DEFAULT_EMBED_MODEL) -> str:
     L.append(f"The largest sources are {big_src}. Dates are {ftypes.get('date',0):,} of "
              f"{frag_total:,} fragments; the dominant topical category is **{top_cat}**. "
              f"Across {src_total} files the dump breaks down as below.\n")
+
+    if secrets:
+        total_s = sum(secrets.values())
+        L.append(f"## ⚠️ Secrets detected — {total_s}\n")
+        L.append("Credentials found in the dump and stored **redacted**. Review and rotate:")
+        for kind, n in secrets.most_common():
+            L.append(f"- **{kind}** ({n})")
+        L.append("")
 
     L.append("## By category\n")
     for label, n in cats:
