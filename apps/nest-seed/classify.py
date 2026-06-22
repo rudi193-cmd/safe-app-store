@@ -35,10 +35,12 @@ try:  # works both as a package (apps.nest_seed) and as a plain script dir
     from . import llm as _llm
     from . import embed as _embed
     from . import taxonomy as _tax
+    from . import secrets as _secrets
 except ImportError:
     import llm as _llm
     import embed as _embed
     import taxonomy as _tax
+    import secrets as _secrets
 
 # --- embedding-tier thresholds (env-overridable; calibrated on real dump) ----
 # Absolute cosine is NOT discriminative (nomic rates everything ~0.55-0.74), so
@@ -183,6 +185,30 @@ def classify(text: str, filename: str = "", path: "Path | None" = None,
              text_model: str | None = None, vision_model: str | None = None,
              embed_model: str | None = None,
              learn_sink: "Callable[[str, list, float, str], None] | None" = None) -> list[Fragment]:
+    """Public entry. Scrubs credentials FIRST: any secret becomes a flagged,
+    redacted `secret` fragment and is removed from the text before any other tier
+    embeds or stores it — the Nest never persists a raw credential."""
+    secret_frags: list[Fragment] = []
+    found = _secrets.find_secrets(text)
+    if found:
+        text = _secrets.redact_text(text)
+        secret_frags = [
+            Fragment(fragment_type="secret",
+                     content=f"{kind}: {_secrets.redact_value(val)}",
+                     label=kind, confidence="confirmed")
+            for kind, val in found
+        ]
+    core = _classify_core(text, filename, path, use_llm, use_embed, centroids,
+                          text_model, vision_model, embed_model, learn_sink)
+    return secret_frags + core
+
+
+def _classify_core(text: str, filename: str = "", path: "Path | None" = None,
+                   use_llm: bool = False, use_embed: bool = True,
+                   centroids: "dict[str, list[float]] | None" = None,
+                   text_model: str | None = None, vision_model: str | None = None,
+                   embed_model: str | None = None,
+                   learn_sink: "Callable[[str, list, float, str], None] | None" = None) -> list[Fragment]:
     name_lower = filename.lower()
     is_image = any(name_lower.endswith(x) for x in _IMAGE_EXTS)
 

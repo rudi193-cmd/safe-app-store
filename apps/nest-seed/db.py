@@ -19,7 +19,7 @@ from typing import Any
 
 FRAGMENT_TYPES = frozenset({
     "person", "date", "location", "event",
-    "document", "photo", "note", "receipt", "unknown",
+    "document", "photo", "note", "receipt", "secret", "unknown",
 })
 CONFIDENCE_LEVELS = frozenset({"confirmed", "likely", "uncertain", "speculative"})
 
