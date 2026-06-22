@@ -65,22 +65,69 @@ def main() -> None:
                              "QUERY (builds a cached index; standalone on an existing --db).")
     parser.add_argument("--reindex", action="store_true",
                         help="Rebuild the --ask embedding index from scratch.")
+    parser.add_argument("--curate", action="store_true",
+                        help="List the auto-discovered categories (store + live DB counts).")
+    parser.add_argument("--curate-rename", nargs=2, metavar=("OLD", "NEW"), default=None,
+                        help="Rename a discovered category and relabel its DB fragments.")
+    parser.add_argument("--curate-prune", metavar="NAME", default=None,
+                        help="Drop a discovered category and clear its fragment labels.")
+    parser.add_argument("--bridge", action="store_true",
+                        help="Emit a PII-safe fleet-KB manifest of the Nest's curated "
+                             "structure (counts + category names, never content).")
     parser.add_argument("--verbose", "-v", action="store_true")
     args = parser.parse_args()
 
     db_path = Path(args.db).expanduser().resolve()
-    report_only = (args.digest or args.ask) and not args.folder
+    curate_ops = args.curate or args.curate_rename or args.curate_prune or args.bridge
+    report_only = (args.digest or args.ask or curate_ops) and not args.folder
 
     if not report_only:
         if not args.folder:
-            sys.exit("ERROR: --folder is required (or use --digest / --ask on an existing --db)")
+            sys.exit("ERROR: --folder is required (or use --digest / --ask / "
+                     "--curate / --bridge on an existing --db)")
         _ingest(args, db_path)
+
+    if curate_ops:
+        _run_curate(db_path, args)
 
     if args.ask:
         _run_ask(db_path, args.ask, args.reindex)
 
     if args.digest:
         _write_digest(db_path)
+
+
+def _run_curate(db_path: "Path", args) -> None:
+    try:
+        from . import curate as _curate
+        from . import bridge as _bridge
+    except ImportError:
+        import curate as _curate
+        import bridge as _bridge
+    dbp = str(db_path)
+
+    if args.curate_rename:
+        old, new = args.curate_rename
+        print(json.dumps(_curate.rename_category(dbp, old, new), indent=2))
+    if args.curate_prune:
+        print(json.dumps(_curate.prune_category(dbp, args.curate_prune), indent=2))
+    if args.curate or (not args.curate_rename and not args.curate_prune and not args.bridge):
+        res = _curate.list_categories(dbp)
+        print(f'\n🗂️  Discovered categories ({res["count"]}) — rename the keepers, prune the junk:\n')
+        for c in res["categories"]:
+            coh = f"coh {c['cohesion']}" if c["cohesion"] is not None else "coh ?"
+            print(f"  {c['name']}")
+            print(f"      size {c['size']} · {coh} · {c['db_fragments']} DB fragments")
+            if c["representative"]:
+                print(f"      e.g. {c['representative']}")
+    if args.bridge:
+        res = _bridge.write_manifest(dbp)
+        print(f'\n🌉 Bridge manifest: {len(res["atoms"])} PII-safe atoms '
+              f'({res["sources"]} sources, {res["fragments"]:,} fragments)')
+        if res.get("manifest"):
+            print(f"   written to {res['manifest']}", file=sys.stderr)
+        for a in res["atoms"]:
+            print(f"   • {a['title']}")
 
 
 def _run_ask(db_path: "Path", query: str, reindex: bool) -> None:
