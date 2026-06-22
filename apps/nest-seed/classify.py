@@ -41,9 +41,14 @@ except ImportError:
     import taxonomy as _tax
 
 # --- embedding-tier thresholds (env-overridable; calibrated on real dump) ----
-CONFIDENT_SCORE = float(os.environ.get("NEST_EMBED_CONFIDENT", "0.52"))
-CONFIDENT_GAP = float(os.environ.get("NEST_EMBED_GAP", "0.04"))
-UNKNOWN_FLOOR = float(os.environ.get("NEST_EMBED_FLOOR", "0.42"))
+# Absolute cosine is NOT discriminative (nomic rates everything ~0.55-0.74), so
+# confidence is judged by the MARGIN over the mean category similarity — how far
+# the winner stands out from the field.
+# NOTE: these defaults are PROVISIONAL. Lock them from a margin histogram over
+# the full dump (scripts: nest_histogram3) once the host is cool enough to run
+# the embed pass without thermal throttling.
+MARGIN_CONFIDENT = float(os.environ.get("NEST_EMBED_MARGIN", "0.06"))
+MARGIN_FLOOR = float(os.environ.get("NEST_EMBED_MARGIN_FLOOR", "0.03"))
 
 _DATE_RE = re.compile(
     r"\b(\d{1,2}[/\-\.]\d{1,2}[/\-\.]\d{2,4}"
@@ -109,12 +114,12 @@ def _enrich(text: str) -> list[Fragment]:
     return _titled_person_fragments(text, set()) + _date_fragments(text)
 
 
-def _confidence_from_score(score: float) -> str:
-    if score >= 0.62:
+def _confidence_from_margin(margin: float) -> str:
+    if margin >= 0.10:
         return "confirmed"
-    if score >= 0.52:
+    if margin >= MARGIN_CONFIDENT:
         return "likely"
-    if score >= UNKNOWN_FLOOR:
+    if margin >= MARGIN_FLOOR:
         return "uncertain"
     return "speculative"
 
@@ -182,12 +187,11 @@ def _classify_text_tiers(text: str, filename: str, is_image: bool,
         vec = _embed.embed_document(text, model=embed_model or _embed.DEFAULT_EMBED_MODEL)
         if vec:
             ranked = _tax.rank(vec, centroids)
-            top_score, top_cat = ranked[0]
-            gap = top_score - (ranked[1][0] if len(ranked) > 1 else 0.0)
-            confident = top_score >= CONFIDENT_SCORE and gap >= CONFIDENT_GAP
+            st = _tax.margin_stats(ranked)
+            confident = st["margin"] >= MARGIN_CONFIDENT
 
             if confident:
-                return _frag_from_category(top_cat, _confidence_from_score(top_score), excerpt)
+                return _frag_from_category(st["cat"], _confidence_from_margin(st["margin"]), excerpt)
 
             # --- tier 3: escalate the uncertain tail to the LLM -------------
             if use_llm:
@@ -198,12 +202,10 @@ def _classify_text_tiers(text: str, filename: str, is_image: bool,
                 if verdict is not None:
                     return _frag_from_verdict(verdict, text, is_image)
 
-            # LLM off or failed → trust the embedding best if above the floor.
-            # We only reach here because it was NOT confident (low score or a
-            # tied top-2), so don't overstate it — cap the label at "uncertain"
-            # regardless of absolute score.
-            if top_score >= UNKNOWN_FLOOR:
-                return _frag_from_category(top_cat, "uncertain", excerpt)
+            # LLM off or failed → trust the embedding best if it stands out at
+            # all (margin above the floor); otherwise it's genuinely unclear.
+            if st["margin"] >= MARGIN_FLOOR:
+                return _frag_from_category(st["cat"], "uncertain", excerpt)
             return Fragment(fragment_type="unknown", content=excerpt,
                             label="", confidence="speculative")
 
