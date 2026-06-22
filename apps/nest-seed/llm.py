@@ -139,15 +139,27 @@ def _coerce_verdict(raw: str) -> dict | None:
 
 
 def classify_text(text: str, filename: str = "",
-                  model: str = DEFAULT_TEXT_MODEL) -> dict | None:
-    """Classify a text document with a local Ollama model. None on any failure."""
+                  model: str = DEFAULT_TEXT_MODEL,
+                  candidates: "list[str] | None" = None) -> dict | None:
+    """Classify a text document with a local Ollama model. None on any failure.
+
+    `candidates` (when given) are the top categories from the semantic embedding
+    pre-pass — the model is told these are the likely fits and asked to choose
+    among them or override. This both speeds the call and improves agreement.
+    """
     tag = _resolve(model)
     if not tag or not text.strip():
         return None
     # Cap the payload — first ~6k chars is plenty for a type/category call.
     excerpt = text[:6000]
+    hint = ""
+    if candidates:
+        hint = ("A semantic pre-pass suggests these likely categories, best first: "
+                f"{', '.join(candidates)}. Choose the best fit among them, or "
+                "override if they are all clearly wrong.\n\n")
     prompt = (
         f"Filename: {filename}\n\n"
+        f"{hint}"
         f"File text (may be truncated):\n{excerpt}\n\n"
         "Classify this file. Return only the JSON object."
     )

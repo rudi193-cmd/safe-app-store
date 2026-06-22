@@ -8,35 +8,51 @@ No fleet dependency. No Postgres. Runs anywhere Python runs.
 
 1. **Walks** any folder recursively
 2. **Extracts** text by file type (tesseract for images, pdfplumber for PDFs, passthrough for text/code)
-3. **Classifies** fragments — pure-regex by default; with `--llm`, a local Ollama
-   model reads the *content* and assigns a topical category (legal, journal,
-   knowledge, financial, code, …) instead of guessing from the filename
+3. **Classifies** fragments by *meaning* — a tiered cascade (regex facts -> local embeddings -> generative LLM) assigns a topical category (legal, journal, knowledge, financial, etc.) from content, not the filename
+
 4. **Writes** a portable SQLite Nest DB: `sources` + `fragments` + `nest_meta`
 
 The DB is canonical — apps read it, never mutate it. Fleet promotion (Willow KB) is the next layer.
 
-## Classification: regex vs. local AI
+## Classification: a three-tier cascade
 
-By default classification is pure regex/keyword heuristics — fast, offline, no
-models. Good for a first pass, but ambiguous files land as `document`/`unknown`
-and keyword matches misfire (a file with the word "total" looks like a receipt).
+Files are classified cheapest-tier-first; each tier only handles what the
+cheaper one couldn't, and every tier degrades gracefully if its model is absent.
 
-Pass `--llm` to classify by content using a **local** Ollama daemon — no cloud,
-no API keys. A small text model (default `llama3.2:3b`) assigns the fragment
-type, a topical category, and a one-line summary; a vision model
-(default `qwen2.5vl:7b`) reads images. If Ollama is unreachable or a model is
-missing/too large for available memory, each file falls back to the regex path —
-so `--llm` never *fails*, it degrades.
+1. **regex** — deterministic facts (dates, titled names). Free, offline. Also
+   the final fallback when no model is available.
+2. **embeddings** *(on by default)* — semantic classification via a local
+   `nomic-embed-text`. The document is embedded and matched to the nearest
+   **category centroid** by cosine similarity; the score *is* the confidence.
+   Fast (~ms/file), local, deterministic. Handles the confident majority. This
+   is real semantic matching, not keyword lookup — a file about "totals" is no
+   longer mistaken for a receipt.
+3. **generative** *(`--llm`)* — a local text model (`llama3.2:3b`) reads the
+   text, and a vision model (`qwen2.5vl:7b`) reads images. The text model fires
+   **only on the uncertain tail** (low similarity, or a tied top-2) and is
+   handed the embedding's top candidates as a constrained choice — faster and
+   more accurate than free-form labeling.
+
+So `--llm` doesn't classify every file; the embedding tier resolves the easy
+ones in milliseconds and the expensive model is spent only where the geometry
+is genuinely ambiguous. Categories live in `taxonomy.py` as seed phrases →
+centroids (cached on disk). Thresholds are tunable via `NEST_EMBED_CONFIDENT`,
+`NEST_EMBED_GAP`, and `NEST_EMBED_FLOOR`.
 
 ```bash
-python apps/nest-seed/app.py --folder ~/life-dump --owner "Your Name" --llm --dry-run
-# override models / host:
-NEST_TEXT_MODEL=llama3.1:8b OLLAMA_HOST=http://localhost:11434 \
-  python apps/nest-seed/app.py --folder ~/life-dump --llm --db ~/Desktop/Nest/seed.db -v
+# embeddings only (fast, no generative model needed):
+python apps/nest-seed/app.py --folder ~/life-dump --owner "You" --dry-run
+
+# full cascade (embeddings + LLM escalation on the uncertain tail):
+python apps/nest-seed/app.py --folder ~/life-dump --owner "You" --llm --dry-run
+
+# disable the embedding tier entirely:
+python apps/nest-seed/app.py --folder ~/life-dump --no-embed --llm --dry-run
 ```
 
-Requires a running [Ollama](https://ollama.com) with at least the text model pulled
-(`ollama pull llama3.2:3b`); the vision model is optional (`ollama pull qwen2.5vl:7b`).
+Requires a running [Ollama](https://ollama.com): `ollama pull nomic-embed-text`
+(embedding tier) and optionally `ollama pull llama3.2:3b` / `qwen2.5vl:7b`
+(generative tier). Without any of them, classification falls back to regex.
 
 ## Quick start
 

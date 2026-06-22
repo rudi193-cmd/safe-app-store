@@ -1,36 +1,49 @@
 """
-nest-seed/classify.py — hybrid fragment classifier.
+nest-seed/classify.py — tiered hybrid classifier.
 
-Given extracted text (and optionally the file path) returns a list of
-Fragment dicts.
+A document flows through up to three tiers, cheapest first:
 
-Two modes:
-  * use_llm=False (default) — pure regex/keyword heuristics. No network,
-    no models. Good enough for a first-pass seed; Willow KB promotion
-    handles the second pass. This is the original, portable behaviour.
-  * use_llm=True — local AI via Ollama (see llm.py). A small text model
-    assigns the fragment_type + topical category + a one-line summary;
-    a vision model reads images. Regex still runs a cheap deterministic
-    pre-pass (dates, receipts, titled names) to enrich the LLM verdict.
-    If Ollama is unreachable or the model is missing, every file falls
-    back to the regex path — so use_llm=True never *fails*, it degrades.
+  1. regex      — deterministic facts (dates, titled names). Always runs as
+                  enrichment; also the final fallback when nothing else is
+                  available. Free, offline.
+  2. embeddings — semantic classification. The document is embedded
+                  (nomic-embed-text) and matched to the nearest category
+                  centroid by cosine similarity. The score *is* the confidence.
+                  Fast, local, deterministic. Handles the confident majority.
+  3. generative — a local LLM (llm.py) reads the text. Fires ONLY when the
+                  embedding tier is uncertain (low score, or top-2 too close),
+                  and is handed the embedding's top candidates as a constrained
+                  choice. Expensive, so used sparingly. Also classifies images
+                  via a vision model.
+
+Every tier degrades gracefully: if embeddings are unavailable the doc goes
+straight to the LLM (or regex); if the LLM is unavailable the embedding verdict
+(or regex) stands. Nothing ever hard-fails on a missing model.
 
 Fragment types: person, date, location, event, document, photo, note,
-receipt, unknown. When the LLM is on, each document also carries a
-topical `label` (legal, journal, knowledge, narrative, specs, code,
-correspondence, financial, education, personal, media, config, data,
-other) — this is what empties the "unknown" pile.
+receipt, unknown. The topical category (legal, journal, code, financial, …)
+is stored in the fragment `label`.
 """
 from __future__ import annotations
 
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
 
 try:  # works both as a package (apps.nest_seed) and as a plain script dir
     from . import llm as _llm
+    from . import embed as _embed
+    from . import taxonomy as _tax
 except ImportError:
     import llm as _llm
+    import embed as _embed
+    import taxonomy as _tax
+
+# --- embedding-tier thresholds (env-overridable; calibrated on real dump) ----
+CONFIDENT_SCORE = float(os.environ.get("NEST_EMBED_CONFIDENT", "0.52"))
+CONFIDENT_GAP = float(os.environ.get("NEST_EMBED_GAP", "0.04"))
+UNKNOWN_FLOOR = float(os.environ.get("NEST_EMBED_FLOOR", "0.42"))
 
 _DATE_RE = re.compile(
     r"\b(\d{1,2}[/\-\.]\d{1,2}[/\-\.]\d{2,4}"
@@ -70,7 +83,7 @@ class Fragment:
     date_ref: str = ""
 
 
-# --- cheap deterministic extractors (reused by both modes) ------------------
+# --- cheap deterministic extractors (shared by all tiers) -------------------
 
 def _date_fragments(text: str) -> list[Fragment]:
     return [
@@ -91,74 +104,124 @@ def _titled_person_fragments(text: str, seen: set[str]) -> list[Fragment]:
     return frags
 
 
+def _enrich(text: str) -> list[Fragment]:
+    """Cheap, high-precision deterministic fragments to attach to any primary."""
+    return _titled_person_fragments(text, set()) + _date_fragments(text)
+
+
+def _confidence_from_score(score: float) -> str:
+    if score >= 0.62:
+        return "confirmed"
+    if score >= 0.52:
+        return "likely"
+    if score >= UNKNOWN_FLOOR:
+        return "uncertain"
+    return "speculative"
+
+
+def _frag_from_category(cat: str, confidence: str, content: str) -> Fragment:
+    ftype = _tax.CATEGORY_FRAGMENT_TYPE.get(cat, "document")
+    return Fragment(fragment_type=ftype, content=content, label=cat, confidence=confidence)
+
+
+def _frag_from_verdict(verdict: dict, text: str, is_image: bool) -> Fragment:
+    return Fragment(
+        fragment_type="photo" if is_image else verdict["fragment_type"],
+        content=verdict["summary"] or text[:300],
+        label=verdict["category"],
+        confidence=verdict["confidence"],
+    )
+
+
 # --- main entry -------------------------------------------------------------
 
 def classify(text: str, filename: str = "", path: "Path | None" = None,
-             use_llm: bool = False, text_model: str | None = None,
-             vision_model: str | None = None) -> list[Fragment]:
+             use_llm: bool = False, use_embed: bool = True,
+             centroids: "dict[str, list[float]] | None" = None,
+             text_model: str | None = None, vision_model: str | None = None,
+             embed_model: str | None = None) -> list[Fragment]:
     name_lower = filename.lower()
     is_image = any(name_lower.endswith(x) for x in _IMAGE_EXTS)
 
-    # An image with no OCR text but LLM on → vision describes it directly.
     if not text.strip() and not (is_image and use_llm):
-        return []
+        return _classify_regex(text, filename, name_lower, is_image)
 
-    if use_llm:
-        frags = _classify_llm(text, filename, path, is_image,
-                              text_model=text_model, vision_model=vision_model)
-        if frags is not None:
-            return frags
-        # LLM unreachable / model missing → fall through to regex.
-
-    return _classify_regex(text, filename, name_lower, is_image)
-
-
-# --- LLM path ---------------------------------------------------------------
-
-def _classify_llm(text: str, filename: str, path: "Path | None", is_image: bool,
-                  text_model: str | None, vision_model: str | None) -> "list[Fragment] | None":
-    """Return fragments via local AI, or None if the model is unavailable."""
-    frags: list[Fragment] = []
-
-    if is_image and path is not None:
+    # --- images: vision tier (embeddings don't apply to raw pixels) ---------
+    if is_image and use_llm and path is not None:
         verdict = _llm.describe_image(path, model=vision_model or _llm.DEFAULT_VISION_MODEL)
-        if verdict is None and not text.strip():
-            return None  # vision down and nothing to read → let caller fall back
         if verdict is not None:
-            frags.append(Fragment(
-                fragment_type="photo",
-                content=verdict["summary"] or f"[image: {filename}]",
-                label=verdict["category"],
-                confidence=verdict["confidence"],
-            ))
-            frags.extend(_date_fragments(text))  # any OCR'd dates
-            return frags
-        # had OCR text but vision failed → classify that text below.
+            return [_frag_from_verdict(verdict, text, True)] + _date_fragments(text)
+        if not text.strip():
+            return _classify_regex(text, filename, name_lower, is_image)
+        # had OCR text, vision failed → classify that text below.
 
-    verdict = _llm.classify_text(text, filename,
-                                 model=text_model or _llm.DEFAULT_TEXT_MODEL)
-    if verdict is None:
-        return None
+    primary = _classify_text_tiers(
+        text, filename, is_image, use_llm, use_embed, centroids,
+        text_model=text_model, embed_model=embed_model,
+    )
+    if primary is None:
+        # No tier produced a verdict (all models down) → pure regex.
+        return _classify_regex(text, filename, name_lower, is_image)
 
-    content = verdict["summary"] or text[:300]
-    frags.append(Fragment(
-        fragment_type="photo" if is_image else verdict["fragment_type"],
-        content=content,
-        label=verdict["category"],
-        confidence=verdict["confidence"],
-    ))
-    # Enrich with cheap, high-precision deterministic signals.
-    frags.extend(_titled_person_fragments(text, set()))
-    frags.extend(_date_fragments(text))
-    return frags
+    return [primary] + _enrich(text)
 
 
-# --- regex path (original behaviour, unchanged logic) -----------------------
+def _classify_text_tiers(text: str, filename: str, is_image: bool,
+                         use_llm: bool, use_embed: bool,
+                         centroids: "dict[str, list[float]] | None",
+                         text_model: str | None,
+                         embed_model: str | None) -> "Fragment | None":
+    """Run the embedding → generative cascade for a text document.
+
+    Returns the primary fragment, or None if no tier was available.
+    """
+    excerpt = text[:300]
+
+    # --- tier 2: embeddings -------------------------------------------------
+    if use_embed and centroids and text.strip():
+        vec = _embed.embed_document(text, model=embed_model or _embed.DEFAULT_EMBED_MODEL)
+        if vec:
+            ranked = _tax.rank(vec, centroids)
+            top_score, top_cat = ranked[0]
+            gap = top_score - (ranked[1][0] if len(ranked) > 1 else 0.0)
+            confident = top_score >= CONFIDENT_SCORE and gap >= CONFIDENT_GAP
+
+            if confident:
+                return _frag_from_category(top_cat, _confidence_from_score(top_score), excerpt)
+
+            # --- tier 3: escalate the uncertain tail to the LLM -------------
+            if use_llm:
+                cands = [c for _, c in ranked[:3]]
+                verdict = _llm.classify_text(text, filename,
+                                             model=text_model or _llm.DEFAULT_TEXT_MODEL,
+                                             candidates=cands)
+                if verdict is not None:
+                    return _frag_from_verdict(verdict, text, is_image)
+
+            # LLM off or failed → trust the embedding best if above the floor.
+            # We only reach here because it was NOT confident (low score or a
+            # tied top-2), so don't overstate it — cap the label at "uncertain"
+            # regardless of absolute score.
+            if top_score >= UNKNOWN_FLOOR:
+                return _frag_from_category(top_cat, "uncertain", excerpt)
+            return Fragment(fragment_type="unknown", content=excerpt,
+                            label="", confidence="speculative")
+
+    # --- embeddings unavailable: go straight to the LLM ---------------------
+    if use_llm and text.strip():
+        verdict = _llm.classify_text(text, filename,
+                                     model=text_model or _llm.DEFAULT_TEXT_MODEL)
+        if verdict is not None:
+            return _frag_from_verdict(verdict, text, is_image)
+
+    return None  # caller falls back to regex
+
+
+# --- tier 1 / fallback: pure regex (original behaviour) ---------------------
 
 def _classify_regex(text: str, filename: str, name_lower: str,
                     is_image: bool) -> list[Fragment]:
     if not text.strip():
-        # Image with no OCR text and no LLM — record it as an opaque photo.
         if is_image:
             return [Fragment(fragment_type="photo",
                             content=f"[image: {filename}]",

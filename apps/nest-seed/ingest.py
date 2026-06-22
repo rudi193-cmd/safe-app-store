@@ -10,20 +10,31 @@ try:  # works both as a package (apps.nest_seed) and as a plain script dir
     from . import db as _db
     from . import ocr as _ocr
     from . import classify as _classify
+    from . import taxonomy as _tax
 except ImportError:
     import db as _db
     import ocr as _ocr
     import classify as _classify
+    import taxonomy as _tax
 
 _IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".tiff", ".tif", ".bmp", ".webp"}
 
 
 def run(folder: Path, db_path: Path, owner: str, dry_run: bool = False,
-        verbose: bool = False, use_llm: bool = False,
-        text_model: str | None = None, vision_model: str | None = None) -> dict:
+        verbose: bool = False, use_llm: bool = False, use_embed: bool = True,
+        text_model: str | None = None, vision_model: str | None = None,
+        embed_model: str | None = None) -> dict:
     conn = None if dry_run else _db.open_db(db_path)
     if conn:
         _db.init_meta(conn, owner=owner, description=f"Seeded from {folder}")
+
+    # Build category centroids once for the whole run (cached to disk).
+    centroids = None
+    if use_embed:
+        centroids = _tax.build_centroids(model=embed_model or _tax._embed.DEFAULT_EMBED_MODEL)
+        if verbose:
+            print(f"  [embed] centroids: {'built ('+str(len(centroids))+' categories)' if centroids else 'unavailable — embedding tier off'}",
+                  file=sys.stderr)
 
     supported = _ocr.supported_suffixes()
     files = [p for p in sorted(folder.rglob("*"))
@@ -59,8 +70,9 @@ def run(folder: Path, db_path: Path, owner: str, dry_run: bool = False,
 
         counts["extracted"] += 1
         frags = _classify.classify(text, filename=path.name, path=path,
-                                   use_llm=use_llm, text_model=text_model,
-                                   vision_model=vision_model)
+                                   use_llm=use_llm, use_embed=use_embed,
+                                   centroids=centroids, text_model=text_model,
+                                   vision_model=vision_model, embed_model=embed_model)
         counts["fragments"] += len(frags)
 
         if verbose:

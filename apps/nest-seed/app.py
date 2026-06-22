@@ -18,9 +18,11 @@ from pathlib import Path
 try:  # works both as a package (apps.nest_seed) and as a plain script dir
     from .ingest import run
     from . import llm as _llm
+    from . import embed as _embed
 except ImportError:
     from ingest import run
     import llm as _llm
+    import embed as _embed
 
 
 def main() -> None:
@@ -40,6 +42,11 @@ def main() -> None:
                         help="Ollama text model (default: env NEST_TEXT_MODEL or llama3.2:3b)")
     parser.add_argument("--vision-model", default=None,
                         help="Ollama vision model (default: env NEST_VISION_MODEL or qwen2.5vl:7b)")
+    parser.add_argument("--no-embed", action="store_true",
+                        help="Disable the semantic embedding tier (nomic-embed-text). "
+                             "On by default when the model is available.")
+    parser.add_argument("--embed-model", default=None,
+                        help="Ollama embedding model (default: env NEST_EMBED_MODEL or nomic-embed-text)")
     parser.add_argument("--verbose", "-v", action="store_true")
     args = parser.parse_args()
 
@@ -58,6 +65,12 @@ def main() -> None:
         print(f"[nest-seed] db     : {db_path}", file=sys.stderr)
     print(f"[nest-seed] owner  : {owner}", file=sys.stderr)
     print(f"[nest-seed] mode   : {'dry-run' if args.dry_run else 'live'}", file=sys.stderr)
+    use_embed = not args.no_embed
+    if use_embed:
+        em = args.embed_model or _embed.DEFAULT_EMBED_MODEL
+        ok = _embed.available(em)
+        print(f"[nest-seed] embed  : {'ON' if ok else 'requested but model unavailable — tier off'}"
+              f" ({em})", file=sys.stderr)
     if args.llm:
         models = _llm.installed_models()
         tm = args.text_model or _llm.DEFAULT_TEXT_MODEL
@@ -69,7 +82,8 @@ def main() -> None:
     print("", file=sys.stderr)
 
     counts = run(folder, db_path, owner=owner, dry_run=args.dry_run, verbose=args.verbose,
-                 use_llm=args.llm, text_model=args.text_model, vision_model=args.vision_model)
+                 use_llm=args.llm, use_embed=use_embed, text_model=args.text_model,
+                 vision_model=args.vision_model, embed_model=args.embed_model)
 
     print(f"\n[nest-seed] files    : {counts['files']}", file=sys.stderr)
     print(f"[nest-seed] extracted: {counts['extracted']}", file=sys.stderr)
