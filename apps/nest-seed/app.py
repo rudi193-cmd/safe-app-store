@@ -47,6 +47,12 @@ def main() -> None:
                              "On by default when the model is available.")
     parser.add_argument("--embed-model", default=None,
                         help="Ollama embedding model (default: env NEST_EMBED_MODEL or nomic-embed-text)")
+    parser.add_argument("--learn", action="store_true",
+                        help="Self-learning: fold this run's confidently-classified files "
+                             "into the category centroids so the Nest adapts to your data.")
+    parser.add_argument("--discover", type=int, metavar="K", default=0,
+                        help="Cluster the uncertain tail into K groups to surface "
+                             "candidate categories the exemplars miss (report only).")
     parser.add_argument("--verbose", "-v", action="store_true")
     args = parser.parse_args()
 
@@ -83,7 +89,8 @@ def main() -> None:
 
     counts = run(folder, db_path, owner=owner, dry_run=args.dry_run, verbose=args.verbose,
                  use_llm=args.llm, use_embed=use_embed, text_model=args.text_model,
-                 vision_model=args.vision_model, embed_model=args.embed_model)
+                 vision_model=args.vision_model, embed_model=args.embed_model,
+                 learn=args.learn, discover=args.discover)
 
     print(f"\n[nest-seed] files    : {counts['files']}", file=sys.stderr)
     print(f"[nest-seed] extracted: {counts['extracted']}", file=sys.stderr)
@@ -92,6 +99,10 @@ def main() -> None:
     print(f"[nest-seed] fragments: {counts['fragments']}", file=sys.stderr)
     if "db_stats" in counts:
         print(f"[nest-seed] db stats : {json.dumps(counts['db_stats'])}", file=sys.stderr)
+    if "learned" in counts:
+        print(f"[nest-seed] learned  : {json.dumps(counts['learned'])}", file=sys.stderr)
+    if "discovery" in counts:
+        print(f"[nest-seed] discovery: {json.dumps(counts['discovery'])}", file=sys.stderr)
 
 
 if __name__ == "__main__":

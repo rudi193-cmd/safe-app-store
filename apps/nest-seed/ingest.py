@@ -11,11 +11,13 @@ try:  # works both as a package (apps.nest_seed) and as a plain script dir
     from . import ocr as _ocr
     from . import classify as _classify
     from . import taxonomy as _tax
+    from . import selflearn as _learn
 except ImportError:
     import db as _db
     import ocr as _ocr
     import classify as _classify
     import taxonomy as _tax
+    import selflearn as _learn
 
 _IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".tiff", ".tif", ".bmp", ".webp"}
 
@@ -23,18 +25,27 @@ _IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".tiff", ".tif", ".bmp", ".webp"}
 def run(folder: Path, db_path: Path, owner: str, dry_run: bool = False,
         verbose: bool = False, use_llm: bool = False, use_embed: bool = True,
         text_model: str | None = None, vision_model: str | None = None,
-        embed_model: str | None = None) -> dict:
+        embed_model: str | None = None, learn: bool = False,
+        discover: int = 0) -> dict:
     conn = None if dry_run else _db.open_db(db_path)
     if conn:
         _db.init_meta(conn, owner=owner, description=f"Seeded from {folder}")
 
-    # Build category centroids once for the whole run (cached to disk).
+    model = embed_model or _tax._embed.DEFAULT_EMBED_MODEL
+
+    # Build category centroids once for the whole run (cached to disk). Adaptive
+    # centroids fold in anything previously learned — identical to the static
+    # exemplar centroids until the user has confirmed files.
     centroids = None
     if use_embed:
-        centroids = _tax.build_centroids(model=embed_model or _tax._embed.DEFAULT_EMBED_MODEL)
+        centroids = _learn.build_adaptive_centroids(model=model)
         if verbose:
             print(f"  [embed] centroids: {'built ('+str(len(centroids))+' categories)' if centroids else 'unavailable — embedding tier off'}",
                   file=sys.stderr)
+
+    # Recorder collects per-doc observations (reusing the embedding the
+    # classifier already computes) for self-learning and clustering discovery.
+    recorder = _learn.Recorder() if (learn or discover) else None
 
     supported = _ocr.supported_suffixes()
     files = [p for p in sorted(folder.rglob("*"))
@@ -69,10 +80,14 @@ def run(folder: Path, db_path: Path, owner: str, dry_run: bool = False,
             continue
 
         counts["extracted"] += 1
+        sink = None
+        if recorder is not None:
+            sink = recorder.sink_for(key=_db.file_hash(path), snippet=text[:140])
         frags = _classify.classify(text, filename=path.name, path=path,
                                    use_llm=use_llm, use_embed=use_embed,
                                    centroids=centroids, text_model=text_model,
-                                   vision_model=vision_model, embed_model=embed_model)
+                                   vision_model=vision_model, embed_model=embed_model,
+                                   learn_sink=sink)
         counts["fragments"] += len(frags)
 
         if verbose:
@@ -96,5 +111,18 @@ def run(folder: Path, db_path: Path, owner: str, dry_run: bool = False,
     if conn:
         counts["db_stats"] = _db.stats(conn)
         conn.close()
+
+    # Fold this run's confident classifications into the learned centroids, so
+    # the next run starts adapted to the user's own documents.
+    if recorder is not None and learn:
+        counts["learned"] = recorder.flush_learned(model)
+        if verbose:
+            print(f"  [learn] {counts['learned']}", file=sys.stderr)
+
+    # Surface candidate categories from the uncertain tail (report-only).
+    if recorder is not None and discover:
+        counts["discovery"] = _learn.discover(recorder.tail, k=discover)
+        if verbose:
+            print(f"  [discover] {counts['discovery']}", file=sys.stderr)
 
     return counts

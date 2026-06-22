@@ -146,7 +146,8 @@ def classify(text: str, filename: str = "", path: "Path | None" = None,
              use_llm: bool = False, use_embed: bool = True,
              centroids: "dict[str, list[float]] | None" = None,
              text_model: str | None = None, vision_model: str | None = None,
-             embed_model: str | None = None) -> list[Fragment]:
+             embed_model: str | None = None,
+             learn_sink: "Callable[[str, list, float, str], None] | None" = None) -> list[Fragment]:
     name_lower = filename.lower()
     is_image = any(name_lower.endswith(x) for x in _IMAGE_EXTS)
 
@@ -164,7 +165,7 @@ def classify(text: str, filename: str = "", path: "Path | None" = None,
 
     primary = _classify_text_tiers(
         text, filename, is_image, use_llm, use_embed, centroids,
-        text_model=text_model, embed_model=embed_model,
+        text_model=text_model, embed_model=embed_model, learn_sink=learn_sink,
     )
     if primary is None:
         # No tier produced a verdict (all models down) → pure regex.
@@ -177,7 +178,8 @@ def _classify_text_tiers(text: str, filename: str, is_image: bool,
                          use_llm: bool, use_embed: bool,
                          centroids: "dict[str, list[float]] | None",
                          text_model: str | None,
-                         embed_model: str | None) -> "Fragment | None":
+                         embed_model: str | None,
+                         learn_sink: "Callable[[str, list, float, str], None] | None" = None) -> "Fragment | None":
     """Run the embedding → generative cascade for a text document.
 
     Returns the primary fragment, or None if no tier was available.
@@ -190,6 +192,10 @@ def _classify_text_tiers(text: str, filename: str, is_image: bool,
         if vec:
             ranked = _tax.rank(vec, centroids)
             st = _tax.margin_stats(ranked)
+            # Self-learning / discovery hook: observe every embedded doc once,
+            # reusing the vector we just computed (no extra model call).
+            if learn_sink is not None:
+                learn_sink(st["cat"], vec, st["margin"], _confidence_from_margin(st["margin"]))
             confident = st["margin"] >= MARGIN_CONFIDENT
 
             if confident:
