@@ -14,3 +14,7 @@ apps/utety-chat/data/exports/
 
 # Store console TUI (repo-root runtime artifacts)
 /data/
+
+# Willow runtime — agent identity + ephemeral git worktrees
+.willow/active-agent
+worktrees/
