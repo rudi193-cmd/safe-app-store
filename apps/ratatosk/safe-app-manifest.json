@@ -32,5 +32,5 @@
   "entry_point": "ratatosk.crown:main",
   "license": "MIT",
   "repository": "https://github.com/rudi193-cmd/safe-app-store",
-  "notes": "ANTHROPIC_API_KEY required for cloud mode. RATATOSK_MCP_PATH for MCP wiring (default: willow-1.9/sap/sap_mcp.py). RATATOSK_GROVE_CHANNEL to enable Grove event posting."
+  "notes": "ANTHROPIC_API_KEY required for cloud mode. RATATOSK_MCP_PATH for MCP wiring (default: willow-2.0/sap/unified_mcp.sh). RATATOSK_GROVE_CHANNEL to enable Grove event posting."
 }
