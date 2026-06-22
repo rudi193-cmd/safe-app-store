@@ -29,7 +29,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Seed a portable Nest SQLite DB from a folder of personal files."
     )
-    parser.add_argument("--folder", required=True, help="Path to the dump folder")
+    parser.add_argument("--folder", help="Path to the dump folder "
+                        "(omit with --digest to just report on an existing --db)")
     parser.add_argument("--db", default="~/Desktop/Nest/seed.db",
                         help="Output Nest SQLite DB (default: ~/Desktop/Nest/seed.db)")
     parser.add_argument("--owner", default="", help="Your name — stored in nest_meta")
@@ -56,14 +57,44 @@ def main() -> None:
     parser.add_argument("--promote", action="store_true",
                         help="Persist qualifying tail clusters as new categories "
                              "(big, cohesive, novel) so future runs classify into them.")
+    parser.add_argument("--digest", action="store_true",
+                        help="Write/print a one-page Markdown map of the Nest DB "
+                             "(runs after ingest, or standalone on an existing --db).")
     parser.add_argument("--verbose", "-v", action="store_true")
     args = parser.parse_args()
 
+    db_path = Path(args.db).expanduser().resolve()
+    digest_only = args.digest and not args.folder
+
+    if not digest_only:
+        if not args.folder:
+            sys.exit("ERROR: --folder is required (or use --digest on an existing --db)")
+        _ingest(args, db_path)
+
+    if args.digest:
+        _write_digest(db_path)
+
+
+def _write_digest(db_path: "Path") -> None:
+    try:
+        from .digest import build_digest
+    except ImportError:
+        from digest import build_digest
+    out = build_digest(str(db_path))
+    target = db_path.parent / "NEST_DIGEST.md"
+    try:
+        target.write_text(out)
+        print(f"\n[nest-seed] digest : {target}", file=sys.stderr)
+    except OSError:
+        pass
+    print(out)
+
+
+def _ingest(args, db_path: "Path") -> None:
     folder = Path(args.folder).expanduser().resolve()
     if not folder.is_dir():
         sys.exit(f"ERROR: {folder} is not a directory")
 
-    db_path = Path(args.db).expanduser().resolve()
     if not args.dry_run:
         db_path.parent.mkdir(parents=True, exist_ok=True)
 
