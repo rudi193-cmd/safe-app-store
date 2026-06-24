@@ -34,6 +34,15 @@ External GitHub projects that could run under the SAFE App Store with minimal ef
 | [smassh](https://github.com/kraanzu/smassh) | 2006 | Typing speed test TUI — MonkeyType-style, fully local, highly customizable | manifest-only | — |
 | [typr](https://github.com/Sakura-sx/typr) | 233 | TUI typing practice with adaptive word selection (keybr-inspired algorithm) | manifest-only | — |
 | [usolitaire](https://github.com/eliasdorneles/usolitaire) | 103 | Solitaire in the terminal, Textual, unicode graphics | manifest-only | — |
+| [mitype](https://github.com/Mithil467/mitype) | 437 | Typing speed test in the terminal — curses-based, minimal, smooth | manifest-only | — |
+
+### Hobbies & Virtual Companions
+
+| Project | Stars | Description | Effort | Permissions |
+|---------|-------|-------------|--------|-------------|
+| [botany](https://github.com/jifunks/botany) | 532 | Command-line virtual plant buddy — grows over time, curses, pure local fun | manifest-only | `file_read`, `file_write` |
+| [trackma](https://github.com/z411/trackma) | 880 | Anime and manga list tracker — curses TUI, multi-site (MAL, AniList, Kitsu), local cache | manifest + permission | `network_read`, `file_write` |
+| [polyterm](https://github.com/NYTEMODEONLY/polyterm) | 318 | Prediction markets (Polymarket) in the terminal — live odds, TUI | manifest + permission | `network_read` |
 
 ### Creative & Art
 
@@ -101,6 +110,13 @@ External GitHub projects that could run under the SAFE App Store with minimal ef
 | [fast-resume](https://github.com/angristan/fast-resume) | 103 | Find and resume any coding agent session — Tantivy search, Textual | manifest-only | `file_read` |
 | [kanban-tui](https://github.com/Zaloog/kanban-tui) | 253 | Kanban board TUI — already tagged `claude-skills`, designed for agent use | manifest-only | `file_read`, `file_write` |
 | [taskdog](https://github.com/Kohei-Wada/taskdog) | 306 | Task manager with schedule optimization — has MCP support built in | manifest-only | `file_read`, `file_write` |
+| [sqlit](https://github.com/Maxteabag/sqlit) | 4391 | SQL database browser TUI — SQLite, MySQL, PostgreSQL; explore and query locally | manifest-only | `file_read`, `file_write` |
+| [rexi](https://github.com/royreznik/rexi) | 393 | Regex testing TUI — live preview, Textual, no network | manifest-only | — |
+| [calcpy](https://github.com/idanpa/calcpy) | 117 | Terminal calculator with Python and SymPy math — symbolic algebra in the REPL | manifest-only | — |
+| [nvitop](https://github.com/XuehaiPan/nvitop) | 6974 | NVIDIA GPU process monitor TUI — essential companion for local_llm apps | manifest-only | — |
+| [pingtop](https://github.com/laixintao/pingtop) | 537 | Ping multiple servers simultaneously — top-like live TUI, pure Python | manifest-only | `network_read` |
+| [px](https://github.com/walles/px) | 324 | ps/top/pstree for humans — process tree TUI, no root required | manifest-only | — |
+| [ClockTemp](https://github.com/arthur-dnts/ClockTemp) | 104 | TUI clock showing time, date, and local temperature — charming ambient display | manifest + permission | `network_read` |
 
 ### Productivity & Personal
 
@@ -129,4 +145,8 @@ External GitHub projects that could run under the SAFE App Store with minimal ef
 - **kanban-tui** and **taskdog** already have MCP/agent-skill awareness — lowest integration friction of anything here.
 - Ham radio / mesh / ADS-B apps (**contact**, **FreeDATA**, **retro-adsb-radar**, **termtrack**) form a coherent off-grid signals category the store doesn't have yet.
 - **Shadowbroker** pairs naturally with Willow KB writes for persistent tracking over time.
-- Search vectors that keep producing results: `topic:textual language:python`, `topic:tui language:python` (pages 1-5+), hobby topics (`topic:ham-radio`, `topic:astronomy`, `topic:podcast`).
+- **nvitop** (7k stars) is a must-have companion for any `local_llm` app — shows GPU memory pressure live.
+- **sqlit** (4k stars) pairs naturally with any store app that uses SQLite — law-gazelle, private-ledger, Bagels, dooit.
+- **botany** is the most charming low-stakes local app: a virtual plant that grows in real time. Zero permissions, maximum delight.
+- **trackma** is the only anime/manga tracker on the list — curses TUI, multi-site, surprisingly polished.
+- Search vectors that keep producing results: `topic:textual language:python`, `topic:tui language:python` (pages 1-6+), `topic:curses language:python`, hobby topics (`topic:ham-radio`, `topic:astronomy`, `topic:podcast`, `topic:anime`).
