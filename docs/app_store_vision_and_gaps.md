@@ -60,6 +60,16 @@ This document does three things:
 store DB + a `make run app=<x>` launcher. It is a *catalog and dev harness*, **not yet a
 consumer "app store"** (no browse/install/launch UI).
 
+**External expansion backlog:** [willow-compatible-projects.md](willow-compatible-projects.md) —
+~61 third-party Python TUIs scouted; **[starter pack](willow-compatible-projects.md#starter-pack-promote-first)**
+(10 apps, 5 waves) is the promote-first cut — nvitop/parllama → visidata/sqlit → calcure/taskdog →
+feeds.fun/kanban-tui → toolong/botany. Scout list only until manifest + `make run` land.
+
+**How it all comes together:** [the-one-desk.md](../../safe-app-willow-grove/docs/synthesis/the-one-desk.md)
+(b17: ONEDSK) — the north-star synthesis. The system is *one desk (Grove), one memory (Willow KB
+atoms/SOIL), many tools (apps)* — apps never wire to each other, they only read/write shared atoms.
+Read it first when the integration picture gets foggy.
+
 ---
 
 ## 2. The real intent — what we're building 🤝

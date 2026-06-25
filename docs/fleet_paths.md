@@ -25,6 +25,7 @@ Fleet configs that reference `~/github/safe-app-store` still resolve correctly v
 | Run | `cd ~/github/safe-app-store && ./dev_tui.sh` |
 | Runtime | `data/` at repo root (gitignored — logs, consent, screenshots) |
 | Design spec | `docs/specs/store_console_design_spec.md` (SCDS1) |
+| External app scout list | `docs/willow-compatible-projects.md` (~61 scouts; [starter pack](willow-compatible-projects.md#starter-pack-promote-first); Grove [borrow map](../../safe-app-willow-grove/docs/synthesis/grove-starter-borrow-map.md)) |
 
 ## Law Gazelle — personal data (never in git)
 
