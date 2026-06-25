@@ -65,6 +65,11 @@ consumer "app store"** (no browse/install/launch UI).
 (10 apps, 5 waves) is the promote-first cut — nvitop/parllama → visidata/sqlit → calcure/taskdog →
 feeds.fun/kanban-tui → toolong/botany. Scout list only until manifest + `make run` land.
 
+**How it all comes together:** [the-one-desk.md](../../safe-app-willow-grove/docs/synthesis/the-one-desk.md)
+(b17: ONEDSK) — the north-star synthesis. The system is *one desk (Grove), one memory (Willow KB
+atoms/SOIL), many tools (apps)* — apps never wire to each other, they only read/write shared atoms.
+Read it first when the integration picture gets foggy.
+
 ---
 
 ## 2. The real intent — what we're building 🤝
