@@ -7,9 +7,15 @@ Usage:
 
 Falls back to nothing gracefully: if textual isn't installed, this prints
 a one-line message and exits. app.py (pure stdlib) always works regardless.
+
+Palette follows the SAFE Design System's Terminal-surface token structure
+(bg / panel / input / border / fg, one primary accent) -- but civics-check
+gets its own accent trio (red/blue/gold) rather than SAFE's orange, per the
+house rule that every app carries family resemblance, not a shared skin.
 """
 from __future__ import annotations
 
+import datetime
 import random
 import time
 
@@ -21,53 +27,89 @@ try:
     from rich.markup import escape
     from textual.app import App, ComposeResult
     from textual.binding import Binding
-    from textual.containers import Horizontal, Vertical
-    from textual.widgets import Footer, Header, Input, Label, ListItem, ListView, Static
+    from textual.containers import Grid, Horizontal, Vertical, VerticalScroll
+    from textual.message import Message
+    from textual.widgets import Footer, Header, Input, Static
 
     TEXTUAL_OK = True
 except ImportError:
     TEXTUAL_OK = False
 
 
+# ── Palette -- SAFE Terminal token structure, civics-check's own accents ────
+
+BG = "#0d0d0d"
+PANEL = "#111111"
+INPUT_BG = "#1a1a1a"
+BORDER = "#2a2a2a"
+FG = "#f5f5f0"
+FG_MUTED = "#888888"
+RED = "#e63946"
+BLUE = "#457b9d"
+GOLD = "#f4a300"
+
 MODES = [
-    ("naturalization", "Naturalization quiz", "quiz"),
-    ("missed", "Review missed questions", "quiz"),
-    ("states", "State matchup", "states"),
-    ("timeline", "Timeline sort", "timeline"),
-    ("colonies", "13 Colonies flashcards", "browse"),
-    ("on_this_day", "On This Day", "browse"),
-    ("quotes", "Quote match", "quotes"),
-    ("signers", "Declaration signers", "browse"),
-    ("amendments", "Amendment explorer", "browse"),
-    ("speed", "Speed round (60s)", "quiz"),
-    ("duel", "Pass-the-keyboard duel", "duel"),
-    ("stats", "Recent scores", "stats"),
+    ("naturalization", "Naturalization Quiz", "10 real USCIS questions", "quiz"),
+    ("missed", "Missed Review", "resurface what you got wrong", "quiz"),
+    ("states", "State Matchup", "capitals + admission order", "states"),
+    ("timeline", "Timeline Sort", "order 8 events by year", "timeline"),
+    ("colonies", "13 Colonies", "flashcards, founding to founding", "browse"),
+    ("on_this_day", "On This Day", "today in the founding era", "browse"),
+    ("quotes", "Quote Match", "who said it", "quotes"),
+    ("signers", "Declaration Signers", "13 lives, 13 cards", "browse"),
+    ("amendments", "Amendment Explorer", "browse or quiz all 27", "browse"),
+    ("speed", "Speed Round", "60 seconds, no mercy", "quiz"),
+    ("duel", "Pass-the-Keyboard Duel", "two players, one keyboard", "duel"),
+]
+
+EAGLE_FRAMES = [
+    """
+        .  *  .    /=\\   .  *  .
+           *   .--( o )--.  *
+             _/  /_____\\  \\_
+            (___/       \\___)
+""",
+    """
+        .  *  .    /=\\   .  *  .
+           *   .--( o )--.  *
+            _/  /_______\\  \\_
+           (___/         \\___)
+""",
+]
+
+FIREWORK_FRAMES = [
+    "        .        *          .    ",
+    "      \\  |  /   \\ | /    .       ",
+    "    -- * --  *  -- * --   \\|/    ",
+    "      /  |  \\   / | \\   -- * --  ",
+    "        '        '        /|\\    ",
 ]
 
 
 def _colonies_cards():
     return [
-        (c["name"], f"founded {c['founded']} by {c['founder']}", c["fact"], "")
+        (c["name"], f"founded {c['founded']} by {c['founder']}", c["fact"], c.get("context", ""), c.get("source", ""))
         for c in engine.load_colonies()
     ]
 
 
 def _signers_cards():
     return [
-        (s["name"], s["state"], s["fact"], "") for s in engine.load_signers()
+        (s["name"], s["state"], s["fact"], s.get("context", ""), s.get("source", ""))
+        for s in engine.load_signers()
     ]
 
 
 def _on_this_day_cards():
     events = engine.today_events()
     if not events:
-        return [("No events today", "", "Try July 4th weekend for the good stuff.", "")]
-    return [("On this day", "", e, "") for e in events]
+        return [("No events today", "", "Try July 4th weekend for the good stuff.", "", "")]
+    return [("On this day", "", e, "", "") for e in events]
 
 
 def _amendments_cards():
     return [
-        (f"Amendment {a['number']}", str(a["year"]), a["summary"], f"{a['year']}")
+        (f"Amendment {a['number']}", str(a["year"]), a["summary"], a.get("context", ""), a.get("source", ""))
         for a in engine.load_amendments()
     ]
 
@@ -82,77 +124,166 @@ BROWSE_SOURCES = {
 
 if TEXTUAL_OK:
 
+    class ModeCard(Static):
+        """A dressed-up tile in the mode grid. Click it, it pops out to run."""
+
+        def __init__(self, key, title, subtitle, **kwargs):
+            super().__init__(**kwargs)
+            self.mode_key = key
+            self.mode_title = title
+            self.mode_subtitle = subtitle
+            self.can_focus = True
+
+        def on_mount(self) -> None:
+            self.update(f"[bold]{escape(self.mode_title)}[/bold]\n[dim]{escape(self.mode_subtitle)}[/dim]")
+
+        def on_click(self) -> None:
+            self.post_message(self.Picked(self, self.mode_key))
+
+        def on_key(self, event) -> None:
+            if event.key == "enter":
+                self.post_message(self.Picked(self, self.mode_key))
+
+        class Picked(Message):
+            def __init__(self, card: "ModeCard", key: str) -> None:
+                self.card = card
+                self.key = key
+                super().__init__()
+
     class CivicsCheckApp(App):
         """America's 250th, as a dashboard."""
 
         TITLE = "CIVICS CHECK"
         SUB_TITLE = "America's 250th -- 1776 * 2026"
 
-        CSS = """
-        Screen {
+        CSS = f"""
+        Screen {{
             layout: vertical;
-        }
+            background: {BG};
+            color: {FG};
+        }}
 
-        #body {
+        #body {{
             height: 1fr;
-        }
+        }}
 
-        #sidebar {
+        #sidebar {{
             width: 30;
-            border-right: solid $primary-darken-2;
-        }
+            background: {PANEL};
+            border-right: solid {BORDER};
+            padding: 0 1;
+        }}
 
-        #sidebar-header {
+        #sidebar-header {{
             height: 1;
-            background: $primary-darken-3;
-            color: $text;
+            color: {GOLD};
             text-style: bold;
             padding: 0 1;
-        }
+            margin-top: 1;
+        }}
 
-        #mode-list {
+        #scoreboard {{
             height: 1fr;
-        }
+        }}
 
-        #main {
+        #ticker {{
+            height: 2;
+            color: {FG_MUTED};
+            padding: 0 1;
+            text-style: italic;
+        }}
+
+        #main {{
             width: 1fr;
             padding: 0 1;
-        }
+        }}
 
-        #status-bar {
+        #mode-grid {{
+            layout: grid;
+            grid-size: 3;
+            grid-gutter: 1 2;
+            padding: 1;
+            height: 1fr;
+        }}
+
+        ModeCard {{
+            background: {PANEL};
+            border: heavy {BORDER};
+            padding: 1 2;
+            height: 5;
+        }}
+
+        ModeCard:hover {{
+            border: heavy {GOLD};
+            background: {INPUT_BG};
+        }}
+
+        ModeCard:focus {{
+            border: heavy {BLUE};
+        }}
+
+        #eagle-banner {{
+            height: 6;
+            content-align: center middle;
+            color: {BLUE};
+            text-style: bold;
+        }}
+
+        #runner {{
+            height: 1fr;
+            display: none;
+        }}
+
+        #status-bar {{
             height: 1;
-            background: $panel;
-            color: $text;
+            background: {PANEL};
+            color: {GOLD};
             text-style: bold;
             padding: 0 1;
-        }
+        }}
 
-        #card {
+        #card {{
             height: 1fr;
-            border: heavy white;
+            border: heavy {FG};
+            background: {PANEL};
             padding: 1 2;
             margin-top: 1;
-        }
+        }}
 
-        #feedback {
+        #feedback {{
             height: auto;
             max-height: 10;
-            border: heavy $accent;
+            border: heavy {GOLD};
+            background: {INPUT_BG};
             padding: 1 2;
             margin-top: 1;
             display: none;
-        }
+        }}
 
-        #answer-input {
+        #firework-overlay {{
+            height: 5;
+            content-align: center middle;
+            color: {RED};
+            text-style: bold;
+            display: none;
+        }}
+
+        #answer-input {{
             height: 3;
             margin-top: 1;
-        }
+            background: {INPUT_BG};
+            border: solid {BORDER};
+        }}
+
+        #answer-input:focus {{
+            border: solid {GOLD};
+        }}
         """
 
         BINDINGS = [
             Binding("ctrl+c", "quit", "Quit", show=True),
-            Binding("ctrl+l", "focus_list", "Modes", show=True),
-            Binding("escape", "focus_input", "Focus input", show=False),
+            Binding("escape", "collapse", "Back to modes", show=True),
+            Binding("ctrl+b", "bell_easter_egg", "Ring the Bell", show=False),
         ]
 
         def __init__(self) -> None:
@@ -166,47 +297,96 @@ if TEXTUAL_OK:
             self.total = 0
             self.start_time = None
             self.time_limit = None
-            self.expected = []
             self.browse_items = []
             self.duel_players = ["Player 1", "Player 2"]
             self.duel_scores = {}
-            self.duel_turn = 0
             self.awaiting_duel_setup = 0
             self.timeline_shuffled = []
             self.timeline_correct_order = []
             self.states_current = None
             self.quotes_current = None
             self.quotes_options = []
+            self._eagle_frame = 0
 
         def compose(self) -> ComposeResult:
             yield Header()
             with Horizontal(id="body"):
                 with Vertical(id="sidebar"):
-                    yield Static("  MODES", id="sidebar-header")
-                    yield ListView(id="mode-list")
+                    yield Static("  SCOREBOARD", id="sidebar-header")
+                    yield VerticalScroll(Static("", id="scoreboard-body"), id="scoreboard")
                 with Vertical(id="main"):
-                    yield Static("", id="status-bar")
-                    yield Static(bell.EAGLE_PLAIN, id="card")
-                    yield Static("", id="feedback")
-                    yield Input(placeholder="pick a mode from the list", id="answer-input")
+                    yield Static("", id="firework-overlay")
+                    with Vertical(id="mode-select"):
+                        yield Static(EAGLE_FRAMES[0], id="eagle-banner")
+                        yield Static("", id="ticker")
+                        with Grid(id="mode-grid"):
+                            for key, title, subtitle, _kind in MODES:
+                                yield ModeCard(key, title, subtitle, id=f"card-{key}")
+                    with Vertical(id="runner"):
+                        yield Static("", id="status-bar")
+                        yield Static("", id="card")
+                        yield Static("", id="feedback")
+                        yield Input(placeholder="your answer", id="answer-input")
             yield Footer()
 
         def on_mount(self) -> None:
-            mode_list = self.query_one("#mode-list", ListView)
-            for key, label, _kind in MODES:
-                mode_list.append(ListItem(Label(label), id=f"mode-{key}"))
-            mode_list.index = 0
-            mode_list.focus()
-            self._update_status(f"welcome -- {bell.ticker_plain(engine.load_quotes())}")
+            self._refresh_scoreboard()
+            self.query_one("#ticker", Static).update(bell.ticker_plain(engine.load_quotes()))
+            self.set_interval(0.7, self._flap_eagle)
+            today = datetime.date.today()
+            if (today.month, today.day) == (7, 4):
+                self._show_fireworks(loud=True)
 
-        # ── Mode selection ──────────────────────────────────────────────────
+        def _flap_eagle(self) -> None:
+            self._eagle_frame = (self._eagle_frame + 1) % len(EAGLE_FRAMES)
+            banner = self.query_one("#eagle-banner", Static)
+            if banner.styles.display != "none":
+                banner.update(EAGLE_FRAMES[self._eagle_frame])
 
-        def on_list_view_selected(self, event: ListView.Selected) -> None:
-            idx = event.list_view.index
-            if idx is None or idx >= len(MODES):
-                return
-            key, label, kind = MODES[idx]
-            self._start_mode(key, label, kind)
+        def _refresh_scoreboard(self) -> None:
+            lines = []
+            any_scores = False
+            for mode in ["naturalization", "speed", "states", "quotes", "amendment-quiz", "timeline-sort"]:
+                rows = db.top_scores(mode, limit=2)
+                if rows:
+                    any_scores = True
+                    lines.append(f"[bold {GOLD}]{mode}[/bold {GOLD}]")
+                    for score, total, elapsed_s, played_at in rows:
+                        medal = bell.medal(score, total)
+                        lines.append(f"  {score}/{total}  [{BLUE}]{medal}[/{BLUE}]")
+                    lines.append("")
+            if not any_scores:
+                lines.append(f"[{FG_MUTED}]No scores yet.\nPick a mode to start.[/{FG_MUTED}]")
+            self.query_one("#scoreboard-body", Static).update("\n".join(lines))
+
+        # ── Card grid <-> runner pop/collapse ───────────────────────────────
+
+        def on_mode_card_picked(self, message) -> None:
+            for key, label, _subtitle, kind in MODES:
+                if key == message.key:
+                    self._start_mode(key, label, kind)
+                    return
+
+        def action_collapse(self) -> None:
+            self.query_one("#runner", Vertical).styles.display = "none"
+            self.query_one("#mode-select", Vertical).styles.display = "block"
+            self._refresh_scoreboard()
+            self.query_one("#mode-grid", Grid).focus()
+
+        def action_bell_easter_egg(self) -> None:
+            self.notify(random.choice([
+                "THE BELL: I heard that. I have opinions.",
+                "THE BELL: still cracked. still here.",
+                "THE BELL: ring me again and see what happens. (nothing will happen.)",
+                "THE BELL: 250 years and you're pressing buttons at me.",
+            ]), title="the Bell", timeout=4)
+
+        def _pop_to_runner(self):
+            self.query_one("#mode-select", Vertical).styles.display = "none"
+            runner = self.query_one("#runner", Vertical)
+            runner.styles.display = "block"
+            runner.styles.opacity = 0.0
+            runner.styles.animate("opacity", value=1.0, duration=0.25)
 
         def _start_mode(self, key, label, kind):
             self.mode_key = key
@@ -218,6 +398,7 @@ if TEXTUAL_OK:
             self.start_time = time.time()
             self.time_limit = 60 if key == "speed" else None
             self._hide_feedback()
+            self._pop_to_runner()
 
             if kind == "quiz":
                 pool = engine.load_naturalization_questions()
@@ -226,7 +407,7 @@ if TEXTUAL_OK:
                     if not ids:
                         self._render_card("Missed Questions", "Nothing missed yet -- clean slate.", "")
                         self._update_status("missed-review: nothing to show")
-                        self.query_one("#answer-input", Input).placeholder = "pick another mode"
+                        self.query_one("#answer-input", Input).placeholder = "press escape to go back"
                         return
                     self.pool = engine.pick_questions(pool, len(ids), ids)
                 elif key == "speed":
@@ -269,7 +450,7 @@ if TEXTUAL_OK:
                     "Put these in chronological order (earliest first).",
                     lines,
                 )
-                self._update_status("type numbers in order, space-separated, e.g. '3 1 2 4 5 6 7 8'")
+                self._update_status("type numbers in order, space-separated")
                 self.query_one("#answer-input", Input).placeholder = "3 1 2 4 5 6 7 8"
 
             elif kind == "duel":
@@ -278,37 +459,35 @@ if TEXTUAL_OK:
                 self._update_status("enter Player 1's name")
                 self.query_one("#answer-input", Input).placeholder = "Player 1 name"
 
-            elif kind == "stats":
-                self._render_stats()
-
             self.query_one("#answer-input", Input).value = ""
-            if kind != "browse" or True:
-                self.query_one("#answer-input", Input).focus()
+            self.query_one("#answer-input", Input).focus()
 
         # ── Rendering helpers ───────────────────────────────────────────────
 
         def _render_card(self, title, subtitle, body):
             card = self.query_one("#card", Static)
-            text = f"[bold]{escape(title)}[/bold]\n"
+            text = f"[bold {GOLD}]{escape(title)}[/bold {GOLD}]\n"
             if subtitle:
-                text += f"[dim]{escape(subtitle)}[/dim]\n"
+                text += f"[{FG_MUTED}]{escape(subtitle)}[/{FG_MUTED}]\n"
             text += "\n" + escape(body)
             card.update(text)
 
         def _update_status(self, text):
             self.query_one("#status-bar", Static).update(f" {text}")
 
-        def _show_feedback(self, verdict_markup, context="", related="", date_tag=""):
+        def _show_feedback(self, verdict_markup, context="", related="", source=""):
             fb = self.query_one("#feedback", Static)
             lines = [verdict_markup]
             if context:
-                lines.append(f"[dim]why:[/dim] {escape(context)}")
+                lines.append(f"[{FG_MUTED}]why:[/{FG_MUTED}] {escape(context)}")
             if related:
-                lines.append(f"[dim]also:[/dim] {escape(related)}")
-            if date_tag:
-                lines.append(f"[dim]{escape(date_tag)}[/dim]")
+                lines.append(f"[{FG_MUTED}]also:[/{FG_MUTED}] {escape(related)}")
+            if source:
+                lines.append(f"[{FG_MUTED}]source: {escape(source)}[/{FG_MUTED}]")
             fb.update("\n".join(lines))
             fb.styles.display = "block"
+            fb.styles.opacity = 0.0
+            fb.styles.animate("opacity", value=1.0, duration=0.2)
 
         def _hide_feedback(self):
             fb = self.query_one("#feedback", Static)
@@ -317,6 +496,22 @@ if TEXTUAL_OK:
 
         def _progress(self):
             return f"Q {self.index}/{self.total} -- score {self.score}"
+
+        def _show_fireworks(self, loud=False):
+            overlay = self.query_one("#firework-overlay", Static)
+            overlay.styles.display = "block"
+            frames = FIREWORK_FRAMES * (2 if loud else 1)
+            state = {"i": 0, "timer": None}
+
+            def _tick():
+                if state["i"] >= len(frames):
+                    overlay.styles.display = "none"
+                    state["timer"].stop()
+                    return
+                overlay.update(f"[{GOLD}]{frames[state['i']]}[/{GOLD}]")
+                state["i"] += 1
+
+            state["timer"] = self.set_interval(0.15, _tick)
 
         # ── Quiz (naturalization / missed / speed) ──────────────────────────
 
@@ -337,17 +532,22 @@ if TEXTUAL_OK:
             self.query_one("#answer-input", Input).placeholder = "your answer"
 
         def _answer_quiz(self, raw):
+            if raw.strip() == "1776":
+                self._show_feedback(
+                    f"[bold {GOLD}]THE BELL:[/bold {GOLD}] I admire the commitment to the bit. Still not the answer.",
+                )
+                return
             q = self.pool[self.index]
             correct = engine.answer_matches(raw, q["answers"])
             if correct:
                 self.score += 1
                 db.clear_miss(q["id"])
-                self._show_feedback(f"[bold green]{bell.right_plain()}[/bold green]", q.get("context", ""), q.get("related_fact", ""), q.get("date", ""))
+                self._show_feedback(f"[bold {GOLD}]{bell.right_plain()}[/bold {GOLD}]", q.get("context", ""), q.get("related_fact", ""), q.get("date", ""))
             else:
                 db.record_miss(q["id"])
                 accepted = ", ".join(str(a) for a in q["answers"])
                 self._show_feedback(
-                    f"[bold red]{bell.wrong_plain()}[/bold red]", q.get("context", f"Accepted: {accepted}"), q.get("related_fact", ""), q.get("date", "")
+                    f"[bold {RED}]{bell.wrong_plain()}[/bold {RED}]", q.get("context", f"Accepted: {accepted}"), q.get("related_fact", ""), q.get("date", "")
                 )
             self.index += 1
             if self.time_limit and (time.time() - self.start_time) > self.time_limit:
@@ -362,7 +562,10 @@ if TEXTUAL_OK:
             self._render_card("Round complete", "", bell.telegram_plain(self.mode_key, self.score, self.total, elapsed))
             self._update_status(f"final: {self.score}/{self.total} -- {bell.medal(self.score, self.total)}")
             db.record_score(self.mode_key, self.score, self.total, elapsed)
-            self.query_one("#answer-input", Input).placeholder = "pick another mode"
+            if self.total and self.score == self.total:
+                self._show_fireworks()
+            self.query_one("#answer-input", Input).placeholder = "press escape to go back"
+            self._refresh_scoreboard()
 
         # ── State matchup ────────────────────────────────────────────────────
 
@@ -385,11 +588,11 @@ if TEXTUAL_OK:
             expected = [s["capital"]] if mode == "capital" else [str(s["order"])]
             correct = engine.answer_matches(raw, expected)
             fact = f"Capital: {s['capital']} -- admitted #{s['order']} ({s['admitted']})"
+            color = GOLD if correct else RED
+            verdict = bell.right_plain() if correct else bell.wrong_plain()
             if correct:
                 self.score += 1
-                self._show_feedback(f"[bold green]{bell.right_plain()}[/bold green]", s["fact"], fact, s["admitted"])
-            else:
-                self._show_feedback(f"[bold red]{bell.wrong_plain()}[/bold red]", s["fact"], fact, s["admitted"])
+            self._show_feedback(f"[bold {color}]{verdict}[/bold {color}]", s["fact"], fact, s["admitted"])
             self.index += 1
             self._render_states_question()
 
@@ -414,11 +617,13 @@ if TEXTUAL_OK:
                 pick = self.quotes_options[int(raw.strip()) - 1]
             except (ValueError, IndexError):
                 pick = ""
-            if pick == q["person"]:
+            correct = pick == q["person"]
+            color = GOLD if correct else RED
+            verdict = bell.right_plain() if correct else bell.wrong_plain()
+            if correct:
                 self.score += 1
-                self._show_feedback(f"[bold green]{bell.right_plain()}[/bold green]", f"Said by {q['person']}.", "", "")
-            else:
-                self._show_feedback(f"[bold red]{bell.wrong_plain()}[/bold red]", f"It was {q['person']}.", "", "")
+            context = q.get("context", f"Said by {q['person']}.")
+            self._show_feedback(f"[bold {color}]{verdict}[/bold {color}]", context, "", "")
             self.index += 1
             self._render_quote_question()
 
@@ -427,8 +632,14 @@ if TEXTUAL_OK:
         def _render_browse_card(self):
             if not self.browse_items:
                 return
-            title, subtitle, fact, date_tag = self.browse_items[self.index % len(self.browse_items)]
-            self._render_card(title, subtitle, fact)
+            title, subtitle, fact, context, source = self.browse_items[self.index % len(self.browse_items)]
+            card = self.query_one("#card", Static)
+            text = f"[bold {GOLD}]{escape(title)}[/bold {GOLD}]\n[{FG_MUTED}]{escape(subtitle)}[/{FG_MUTED}]\n\n{escape(fact)}"
+            if context:
+                text += f"\n\n{escape(context)}"
+            if source:
+                text += f"\n\n[{FG_MUTED}]source: {escape(source)}[/{FG_MUTED}]"
+            card.update(text)
             n = len(self.browse_items)
             self._update_status(f"{self.index + 1}/{n} -- press enter for next")
             self.query_one("#answer-input", Input).placeholder = "press enter for next"
@@ -455,9 +666,13 @@ if TEXTUAL_OK:
             )
             elapsed = time.time() - self.start_time
             self._render_card("Round complete", "Actual chronological order:", lines)
-            self._update_status(f"final: {score}/{len(self.timeline_shuffled)} -- {bell.medal(score, len(self.timeline_shuffled))}")
-            db.record_score("timeline-sort", score, len(self.timeline_shuffled), elapsed)
-            self.query_one("#answer-input", Input).placeholder = "pick another mode"
+            total = len(self.timeline_shuffled)
+            self._update_status(f"final: {score}/{total} -- {bell.medal(score, total)}")
+            db.record_score("timeline-sort", score, total, elapsed)
+            if score == total:
+                self._show_fireworks()
+            self.query_one("#answer-input", Input).placeholder = "press escape to go back"
+            self._refresh_scoreboard()
 
         # ── Duel ─────────────────────────────────────────────────────────────
 
@@ -472,7 +687,6 @@ if TEXTUAL_OK:
             self.duel_players[1] = name or "Player 2"
             self.awaiting_duel_setup = 0
             self.duel_scores = {p: 0 for p in self.duel_players}
-            self.duel_turn = 0
             self.pool = engine.pick_questions(engine.load_naturalization_questions(), 10)
             self.total = len(self.pool)
             self.index = 0
@@ -494,11 +708,11 @@ if TEXTUAL_OK:
             player = self.duel_players[self.index % 2]
             q = self.pool[self.index]
             correct = engine.answer_matches(raw, q["answers"])
+            color = GOLD if correct else RED
+            verdict = bell.right_plain() if correct else bell.wrong_plain()
             if correct:
                 self.duel_scores[player] += 1
-                self._show_feedback(f"[bold green]{bell.right_plain()}[/bold green]", q.get("context", ""), q.get("related_fact", ""), q.get("date", ""))
-            else:
-                self._show_feedback(f"[bold red]{bell.wrong_plain()}[/bold red]", q.get("context", ""), q.get("related_fact", ""), q.get("date", ""))
+            self._show_feedback(f"[bold {color}]{verdict}[/bold {color}]", q.get("context", ""), q.get("related_fact", ""), q.get("date", ""))
             self.index += 1
             self._render_duel_question()
 
@@ -512,27 +726,10 @@ if TEXTUAL_OK:
                 result = f"{winner} wins!"
             self._render_card("Duel complete", f"{p1}: {s1}  |  {p2}: {s2}", result)
             db.record_score(f"duel:{p1}-vs-{p2}", max(s1, s2), len(self.pool))
-            self.query_one("#answer-input", Input).placeholder = "pick another mode"
-
-        # ── Stats ────────────────────────────────────────────────────────────
-
-        def _render_stats(self):
-            lines = []
-            any_scores = False
-            for mode in ["naturalization", "speed", "states", "quotes", "amendments", "timeline-sort"]:
-                rows = db.top_scores(mode, limit=3)
-                if rows:
-                    any_scores = True
-                    lines.append(f"[bold]{mode}[/bold]")
-                    for score, total, elapsed_s, played_at in rows:
-                        t = f", {elapsed_s:.1f}s" if elapsed_s else ""
-                        lines.append(f"  {score}/{total}{t}  ({played_at})")
-            if not any_scores:
-                lines.append("No scores recorded yet -- play a round first.")
-            card = self.query_one("#card", Static)
-            card.update("[bold]Recent Scores[/bold]\n\n" + "\n".join(lines))
-            self._update_status("stats")
-            self.query_one("#answer-input", Input).placeholder = "pick another mode"
+            if s1 == len(self.pool) or s2 == len(self.pool):
+                self._show_fireworks()
+            self.query_one("#answer-input", Input).placeholder = "press escape to go back"
+            self._refresh_scoreboard()
 
         # ── Input dispatch ───────────────────────────────────────────────────
 
@@ -554,12 +751,6 @@ if TEXTUAL_OK:
                     self._answer_duel_setup(raw)
                 else:
                     self._answer_duel(raw)
-
-        def action_focus_list(self) -> None:
-            self.query_one("#mode-list", ListView).focus()
-
-        def action_focus_input(self) -> None:
-            self.query_one("#answer-input", Input).focus()
 
 
 def main():
