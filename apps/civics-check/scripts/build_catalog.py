@@ -94,12 +94,20 @@ def card(
 
 def build_cards() -> list[dict]:
     cards: list[dict] = []
+    officials = load("current_officials.json")
+    official_nat_answers = {
+        28: [officials["president"]["name"], *officials["president"].get("aliases", [])],
+        29: [officials["vice_president"]["name"], *officials["vice_president"].get("aliases", [])],
+        46: list(officials["president_party"]["answers"]),
+        47: [officials["speaker"]["name"], *officials["speaker"].get("aliases", [])],
+    }
 
     # ── Naturalization (USCIS bank) ─────────────────────────────────────────
     for q in load("naturalization_questions.json"):
         tiers = ["show", "know"]
         if q["id"] <= 20:
             tiers = ["tap", "show", "know"]
+        answers = official_nat_answers.get(q["id"], q["answers"])
         cards.append(
             card(
                 f"nat-{q['id']:03d}",
@@ -111,12 +119,13 @@ def build_cards() -> list[dict]:
                 prompt=q["question"],
                 body=q.get("related_fact", ""),
                 context=q.get("context", ""),
-                answers=q["answers"],
+                answers=answers,
                 category=q.get("category", ""),
                 subcategory=q.get("subcategory", ""),
                 date=q.get("date", ""),
                 tags=["uscis", "naturalization"],
                 legacy_id=q["id"],
+                meta={"current_officials_as_of": officials.get("as_of", "")} if q["id"] in official_nat_answers else {},
             )
         )
 
@@ -627,6 +636,17 @@ def build_calendar() -> dict:
     return cal
 
 
+def _validate_cards(cards: list[dict]) -> None:
+    bad: list[str] = []
+    for c in cards:
+        for ans in c.get("answers") or []:
+            low = str(ans).lower()
+            if "varies" in low and "check" in low and "officeholder" in low:
+                bad.append(f"{c['id']}: placeholder answer {ans!r}")
+    if bad:
+        raise SystemExit("catalog build failed — unresolved current-office answers:\n  " + "\n  ".join(bad))
+
+
 def main():
     cards = build_cards()
     # on_this_day dynamic cards from calendar
@@ -646,6 +666,8 @@ def main():
                     meta={"date_key": key},
                 )
             )
+
+    _validate_cards(cards)
 
     catalog = {
         "version": 2,

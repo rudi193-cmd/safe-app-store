@@ -1,0 +1,35 @@
+{
+  "as_of": "2026-07-02",
+  "note": "Pinned for the Freedom 250 / semiquincentennial fair. Update when officeholders change.",
+  "president": {
+    "name": "Donald Trump",
+    "aliases": [
+      "Trump",
+      "Donald J. Trump",
+      "Donald J Trump"
+    ]
+  },
+  "vice_president": {
+    "name": "JD Vance",
+    "aliases": [
+      "J.D. Vance",
+      "J D Vance",
+      "James David Vance"
+    ]
+  },
+  "president_party": {
+    "answers": [
+      "Republican",
+      "Republican Party",
+      "the Republican Party",
+      "GOP"
+    ]
+  },
+  "speaker": {
+    "name": "Mike Johnson",
+    "aliases": [
+      "Speaker Mike Johnson",
+      "Representative Mike Johnson"
+    ]
+  }
+}

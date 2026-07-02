@@ -1,9 +1,9 @@
 """Answer normalization, matching, and deck selection.
 
-Matching philosophy: the vibe counts. A learner who typed "he freed the
-slaves", "washingtin", or "twenty seven" knew the answer — grade on
-meaning-bearing tokens with spelling slack, not on exact strings.
-Numbers stay strict: "16" is never the 6th amendment.
+Matching philosophy: the fair grades knowledge, not vibes. Every token the
+official answer requires must appear in what the learner typed (extra words
+are fine). Numbers stay strict. Proper names get modest spelling slack only
+when the accepted answer looks like a name — not for prose or party labels.
 """
 
 from __future__ import annotations
@@ -104,21 +104,25 @@ def _stem(tok: str) -> str:
     return tok
 
 
-def _token_match(user_tok: str, accepted_tok: str) -> bool:
+def _looks_like_name(accepted: str) -> bool:
+    words = [w for w in str(accepted).split() if w[:1].isalnum()]
+    if not words:
+        return False
+    return all(w[:1].isupper() or w[:1].isdigit() for w in words)
+
+
+def _token_match(user_tok: str, accepted_tok: str, *, name_mode: bool) -> bool:
     if user_tok == accepted_tok:
         return True
     # numbers are graded strictly — no fuzz between 16 and 6
     if user_tok.isdigit() or accepted_tok.isdigit():
         return False
-    # inflection slack: law/laws, vote/voting/voted, state/states
-    if _stem(user_tok) == _stem(accepted_tok):
+    # inflection slack: law/laws, vote/voting/voted — same root, not substring games
+    if len(_stem(user_tok)) >= 4 and _stem(user_tok) == _stem(accepted_tok):
         return True
-    # prefix slack: "free"/"freedom", "congress"/"congressional"
-    if len(user_tok) >= 4 and len(accepted_tok) >= 4:
-        if user_tok.startswith(accepted_tok) or accepted_tok.startswith(user_tok):
-            return True
-        # spelling slack for proper names and long words
-        if difflib.SequenceMatcher(None, user_tok, accepted_tok).ratio() >= 0.8:
+    # spelling slack for proper names only
+    if name_mode and len(user_tok) >= 5 and len(accepted_tok) >= 5:
+        if difflib.SequenceMatcher(None, user_tok, accepted_tok).ratio() >= 0.88:
             return True
     return False
 
@@ -137,12 +141,15 @@ def answer_matches(user_answer: str, accepted_answers: list[str]) -> bool:
         acc_toks = _tokens(norm_accepted)
         if not acc_toks:
             continue
-        covered = sum(1 for a in acc_toks if any(_token_match(u, a) for u in user_toks))
-        # proper-name answers ("John Adams") grade differently from prose:
-        # no extra chatter, and partials must anchor on the tail (surname) —
-        # else "john adams" grades correct against "John Quincy Adams"
-        is_name = all(w[:1].isupper() or w[:1].isdigit() for w in str(accepted).split() if w[:1].isalnum())
-        user_all_match = all(any(_token_match(u, a) for a in acc_toks) for u in user_toks)
+        is_name = _looks_like_name(accepted)
+        covered = sum(
+            1 for a in acc_toks
+            if any(_token_match(u, a, name_mode=is_name) for u in user_toks)
+        )
+        user_all_match = all(
+            any(_token_match(u, a, name_mode=is_name) for a in acc_toks)
+            for u in user_toks
+        )
         if is_name:
             if covered == len(acc_toks) and user_all_match:
                 return True
@@ -151,19 +158,14 @@ def answer_matches(user_answer: str, accepted_answers: list[str]) -> bool:
                 # "adams", "mississippi" — but not "john adams" for J.Q. Adams
                 for start in range(len(acc_toks) - len(user_toks) + 1):
                     window = acc_toks[start:start + len(user_toks)]
-                    if all(_token_match(u, a) for u, a in zip(user_toks, window)):
+                    if all(_token_match(u, a, name_mode=True) for u, a in zip(user_toks, window)):
                         return True
+            if len(norm_accepted) >= 5 and not any(t.isdigit() for t in acc_toks):
+                if difflib.SequenceMatcher(None, norm_user, norm_accepted).ratio() >= 0.88:
+                    return True
         else:
-            # user said everything the answer needs (extra chatter allowed)
+            # every required token must appear; extra chatter is allowed
             if covered == len(acc_toks):
-                return True
-            # everything the user said belongs to the answer, and it covers
-            # at least half of it — "civil rights" for "civil rights movement"
-            if user_toks and covered * 2 >= len(acc_toks) and user_all_match:
-                return True
-        # whole-string spelling slack for short answers ("washingtin")
-        if len(norm_accepted) >= 5 and not any(t.isdigit() for t in acc_toks):
-            if difflib.SequenceMatcher(None, norm_user, norm_accepted).ratio() >= 0.84:
                 return True
     return False
 
@@ -203,8 +205,7 @@ def pick_choice(user_raw: str, options: list[str]) -> str | None:
     for opt in options:
         if normalize(raw) == normalize(opt):
             return opt
-    # typed the option instead of its number — match on vibe, but only
-    # if exactly one option matches (ambiguity picks nothing)
+    # typed the option text — exact token coverage only, and only if unambiguous
     hits = [opt for opt in options if answer_matches(raw, [opt])]
     if len(hits) == 1:
         return hits[0]

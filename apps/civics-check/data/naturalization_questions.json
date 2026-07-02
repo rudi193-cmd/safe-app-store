@@ -5,7 +5,10 @@
     "subcategory": "Principles of American Democracy",
     "question": "What is the supreme law of the land?",
     "answers": [
-      "the Constitution"
+      "the Constitution",
+      "Constitution",
+      "U.S. Constitution",
+      "US Constitution"
     ],
     "context": "Every other law -- federal, state, or local -- must yield to it under the Supremacy Clause (Article VI).",
     "related_fact": "The Constitution is the oldest still-functioning written national constitution in the world.",
@@ -56,7 +59,8 @@
     "subcategory": "Principles of American Democracy",
     "question": "What do we call the first ten amendments to the Constitution?",
     "answers": [
-      "the Bill of Rights"
+      "the Bill of Rights",
+      "Bill of Rights"
     ],
     "context": "States only agreed to ratify the Constitution after being promised an explicit list of protected rights -- this was that promise, kept.",
     "related_fact": "James Madison, who once argued a bill of rights was unnecessary, ended up writing it.",
@@ -360,11 +364,14 @@
     "subcategory": "System of Government",
     "question": "What is the name of the President of the United States now?",
     "answers": [
-      "varies (check current officeholder)"
+      "Donald Trump",
+      "Trump",
+      "Donald J. Trump",
+      "Donald J Trump"
     ],
     "context": "This answer changes with each election -- the USCIS test expects the sitting President at time of interview.",
     "related_fact": "The President is not elected by direct popular vote but by the Electoral College.",
-    "date": "current"
+    "date": "2025-2029"
   },
   {
     "id": 29,
@@ -372,11 +379,14 @@
     "subcategory": "System of Government",
     "question": "What is the name of the Vice President of the United States now?",
     "answers": [
-      "varies (check current officeholder)"
+      "JD Vance",
+      "J.D. Vance",
+      "J D Vance",
+      "James David Vance"
     ],
     "context": "The Vice President's main constitutional jobs are succession and breaking Senate ties -- everything else is by presidential assignment.",
     "related_fact": "John Adams, the first VP, called it 'the most insignificant office that ever the invention of man contrived.'",
-    "date": "current"
+    "date": "2025-2029"
   },
   {
     "id": 30,
@@ -511,7 +521,11 @@
     "subcategory": "System of Government",
     "question": "Who is the Chief Justice of the United States now?",
     "answers": [
-      "John Roberts (John G. Roberts, Jr.)"
+      "John Roberts",
+      "John G. Roberts",
+      "John G. Roberts, Jr.",
+      "John G Roberts",
+      "Chief Justice John Roberts"
     ],
     "context": "The Chief Justice presides over the Court, assigns opinion-writing when in the majority, and presides over presidential impeachment trials in the Senate.",
     "related_fact": "Roberts was confirmed in 2005 at age 50, making him one of the youngest Chief Justices in modern history.",
@@ -578,7 +592,9 @@
     "subcategory": "System of Government",
     "question": "What are the two major political parties in the United States?",
     "answers": [
-      "Democratic and Republican"
+      "Democratic and Republican",
+      "Democratic Party and Republican Party",
+      "Republican and Democratic"
     ],
     "context": "The U.S. effectively runs a two-party system, reinforced by winner-take-all elections rather than proportional representation.",
     "related_fact": "The modern Republican Party was founded in 1854; the Democratic Party traces to the 1820s, making it one of the world's oldest active parties.",
@@ -590,11 +606,14 @@
     "subcategory": "System of Government",
     "question": "What is the political party of the President now?",
     "answers": [
-      "varies (check current officeholder)"
+      "Republican",
+      "Republican Party",
+      "the Republican Party",
+      "GOP"
     ],
     "context": "This tracks whichever party the sitting President belongs to.",
     "related_fact": "Divided government -- a President of one party facing a Congress controlled partly or fully by the other -- has been the norm more often than not since the 1970s.",
-    "date": "current"
+    "date": "2025-2029 (Republican)"
   },
   {
     "id": 47,
@@ -602,11 +621,13 @@
     "subcategory": "System of Government",
     "question": "What is the name of the Speaker of the House of Representatives now?",
     "answers": [
-      "varies (check current officeholder)"
+      "Mike Johnson",
+      "Speaker Mike Johnson",
+      "Representative Mike Johnson"
     ],
     "context": "The Speaker is second in the presidential line of succession, right after the Vice President.",
     "related_fact": "The Speaker doesn't have to be a sitting member of Congress by the Constitution's text, though in practice every Speaker has been.",
-    "date": "current"
+    "date": "119th Congress (2025-2027)"
   },
   {
     "id": 48,

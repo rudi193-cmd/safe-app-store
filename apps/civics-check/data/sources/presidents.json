@@ -349,6 +349,11 @@
     "n": 47,
     "name": "Donald Trump",
     "years": "2025-",
+    "aliases": [
+      "Trump",
+      "Donald J. Trump",
+      "Donald J Trump"
+    ],
     "fact": "The second president with non-consecutive terms. Somewhere, Grover Cleveland finally has company.",
     "reckoning": "Took office as the first president with a felony record — convicted on 34 counts in New York in 2024, months before the election."
   }
