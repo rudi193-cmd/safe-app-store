@@ -83,7 +83,11 @@ def _tokens(norm_text: str) -> list[str]:
             merged[-1] = (str(int(prev) + int(canon)), "")  # compound number
         else:
             merged.append((canon, orig))
-    return [canon for canon, orig in merged if orig not in _STOPWORDS]
+    # single-letter alpha tokens are initials/noise ("John F. Kennedy" -> john, kennedy)
+    return [
+        canon for canon, orig in merged
+        if orig not in _STOPWORDS and not (len(canon) == 1 and canon.isalpha())
+    ]
 
 
 def _stem(tok: str) -> str:
@@ -134,13 +138,28 @@ def answer_matches(user_answer: str, accepted_answers: list[str]) -> bool:
         if not acc_toks:
             continue
         covered = sum(1 for a in acc_toks if any(_token_match(u, a) for u in user_toks))
-        # user said everything the answer needs (extra chatter allowed)
-        if covered == len(acc_toks):
-            return True
-        # everything the user said belongs to the answer, and it covers
-        # at least half of it — "civil rights" for "civil rights movement"
-        if user_toks and covered * 2 >= len(acc_toks):
-            if all(any(_token_match(u, a) for a in acc_toks) for u in user_toks):
+        # proper-name answers ("John Adams") grade differently from prose:
+        # no extra chatter, and partials must anchor on the tail (surname) —
+        # else "john adams" grades correct against "John Quincy Adams"
+        is_name = all(w[:1].isupper() or w[:1].isdigit() for w in str(accepted).split() if w[:1].isalnum())
+        user_all_match = all(any(_token_match(u, a) for a in acc_toks) for u in user_toks)
+        if is_name:
+            if covered == len(acc_toks) and user_all_match:
+                return True
+            if user_toks and len(user_toks) <= len(acc_toks):
+                # partial must be a contiguous run of the name: "quincy adams",
+                # "adams", "mississippi" — but not "john adams" for J.Q. Adams
+                for start in range(len(acc_toks) - len(user_toks) + 1):
+                    window = acc_toks[start:start + len(user_toks)]
+                    if all(_token_match(u, a) for u, a in zip(user_toks, window)):
+                        return True
+        else:
+            # user said everything the answer needs (extra chatter allowed)
+            if covered == len(acc_toks):
+                return True
+            # everything the user said belongs to the answer, and it covers
+            # at least half of it — "civil rights" for "civil rights movement"
+            if user_toks and covered * 2 >= len(acc_toks) and user_all_match:
                 return True
         # whole-string spelling slack for short answers ("washingtin")
         if len(norm_accepted) >= 5 and not any(t.isdigit() for t in acc_toks):

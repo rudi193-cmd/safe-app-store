@@ -1,0 +1,178 @@
+[
+  {
+    "number": "13",
+    "title": "13",
+    "prompt": "How many original colonies (and stripes on the flag)?",
+    "answers": ["13"],
+    "body": "Thirteen colonies, thirteen stripes — and on the Great Seal: 13 stars, 13 arrows, 13 olive leaves, 13 olives, 13 steps on the pyramid, and 13 letters in both E PLURIBUS UNUM and ANNUIT COEPTIS. The founders committed to the bit.",
+    "source": "https://www.usa.gov/flag"
+  },
+  {
+    "number": "50",
+    "title": "50",
+    "prompt": "How many states (and stars on the flag)?",
+    "answers": ["50"],
+    "body": "Fifty states, fifty stars. The current 50-star flag debuted July 4, 1960, after Hawaii joined — designed by a 17-year-old for a school project. He got a B-.",
+    "source": "https://www.usa.gov/flag"
+  },
+  {
+    "number": "27",
+    "title": "27",
+    "prompt": "How many amendments does the Constitution have?",
+    "answers": ["27"],
+    "body": "Twenty-seven amendments. The 27th took 202 years to ratify — proposed in 1789, adopted in 1992, after a college student got a C on a paper arguing it was still live. He was right.",
+    "source": "https://constitution.congress.gov/browse/amendment-27/"
+  },
+  {
+    "number": "3",
+    "title": "3",
+    "prompt": "How many branches of government?",
+    "answers": ["3"],
+    "body": "Three branches: legislative, executive, judicial. Madison's math: ambition counteracting ambition needs at least three players.",
+    "source": "https://www.usa.gov/branches-of-government"
+  },
+  {
+    "number": "2",
+    "title": "2",
+    "prompt": "How many U.S. Senators does each state have?",
+    "answers": ["2"],
+    "body": "Two per state, Wyoming and California alike — the Great Compromise of 1787, still compromising.",
+    "source": "https://www.senate.gov/senators/"
+  },
+  {
+    "number": "100",
+    "title": "100",
+    "prompt": "How many U.S. Senators are there in total?",
+    "answers": ["100", "one hundred"],
+    "body": "One hundred Senators. Also one hundred civics questions on the naturalization test — the two are unrelated, but the symmetry is free.",
+    "source": "https://www.senate.gov/senators/"
+  },
+  {
+    "number": "435",
+    "title": "435",
+    "prompt": "How many voting members are in the House of Representatives?",
+    "answers": ["435", "four hundred thirty five", "four hundred and thirty five"],
+    "body": "435 voting members — frozen by law since 1929. The country tripled; the House didn't.",
+    "source": "https://www.house.gov/the-house-explained"
+  },
+  {
+    "number": "538",
+    "title": "538",
+    "prompt": "How many electors are in the Electoral College?",
+    "answers": ["538", "five hundred thirty eight", "five hundred and thirty eight"],
+    "body": "538 electors: 435 + 100 + 3 for D.C. (23rd Amendment). Yes, a famous statistics website is named after it.",
+    "source": "https://www.usa.gov/electoral-college"
+  },
+  {
+    "number": "270",
+    "title": "270",
+    "prompt": "How many electoral votes does it take to win the presidency?",
+    "answers": ["270", "two hundred seventy", "two hundred and seventy"],
+    "body": "270 to win — half of 538, plus one. The most consequential majority in American arithmetic.",
+    "source": "https://www.usa.gov/electoral-college"
+  },
+  {
+    "number": "9",
+    "title": "9",
+    "prompt": "How many justices sit on the Supreme Court?",
+    "answers": ["9"],
+    "body": "Nine justices — set by statute, not the Constitution. It has been 5, 6, 7, 9, and 10 over the years. Nine stuck.",
+    "source": "https://www.usa.gov/branches-of-government"
+  },
+  {
+    "number": "4",
+    "title": "4",
+    "prompt": "How many years is a presidential term?",
+    "answers": ["4"],
+    "body": "Four years per term. Also the 4th of July — the number does double duty every leap-year November.",
+    "source": "https://constitution.congress.gov/browse/article-2/section-1/"
+  },
+  {
+    "number": "6",
+    "title": "6",
+    "prompt": "How many years is a U.S. Senator's term?",
+    "answers": ["6"],
+    "body": "Six years per Senate term. Also 6 of 10: the passing score on the naturalization civics test. This fair grades the same way.",
+    "source": "https://constitution.congress.gov/browse/article-1/section-3/"
+  },
+  {
+    "number": "18",
+    "title": "18",
+    "prompt": "How old do citizens have to be to vote?",
+    "answers": ["18"],
+    "body": "Eighteen to vote — the 26th Amendment (1971), passed when the draft age and voting age finally had to agree.",
+    "source": "https://constitution.congress.gov/browse/amendment-26/"
+  },
+  {
+    "number": "7",
+    "title": "7",
+    "prompt": "How many articles does the Constitution have?",
+    "answers": ["7"],
+    "body": "Seven articles. The whole operating system of a country in about 4,500 words — shorter than most terms-of-service agreements.",
+    "source": "https://constitution.congress.gov/constitution/"
+  },
+  {
+    "number": "10",
+    "title": "10",
+    "prompt": "How many amendments are in the Bill of Rights?",
+    "answers": ["10"],
+    "body": "Ten amendments in the Bill of Rights. Twelve were proposed; one became the 27th two centuries later, and one is still technically pending. Sleep well.",
+    "source": "https://www.archives.gov/founding-docs/bill-of-rights"
+  },
+  {
+    "number": "56",
+    "title": "56",
+    "prompt": "How many delegates signed the Declaration of Independence?",
+    "answers": ["56"],
+    "body": "Fifty-six signers, pledging lives, fortunes, and sacred honor. Hancock signed big enough for all of them.",
+    "source": "https://www.archives.gov/founding-docs/declaration"
+  },
+  {
+    "number": "39",
+    "title": "39",
+    "prompt": "How many delegates signed the Constitution?",
+    "answers": ["39"],
+    "body": "Thirty-nine signatures of 55 delegates — three refused over the missing bill of rights, and got one delivered in 1791.",
+    "source": "https://www.archives.gov/founding-docs/constitution"
+  },
+  {
+    "number": "1776",
+    "title": "1776",
+    "prompt": "In what year was the Declaration of Independence adopted?",
+    "answers": ["1776", "seventeen seventy six"],
+    "body": "1776. The only year with its own musical, its own font of fireworks, and — as of 2026 — its own 250th birthday party.",
+    "source": "https://www.archives.gov/founding-docs/declaration"
+  },
+  {
+    "number": "1787",
+    "title": "1787",
+    "prompt": "In what year was the Constitution written?",
+    "answers": ["1787", "seventeen eighty seven"],
+    "body": "1787 — one Philadelphia summer, windows nailed shut for secrecy, no air conditioning. The document holds up better than the room did.",
+    "source": "https://www.archives.gov/founding-docs/constitution"
+  },
+  {
+    "number": "250",
+    "title": "250",
+    "prompt": "In 2026, how many years old is the United States?",
+    "answers": ["250", "two hundred fifty", "two hundred and fifty"],
+    "body": "250 years — the semiquincentennial, which is also the hardest word at the party. This entire fair is the birthday card.",
+    "source": "https://www.loc.gov/exhibits/treasures/tr22.html"
+  },
+  {
+    "number": "21",
+    "title": "21",
+    "prompt": "Which amendment repealed another amendment?",
+    "answers": ["21"],
+    "body": "The 21st repealed the 18th (Prohibition) — the only amendment whose entire job is deleting a previous amendment. America's ctrl+Z.",
+    "source": "https://constitution.congress.gov/browse/amendment-21/"
+  },
+  {
+    "number": "10-years",
+    "title": "10 years, 2 terms",
+    "prompt": "What is the maximum number of years one person can serve as President?",
+    "answers": ["10"],
+    "body": "Ten years: the 22nd Amendment allows two elected terms (8) plus up to half of someone else's term (2) if you succeeded mid-term. American numerology's deepest cut.",
+    "source": "https://constitution.congress.gov/browse/amendment-22/"
+  }
+]

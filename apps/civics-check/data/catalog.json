@@ -2,7 +2,7 @@
   "version": 2,
   "meta": {
     "built_by": "scripts/build_catalog.py",
-    "card_count": 418,
+    "card_count": 556,
     "kb_hub": "CVRAMERICA01",
     "textual_hub": "TXR04B11D4B8D"
   },
@@ -86,6 +86,17 @@
       "default_tier": "tap"
     },
     {
+      "id": "numbers",
+      "lane": "schoolhouse",
+      "label": "By the Numbers",
+      "subtitle": "American numerology, certified",
+      "kinds": [
+        "quiz",
+        "browse"
+      ],
+      "default_tier": "show"
+    },
+    {
       "id": "colonies",
       "lane": "constitution_hall",
       "label": "13 Colonies",
@@ -110,6 +121,17 @@
       "lane": "constitution_hall",
       "label": "Amendment Explorer",
       "subtitle": "Browse or quiz all 27",
+      "kinds": [
+        "browse",
+        "quiz"
+      ],
+      "default_tier": "show"
+    },
+    {
+      "id": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "label": "The Hall of Presidents",
+      "subtitle": "They're all here. They nod.",
       "kinds": [
         "browse",
         "quiz"
@@ -445,6 +467,49 @@
       "pool_filter": {
         "pavilion": "electoral",
         "kind": "pick"
+      }
+    },
+    {
+      "id": "hall_of_presidents",
+      "pavilion": "hall_of_presidents",
+      "kind": "browse",
+      "tier": "show",
+      "primary": true,
+      "pool_filter": {
+        "pavilion": "hall_of_presidents",
+        "kind": "browse"
+      }
+    },
+    {
+      "id": "presidents-quiz",
+      "pavilion": "hall_of_presidents",
+      "kind": "quiz",
+      "tier": "know",
+      "count": 10,
+      "pool_filter": {
+        "pavilion": "hall_of_presidents",
+        "kind": "quiz"
+      }
+    },
+    {
+      "id": "numbers-quiz",
+      "pavilion": "numbers",
+      "kind": "quiz",
+      "tier": "show",
+      "count": 10,
+      "pool_filter": {
+        "pavilion": "numbers",
+        "kind": "quiz"
+      }
+    },
+    {
+      "id": "numbers",
+      "pavilion": "numbers",
+      "kind": "browse",
+      "tier": "show",
+      "pool_filter": {
+        "pavilion": "numbers",
+        "kind": "browse"
       }
     },
     {
@@ -5795,9 +5860,9 @@
       },
       "choices": [
         "Dover",
-        "Juneau",
         "Springfield",
-        "Denver"
+        "Annapolis",
+        "Austin"
       ],
       "answer": "Dover"
     },
@@ -5849,9 +5914,9 @@
       },
       "choices": [
         "Harrisburg",
-        "Little Rock",
-        "Cheyenne",
-        "Santa Fe"
+        "Jackson",
+        "Lincoln",
+        "Cheyenne"
       ],
       "answer": "Harrisburg"
     },
@@ -5903,8 +5968,8 @@
       },
       "choices": [
         "Trenton",
+        "Montgomery",
         "Jefferson City",
-        "Salem",
         "Lansing"
       ],
       "answer": "Trenton"
@@ -5957,9 +6022,9 @@
       },
       "choices": [
         "Atlanta",
-        "Dover",
-        "Oklahoma City",
-        "Lansing"
+        "Indianapolis",
+        "Lansing",
+        "Frankfort"
       ],
       "answer": "Atlanta"
     },
@@ -6011,9 +6076,9 @@
       },
       "choices": [
         "Hartford",
-        "Trenton",
-        "Lincoln",
-        "Columbia"
+        "Denver",
+        "Austin",
+        "Augusta"
       ],
       "answer": "Hartford"
     },
@@ -6065,9 +6130,9 @@
       },
       "choices": [
         "Boston",
-        "Madison",
-        "Montpelier",
-        "Little Rock"
+        "Columbia",
+        "Austin",
+        "Jefferson City"
       ],
       "answer": "Boston"
     },
@@ -6119,9 +6184,9 @@
       },
       "choices": [
         "Annapolis",
-        "Saint Paul",
-        "Montpelier",
-        "Boston"
+        "Concord",
+        "Helena",
+        "Carson City"
       ],
       "answer": "Annapolis"
     },
@@ -6173,9 +6238,9 @@
       },
       "choices": [
         "Columbia",
-        "Denver",
-        "Raleigh",
-        "Topeka"
+        "Helena",
+        "Des Moines",
+        "Bismarck"
       ],
       "answer": "Columbia"
     },
@@ -6227,8 +6292,8 @@
       },
       "choices": [
         "Concord",
-        "Jefferson City",
-        "Atlanta",
+        "Carson City",
+        "Lansing",
         "Providence"
       ],
       "answer": "Concord"
@@ -6281,9 +6346,9 @@
       },
       "choices": [
         "Richmond",
-        "Cheyenne",
-        "Bismarck",
-        "Boston"
+        "Raleigh",
+        "Boise",
+        "Cheyenne"
       ],
       "answer": "Richmond"
     },
@@ -6335,9 +6400,9 @@
       },
       "choices": [
         "Albany",
-        "Frankfort",
-        "Topeka",
-        "Montgomery"
+        "Hartford",
+        "Juneau",
+        "Atlanta"
       ],
       "answer": "Albany"
     },
@@ -6389,9 +6454,9 @@
       },
       "choices": [
         "Raleigh",
-        "Nashville",
-        "Salem",
-        "Montpelier"
+        "Annapolis",
+        "Columbus",
+        "Jackson"
       ],
       "answer": "Raleigh"
     },
@@ -6443,9 +6508,9 @@
       },
       "choices": [
         "Providence",
-        "Jackson",
-        "Frankfort",
-        "Nashville"
+        "Annapolis",
+        "Boise",
+        "Richmond"
       ],
       "answer": "Providence"
     },
@@ -6497,9 +6562,9 @@
       },
       "choices": [
         "Montpelier",
-        "Boise",
-        "Springfield",
-        "Santa Fe"
+        "Carson City",
+        "Columbus",
+        "Nashville"
       ],
       "answer": "Montpelier"
     },
@@ -6551,9 +6616,9 @@
       },
       "choices": [
         "Frankfort",
-        "Honolulu",
-        "Olympia",
-        "Juneau"
+        "Montpelier",
+        "Jefferson City",
+        "Harrisburg"
       ],
       "answer": "Frankfort"
     },
@@ -6605,9 +6670,9 @@
       },
       "choices": [
         "Nashville",
-        "Raleigh",
-        "Jefferson City",
-        "Springfield"
+        "Oklahoma City",
+        "Santa Fe",
+        "Juneau"
       ],
       "answer": "Nashville"
     },
@@ -6659,9 +6724,9 @@
       },
       "choices": [
         "Columbus",
-        "Oklahoma City",
-        "Providence",
-        "Columbia"
+        "Juneau",
+        "Phoenix",
+        "Dover"
       ],
       "answer": "Columbus"
     },
@@ -6713,9 +6778,9 @@
       },
       "choices": [
         "Baton Rouge",
-        "Jackson",
-        "Saint Paul",
-        "Raleigh"
+        "Annapolis",
+        "Boston",
+        "Hartford"
       ],
       "answer": "Baton Rouge"
     },
@@ -6768,8 +6833,8 @@
       "choices": [
         "Indianapolis",
         "Pierre",
-        "Atlanta",
-        "Juneau"
+        "Sacramento",
+        "Augusta"
       ],
       "answer": "Indianapolis"
     },
@@ -6821,9 +6886,9 @@
       },
       "choices": [
         "Jackson",
-        "Trenton",
-        "Topeka",
-        "Montgomery"
+        "Concord",
+        "Salem",
+        "Tallahassee"
       ],
       "answer": "Jackson"
     },
@@ -6875,9 +6940,9 @@
       },
       "choices": [
         "Springfield",
-        "Providence",
-        "Bismarck",
-        "Charleston"
+        "Saint Paul",
+        "Richmond",
+        "Columbia"
       ],
       "answer": "Springfield"
     },
@@ -6929,9 +6994,9 @@
       },
       "choices": [
         "Montgomery",
-        "Des Moines",
-        "Dover",
-        "Frankfort"
+        "Austin",
+        "Frankfort",
+        "Richmond"
       ],
       "answer": "Montgomery"
     },
@@ -6983,9 +7048,9 @@
       },
       "choices": [
         "Augusta",
-        "Boston",
-        "Cheyenne",
-        "Olympia"
+        "Des Moines",
+        "Sacramento",
+        "Baton Rouge"
       ],
       "answer": "Augusta"
     },
@@ -7037,9 +7102,9 @@
       },
       "choices": [
         "Jefferson City",
-        "Atlanta",
-        "Sacramento",
-        "Des Moines"
+        "Baton Rouge",
+        "Bismarck",
+        "Salt Lake City"
       ],
       "answer": "Jefferson City"
     },
@@ -7091,9 +7156,9 @@
       },
       "choices": [
         "Little Rock",
-        "Carson City",
-        "Nashville",
-        "Boston"
+        "Denver",
+        "Augusta",
+        "Columbia"
       ],
       "answer": "Little Rock"
     },
@@ -7145,9 +7210,9 @@
       },
       "choices": [
         "Lansing",
-        "Boston",
+        "Olympia",
         "Columbus",
-        "Cheyenne"
+        "Montpelier"
       ],
       "answer": "Lansing"
     },
@@ -7199,9 +7264,9 @@
       },
       "choices": [
         "Tallahassee",
-        "Cheyenne",
-        "Boston",
-        "Raleigh"
+        "Salem",
+        "Little Rock",
+        "Nashville"
       ],
       "answer": "Tallahassee"
     },
@@ -7253,9 +7318,9 @@
       },
       "choices": [
         "Austin",
-        "Salem",
-        "Bismarck",
-        "Boston"
+        "Atlanta",
+        "Tallahassee",
+        "Charleston"
       ],
       "answer": "Austin"
     },
@@ -7308,8 +7373,8 @@
       "choices": [
         "Des Moines",
         "Topeka",
-        "Providence",
-        "Juneau"
+        "Concord",
+        "Jackson"
       ],
       "answer": "Des Moines"
     },
@@ -7361,9 +7426,9 @@
       },
       "choices": [
         "Madison",
-        "Hartford",
-        "Richmond",
-        "Lansing"
+        "Charleston",
+        "Albany",
+        "Bismarck"
       ],
       "answer": "Madison"
     },
@@ -7415,9 +7480,9 @@
       },
       "choices": [
         "Sacramento",
-        "Hartford",
-        "Tallahassee",
-        "Raleigh"
+        "Juneau",
+        "Jefferson City",
+        "Providence"
       ],
       "answer": "Sacramento"
     },
@@ -7469,9 +7534,9 @@
       },
       "choices": [
         "Saint Paul",
-        "Bismarck",
-        "Columbus",
-        "Columbia"
+        "Lansing",
+        "Boise",
+        "Honolulu"
       ],
       "answer": "Saint Paul"
     },
@@ -7523,9 +7588,9 @@
       },
       "choices": [
         "Salem",
-        "Baton Rouge",
-        "Cheyenne",
-        "Topeka"
+        "Sacramento",
+        "Raleigh",
+        "Nashville"
       ],
       "answer": "Salem"
     },
@@ -7577,9 +7642,9 @@
       },
       "choices": [
         "Topeka",
-        "Olympia",
-        "Salt Lake City",
-        "Indianapolis"
+        "Denver",
+        "Charleston",
+        "Nashville"
       ],
       "answer": "Topeka"
     },
@@ -7631,9 +7696,9 @@
       },
       "choices": [
         "Charleston",
-        "Hartford",
-        "Salem",
-        "Madison"
+        "Carson City",
+        "Springfield",
+        "Topeka"
       ],
       "answer": "Charleston"
     },
@@ -7685,9 +7750,9 @@
       },
       "choices": [
         "Carson City",
-        "Boston",
-        "Baton Rouge",
-        "Pierre"
+        "Jefferson City",
+        "Topeka",
+        "Columbia"
       ],
       "answer": "Carson City"
     },
@@ -7739,9 +7804,9 @@
       },
       "choices": [
         "Lincoln",
-        "Salem",
-        "Dover",
-        "Jackson"
+        "Montpelier",
+        "Columbus",
+        "Helena"
       ],
       "answer": "Lincoln"
     },
@@ -7793,9 +7858,9 @@
       },
       "choices": [
         "Denver",
-        "Concord",
-        "Boston",
-        "Austin"
+        "Helena",
+        "Springfield",
+        "Saint Paul"
       ],
       "answer": "Denver"
     },
@@ -7847,9 +7912,9 @@
       },
       "choices": [
         "Bismarck",
-        "Denver",
-        "Raleigh",
-        "Topeka"
+        "Oklahoma City",
+        "Dover",
+        "Salem"
       ],
       "answer": "Bismarck"
     },
@@ -7901,9 +7966,9 @@
       },
       "choices": [
         "Pierre",
-        "Baton Rouge",
-        "Denver",
-        "Hartford"
+        "Olympia",
+        "Salem",
+        "Madison"
       ],
       "answer": "Pierre"
     },
@@ -7955,9 +8020,9 @@
       },
       "choices": [
         "Helena",
-        "Hartford",
-        "Jefferson City",
-        "Pierre"
+        "Concord",
+        "Bismarck",
+        "Lansing"
       ],
       "answer": "Helena"
     },
@@ -8009,9 +8074,9 @@
       },
       "choices": [
         "Olympia",
-        "Augusta",
-        "Richmond",
-        "Phoenix"
+        "Salem",
+        "Denver",
+        "Santa Fe"
       ],
       "answer": "Olympia"
     },
@@ -8063,9 +8128,9 @@
       },
       "choices": [
         "Boise",
-        "Santa Fe",
         "Columbus",
-        "Concord"
+        "Trenton",
+        "Juneau"
       ],
       "answer": "Boise"
     },
@@ -8117,9 +8182,9 @@
       },
       "choices": [
         "Cheyenne",
-        "Helena",
-        "Tallahassee",
-        "Juneau"
+        "Phoenix",
+        "Lincoln",
+        "Concord"
       ],
       "answer": "Cheyenne"
     },
@@ -8171,9 +8236,9 @@
       },
       "choices": [
         "Salt Lake City",
-        "Annapolis",
-        "Des Moines",
-        "Harrisburg"
+        "Little Rock",
+        "Charleston",
+        "Albany"
       ],
       "answer": "Salt Lake City"
     },
@@ -8225,9 +8290,9 @@
       },
       "choices": [
         "Oklahoma City",
-        "Augusta",
-        "Madison",
-        "Hartford"
+        "Phoenix",
+        "Olympia",
+        "Lansing"
       ],
       "answer": "Oklahoma City"
     },
@@ -8279,9 +8344,9 @@
       },
       "choices": [
         "Santa Fe",
-        "Honolulu",
-        "Montgomery",
-        "Salem"
+        "Montpelier",
+        "Indianapolis",
+        "Hartford"
       ],
       "answer": "Santa Fe"
     },
@@ -8333,9 +8398,9 @@
       },
       "choices": [
         "Phoenix",
-        "Des Moines",
-        "Concord",
-        "Trenton"
+        "Charleston",
+        "Juneau",
+        "Concord"
       ],
       "answer": "Phoenix"
     },
@@ -8387,9 +8452,9 @@
       },
       "choices": [
         "Juneau",
-        "Des Moines",
-        "Madison",
-        "Santa Fe"
+        "Columbus",
+        "Springfield",
+        "Salt Lake City"
       ],
       "answer": "Juneau"
     },
@@ -8441,9 +8506,9 @@
       },
       "choices": [
         "Honolulu",
-        "Hartford",
-        "Boise",
-        "Little Rock"
+        "Trenton",
+        "Springfield",
+        "Harrisburg"
       ],
       "answer": "Honolulu"
     },
@@ -9707,6 +9772,3389 @@
         "electoral_college"
       ],
       "meta": {}
+    },
+    {
+      "id": "potus-01",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "1. George Washington",
+      "body": "Unanimous choice of the Electoral College — twice. Turned down anything resembling a crown and went home to farm.\n\nThe record: Enslaved more than 300 people at Mount Vernon, signed the Fugitive Slave Act of 1793, and pursued those who escaped him, including Ona Judge.",
+      "subtitle": "1789-1797",
+      "prompt": "1. George Washington",
+      "context": "The animatronic rises and pauses for applause.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 1
+      }
+    },
+    {
+      "id": "potus-quiz-01",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "George Washington",
+      "body": "Unanimous choice of the Electoral College — twice. Turned down anything resembling a crown and went home to farm.",
+      "subtitle": "",
+      "prompt": "Who was the 1st President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 1
+      },
+      "answers": [
+        "George Washington"
+      ]
+    },
+    {
+      "id": "potus-02",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "2. John Adams",
+      "body": "First to live in the White House. As a young lawyer, defended the British soldiers of the Boston Massacre — and won.\n\nThe record: The Alien and Sedition Acts jailed editors and journalists for criticizing his administration.",
+      "subtitle": "1797-1801",
+      "prompt": "2. John Adams",
+      "context": "The animatronic adjusts its coat.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 2
+      }
+    },
+    {
+      "id": "potus-quiz-02",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "John Adams",
+      "body": "First to live in the White House. As a young lawyer, defended the British soldiers of the Boston Massacre — and won.",
+      "subtitle": "",
+      "prompt": "Who was the 2nd President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 2
+      },
+      "answers": [
+        "John Adams"
+      ]
+    },
+    {
+      "id": "potus-03",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "3. Thomas Jefferson",
+      "body": "Wrote the Declaration, doubled the country with the Louisiana Purchase, died July 4, 1826 — fifty years to the day.\n\nThe record: Wrote 'all men are created equal' while enslaving more than 600 people — including Sally Hemings and children who were his own.",
+      "subtitle": "1801-1809",
+      "prompt": "3. Thomas Jefferson",
+      "context": "The animatronic gazes into the middle distance.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 3
+      }
+    },
+    {
+      "id": "potus-quiz-03",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Thomas Jefferson",
+      "body": "Wrote the Declaration, doubled the country with the Louisiana Purchase, died July 4, 1826 — fifty years to the day.",
+      "subtitle": "",
+      "prompt": "Who was the 3rd President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 3
+      },
+      "answers": [
+        "Thomas Jefferson"
+      ]
+    },
+    {
+      "id": "potus-04",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "4. James Madison",
+      "body": "Father of the Constitution. Smallest president, largest framework.\n\nThe record: Enslaved over 100 people while drafting liberty's framework, and freed none of them, not even in his will.",
+      "subtitle": "1809-1817",
+      "prompt": "4. James Madison",
+      "context": "The animatronic nods to the animatronic beside it.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 4
+      }
+    },
+    {
+      "id": "potus-quiz-04",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "James Madison",
+      "body": "Father of the Constitution. Smallest president, largest framework.",
+      "subtitle": "",
+      "prompt": "Who was the 4th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 4
+      },
+      "answers": [
+        "James Madison"
+      ]
+    },
+    {
+      "id": "potus-05",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "5. James Monroe",
+      "body": "The Monroe Doctrine and the Era of Good Feelings. Also died on July 4. The founders kept doing that.\n\nThe record: A lifelong slaveholder; his colonization project aimed to remove free Black Americans from the country, not to free the enslaved.",
+      "subtitle": "1817-1825",
+      "prompt": "5. James Monroe",
+      "context": "The animatronic nods.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 5
+      }
+    },
+    {
+      "id": "potus-quiz-05",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "James Monroe",
+      "body": "The Monroe Doctrine and the Era of Good Feelings. Also died on July 4. The founders kept doing that.",
+      "subtitle": "",
+      "prompt": "Who was the 5th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 5
+      },
+      "answers": [
+        "James Monroe"
+      ]
+    },
+    {
+      "id": "potus-06",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "6. John Quincy Adams",
+      "body": "Son of a president. Argued the Amistad case before the Supreme Court after leaving office — and won.\n\nThe record: As president and diplomat, advanced treaties and expansion that dispossessed Native nations of their land.",
+      "subtitle": "1825-1829",
+      "prompt": "6. John Quincy Adams",
+      "context": "The animatronic rises and pauses for applause.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 6
+      }
+    },
+    {
+      "id": "potus-quiz-06",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "John Quincy Adams",
+      "body": "Son of a president. Argued the Amistad case before the Supreme Court after leaving office — and won.",
+      "subtitle": "",
+      "prompt": "Who was the 6th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 6
+      },
+      "answers": [
+        "John Quincy Adams"
+      ]
+    },
+    {
+      "id": "potus-07",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "7. Andrew Jackson",
+      "body": "First populist president. His parrot was reportedly removed from his funeral for swearing.\n\nThe record: Signed the Indian Removal Act — the Trail of Tears followed. Enslaved about 150 people and once offered 'ten dollars extra for every hundred lashes' to an escapee's captor.",
+      "subtitle": "1829-1837",
+      "prompt": "7. Andrew Jackson",
+      "context": "The animatronic adjusts its coat.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 7
+      }
+    },
+    {
+      "id": "potus-quiz-07",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Andrew Jackson",
+      "body": "First populist president. His parrot was reportedly removed from his funeral for swearing.",
+      "subtitle": "",
+      "prompt": "Who was the 7th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 7
+      },
+      "answers": [
+        "Andrew Jackson"
+      ]
+    },
+    {
+      "id": "potus-08",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "8. Martin Van Buren",
+      "body": "First president born a U.S. citizen. The word 'OK' may trace to his nickname, Old Kinderhook.\n\nThe record: The Trail of Tears was largely carried out on his watch, and he defended the policy to the end.",
+      "subtitle": "1837-1841",
+      "prompt": "8. Martin Van Buren",
+      "context": "The animatronic gazes into the middle distance.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 8
+      }
+    },
+    {
+      "id": "potus-quiz-08",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Martin Van Buren",
+      "body": "First president born a U.S. citizen. The word 'OK' may trace to his nickname, Old Kinderhook.",
+      "subtitle": "",
+      "prompt": "Who was the 8th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 8
+      },
+      "answers": [
+        "Martin Van Buren"
+      ]
+    },
+    {
+      "id": "potus-09",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "9. William Henry Harrison",
+      "body": "31 days in office. The two-hour inaugural address in the freezing rain did not help.\n\nThe record: As governor of Indiana Territory, extracted treaties that stripped millions of acres from Native nations, by whiskey and by pressure.",
+      "subtitle": "1841",
+      "prompt": "9. William Henry Harrison",
+      "context": "The animatronic nods to the animatronic beside it.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 9
+      }
+    },
+    {
+      "id": "potus-quiz-09",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "William Henry Harrison",
+      "body": "31 days in office. The two-hour inaugural address in the freezing rain did not help.",
+      "subtitle": "",
+      "prompt": "Who was the 9th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 9
+      },
+      "answers": [
+        "William Henry Harrison"
+      ]
+    },
+    {
+      "id": "potus-10",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "10. John Tyler",
+      "body": "First vice president to succeed to the office — and he made sure the precedent stuck.\n\nThe record: Died a member of the Confederate Congress — Washington officially ignored his death as that of a man in rebellion.",
+      "subtitle": "1841-1845",
+      "prompt": "10. John Tyler",
+      "context": "The animatronic nods.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 10
+      }
+    },
+    {
+      "id": "potus-quiz-10",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "John Tyler",
+      "body": "First vice president to succeed to the office — and he made sure the precedent stuck.",
+      "subtitle": "",
+      "prompt": "Who was the 10th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 10
+      },
+      "answers": [
+        "John Tyler"
+      ]
+    },
+    {
+      "id": "potus-11",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "11. James K. Polk",
+      "body": "Promised one term and four goals. Delivered all four and left.\n\nThe record: A slaveholder who bought children while in the White House, and engineered the Mexican-American War on a pretext Lincoln stood up in Congress to call a lie.",
+      "subtitle": "1845-1849",
+      "prompt": "11. James K. Polk",
+      "context": "The animatronic rises and pauses for applause.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 11
+      }
+    },
+    {
+      "id": "potus-quiz-11",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "James K. Polk",
+      "body": "Promised one term and four goals. Delivered all four and left.",
+      "subtitle": "",
+      "prompt": "Who was the 11th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 11
+      },
+      "answers": [
+        "James K. Polk"
+      ]
+    },
+    {
+      "id": "potus-12",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "12. Zachary Taylor",
+      "body": "Forty years a soldier; reportedly never voted in a presidential election before his own.\n\nThe record: Enslaved more than 100 people on his Louisiana and Mississippi plantations.",
+      "subtitle": "1849-1850",
+      "prompt": "12. Zachary Taylor",
+      "context": "The animatronic adjusts its coat.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 12
+      }
+    },
+    {
+      "id": "potus-quiz-12",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Zachary Taylor",
+      "body": "Forty years a soldier; reportedly never voted in a presidential election before his own.",
+      "subtitle": "",
+      "prompt": "Who was the 12th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 12
+      },
+      "answers": [
+        "Zachary Taylor"
+      ]
+    },
+    {
+      "id": "potus-13",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "13. Millard Fillmore",
+      "body": "Last Whig president. Installed the White House's first permanent library.\n\nThe record: Signed the Fugitive Slave Act of 1850, drafting the whole North into the business of hunting escaped human beings.",
+      "subtitle": "1850-1853",
+      "prompt": "13. Millard Fillmore",
+      "context": "The animatronic gazes into the middle distance.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 13
+      }
+    },
+    {
+      "id": "potus-quiz-13",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Millard Fillmore",
+      "body": "Last Whig president. Installed the White House's first permanent library.",
+      "subtitle": "",
+      "prompt": "Who was the 13th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 13
+      },
+      "answers": [
+        "Millard Fillmore"
+      ]
+    },
+    {
+      "id": "potus-14",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "14. Franklin Pierce",
+      "body": "Recited his entire inaugural address from memory — 3,319 words.\n\nThe record: Championed the Kansas-Nebraska Act, opening new territory to slavery — 'Bleeding Kansas' was the bill's first harvest.",
+      "subtitle": "1853-1857",
+      "prompt": "14. Franklin Pierce",
+      "context": "The animatronic nods to the animatronic beside it.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 14
+      }
+    },
+    {
+      "id": "potus-quiz-14",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Franklin Pierce",
+      "body": "Recited his entire inaugural address from memory — 3,319 words.",
+      "subtitle": "",
+      "prompt": "Who was the 14th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 14
+      },
+      "answers": [
+        "Franklin Pierce"
+      ]
+    },
+    {
+      "id": "potus-15",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "15. James Buchanan",
+      "body": "The only bachelor president. Watched the Union crack and handed Lincoln the pieces.\n\nThe record: Lobbied the Supreme Court toward Dred Scott, blamed abolitionists for the crisis, and watched secession begin without lifting a hand.",
+      "subtitle": "1857-1861",
+      "prompt": "15. James Buchanan",
+      "context": "The animatronic nods.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 15
+      }
+    },
+    {
+      "id": "potus-quiz-15",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "James Buchanan",
+      "body": "The only bachelor president. Watched the Union crack and handed Lincoln the pieces.",
+      "subtitle": "",
+      "prompt": "Who was the 15th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 15
+      },
+      "answers": [
+        "James Buchanan"
+      ]
+    },
+    {
+      "id": "potus-16",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "16. Abraham Lincoln",
+      "body": "Preserved the Union, freed the slaves, and needed only 272 words at Gettysburg.\n\nThe record: Suspended habeas corpus, long endorsed colonization of freed Black Americans, and approved the largest mass execution in U.S. history — 38 Dakota men at Mankato, 1862.",
+      "subtitle": "1861-1865",
+      "prompt": "16. Abraham Lincoln",
+      "context": "The animatronic rises and pauses for applause.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 16
+      }
+    },
+    {
+      "id": "potus-quiz-16",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Abraham Lincoln",
+      "body": "Preserved the Union, freed the slaves, and needed only 272 words at Gettysburg.",
+      "subtitle": "",
+      "prompt": "Who was the 16th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 16
+      },
+      "answers": [
+        "Abraham Lincoln"
+      ]
+    },
+    {
+      "id": "potus-17",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "17. Andrew Johnson",
+      "body": "First president impeached — acquitted by a single vote.\n\nThe record: Sabotaged Reconstruction at every turn — vetoed civil rights bills and let white rule rebuild itself in the South.",
+      "subtitle": "1865-1869",
+      "prompt": "17. Andrew Johnson",
+      "context": "The animatronic adjusts its coat.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 17
+      }
+    },
+    {
+      "id": "potus-quiz-17",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Andrew Johnson",
+      "body": "First president impeached — acquitted by a single vote.",
+      "subtitle": "",
+      "prompt": "Who was the 17th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 17
+      },
+      "answers": [
+        "Andrew Johnson"
+      ]
+    },
+    {
+      "id": "potus-18",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "18. Ulysses S. Grant",
+      "body": "Won the war, then raced death to finish his memoirs and provide for his family. He won that too.\n\nThe record: His administration drowned in corruption scandals, and his 1862 General Order No. 11 expelled Jews 'as a class' from his military district — an order he spent years regretting.",
+      "subtitle": "1869-1877",
+      "prompt": "18. Ulysses S. Grant",
+      "context": "The animatronic gazes into the middle distance.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 18
+      }
+    },
+    {
+      "id": "potus-quiz-18",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Ulysses S. Grant",
+      "body": "Won the war, then raced death to finish his memoirs and provide for his family. He won that too.",
+      "subtitle": "",
+      "prompt": "Who was the 18th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 18
+      },
+      "answers": [
+        "Ulysses S. Grant"
+      ]
+    },
+    {
+      "id": "potus-19",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "19. Rutherford B. Hayes",
+      "body": "Won by one electoral vote. His wife banned alcohol from the White House — 'Lemonade Lucy.'\n\nThe record: The Compromise of 1877 traded Reconstruction away for the presidency — federal troops left the South, and Jim Crow moved in.",
+      "subtitle": "1877-1881",
+      "prompt": "19. Rutherford B. Hayes",
+      "context": "The animatronic nods to the animatronic beside it.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 19
+      }
+    },
+    {
+      "id": "potus-quiz-19",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Rutherford B. Hayes",
+      "body": "Won by one electoral vote. His wife banned alcohol from the White House — 'Lemonade Lucy.'",
+      "subtitle": "",
+      "prompt": "Who was the 19th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 19
+      },
+      "answers": [
+        "Rutherford B. Hayes"
+      ]
+    },
+    {
+      "id": "potus-20",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "20. James A. Garfield",
+      "body": "Could reportedly write Latin with one hand and Greek with the other — at the same time.\n\nThe record: Two hundred days. The record is thin on both counts — he ran on rights for Black citizens and died before the promise could be tested.",
+      "subtitle": "1881",
+      "prompt": "20. James A. Garfield",
+      "context": "The animatronic nods.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 20
+      }
+    },
+    {
+      "id": "potus-quiz-20",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "James A. Garfield",
+      "body": "Could reportedly write Latin with one hand and Greek with the other — at the same time.",
+      "subtitle": "",
+      "prompt": "Who was the 20th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 20
+      },
+      "answers": [
+        "James A. Garfield"
+      ]
+    },
+    {
+      "id": "potus-21",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "21. Chester A. Arthur",
+      "body": "The machine politician who signed civil-service reform anyway. Nobody was more surprised than the machine.\n\nThe record: Signed the Chinese Exclusion Act of 1882 — the first federal law to ban immigrants by race and nation.",
+      "subtitle": "1881-1885",
+      "prompt": "21. Chester A. Arthur",
+      "context": "The animatronic rises and pauses for applause.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 21
+      }
+    },
+    {
+      "id": "potus-quiz-21",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Chester A. Arthur",
+      "body": "The machine politician who signed civil-service reform anyway. Nobody was more surprised than the machine.",
+      "subtitle": "",
+      "prompt": "Who was the 21st President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 21
+      },
+      "answers": [
+        "Chester A. Arthur"
+      ]
+    },
+    {
+      "id": "potus-22",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "22. Grover Cleveland",
+      "body": "The first president to serve two non-consecutive terms. Hold that thought until #24.\n\nThe record: Signed the Dawes Act, which broke up tribal lands and stripped Native nations of some 90 million acres.",
+      "subtitle": "1885-1889",
+      "prompt": "22. Grover Cleveland",
+      "context": "The animatronic adjusts its coat.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 22
+      }
+    },
+    {
+      "id": "potus-quiz-22",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Grover Cleveland",
+      "body": "The first president to serve two non-consecutive terms. Hold that thought until #24.",
+      "subtitle": "",
+      "prompt": "Who was the 22nd President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 22
+      },
+      "answers": [
+        "Grover Cleveland"
+      ]
+    },
+    {
+      "id": "potus-23",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "23. Benjamin Harrison",
+      "body": "Electricity was installed in the White House on his watch — he and his wife were afraid to touch the switches.\n\nThe record: The Wounded Knee massacre happened on his watch — and his government pinned Medals of Honor on the soldiers who carried it out.",
+      "subtitle": "1889-1893",
+      "prompt": "23. Benjamin Harrison",
+      "context": "The animatronic gazes into the middle distance.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 23
+      }
+    },
+    {
+      "id": "potus-quiz-23",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Benjamin Harrison",
+      "body": "Electricity was installed in the White House on his watch — he and his wife were afraid to touch the switches.",
+      "subtitle": "",
+      "prompt": "Who was the 23rd President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 23
+      },
+      "answers": [
+        "Benjamin Harrison"
+      ]
+    },
+    {
+      "id": "potus-24",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "24. Grover Cleveland",
+      "body": "Told you. The same Grover Cleveland, back by popular demand — literally.\n\nThe record: Back in office, he sent federal troops to crush the Pullman Strike, killing workers to move the mail.",
+      "subtitle": "1893-1897",
+      "prompt": "24. Grover Cleveland",
+      "context": "The animatronic nods to the animatronic beside it.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 24
+      }
+    },
+    {
+      "id": "potus-quiz-24",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Grover Cleveland",
+      "body": "Told you. The same Grover Cleveland, back by popular demand — literally.",
+      "subtitle": "",
+      "prompt": "Who was the 24th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 24
+      },
+      "answers": [
+        "Grover Cleveland"
+      ]
+    },
+    {
+      "id": "potus-25",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "25. William McKinley",
+      "body": "Ran the famous front-porch campaign — the voters came to him.\n\nThe record: Annexed the Philippines and started the war to keep it — at least 200,000 Filipino civilians died.",
+      "subtitle": "1897-1901",
+      "prompt": "25. William McKinley",
+      "context": "The animatronic nods.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 25
+      }
+    },
+    {
+      "id": "potus-quiz-25",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "William McKinley",
+      "body": "Ran the famous front-porch campaign — the voters came to him.",
+      "subtitle": "",
+      "prompt": "Who was the 25th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 25
+      },
+      "answers": [
+        "William McKinley"
+      ]
+    },
+    {
+      "id": "potus-26",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "26. Theodore Roosevelt",
+      "body": "Youngest president ever. The teddy bear is named for him. Spoke softly; the stick, famously, was big.\n\nThe record: Believed sincerely in racial hierarchy; dishonorably discharged 167 Black soldiers at Brownsville on evidence that was never there.",
+      "subtitle": "1901-1909",
+      "prompt": "26. Theodore Roosevelt",
+      "context": "The animatronic rises and pauses for applause.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 26
+      }
+    },
+    {
+      "id": "potus-quiz-26",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Theodore Roosevelt",
+      "body": "Youngest president ever. The teddy bear is named for him. Spoke softly; the stick, famously, was big.",
+      "subtitle": "",
+      "prompt": "Who was the 26th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 26
+      },
+      "answers": [
+        "Theodore Roosevelt",
+        "Teddy Roosevelt"
+      ]
+    },
+    {
+      "id": "potus-27",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "27. William Howard Taft",
+      "body": "Later Chief Justice of the United States — the only person to lead two branches of government.\n\nThe record: Ran the Philippine occupation and called its people 'little brown brothers' — empire wearing a paternal smile.",
+      "subtitle": "1909-1913",
+      "prompt": "27. William Howard Taft",
+      "context": "The animatronic adjusts its coat.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 27
+      }
+    },
+    {
+      "id": "potus-quiz-27",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "William Howard Taft",
+      "body": "Later Chief Justice of the United States — the only person to lead two branches of government.",
+      "subtitle": "",
+      "prompt": "Who was the 27th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 27
+      },
+      "answers": [
+        "William Howard Taft"
+      ]
+    },
+    {
+      "id": "potus-28",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "28. Woodrow Wilson",
+      "body": "Nobel Peace Prize for the League of Nations. Also the only president with a Ph.D.\n\nThe record: Resegregated the federal civil service, screened 'The Birth of a Nation' at the White House, and jailed dissenters — including Eugene Debs — under the Espionage and Sedition Acts.",
+      "subtitle": "1913-1921",
+      "prompt": "28. Woodrow Wilson",
+      "context": "The animatronic gazes into the middle distance.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 28
+      }
+    },
+    {
+      "id": "potus-quiz-28",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Woodrow Wilson",
+      "body": "Nobel Peace Prize for the League of Nations. Also the only president with a Ph.D.",
+      "subtitle": "",
+      "prompt": "Who was the 28th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 28
+      },
+      "answers": [
+        "Woodrow Wilson"
+      ]
+    },
+    {
+      "id": "potus-29",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "29. Warren G. Harding",
+      "body": "Won by promising a 'return to normalcy' — a word his critics insisted was not one.\n\nThe record: Teapot Dome: his friends sold the nation's oil reserves for bribes in black bags.",
+      "subtitle": "1921-1923",
+      "prompt": "29. Warren G. Harding",
+      "context": "The animatronic nods to the animatronic beside it.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 29
+      }
+    },
+    {
+      "id": "potus-quiz-29",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Warren G. Harding",
+      "body": "Won by promising a 'return to normalcy' — a word his critics insisted was not one.",
+      "subtitle": "",
+      "prompt": "Who was the 29th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 29
+      },
+      "answers": [
+        "Warren G. Harding"
+      ]
+    },
+    {
+      "id": "potus-30",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "30. Calvin Coolidge",
+      "body": "Silent Cal. A dinner guest bet she could get more than two words out of him. 'You lose.'\n\nThe record: Signed the Immigration Act of 1924 — race quotas engineered to shut out Italians, Jews, and all of Asia.",
+      "subtitle": "1923-1929",
+      "prompt": "30. Calvin Coolidge",
+      "context": "The animatronic nods.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 30
+      }
+    },
+    {
+      "id": "potus-quiz-30",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Calvin Coolidge",
+      "body": "Silent Cal. A dinner guest bet she could get more than two words out of him. 'You lose.'",
+      "subtitle": "",
+      "prompt": "Who was the 30th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 30
+      },
+      "answers": [
+        "Calvin Coolidge"
+      ]
+    },
+    {
+      "id": "potus-31",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "31. Herbert Hoover",
+      "body": "Fed millions in postwar Europe before the Crash made his name a shantytown.\n\nThe record: Sent the Army with tanks and tear gas against the Bonus Army — veterans camped in the capital asking to be paid — and began the 'repatriation' drives that expelled up to a million people of Mexican descent, many of them citizens.",
+      "subtitle": "1929-1933",
+      "prompt": "31. Herbert Hoover",
+      "context": "The animatronic rises and pauses for applause.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 31
+      }
+    },
+    {
+      "id": "potus-quiz-31",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Herbert Hoover",
+      "body": "Fed millions in postwar Europe before the Crash made his name a shantytown.",
+      "subtitle": "",
+      "prompt": "Who was the 31st President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 31
+      },
+      "answers": [
+        "Herbert Hoover"
+      ]
+    },
+    {
+      "id": "potus-32",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "32. Franklin D. Roosevelt",
+      "body": "Four terms — the reason the 22nd Amendment exists. Fireside chats, the New Deal, the war.\n\nThe record: Executive Order 9066 imprisoned 120,000 Japanese Americans, most of them citizens; the St. Louis and its Jewish refugees were turned back to Europe on his watch.",
+      "subtitle": "1933-1945",
+      "prompt": "32. Franklin D. Roosevelt",
+      "context": "The animatronic adjusts its coat.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 32
+      }
+    },
+    {
+      "id": "potus-quiz-32",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Franklin D. Roosevelt",
+      "body": "Four terms — the reason the 22nd Amendment exists. Fireside chats, the New Deal, the war.",
+      "subtitle": "",
+      "prompt": "Who was the 32nd President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 32
+      },
+      "answers": [
+        "Franklin D. Roosevelt",
+        "FDR"
+      ]
+    },
+    {
+      "id": "potus-33",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "33. Harry S. Truman",
+      "body": "The buck stopped there. Held up the wrong headline, grinning like a man who'd read the right one.\n\nThe record: Ordered the atomic bombings of Hiroshima and Nagasaki — more than 200,000 dead, most of them civilians. History still argues the necessity; the dead do not.",
+      "subtitle": "1945-1953",
+      "prompt": "33. Harry S. Truman",
+      "context": "The animatronic gazes into the middle distance.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 33
+      }
+    },
+    {
+      "id": "potus-quiz-33",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Harry S. Truman",
+      "body": "The buck stopped there. Held up the wrong headline, grinning like a man who'd read the right one.",
+      "subtitle": "",
+      "prompt": "Who was the 33rd President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 33
+      },
+      "answers": [
+        "Harry S. Truman"
+      ]
+    },
+    {
+      "id": "potus-34",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "34. Dwight D. Eisenhower",
+      "body": "Supreme Allied Commander on D-Day; built the interstate highway system in peacetime.\n\nThe record: The CIA overthrew elected governments in Iran and Guatemala on his orders; Executive Order 10450 purged thousands of gay Americans from federal service; 'Operation Wetback' deported en masse.",
+      "subtitle": "1953-1961",
+      "prompt": "34. Dwight D. Eisenhower",
+      "context": "The animatronic nods to the animatronic beside it.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 34
+      }
+    },
+    {
+      "id": "potus-quiz-34",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Dwight D. Eisenhower",
+      "body": "Supreme Allied Commander on D-Day; built the interstate highway system in peacetime.",
+      "subtitle": "",
+      "prompt": "Who was the 34th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 34
+      },
+      "answers": [
+        "Dwight D. Eisenhower",
+        "Ike",
+        "Eisenhower"
+      ]
+    },
+    {
+      "id": "potus-35",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "35. John F. Kennedy",
+      "body": "Youngest elected president. Promised the Moon within the decade — delivery arrived on schedule, 1969.\n\nThe record: Authorized the FBI's wiretaps on Martin Luther King Jr., owned the Bay of Pigs, and walked the country deeper into Vietnam.",
+      "subtitle": "1961-1963",
+      "prompt": "35. John F. Kennedy",
+      "context": "The animatronic nods.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 35
+      }
+    },
+    {
+      "id": "potus-quiz-35",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "John F. Kennedy",
+      "body": "Youngest elected president. Promised the Moon within the decade — delivery arrived on schedule, 1969.",
+      "subtitle": "",
+      "prompt": "Who was the 35th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 35
+      },
+      "answers": [
+        "John F. Kennedy",
+        "JFK"
+      ]
+    },
+    {
+      "id": "potus-36",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "36. Lyndon B. Johnson",
+      "body": "Civil Rights Act, Voting Rights Act, Medicare — passed by pure applied force of personality.\n\nThe record: Escalated Vietnam on the Gulf of Tonkin's false pretenses — 58,000 Americans and well over a million Vietnamese died in the war he chose not to lose.",
+      "subtitle": "1963-1969",
+      "prompt": "36. Lyndon B. Johnson",
+      "context": "The animatronic rises and pauses for applause.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 36
+      }
+    },
+    {
+      "id": "potus-quiz-36",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Lyndon B. Johnson",
+      "body": "Civil Rights Act, Voting Rights Act, Medicare — passed by pure applied force of personality.",
+      "subtitle": "",
+      "prompt": "Who was the 36th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 36
+      },
+      "answers": [
+        "Lyndon B. Johnson",
+        "LBJ"
+      ]
+    },
+    {
+      "id": "potus-37",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "37. Richard Nixon",
+      "body": "Opened China, created the EPA, and remains the only president to resign the office.\n\nThe record: Watergate. Also: the secret bombing of Cambodia, and a drug war his own aide admitted was built to criminalize Black Americans and the antiwar left.",
+      "subtitle": "1969-1974",
+      "prompt": "37. Richard Nixon",
+      "context": "The animatronic adjusts its coat.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 37
+      }
+    },
+    {
+      "id": "potus-quiz-37",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Richard Nixon",
+      "body": "Opened China, created the EPA, and remains the only president to resign the office.",
+      "subtitle": "",
+      "prompt": "Who was the 37th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 37
+      },
+      "answers": [
+        "Richard Nixon"
+      ]
+    },
+    {
+      "id": "potus-38",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "38. Gerald Ford",
+      "body": "The only president never elected president or vice president. The Constitution has a footnote just for him.\n\nThe record: Pardoned Nixon before any charge could be tried, and gave Indonesia the green light to invade East Timor days before it happened.",
+      "subtitle": "1974-1977",
+      "prompt": "38. Gerald Ford",
+      "context": "The animatronic gazes into the middle distance.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 38
+      }
+    },
+    {
+      "id": "potus-quiz-38",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Gerald Ford",
+      "body": "The only president never elected president or vice president. The Constitution has a footnote just for him.",
+      "subtitle": "",
+      "prompt": "Who was the 38th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 38
+      },
+      "answers": [
+        "Gerald Ford"
+      ]
+    },
+    {
+      "id": "potus-39",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "39. Jimmy Carter",
+      "body": "Brokered the Camp David Accords; won the Nobel Peace Prize 21 years after leaving office.\n\nThe record: The human-rights presidency had asterisks: arms kept flowing to Indonesia mid-atrocity, and the Shah kept American backing nearly to the fall.",
+      "subtitle": "1977-1981",
+      "prompt": "39. Jimmy Carter",
+      "context": "The animatronic nods to the animatronic beside it.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 39
+      }
+    },
+    {
+      "id": "potus-quiz-39",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Jimmy Carter",
+      "body": "Brokered the Camp David Accords; won the Nobel Peace Prize 21 years after leaving office.",
+      "subtitle": "",
+      "prompt": "Who was the 39th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 39
+      },
+      "answers": [
+        "Jimmy Carter"
+      ]
+    },
+    {
+      "id": "potus-40",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "40. Ronald Reagan",
+      "body": "The Great Communicator. 'Mr. Gorbachev, tear down this wall.'\n\nThe record: Stayed publicly silent on AIDS for years while thousands died; Iran-Contra sold missiles to Iran to illegally fund the Contras; the drug war's mass-incarceration era began in earnest here.",
+      "subtitle": "1981-1989",
+      "prompt": "40. Ronald Reagan",
+      "context": "The animatronic nods.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 40
+      }
+    },
+    {
+      "id": "potus-quiz-40",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Ronald Reagan",
+      "body": "The Great Communicator. 'Mr. Gorbachev, tear down this wall.'",
+      "subtitle": "",
+      "prompt": "Who was the 40th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 40
+      },
+      "answers": [
+        "Ronald Reagan"
+      ]
+    },
+    {
+      "id": "potus-41",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "41. George H. W. Bush",
+      "body": "One of the Navy's youngest aviators in WWII; celebrated his 90th birthday by skydiving.\n\nThe record: Pardoned the Iran-Contra principals on his way out the door, burying the case; his campaign's Willie Horton ad set the standard for racial fear politics.",
+      "subtitle": "1989-1993",
+      "prompt": "41. George H. W. Bush",
+      "context": "The animatronic rises and pauses for applause.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 41
+      }
+    },
+    {
+      "id": "potus-quiz-41",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "George H. W. Bush",
+      "body": "One of the Navy's youngest aviators in WWII; celebrated his 90th birthday by skydiving.",
+      "subtitle": "",
+      "prompt": "Who was the 41st President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 41
+      },
+      "answers": [
+        "George H. W. Bush",
+        "Bush Senior",
+        "George Bush Sr"
+      ]
+    },
+    {
+      "id": "potus-42",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "42. Bill Clinton",
+      "body": "Presided over the longest peacetime economic expansion to that point. Plays the saxophone.\n\nThe record: The 1994 crime bill helped build mass incarceration; welfare 'reform' and bank deregulation aged badly; lied under oath and was impeached for it.",
+      "subtitle": "1993-2001",
+      "prompt": "42. Bill Clinton",
+      "context": "The animatronic adjusts its coat.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 42
+      }
+    },
+    {
+      "id": "potus-quiz-42",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Bill Clinton",
+      "body": "Presided over the longest peacetime economic expansion to that point. Plays the saxophone.",
+      "subtitle": "",
+      "prompt": "Who was the 42nd President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 42
+      },
+      "answers": [
+        "Bill Clinton"
+      ]
+    },
+    {
+      "id": "potus-43",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "43. George W. Bush",
+      "body": "The bullhorn at Ground Zero. Took up portrait painting after office — mostly of veterans.\n\nThe record: Invaded Iraq over weapons that were not there — hundreds of thousands died; authorized torture and called it 'enhanced interrogation'; Katrina drowned while FEMA fumbled.",
+      "subtitle": "2001-2009",
+      "prompt": "43. George W. Bush",
+      "context": "The animatronic gazes into the middle distance.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 43
+      }
+    },
+    {
+      "id": "potus-quiz-43",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "George W. Bush",
+      "body": "The bullhorn at Ground Zero. Took up portrait painting after office — mostly of veterans.",
+      "subtitle": "",
+      "prompt": "Who was the 43rd President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 43
+      },
+      "answers": [
+        "George W. Bush",
+        "George W",
+        "Bush Junior"
+      ]
+    },
+    {
+      "id": "potus-44",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "44. Barack Obama",
+      "body": "First African American president. It started with one convention speech in 2004.\n\nThe record: Expanded drone warfare with a personal kill list that included a U.S. citizen — and, two weeks later, the citizen's 16-year-old son; deported more people than any president before him; Guantanamo never closed.",
+      "subtitle": "2009-2017",
+      "prompt": "44. Barack Obama",
+      "context": "The animatronic nods to the animatronic beside it.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 44
+      }
+    },
+    {
+      "id": "potus-quiz-44",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Barack Obama",
+      "body": "First African American president. It started with one convention speech in 2004.",
+      "subtitle": "",
+      "prompt": "Who was the 44th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 44
+      },
+      "answers": [
+        "Barack Obama"
+      ]
+    },
+    {
+      "id": "potus-45",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "45. Donald Trump",
+      "body": "First president with no prior government or military service.\n\nThe record: Impeached twice — for pressuring Ukraine to smear a rival, and for January 6. The family-separation policy took thousands of children from their parents at the border.",
+      "subtitle": "2017-2021",
+      "prompt": "45. Donald Trump",
+      "context": "The animatronic nods.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 45
+      }
+    },
+    {
+      "id": "potus-quiz-45",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Donald Trump",
+      "body": "First president with no prior government or military service.",
+      "subtitle": "",
+      "prompt": "Who was the 45th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 45
+      },
+      "answers": [
+        "Donald Trump"
+      ]
+    },
+    {
+      "id": "potus-46",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "46. Joe Biden",
+      "body": "Oldest president at inauguration; 36 years a senator before the White House.\n\nThe record: The Afghanistan withdrawal collapsed into chaos — thirteen service members and some 170 Afghans died at Abbey Gate; many border policies he campaigned against, he kept.",
+      "subtitle": "2021-2025",
+      "prompt": "46. Joe Biden",
+      "context": "The animatronic rises and pauses for applause.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 46
+      }
+    },
+    {
+      "id": "potus-quiz-46",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Joe Biden",
+      "body": "Oldest president at inauguration; 36 years a senator before the White House.",
+      "subtitle": "",
+      "prompt": "Who was the 46th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 46
+      },
+      "answers": [
+        "Joe Biden"
+      ]
+    },
+    {
+      "id": "potus-47",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "47. Donald Trump",
+      "body": "The second president with non-consecutive terms. Somewhere, Grover Cleveland finally has company.\n\nThe record: Took office as the first president with a felony record — convicted on 34 counts in New York in 2024, months before the election.",
+      "subtitle": "2025-",
+      "prompt": "47. Donald Trump",
+      "context": "The animatronic adjusts its coat.",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "hall"
+      ],
+      "meta": {
+        "number": 47
+      }
+    },
+    {
+      "id": "potus-quiz-47",
+      "pavilion": "hall_of_presidents",
+      "lane": "constitution_hall",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Donald Trump",
+      "body": "The second president with non-consecutive terms. Somewhere, Grover Cleveland finally has company.",
+      "subtitle": "",
+      "prompt": "Who was the 47th President of the United States?",
+      "context": "",
+      "source": "https://www.whitehouse.gov/about-the-white-house/presidents/",
+      "tags": [
+        "presidents",
+        "quiz"
+      ],
+      "meta": {
+        "number": 47
+      },
+      "answers": [
+        "Donald Trump"
+      ]
+    },
+    {
+      "id": "number-13",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "13",
+      "body": "Thirteen colonies, thirteen stripes — and on the Great Seal: 13 stars, 13 arrows, 13 olive leaves, 13 olives, 13 steps on the pyramid, and 13 letters in both E PLURIBUS UNUM and ANNUIT COEPTIS. The founders committed to the bit.",
+      "subtitle": "",
+      "prompt": "13",
+      "context": "",
+      "source": "https://www.usa.gov/flag",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-13",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "13",
+      "body": "Thirteen colonies, thirteen stripes — and on the Great Seal: 13 stars, 13 arrows, 13 olive leaves, 13 olives, 13 steps on the pyramid, and 13 letters in both E PLURIBUS UNUM and ANNUIT COEPTIS. The founders committed to the bit.",
+      "subtitle": "",
+      "prompt": "How many original colonies (and stripes on the flag)?",
+      "context": "",
+      "source": "https://www.usa.gov/flag",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "13"
+      ]
+    },
+    {
+      "id": "number-50",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "50",
+      "body": "Fifty states, fifty stars. The current 50-star flag debuted July 4, 1960, after Hawaii joined — designed by a 17-year-old for a school project. He got a B-.",
+      "subtitle": "",
+      "prompt": "50",
+      "context": "",
+      "source": "https://www.usa.gov/flag",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-50",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "50",
+      "body": "Fifty states, fifty stars. The current 50-star flag debuted July 4, 1960, after Hawaii joined — designed by a 17-year-old for a school project. He got a B-.",
+      "subtitle": "",
+      "prompt": "How many states (and stars on the flag)?",
+      "context": "",
+      "source": "https://www.usa.gov/flag",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "50"
+      ]
+    },
+    {
+      "id": "number-27",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "27",
+      "body": "Twenty-seven amendments. The 27th took 202 years to ratify — proposed in 1789, adopted in 1992, after a college student got a C on a paper arguing it was still live. He was right.",
+      "subtitle": "",
+      "prompt": "27",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/amendment-27/",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-27",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "27",
+      "body": "Twenty-seven amendments. The 27th took 202 years to ratify — proposed in 1789, adopted in 1992, after a college student got a C on a paper arguing it was still live. He was right.",
+      "subtitle": "",
+      "prompt": "How many amendments does the Constitution have?",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/amendment-27/",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "27"
+      ]
+    },
+    {
+      "id": "number-3",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "3",
+      "body": "Three branches: legislative, executive, judicial. Madison's math: ambition counteracting ambition needs at least three players.",
+      "subtitle": "",
+      "prompt": "3",
+      "context": "",
+      "source": "https://www.usa.gov/branches-of-government",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-3",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "3",
+      "body": "Three branches: legislative, executive, judicial. Madison's math: ambition counteracting ambition needs at least three players.",
+      "subtitle": "",
+      "prompt": "How many branches of government?",
+      "context": "",
+      "source": "https://www.usa.gov/branches-of-government",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "3"
+      ]
+    },
+    {
+      "id": "number-2",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "2",
+      "body": "Two per state, Wyoming and California alike — the Great Compromise of 1787, still compromising.",
+      "subtitle": "",
+      "prompt": "2",
+      "context": "",
+      "source": "https://www.senate.gov/senators/",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-2",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "2",
+      "body": "Two per state, Wyoming and California alike — the Great Compromise of 1787, still compromising.",
+      "subtitle": "",
+      "prompt": "How many U.S. Senators does each state have?",
+      "context": "",
+      "source": "https://www.senate.gov/senators/",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "2"
+      ]
+    },
+    {
+      "id": "number-100",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "100",
+      "body": "One hundred Senators. Also one hundred civics questions on the naturalization test — the two are unrelated, but the symmetry is free.",
+      "subtitle": "",
+      "prompt": "100",
+      "context": "",
+      "source": "https://www.senate.gov/senators/",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-100",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "100",
+      "body": "One hundred Senators. Also one hundred civics questions on the naturalization test — the two are unrelated, but the symmetry is free.",
+      "subtitle": "",
+      "prompt": "How many U.S. Senators are there in total?",
+      "context": "",
+      "source": "https://www.senate.gov/senators/",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "100",
+        "one hundred"
+      ]
+    },
+    {
+      "id": "number-435",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "435",
+      "body": "435 voting members — frozen by law since 1929. The country tripled; the House didn't.",
+      "subtitle": "",
+      "prompt": "435",
+      "context": "",
+      "source": "https://www.house.gov/the-house-explained",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-435",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "435",
+      "body": "435 voting members — frozen by law since 1929. The country tripled; the House didn't.",
+      "subtitle": "",
+      "prompt": "How many voting members are in the House of Representatives?",
+      "context": "",
+      "source": "https://www.house.gov/the-house-explained",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "435",
+        "four hundred thirty five",
+        "four hundred and thirty five"
+      ]
+    },
+    {
+      "id": "number-538",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "538",
+      "body": "538 electors: 435 + 100 + 3 for D.C. (23rd Amendment). Yes, a famous statistics website is named after it.",
+      "subtitle": "",
+      "prompt": "538",
+      "context": "",
+      "source": "https://www.usa.gov/electoral-college",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-538",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "538",
+      "body": "538 electors: 435 + 100 + 3 for D.C. (23rd Amendment). Yes, a famous statistics website is named after it.",
+      "subtitle": "",
+      "prompt": "How many electors are in the Electoral College?",
+      "context": "",
+      "source": "https://www.usa.gov/electoral-college",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "538",
+        "five hundred thirty eight",
+        "five hundred and thirty eight"
+      ]
+    },
+    {
+      "id": "number-270",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "270",
+      "body": "270 to win — half of 538, plus one. The most consequential majority in American arithmetic.",
+      "subtitle": "",
+      "prompt": "270",
+      "context": "",
+      "source": "https://www.usa.gov/electoral-college",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-270",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "270",
+      "body": "270 to win — half of 538, plus one. The most consequential majority in American arithmetic.",
+      "subtitle": "",
+      "prompt": "How many electoral votes does it take to win the presidency?",
+      "context": "",
+      "source": "https://www.usa.gov/electoral-college",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "270",
+        "two hundred seventy",
+        "two hundred and seventy"
+      ]
+    },
+    {
+      "id": "number-9",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "9",
+      "body": "Nine justices — set by statute, not the Constitution. It has been 5, 6, 7, 9, and 10 over the years. Nine stuck.",
+      "subtitle": "",
+      "prompt": "9",
+      "context": "",
+      "source": "https://www.usa.gov/branches-of-government",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-9",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "9",
+      "body": "Nine justices — set by statute, not the Constitution. It has been 5, 6, 7, 9, and 10 over the years. Nine stuck.",
+      "subtitle": "",
+      "prompt": "How many justices sit on the Supreme Court?",
+      "context": "",
+      "source": "https://www.usa.gov/branches-of-government",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "9"
+      ]
+    },
+    {
+      "id": "number-4",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "4",
+      "body": "Four years per term. Also the 4th of July — the number does double duty every leap-year November.",
+      "subtitle": "",
+      "prompt": "4",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/article-2/section-1/",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-4",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "4",
+      "body": "Four years per term. Also the 4th of July — the number does double duty every leap-year November.",
+      "subtitle": "",
+      "prompt": "How many years is a presidential term?",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/article-2/section-1/",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "4"
+      ]
+    },
+    {
+      "id": "number-6",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "6",
+      "body": "Six years per Senate term. Also 6 of 10: the passing score on the naturalization civics test. This fair grades the same way.",
+      "subtitle": "",
+      "prompt": "6",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/article-1/section-3/",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-6",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "6",
+      "body": "Six years per Senate term. Also 6 of 10: the passing score on the naturalization civics test. This fair grades the same way.",
+      "subtitle": "",
+      "prompt": "How many years is a U.S. Senator's term?",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/article-1/section-3/",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "6"
+      ]
+    },
+    {
+      "id": "number-18",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "18",
+      "body": "Eighteen to vote — the 26th Amendment (1971), passed when the draft age and voting age finally had to agree.",
+      "subtitle": "",
+      "prompt": "18",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/amendment-26/",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-18",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "18",
+      "body": "Eighteen to vote — the 26th Amendment (1971), passed when the draft age and voting age finally had to agree.",
+      "subtitle": "",
+      "prompt": "How old do citizens have to be to vote?",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/amendment-26/",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "18"
+      ]
+    },
+    {
+      "id": "number-7",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "7",
+      "body": "Seven articles. The whole operating system of a country in about 4,500 words — shorter than most terms-of-service agreements.",
+      "subtitle": "",
+      "prompt": "7",
+      "context": "",
+      "source": "https://constitution.congress.gov/constitution/",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-7",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "7",
+      "body": "Seven articles. The whole operating system of a country in about 4,500 words — shorter than most terms-of-service agreements.",
+      "subtitle": "",
+      "prompt": "How many articles does the Constitution have?",
+      "context": "",
+      "source": "https://constitution.congress.gov/constitution/",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "7"
+      ]
+    },
+    {
+      "id": "number-10",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "10",
+      "body": "Ten amendments in the Bill of Rights. Twelve were proposed; one became the 27th two centuries later, and one is still technically pending. Sleep well.",
+      "subtitle": "",
+      "prompt": "10",
+      "context": "",
+      "source": "https://www.archives.gov/founding-docs/bill-of-rights",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-10",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "10",
+      "body": "Ten amendments in the Bill of Rights. Twelve were proposed; one became the 27th two centuries later, and one is still technically pending. Sleep well.",
+      "subtitle": "",
+      "prompt": "How many amendments are in the Bill of Rights?",
+      "context": "",
+      "source": "https://www.archives.gov/founding-docs/bill-of-rights",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "10"
+      ]
+    },
+    {
+      "id": "number-56",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "56",
+      "body": "Fifty-six signers, pledging lives, fortunes, and sacred honor. Hancock signed big enough for all of them.",
+      "subtitle": "",
+      "prompt": "56",
+      "context": "",
+      "source": "https://www.archives.gov/founding-docs/declaration",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-56",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "56",
+      "body": "Fifty-six signers, pledging lives, fortunes, and sacred honor. Hancock signed big enough for all of them.",
+      "subtitle": "",
+      "prompt": "How many delegates signed the Declaration of Independence?",
+      "context": "",
+      "source": "https://www.archives.gov/founding-docs/declaration",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "56"
+      ]
+    },
+    {
+      "id": "number-39",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "39",
+      "body": "Thirty-nine signatures of 55 delegates — three refused over the missing bill of rights, and got one delivered in 1791.",
+      "subtitle": "",
+      "prompt": "39",
+      "context": "",
+      "source": "https://www.archives.gov/founding-docs/constitution",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-39",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "39",
+      "body": "Thirty-nine signatures of 55 delegates — three refused over the missing bill of rights, and got one delivered in 1791.",
+      "subtitle": "",
+      "prompt": "How many delegates signed the Constitution?",
+      "context": "",
+      "source": "https://www.archives.gov/founding-docs/constitution",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "39"
+      ]
+    },
+    {
+      "id": "number-1776",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "1776",
+      "body": "1776. The only year with its own musical, its own font of fireworks, and — as of 2026 — its own 250th birthday party.",
+      "subtitle": "",
+      "prompt": "1776",
+      "context": "",
+      "source": "https://www.archives.gov/founding-docs/declaration",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-1776",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "1776",
+      "body": "1776. The only year with its own musical, its own font of fireworks, and — as of 2026 — its own 250th birthday party.",
+      "subtitle": "",
+      "prompt": "In what year was the Declaration of Independence adopted?",
+      "context": "",
+      "source": "https://www.archives.gov/founding-docs/declaration",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "1776",
+        "seventeen seventy six"
+      ]
+    },
+    {
+      "id": "number-1787",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "1787",
+      "body": "1787 — one Philadelphia summer, windows nailed shut for secrecy, no air conditioning. The document holds up better than the room did.",
+      "subtitle": "",
+      "prompt": "1787",
+      "context": "",
+      "source": "https://www.archives.gov/founding-docs/constitution",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-1787",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "1787",
+      "body": "1787 — one Philadelphia summer, windows nailed shut for secrecy, no air conditioning. The document holds up better than the room did.",
+      "subtitle": "",
+      "prompt": "In what year was the Constitution written?",
+      "context": "",
+      "source": "https://www.archives.gov/founding-docs/constitution",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "1787",
+        "seventeen eighty seven"
+      ]
+    },
+    {
+      "id": "number-250",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "250",
+      "body": "250 years — the semiquincentennial, which is also the hardest word at the party. This entire fair is the birthday card.",
+      "subtitle": "",
+      "prompt": "250",
+      "context": "",
+      "source": "https://www.loc.gov/exhibits/treasures/tr22.html",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-250",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "250",
+      "body": "250 years — the semiquincentennial, which is also the hardest word at the party. This entire fair is the birthday card.",
+      "subtitle": "",
+      "prompt": "In 2026, how many years old is the United States?",
+      "context": "",
+      "source": "https://www.loc.gov/exhibits/treasures/tr22.html",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "250",
+        "two hundred fifty",
+        "two hundred and fifty"
+      ]
+    },
+    {
+      "id": "number-21",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "21",
+      "body": "The 21st repealed the 18th (Prohibition) — the only amendment whose entire job is deleting a previous amendment. America's ctrl+Z.",
+      "subtitle": "",
+      "prompt": "21",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/amendment-21/",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-21",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "21",
+      "body": "The 21st repealed the 18th (Prohibition) — the only amendment whose entire job is deleting a previous amendment. America's ctrl+Z.",
+      "subtitle": "",
+      "prompt": "Which amendment repealed another amendment?",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/amendment-21/",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "21"
+      ]
+    },
+    {
+      "id": "number-10-years",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "browse",
+      "tiers": [
+        "tap",
+        "show",
+        "know"
+      ],
+      "title": "10 years, 2 terms",
+      "body": "Ten years: the 22nd Amendment allows two elected terms (8) plus up to half of someone else's term (2) if you succeeded mid-term. American numerology's deepest cut.",
+      "subtitle": "",
+      "prompt": "10 years, 2 terms",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/amendment-22/",
+      "tags": [
+        "numbers",
+        "numerology"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "number-quiz-10-years",
+      "pavilion": "numbers",
+      "lane": "schoolhouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "10 years, 2 terms",
+      "body": "Ten years: the 22nd Amendment allows two elected terms (8) plus up to half of someone else's term (2) if you succeeded mid-term. American numerology's deepest cut.",
+      "subtitle": "",
+      "prompt": "What is the maximum number of years one person can serve as President?",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/amendment-22/",
+      "tags": [
+        "numbers",
+        "quiz"
+      ],
+      "meta": {},
+      "answers": [
+        "10"
+      ]
     },
     {
       "id": "power-declare-war",

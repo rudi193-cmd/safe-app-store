@@ -94,6 +94,9 @@ def primary_activity_id(pavilion_id: str) -> str | None:
     acts = activities_for_pavilion(pavilion_id)
     if not acts:
         return None
+    for act in acts:
+        if act.get("primary"):
+            return act["id"]
     for kind in KIND_ORDER:
         for act in acts:
             if act.get("kind") == kind:

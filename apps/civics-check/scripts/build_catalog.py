@@ -396,6 +396,89 @@ def build_cards() -> list[dict]:
                 )
             )
 
+    # ── The Hall of Presidents (a forgotten Disney favorite) ────────────────
+    def ordinal(n: int) -> str:
+        if 10 <= n % 100 <= 13:
+            return f"{n}th"
+        return f"{n}{ {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th') }"
+
+    STAGE_DIRECTIONS = [
+        "The animatronic nods.",
+        "The animatronic rises and pauses for applause.",
+        "The animatronic adjusts its coat.",
+        "The animatronic gazes into the middle distance.",
+        "The animatronic nods to the animatronic beside it.",
+    ]
+    for pres in load("presidents.json"):
+        n = pres["n"]
+        body = pres["fact"]
+        if pres.get("reckoning"):
+            body += f"\n\nThe record: {pres['reckoning']}"
+        cards.append(
+            card(
+                f"potus-{n:02d}",
+                pavilion="hall_of_presidents",
+                lane="constitution_hall",
+                kind="browse",
+                tiers=["tap", "show", "know"],
+                title=f"{n}. {pres['name']}",
+                subtitle=pres["years"],
+                body=body,
+                context=STAGE_DIRECTIONS[n % len(STAGE_DIRECTIONS)],
+                source="https://www.whitehouse.gov/about-the-white-house/presidents/",
+                tags=["presidents", "hall"],
+                meta={"number": n},
+            )
+        )
+        cards.append(
+            card(
+                f"potus-quiz-{n:02d}",
+                pavilion="hall_of_presidents",
+                lane="constitution_hall",
+                kind="quiz",
+                tiers=["show", "know"],
+                title=pres["name"],
+                prompt=f"Who was the {ordinal(n)} President of the United States?",
+                body=pres["fact"],
+                source="https://www.whitehouse.gov/about-the-white-house/presidents/",
+                answers=[pres["name"]] + pres.get("aliases", []),
+                tags=["presidents", "quiz"],
+                meta={"number": n},
+            )
+        )
+
+    # ── By the Numbers: American numerology ─────────────────────────────────
+    for n in load("numbers.json"):
+        nid = slug(n["number"])
+        cards.append(
+            card(
+                f"number-{nid}",
+                pavilion="numbers",
+                lane="schoolhouse",
+                kind="browse",
+                tiers=["tap", "show", "know"],
+                title=n["title"],
+                body=n["body"],
+                source=n.get("source", ""),
+                tags=["numbers", "numerology"],
+            )
+        )
+        cards.append(
+            card(
+                f"number-quiz-{nid}",
+                pavilion="numbers",
+                lane="schoolhouse",
+                kind="quiz",
+                tiers=["show", "know"],
+                title=n["title"],
+                prompt=n["prompt"],
+                body=n["body"],
+                source=n.get("source", ""),
+                answers=n["answers"],
+                tags=["numbers", "quiz"],
+            )
+        )
+
     # ── Statehouse: federalism pack ─────────────────────────────────────────
     federalism = load("federalism.json")
     for p in federalism["powers"]:
@@ -485,9 +568,11 @@ def build_pavilions() -> list[dict]:
         {"id": "rights_bingo", "lane": "schoolhouse", "label": "Bill of Rights Bingo", "subtitle": "Match the right", "kinds": ["pick"], "default_tier": "tap"},
         {"id": "state_stars", "lane": "schoolhouse", "label": "State Star", "subtitle": "Pick the capital", "kinds": ["pick"], "default_tier": "tap"},
         {"id": "on_this_day", "lane": "schoolhouse", "label": "On This Day", "subtitle": "Today in the founding era", "kinds": ["browse"], "default_tier": "tap"},
+        {"id": "numbers", "lane": "schoolhouse", "label": "By the Numbers", "subtitle": "American numerology, certified", "kinds": ["quiz", "browse"], "default_tier": "show"},
         {"id": "colonies", "lane": "constitution_hall", "label": "13 Colonies", "subtitle": "Founding to founding", "kinds": ["browse"], "default_tier": "show"},
         {"id": "signers", "lane": "constitution_hall", "label": "Signers Hall", "subtitle": "Declaration lives", "kinds": ["browse"], "default_tier": "show"},
         {"id": "amendments", "lane": "constitution_hall", "label": "Amendment Explorer", "subtitle": "Browse or quiz all 27", "kinds": ["browse", "quiz"], "default_tier": "show"},
+        {"id": "hall_of_presidents", "lane": "constitution_hall", "label": "The Hall of Presidents", "subtitle": "They're all here. They nod.", "kinds": ["browse", "quiz"], "default_tier": "show"},
         {"id": "quotes", "lane": "constitution_hall", "label": "Quote Match", "subtitle": "Who said it?", "kinds": ["match"], "default_tier": "show"},
         {"id": "timeline", "lane": "constitution_hall", "label": "Timeline Sort", "subtitle": "Order the years", "kinds": ["sort"], "default_tier": "show"},
         {"id": "bill_law", "lane": "constitution_hall", "label": "How a Bill Becomes Law", "subtitle": "Six steps", "kinds": ["browse"], "default_tier": "show"},
@@ -524,6 +609,10 @@ def build_activities() -> list[dict]:
         {"id": "state_stars", "pavilion": "state_stars", "kind": "pick", "tier": "tap", "count": 8, "pool_filter": {"pavilion": "state_stars", "kind": "pick"}},
         {"id": "bill_law", "pavilion": "bill_law", "kind": "browse", "tier": "show", "pool_filter": {"pavilion": "bill_law", "kind": "browse"}},
         {"id": "electoral", "pavilion": "electoral", "kind": "pick", "tier": "show", "count": 4, "pool_filter": {"pavilion": "electoral", "kind": "pick"}},
+        {"id": "hall_of_presidents", "pavilion": "hall_of_presidents", "kind": "browse", "tier": "show", "primary": True, "pool_filter": {"pavilion": "hall_of_presidents", "kind": "browse"}},
+        {"id": "presidents-quiz", "pavilion": "hall_of_presidents", "kind": "quiz", "tier": "know", "count": 10, "pool_filter": {"pavilion": "hall_of_presidents", "kind": "quiz"}},
+        {"id": "numbers-quiz", "pavilion": "numbers", "kind": "quiz", "tier": "show", "count": 10, "pool_filter": {"pavilion": "numbers", "kind": "quiz"}},
+        {"id": "numbers", "pavilion": "numbers", "kind": "browse", "tier": "show", "pool_filter": {"pavilion": "numbers", "kind": "browse"}},
         {"id": "power_split", "pavilion": "power_split", "kind": "pick", "tier": "show", "count": 8, "pool_filter": {"pavilion": "power_split", "kind": "pick"}},
         {"id": "duty_roll", "pavilion": "duty_roll", "kind": "quiz", "tier": "show", "count": 8, "pass_ratio": 0.6, "pool_filter": {"pavilion": "duty_roll", "kind": "quiz"}},
         {"id": "reserved_room", "pavilion": "reserved_room", "kind": "browse", "tier": "show", "pool_filter": {"pavilion": "reserved_room", "kind": "browse"}},
