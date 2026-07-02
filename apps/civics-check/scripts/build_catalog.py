@@ -17,7 +17,8 @@ LANES = {
     "schoolhouse": {"id": "schoolhouse", "label": "Schoolhouse Lane", "order": 1},
     "constitution_hall": {"id": "constitution_hall", "label": "Constitution Hall", "order": 2},
     "citizenship_court": {"id": "citizenship_court", "label": "Citizenship Court", "order": 3},
-    "underground": {"id": "underground", "label": "Underground", "order": 4, "hidden": True},
+    "statehouse": {"id": "statehouse", "label": "States' Rights & Duties", "order": 4},
+    "underground": {"id": "underground", "label": "Underground", "order": 5, "hidden": True},
 }
 
 
@@ -395,6 +396,56 @@ def build_cards() -> list[dict]:
                 )
             )
 
+    # ── Statehouse: federalism pack ─────────────────────────────────────────
+    federalism = load("federalism.json")
+    for p in federalism["powers"]:
+        cards.append(
+            card(
+                f"power-{p['id']}",
+                pavilion="power_split",
+                lane="statehouse",
+                kind="pick",
+                tiers=["show", "know"],
+                title=p["title"],
+                prompt=p["prompt"],
+                body=p["body"],
+                source=p.get("source", ""),
+                choices=["Federal", "State", "Both"],
+                answer=p["answer"],
+                tags=["federalism", "powers"],
+            )
+        )
+    for d in federalism["duties"]:
+        cards.append(
+            card(
+                f"duty-{d['id']}",
+                pavilion="duty_roll",
+                lane="statehouse",
+                kind="quiz",
+                tiers=["show", "know"],
+                title=d["prompt"],
+                prompt=d["prompt"],
+                body=d["body"],
+                source=d.get("source", ""),
+                answers=d["answers"],
+                tags=["federalism", "responsibilities"],
+            )
+        )
+    for r in federalism["reading"]:
+        cards.append(
+            card(
+                f"reserved-{r['id']}",
+                pavilion="reserved_room",
+                lane="statehouse",
+                kind="browse",
+                tiers=["show", "know"],
+                title=r["title"],
+                body=r["body"],
+                source=r.get("source", ""),
+                tags=["federalism", "reading"],
+            )
+        )
+
     # Bill of Rights bingo — one pick card per BoR amendment summary
     for a in load("amendments.json"):
         if a["number"] > 10:
@@ -446,6 +497,9 @@ def build_pavilions() -> list[dict]:
         {"id": "speed", "lane": "citizenship_court", "label": "Speed Round", "subtitle": "60 seconds", "kinds": ["quiz"], "default_tier": "know"},
         {"id": "states", "lane": "citizenship_court", "label": "State Matchup", "subtitle": "Capitals and admission order", "kinds": ["states"], "default_tier": "know"},
         {"id": "duel", "lane": "citizenship_court", "label": "Pass-the-Keyboard Duel", "subtitle": "Two players", "kinds": ["duel"], "default_tier": "know"},
+        {"id": "power_split", "lane": "statehouse", "label": "Who Holds the Power?", "subtitle": "Federal, State, or Both", "kinds": ["pick"], "default_tier": "show"},
+        {"id": "duty_roll", "lane": "statehouse", "label": "Duty Roll", "subtitle": "Rights and responsibilities", "kinds": ["quiz"], "default_tier": "show"},
+        {"id": "reserved_room", "lane": "statehouse", "label": "Reserved Powers Reading Room", "subtitle": "The Tenth Amendment shelf", "kinds": ["browse"], "default_tier": "show"},
         {"id": "debate", "lane": "underground", "label": "Constitutional Debate", "subtitle": "Hidden — real quotes", "kinds": ["debate", "browse"], "default_tier": "know", "hidden": True},
     ]
 
@@ -470,6 +524,9 @@ def build_activities() -> list[dict]:
         {"id": "state_stars", "pavilion": "state_stars", "kind": "pick", "tier": "tap", "count": 8, "pool_filter": {"pavilion": "state_stars", "kind": "pick"}},
         {"id": "bill_law", "pavilion": "bill_law", "kind": "browse", "tier": "show", "pool_filter": {"pavilion": "bill_law", "kind": "browse"}},
         {"id": "electoral", "pavilion": "electoral", "kind": "pick", "tier": "show", "count": 4, "pool_filter": {"pavilion": "electoral", "kind": "pick"}},
+        {"id": "power_split", "pavilion": "power_split", "kind": "pick", "tier": "show", "count": 8, "pool_filter": {"pavilion": "power_split", "kind": "pick"}},
+        {"id": "duty_roll", "pavilion": "duty_roll", "kind": "quiz", "tier": "show", "count": 8, "pass_ratio": 0.6, "pool_filter": {"pavilion": "duty_roll", "kind": "quiz"}},
+        {"id": "reserved_room", "pavilion": "reserved_room", "kind": "browse", "tier": "show", "pool_filter": {"pavilion": "reserved_room", "kind": "browse"}},
         {"id": "debate", "pavilion": "debate", "kind": "browse", "tier": "know", "pool_filter": {"pavilion": "debate"}},
         {"id": "duel", "pavilion": "duel", "kind": "duel", "tier": "know", "count": 10},
     ]

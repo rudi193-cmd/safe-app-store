@@ -86,12 +86,29 @@ def _tokens(norm_text: str) -> list[str]:
     return [canon for canon, orig in merged if orig not in _STOPWORDS]
 
 
+def _stem(tok: str) -> str:
+    """Light suffix strip so vote/votes/voting/voted share a stem."""
+    for suffix in ("ing", "ed", "es"):
+        if tok.endswith(suffix) and len(tok) - len(suffix) >= 3:
+            tok = tok[: -len(suffix)]
+            break
+    else:
+        if tok.endswith("s") and len(tok) >= 4:
+            tok = tok[:-1]
+    if tok.endswith("e") and len(tok) >= 4:
+        tok = tok[:-1]
+    return tok
+
+
 def _token_match(user_tok: str, accepted_tok: str) -> bool:
     if user_tok == accepted_tok:
         return True
     # numbers are graded strictly — no fuzz between 16 and 6
     if user_tok.isdigit() or accepted_tok.isdigit():
         return False
+    # inflection slack: law/laws, vote/voting/voted, state/states
+    if _stem(user_tok) == _stem(accepted_tok):
+        return True
     # prefix slack: "free"/"freedom", "congress"/"congressional"
     if len(user_tok) >= 4 and len(accepted_tok) >= 4:
         if user_tok.startswith(accepted_tok) or accepted_tok.startswith(user_tok):

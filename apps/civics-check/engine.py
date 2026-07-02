@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import json
 import random
 from datetime import date
+from functools import lru_cache
+from pathlib import Path
+from urllib.parse import urlparse
 
 from civics.catalog import get_catalog, reload_catalog
 from civics.scoring import answer_matches, pick_items, score_pass_fail
@@ -22,6 +26,8 @@ __all__ = [
     "load_signers",
     "load_states",
     "load_debate",
+    "load_source_links",
+    "resolve_source",
     "today_events",
     "fair_day",
     "pavilions",
@@ -142,6 +148,30 @@ def load_debate():
             }
         )
     return list(topics.values())
+
+
+@lru_cache(maxsize=1)
+def load_source_links() -> dict:
+    """links.json: 'resolvers' map citation strings to URLs; 'more' feeds the Record Room."""
+    path = Path(__file__).resolve().parent / "data" / "sources" / "links.json"
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {"resolvers": [], "more": []}
+
+
+def resolve_source(source: str) -> dict | None:
+    """Turn a card/citation source string into {label, url}, or None if unlinkable."""
+    s = (source or "").strip()
+    if not s:
+        return None
+    if s.startswith(("http://", "https://")):
+        return {"label": urlparse(s).netloc, "url": s}
+    low = s.lower()
+    for r in load_source_links().get("resolvers", []):
+        if r.get("match", "").lower() in low:
+            return {"label": r["label"], "url": r["url"]}
+    return None
 
 
 def today_events():

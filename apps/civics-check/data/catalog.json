@@ -2,7 +2,7 @@
   "version": 2,
   "meta": {
     "built_by": "scripts/build_catalog.py",
-    "card_count": 388,
+    "card_count": 418,
     "kb_hub": "CVRAMERICA01",
     "textual_hub": "TXR04B11D4B8D"
   },
@@ -23,9 +23,14 @@
       "order": 3
     },
     {
+      "id": "statehouse",
+      "label": "States' Rights & Duties",
+      "order": 4
+    },
+    {
       "id": "underground",
       "label": "Underground",
-      "order": 4,
+      "order": 5,
       "hidden": true
     }
   ],
@@ -201,6 +206,36 @@
         "duel"
       ],
       "default_tier": "know"
+    },
+    {
+      "id": "power_split",
+      "lane": "statehouse",
+      "label": "Who Holds the Power?",
+      "subtitle": "Federal, State, or Both",
+      "kinds": [
+        "pick"
+      ],
+      "default_tier": "show"
+    },
+    {
+      "id": "duty_roll",
+      "lane": "statehouse",
+      "label": "Duty Roll",
+      "subtitle": "Rights and responsibilities",
+      "kinds": [
+        "quiz"
+      ],
+      "default_tier": "show"
+    },
+    {
+      "id": "reserved_room",
+      "lane": "statehouse",
+      "label": "Reserved Powers Reading Room",
+      "subtitle": "The Tenth Amendment shelf",
+      "kinds": [
+        "browse"
+      ],
+      "default_tier": "show"
     },
     {
       "id": "debate",
@@ -410,6 +445,39 @@
       "pool_filter": {
         "pavilion": "electoral",
         "kind": "pick"
+      }
+    },
+    {
+      "id": "power_split",
+      "pavilion": "power_split",
+      "kind": "pick",
+      "tier": "show",
+      "count": 8,
+      "pool_filter": {
+        "pavilion": "power_split",
+        "kind": "pick"
+      }
+    },
+    {
+      "id": "duty_roll",
+      "pavilion": "duty_roll",
+      "kind": "quiz",
+      "tier": "show",
+      "count": 8,
+      "pass_ratio": 0.6,
+      "pool_filter": {
+        "pavilion": "duty_roll",
+        "kind": "quiz"
+      }
+    },
+    {
+      "id": "reserved_room",
+      "pavilion": "reserved_room",
+      "kind": "browse",
+      "tier": "show",
+      "pool_filter": {
+        "pavilion": "reserved_room",
+        "kind": "browse"
       }
     },
     {
@@ -1864,7 +1932,8 @@
       "meta": {},
       "answers": [
         "serve on a jury",
-        "vote in a federal election"
+        "vote in a federal election",
+        "jury duty"
       ],
       "legacy_id": 49,
       "category": "American Government",
@@ -5727,8 +5796,8 @@
       "choices": [
         "Dover",
         "Juneau",
-        "Annapolis",
-        "Lincoln"
+        "Springfield",
+        "Denver"
       ],
       "answer": "Dover"
     },
@@ -5780,9 +5849,9 @@
       },
       "choices": [
         "Harrisburg",
-        "Lincoln",
-        "Sacramento",
-        "Annapolis"
+        "Little Rock",
+        "Cheyenne",
+        "Santa Fe"
       ],
       "answer": "Harrisburg"
     },
@@ -5834,9 +5903,9 @@
       },
       "choices": [
         "Trenton",
-        "Baton Rouge",
-        "Pierre",
-        "Austin"
+        "Jefferson City",
+        "Salem",
+        "Lansing"
       ],
       "answer": "Trenton"
     },
@@ -5888,9 +5957,9 @@
       },
       "choices": [
         "Atlanta",
-        "Hartford",
-        "Frankfort",
-        "Little Rock"
+        "Dover",
+        "Oklahoma City",
+        "Lansing"
       ],
       "answer": "Atlanta"
     },
@@ -5942,9 +6011,9 @@
       },
       "choices": [
         "Hartford",
-        "Columbus",
-        "Carson City",
-        "Topeka"
+        "Trenton",
+        "Lincoln",
+        "Columbia"
       ],
       "answer": "Hartford"
     },
@@ -5996,9 +6065,9 @@
       },
       "choices": [
         "Boston",
-        "Olympia",
-        "Springfield",
-        "Phoenix"
+        "Madison",
+        "Montpelier",
+        "Little Rock"
       ],
       "answer": "Boston"
     },
@@ -6050,9 +6119,9 @@
       },
       "choices": [
         "Annapolis",
-        "Frankfort",
-        "Helena",
-        "Little Rock"
+        "Saint Paul",
+        "Montpelier",
+        "Boston"
       ],
       "answer": "Annapolis"
     },
@@ -6104,9 +6173,9 @@
       },
       "choices": [
         "Columbia",
-        "Springfield",
-        "Harrisburg",
-        "Concord"
+        "Denver",
+        "Raleigh",
+        "Topeka"
       ],
       "answer": "Columbia"
     },
@@ -6158,9 +6227,9 @@
       },
       "choices": [
         "Concord",
-        "Jackson",
-        "Phoenix",
-        "Frankfort"
+        "Jefferson City",
+        "Atlanta",
+        "Providence"
       ],
       "answer": "Concord"
     },
@@ -6212,9 +6281,9 @@
       },
       "choices": [
         "Richmond",
-        "Columbus",
         "Cheyenne",
-        "Harrisburg"
+        "Bismarck",
+        "Boston"
       ],
       "answer": "Richmond"
     },
@@ -6266,9 +6335,9 @@
       },
       "choices": [
         "Albany",
-        "Salem",
-        "Providence",
-        "Helena"
+        "Frankfort",
+        "Topeka",
+        "Montgomery"
       ],
       "answer": "Albany"
     },
@@ -6320,9 +6389,9 @@
       },
       "choices": [
         "Raleigh",
-        "Hartford",
-        "Harrisburg",
-        "Austin"
+        "Nashville",
+        "Salem",
+        "Montpelier"
       ],
       "answer": "Raleigh"
     },
@@ -6374,9 +6443,9 @@
       },
       "choices": [
         "Providence",
-        "Juneau",
-        "Boston",
-        "Santa Fe"
+        "Jackson",
+        "Frankfort",
+        "Nashville"
       ],
       "answer": "Providence"
     },
@@ -6428,9 +6497,9 @@
       },
       "choices": [
         "Montpelier",
-        "Trenton",
-        "Boston",
-        "Frankfort"
+        "Boise",
+        "Springfield",
+        "Santa Fe"
       ],
       "answer": "Montpelier"
     },
@@ -6482,9 +6551,9 @@
       },
       "choices": [
         "Frankfort",
-        "Columbus",
-        "Lincoln",
-        "Santa Fe"
+        "Honolulu",
+        "Olympia",
+        "Juneau"
       ],
       "answer": "Frankfort"
     },
@@ -6536,9 +6605,9 @@
       },
       "choices": [
         "Nashville",
-        "Montpelier",
-        "Little Rock",
-        "Frankfort"
+        "Raleigh",
+        "Jefferson City",
+        "Springfield"
       ],
       "answer": "Nashville"
     },
@@ -6590,9 +6659,9 @@
       },
       "choices": [
         "Columbus",
-        "Cheyenne",
-        "Denver",
-        "Raleigh"
+        "Oklahoma City",
+        "Providence",
+        "Columbia"
       ],
       "answer": "Columbus"
     },
@@ -6644,9 +6713,9 @@
       },
       "choices": [
         "Baton Rouge",
-        "Santa Fe",
-        "Juneau",
-        "Tallahassee"
+        "Jackson",
+        "Saint Paul",
+        "Raleigh"
       ],
       "answer": "Baton Rouge"
     },
@@ -6698,9 +6767,9 @@
       },
       "choices": [
         "Indianapolis",
-        "Santa Fe",
-        "Raleigh",
-        "Boise"
+        "Pierre",
+        "Atlanta",
+        "Juneau"
       ],
       "answer": "Indianapolis"
     },
@@ -6752,9 +6821,9 @@
       },
       "choices": [
         "Jackson",
-        "Phoenix",
-        "Nashville",
-        "Annapolis"
+        "Trenton",
+        "Topeka",
+        "Montgomery"
       ],
       "answer": "Jackson"
     },
@@ -6806,9 +6875,9 @@
       },
       "choices": [
         "Springfield",
-        "Lansing",
-        "Phoenix",
-        "Cheyenne"
+        "Providence",
+        "Bismarck",
+        "Charleston"
       ],
       "answer": "Springfield"
     },
@@ -6860,9 +6929,9 @@
       },
       "choices": [
         "Montgomery",
-        "Madison",
-        "Denver",
-        "Harrisburg"
+        "Des Moines",
+        "Dover",
+        "Frankfort"
       ],
       "answer": "Montgomery"
     },
@@ -6914,9 +6983,9 @@
       },
       "choices": [
         "Augusta",
-        "Montpelier",
-        "Denver",
-        "Richmond"
+        "Boston",
+        "Cheyenne",
+        "Olympia"
       ],
       "answer": "Augusta"
     },
@@ -6968,9 +7037,9 @@
       },
       "choices": [
         "Jefferson City",
-        "Olympia",
+        "Atlanta",
         "Sacramento",
-        "Salem"
+        "Des Moines"
       ],
       "answer": "Jefferson City"
     },
@@ -7022,9 +7091,9 @@
       },
       "choices": [
         "Little Rock",
-        "Sacramento",
-        "Augusta",
-        "Columbus"
+        "Carson City",
+        "Nashville",
+        "Boston"
       ],
       "answer": "Little Rock"
     },
@@ -7076,9 +7145,9 @@
       },
       "choices": [
         "Lansing",
-        "Santa Fe",
-        "Montgomery",
-        "Baton Rouge"
+        "Boston",
+        "Columbus",
+        "Cheyenne"
       ],
       "answer": "Lansing"
     },
@@ -7130,9 +7199,9 @@
       },
       "choices": [
         "Tallahassee",
-        "Montpelier",
-        "Oklahoma City",
-        "Salem"
+        "Cheyenne",
+        "Boston",
+        "Raleigh"
       ],
       "answer": "Tallahassee"
     },
@@ -7184,9 +7253,9 @@
       },
       "choices": [
         "Austin",
-        "Denver",
-        "Carson City",
-        "Pierre"
+        "Salem",
+        "Bismarck",
+        "Boston"
       ],
       "answer": "Austin"
     },
@@ -7238,9 +7307,9 @@
       },
       "choices": [
         "Des Moines",
-        "Austin",
-        "Madison",
-        "Columbia"
+        "Topeka",
+        "Providence",
+        "Juneau"
       ],
       "answer": "Des Moines"
     },
@@ -7292,9 +7361,9 @@
       },
       "choices": [
         "Madison",
-        "Albany",
-        "Oklahoma City",
-        "Richmond"
+        "Hartford",
+        "Richmond",
+        "Lansing"
       ],
       "answer": "Madison"
     },
@@ -7346,9 +7415,9 @@
       },
       "choices": [
         "Sacramento",
-        "Des Moines",
-        "Austin",
-        "Santa Fe"
+        "Hartford",
+        "Tallahassee",
+        "Raleigh"
       ],
       "answer": "Sacramento"
     },
@@ -7400,9 +7469,9 @@
       },
       "choices": [
         "Saint Paul",
-        "Juneau",
-        "Boston",
-        "Pierre"
+        "Bismarck",
+        "Columbus",
+        "Columbia"
       ],
       "answer": "Saint Paul"
     },
@@ -7454,9 +7523,9 @@
       },
       "choices": [
         "Salem",
-        "Sacramento",
-        "Des Moines",
-        "Augusta"
+        "Baton Rouge",
+        "Cheyenne",
+        "Topeka"
       ],
       "answer": "Salem"
     },
@@ -7508,9 +7577,9 @@
       },
       "choices": [
         "Topeka",
-        "Nashville",
-        "Montgomery",
-        "Lincoln"
+        "Olympia",
+        "Salt Lake City",
+        "Indianapolis"
       ],
       "answer": "Topeka"
     },
@@ -7562,8 +7631,8 @@
       },
       "choices": [
         "Charleston",
-        "Little Rock",
-        "Atlanta",
+        "Hartford",
+        "Salem",
         "Madison"
       ],
       "answer": "Charleston"
@@ -7616,9 +7685,9 @@
       },
       "choices": [
         "Carson City",
-        "Oklahoma City",
-        "Augusta",
-        "Honolulu"
+        "Boston",
+        "Baton Rouge",
+        "Pierre"
       ],
       "answer": "Carson City"
     },
@@ -7670,9 +7739,9 @@
       },
       "choices": [
         "Lincoln",
-        "Sacramento",
-        "Albany",
-        "Pierre"
+        "Salem",
+        "Dover",
+        "Jackson"
       ],
       "answer": "Lincoln"
     },
@@ -7724,9 +7793,9 @@
       },
       "choices": [
         "Denver",
-        "Dover",
-        "Lincoln",
-        "Concord"
+        "Concord",
+        "Boston",
+        "Austin"
       ],
       "answer": "Denver"
     },
@@ -7778,9 +7847,9 @@
       },
       "choices": [
         "Bismarck",
-        "Columbia",
-        "Helena",
-        "Pierre"
+        "Denver",
+        "Raleigh",
+        "Topeka"
       ],
       "answer": "Bismarck"
     },
@@ -7832,9 +7901,9 @@
       },
       "choices": [
         "Pierre",
-        "Boston",
-        "Springfield",
-        "Tallahassee"
+        "Baton Rouge",
+        "Denver",
+        "Hartford"
       ],
       "answer": "Pierre"
     },
@@ -7886,9 +7955,9 @@
       },
       "choices": [
         "Helena",
-        "Trenton",
-        "Phoenix",
-        "Indianapolis"
+        "Hartford",
+        "Jefferson City",
+        "Pierre"
       ],
       "answer": "Helena"
     },
@@ -7940,9 +8009,9 @@
       },
       "choices": [
         "Olympia",
-        "Indianapolis",
-        "Boise",
-        "Raleigh"
+        "Augusta",
+        "Richmond",
+        "Phoenix"
       ],
       "answer": "Olympia"
     },
@@ -7994,9 +8063,9 @@
       },
       "choices": [
         "Boise",
-        "Austin",
-        "Dover",
-        "Providence"
+        "Santa Fe",
+        "Columbus",
+        "Concord"
       ],
       "answer": "Boise"
     },
@@ -8048,9 +8117,9 @@
       },
       "choices": [
         "Cheyenne",
-        "Trenton",
+        "Helena",
         "Tallahassee",
-        "Harrisburg"
+        "Juneau"
       ],
       "answer": "Cheyenne"
     },
@@ -8102,9 +8171,9 @@
       },
       "choices": [
         "Salt Lake City",
-        "Topeka",
-        "Oklahoma City",
-        "Jefferson City"
+        "Annapolis",
+        "Des Moines",
+        "Harrisburg"
       ],
       "answer": "Salt Lake City"
     },
@@ -8156,9 +8225,9 @@
       },
       "choices": [
         "Oklahoma City",
-        "Cheyenne",
-        "Frankfort",
-        "Harrisburg"
+        "Augusta",
+        "Madison",
+        "Hartford"
       ],
       "answer": "Oklahoma City"
     },
@@ -8210,9 +8279,9 @@
       },
       "choices": [
         "Santa Fe",
-        "Indianapolis",
-        "Richmond",
-        "Little Rock"
+        "Honolulu",
+        "Montgomery",
+        "Salem"
       ],
       "answer": "Santa Fe"
     },
@@ -8264,9 +8333,9 @@
       },
       "choices": [
         "Phoenix",
-        "Santa Fe",
-        "Topeka",
-        "Austin"
+        "Des Moines",
+        "Concord",
+        "Trenton"
       ],
       "answer": "Phoenix"
     },
@@ -8318,9 +8387,9 @@
       },
       "choices": [
         "Juneau",
-        "Frankfort",
-        "Montgomery",
-        "Annapolis"
+        "Des Moines",
+        "Madison",
+        "Santa Fe"
       ],
       "answer": "Juneau"
     },
@@ -8372,9 +8441,9 @@
       },
       "choices": [
         "Honolulu",
-        "Salem",
-        "Des Moines",
-        "Richmond"
+        "Hartford",
+        "Boise",
+        "Little Rock"
       ],
       "answer": "Honolulu"
     },
@@ -9636,6 +9705,766 @@
       "source": "https://www.usa.gov/electoral-college",
       "tags": [
         "electoral_college"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "power-declare-war",
+      "pavilion": "power_split",
+      "lane": "statehouse",
+      "kind": "pick",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Declare war",
+      "body": "Only Congress can declare war — Article I, Section 8.",
+      "subtitle": "",
+      "prompt": "Who has the power to declare war?",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/article-1/section-8/",
+      "tags": [
+        "federalism",
+        "powers"
+      ],
+      "meta": {},
+      "choices": [
+        "Federal",
+        "State",
+        "Both"
+      ],
+      "answer": "Federal"
+    },
+    {
+      "id": "power-print-money",
+      "pavilion": "power_split",
+      "lane": "statehouse",
+      "kind": "pick",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Print money",
+      "body": "The Constitution gives Congress the power to coin money; states are forbidden to.",
+      "subtitle": "",
+      "prompt": "Who has the power to print and coin money?",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/article-1/section-8/",
+      "tags": [
+        "federalism",
+        "powers"
+      ],
+      "meta": {},
+      "choices": [
+        "Federal",
+        "State",
+        "Both"
+      ],
+      "answer": "Federal"
+    },
+    {
+      "id": "power-make-treaties",
+      "pavilion": "power_split",
+      "lane": "statehouse",
+      "kind": "pick",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Make treaties",
+      "body": "The President makes treaties with Senate approval — states may not.",
+      "subtitle": "",
+      "prompt": "Who has the power to make treaties with other countries?",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/article-2/section-2/",
+      "tags": [
+        "federalism",
+        "powers"
+      ],
+      "meta": {},
+      "choices": [
+        "Federal",
+        "State",
+        "Both"
+      ],
+      "answer": "Federal"
+    },
+    {
+      "id": "power-create-army",
+      "pavilion": "power_split",
+      "lane": "statehouse",
+      "kind": "pick",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Create an army",
+      "body": "Raising and supporting armies is a federal power of Congress.",
+      "subtitle": "",
+      "prompt": "Who has the power to create and maintain an army and navy?",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/article-1/section-8/",
+      "tags": [
+        "federalism",
+        "powers"
+      ],
+      "meta": {},
+      "choices": [
+        "Federal",
+        "State",
+        "Both"
+      ],
+      "answer": "Federal"
+    },
+    {
+      "id": "power-interstate-commerce",
+      "pavilion": "power_split",
+      "lane": "statehouse",
+      "kind": "pick",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Regulate interstate commerce",
+      "body": "The Commerce Clause puts trade between states under federal control.",
+      "subtitle": "",
+      "prompt": "Who regulates trade between the states?",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/article-1/section-8/",
+      "tags": [
+        "federalism",
+        "powers"
+      ],
+      "meta": {},
+      "choices": [
+        "Federal",
+        "State",
+        "Both"
+      ],
+      "answer": "Federal"
+    },
+    {
+      "id": "power-drivers-license",
+      "pavilion": "power_split",
+      "lane": "statehouse",
+      "kind": "pick",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Driver's licenses",
+      "body": "Licensing drivers is a classic reserved power of the states.",
+      "subtitle": "",
+      "prompt": "Who gives out driver's licenses?",
+      "context": "",
+      "source": "https://www.usa.gov/motor-vehicle-services",
+      "tags": [
+        "federalism",
+        "powers"
+      ],
+      "meta": {},
+      "choices": [
+        "Federal",
+        "State",
+        "Both"
+      ],
+      "answer": "State"
+    },
+    {
+      "id": "power-public-schools",
+      "pavilion": "power_split",
+      "lane": "statehouse",
+      "kind": "pick",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Public schools",
+      "body": "Education is run by states and their local districts.",
+      "subtitle": "",
+      "prompt": "Who provides schooling and education?",
+      "context": "",
+      "source": "https://www.usa.gov/state-governments",
+      "tags": [
+        "federalism",
+        "powers"
+      ],
+      "meta": {},
+      "choices": [
+        "Federal",
+        "State",
+        "Both"
+      ],
+      "answer": "State"
+    },
+    {
+      "id": "power-run-elections",
+      "pavilion": "power_split",
+      "lane": "statehouse",
+      "kind": "pick",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Run elections",
+      "body": "States run the polls, count the votes, and certify results.",
+      "subtitle": "",
+      "prompt": "Who administers elections — even federal ones?",
+      "context": "",
+      "source": "https://www.usa.gov/election-office",
+      "tags": [
+        "federalism",
+        "powers"
+      ],
+      "meta": {},
+      "choices": [
+        "Federal",
+        "State",
+        "Both"
+      ],
+      "answer": "State"
+    },
+    {
+      "id": "power-zoning",
+      "pavilion": "power_split",
+      "lane": "statehouse",
+      "kind": "pick",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Zoning and land use",
+      "body": "Zoning is state and local business — the fair itself needed a permit.",
+      "subtitle": "",
+      "prompt": "Who approves zoning and land use?",
+      "context": "",
+      "source": "https://www.usa.gov/state-governments",
+      "tags": [
+        "federalism",
+        "powers"
+      ],
+      "meta": {},
+      "choices": [
+        "Federal",
+        "State",
+        "Both"
+      ],
+      "answer": "State"
+    },
+    {
+      "id": "power-police-fire",
+      "pavilion": "power_split",
+      "lane": "statehouse",
+      "kind": "pick",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Police and fire protection",
+      "body": "Public safety is a reserved power exercised by states and localities.",
+      "subtitle": "",
+      "prompt": "Who provides police and fire departments?",
+      "context": "",
+      "source": "https://www.usa.gov/state-governments",
+      "tags": [
+        "federalism",
+        "powers"
+      ],
+      "meta": {},
+      "choices": [
+        "Federal",
+        "State",
+        "Both"
+      ],
+      "answer": "State"
+    },
+    {
+      "id": "power-collect-taxes",
+      "pavilion": "power_split",
+      "lane": "statehouse",
+      "kind": "pick",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Collect taxes",
+      "body": "Both. April 15 exists at every level of government.",
+      "subtitle": "",
+      "prompt": "Who has the power to collect taxes?",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/amendment-16/",
+      "tags": [
+        "federalism",
+        "powers"
+      ],
+      "meta": {},
+      "choices": [
+        "Federal",
+        "State",
+        "Both"
+      ],
+      "answer": "Both"
+    },
+    {
+      "id": "power-courts",
+      "pavilion": "power_split",
+      "lane": "statehouse",
+      "kind": "pick",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Establish courts",
+      "body": "There are federal courts and state courts — two full ladders of justice.",
+      "subtitle": "",
+      "prompt": "Who has the power to establish courts?",
+      "context": "",
+      "source": "https://www.usa.gov/branches-of-government",
+      "tags": [
+        "federalism",
+        "powers"
+      ],
+      "meta": {},
+      "choices": [
+        "Federal",
+        "State",
+        "Both"
+      ],
+      "answer": "Both"
+    },
+    {
+      "id": "power-build-roads",
+      "pavilion": "power_split",
+      "lane": "statehouse",
+      "kind": "pick",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Build roads",
+      "body": "Interstates are federal-aided, state-built; your street is local. Everyone paves.",
+      "subtitle": "",
+      "prompt": "Who has the power to build roads?",
+      "context": "",
+      "source": "https://www.usa.gov/state-governments",
+      "tags": [
+        "federalism",
+        "powers"
+      ],
+      "meta": {},
+      "choices": [
+        "Federal",
+        "State",
+        "Both"
+      ],
+      "answer": "Both"
+    },
+    {
+      "id": "power-make-laws",
+      "pavilion": "power_split",
+      "lane": "statehouse",
+      "kind": "pick",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Make and enforce laws",
+      "body": "Congress legislates for the nation; every state legislature does the same at home.",
+      "subtitle": "",
+      "prompt": "Who has the power to make and enforce laws?",
+      "context": "",
+      "source": "https://www.usa.gov/how-laws-are-made",
+      "tags": [
+        "federalism",
+        "powers"
+      ],
+      "meta": {},
+      "choices": [
+        "Federal",
+        "State",
+        "Both"
+      ],
+      "answer": "Both"
+    },
+    {
+      "id": "duty-citizen-responsibility",
+      "pavilion": "duty_roll",
+      "lane": "statehouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Name one responsibility that is only for United States citizens.",
+      "body": "Jury duty and the federal ballot belong to citizens alone.",
+      "subtitle": "",
+      "prompt": "Name one responsibility that is only for United States citizens.",
+      "context": "",
+      "source": "USCIS 100 civics questions (2008 test)",
+      "tags": [
+        "federalism",
+        "responsibilities"
+      ],
+      "meta": {},
+      "answers": [
+        "serve on a jury",
+        "jury duty",
+        "vote in a federal election"
+      ]
+    },
+    {
+      "id": "duty-citizen-right",
+      "pavilion": "duty_roll",
+      "lane": "statehouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Name one right that is only for United States citizens.",
+      "body": "Citizens alone may vote in federal elections and run for federal office.",
+      "subtitle": "",
+      "prompt": "Name one right that is only for United States citizens.",
+      "context": "",
+      "source": "USCIS 100 civics questions (2008 test)",
+      "tags": [
+        "federalism",
+        "responsibilities"
+      ],
+      "meta": {},
+      "answers": [
+        "vote in a federal election",
+        "run for federal office"
+      ]
+    },
+    {
+      "id": "duty-voting-age",
+      "pavilion": "duty_roll",
+      "lane": "statehouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "How old do citizens have to be to vote for President?",
+      "body": "The 26th Amendment set the voting age at 18.",
+      "subtitle": "",
+      "prompt": "How old do citizens have to be to vote for President?",
+      "context": "",
+      "source": "USCIS 100 civics questions (2008 test)",
+      "tags": [
+        "federalism",
+        "responsibilities"
+      ],
+      "meta": {},
+      "answers": [
+        "18",
+        "eighteen and older",
+        "18 and older"
+      ]
+    },
+    {
+      "id": "duty-selective-service",
+      "pavilion": "duty_roll",
+      "lane": "statehouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "When must all men register for the Selective Service?",
+      "body": "Registration is required of men between 18 and 26.",
+      "subtitle": "",
+      "prompt": "When must all men register for the Selective Service?",
+      "context": "",
+      "source": "USCIS 100 civics questions (2008 test)",
+      "tags": [
+        "federalism",
+        "responsibilities"
+      ],
+      "meta": {},
+      "answers": [
+        "at age 18",
+        "at 18",
+        "between 18 and 26"
+      ]
+    },
+    {
+      "id": "duty-tax-day",
+      "pavilion": "duty_roll",
+      "lane": "statehouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "What is the last day you can send in federal income tax forms?",
+      "body": "Tax Day — April 15. A responsibility with a deadline.",
+      "subtitle": "",
+      "prompt": "What is the last day you can send in federal income tax forms?",
+      "context": "",
+      "source": "USCIS 100 civics questions (2008 test)",
+      "tags": [
+        "federalism",
+        "responsibilities"
+      ],
+      "meta": {},
+      "answers": [
+        "April 15"
+      ]
+    },
+    {
+      "id": "duty-citizenship-promise",
+      "pavilion": "duty_roll",
+      "lane": "statehouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "What is one promise you make when you become a United States citizen?",
+      "body": "The Oath of Allegiance, in plain words.",
+      "subtitle": "",
+      "prompt": "What is one promise you make when you become a United States citizen?",
+      "context": "",
+      "source": "USCIS 100 civics questions (2008 test)",
+      "tags": [
+        "federalism",
+        "responsibilities"
+      ],
+      "meta": {},
+      "answers": [
+        "give up loyalty to other countries",
+        "defend the Constitution and laws of the United States",
+        "obey the laws of the United States",
+        "serve in the U.S. military (if needed)",
+        "serve (do important work for) the nation (if needed)",
+        "be loyal to the United States"
+      ]
+    },
+    {
+      "id": "duty-participate",
+      "pavilion": "duty_roll",
+      "lane": "statehouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "What is one way Americans can participate in their democracy?",
+      "body": "Democracy is a participation sport with many positions.",
+      "subtitle": "",
+      "prompt": "What is one way Americans can participate in their democracy?",
+      "context": "",
+      "source": "USCIS 100 civics questions (2008 test)",
+      "tags": [
+        "federalism",
+        "responsibilities"
+      ],
+      "meta": {},
+      "answers": [
+        "vote",
+        "join a political party",
+        "help with a campaign",
+        "join a civic group",
+        "join a community group",
+        "give an elected official your opinion on an issue",
+        "call Senators and Representatives",
+        "publicly support or oppose an issue or policy",
+        "run for office",
+        "write to a newspaper"
+      ]
+    },
+    {
+      "id": "duty-pledge-loyalty",
+      "pavilion": "duty_roll",
+      "lane": "statehouse",
+      "kind": "quiz",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "What do we show loyalty to when we say the Pledge of Allegiance?",
+      "body": "The flag, and the republic for which it stands.",
+      "subtitle": "",
+      "prompt": "What do we show loyalty to when we say the Pledge of Allegiance?",
+      "context": "",
+      "source": "USCIS 100 civics questions (2008 test)",
+      "tags": [
+        "federalism",
+        "responsibilities"
+      ],
+      "meta": {},
+      "answers": [
+        "the United States",
+        "the flag"
+      ]
+    },
+    {
+      "id": "reserved-tenth-amendment",
+      "pavilion": "reserved_room",
+      "lane": "statehouse",
+      "kind": "browse",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "The Tenth Amendment",
+      "body": "Powers not delegated to the United States, nor prohibited to the states, are reserved to the states — or to the people. Eleven words that started every states' rights argument since 1791.",
+      "subtitle": "",
+      "prompt": "The Tenth Amendment",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/amendment-10/",
+      "tags": [
+        "federalism",
+        "reading"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "reserved-federalism",
+      "pavilion": "reserved_room",
+      "lane": "statehouse",
+      "kind": "browse",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Federalism",
+      "body": "One country, two full governments over every citizen: national and state. Each has its own laws, courts, and taxes. The Constitution is the referee.",
+      "subtitle": "",
+      "prompt": "Federalism",
+      "context": "",
+      "source": "https://www.usa.gov/state-governments",
+      "tags": [
+        "federalism",
+        "reading"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "reserved-supremacy-clause",
+      "pavilion": "reserved_room",
+      "lane": "statehouse",
+      "kind": "browse",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "The Supremacy Clause",
+      "body": "When a valid federal law and a state law collide, federal law wins — Article VI calls the Constitution 'the supreme Law of the Land.'",
+      "subtitle": "",
+      "prompt": "The Supremacy Clause",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/article-6/",
+      "tags": [
+        "federalism",
+        "reading"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "reserved-reserved-powers",
+      "pavilion": "reserved_room",
+      "lane": "statehouse",
+      "kind": "browse",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Reserved Powers",
+      "body": "Schools, police, licenses, marriage, zoning, most criminal law — the everyday machinery of life is run by states because the Constitution never gave it to Washington.",
+      "subtitle": "",
+      "prompt": "Reserved Powers",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/amendment-10/",
+      "tags": [
+        "federalism",
+        "reading"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "reserved-concurrent-powers",
+      "pavilion": "reserved_room",
+      "lane": "statehouse",
+      "kind": "browse",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Concurrent Powers",
+      "body": "Some powers are shared: taxing, borrowing, building roads, running courts. Two governments, both with their hands in your wallet, legally.",
+      "subtitle": "",
+      "prompt": "Concurrent Powers",
+      "context": "",
+      "source": "https://www.usa.gov/state-governments",
+      "tags": [
+        "federalism",
+        "reading"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "reserved-full-faith-credit",
+      "pavilion": "reserved_room",
+      "lane": "statehouse",
+      "kind": "browse",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "Full Faith and Credit",
+      "body": "Article IV makes states honor each other's public acts, records, and court judgments — your license and your marriage travel with you across state lines.",
+      "subtitle": "",
+      "prompt": "Full Faith and Credit",
+      "context": "",
+      "source": "https://constitution.congress.gov/browse/article-4/",
+      "tags": [
+        "federalism",
+        "reading"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "reserved-state-constitutions",
+      "pavilion": "reserved_room",
+      "lane": "statehouse",
+      "kind": "browse",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "State Constitutions",
+      "body": "Every state has its own constitution — most are longer than the federal one, and several are older. States are laboratories with their own rulebooks.",
+      "subtitle": "",
+      "prompt": "State Constitutions",
+      "context": "",
+      "source": "https://www.usa.gov/state-governments",
+      "tags": [
+        "federalism",
+        "reading"
+      ],
+      "meta": {}
+    },
+    {
+      "id": "reserved-mcculloch",
+      "pavilion": "reserved_room",
+      "lane": "statehouse",
+      "kind": "browse",
+      "tiers": [
+        "show",
+        "know"
+      ],
+      "title": "McCulloch v. Maryland (1819)",
+      "body": "Maryland tried to tax the national bank. Chief Justice Marshall said no: implied federal powers are real, and 'the power to tax involves the power to destroy.'",
+      "subtitle": "",
+      "prompt": "McCulloch v. Maryland (1819)",
+      "context": "",
+      "source": "https://www.archives.gov/milestone-documents/mcculloch-v-maryland",
+      "tags": [
+        "federalism",
+        "reading"
       ],
       "meta": {}
     },

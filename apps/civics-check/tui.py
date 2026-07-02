@@ -67,6 +67,25 @@ def span(text: str, fg: str, bg: str, bold: bool = False) -> str:
     return f"[{style}]{escape(text)}[/]"
 
 
+def source_markup(source: str, fg: str = INK_MUTED, link_fg: str = ACCENT) -> str:
+    """Two framings, one line each: where we got it, and where to keep going.
+
+    Returns "" when there is no source. The learn-more line is an OSC 8
+    hyperlink — clickable in terminals that support it, plain text elsewhere.
+    """
+    if not source:
+        return ""
+    out = f"[{fg}]source: {escape(source)}[/{fg}]"
+    resolved = engine.resolve_source(source)
+    if resolved:
+        out += (
+            f"\n[link='{resolved['url']}'][bold {link_fg}]"
+            f"⧉ learn more — {escape(resolved['label'])}"
+            f"[/bold {link_fg}][/link]"
+        )
+    return out
+
+
 def activities_for_pavilion(pavilion_id: str) -> list[dict]:
     return [a for a in engine.get_catalog().activities if a.get("pavilion") == pavilion_id]
 
@@ -270,6 +289,7 @@ if TEXTUAL_OK:
             Binding("left", "focus_lanes", "Lanes", show=False),
             Binding("right", "focus_pavilions", "Pavilions", show=False),
             Binding("q", "quit_app", "Quit", show=True),
+            Binding("s", "sources", "Sources", show=True),
             Binding("ctrl+b", "ring_bell", "Ring the Bell", show=False),
             Binding("ctrl+d", "debate", "Debate", show=False),
         ]
@@ -290,7 +310,7 @@ if TEXTUAL_OK:
             min-height: 12;
         }}
         #lane-col {{
-            width: 26;
+            width: 28;
             height: 1fr;
             padding: 0 1;
         }}
@@ -364,6 +384,14 @@ if TEXTUAL_OK:
             for p in engine.pavilions(hidden=False):
                 lane = p.get("lane", "schoolhouse")
                 self._pavilions_by_lane.setdefault(lane, []).append(p)
+            # synthetic lane — the Record Room is a TUI page, not a catalog activity
+            self._lanes.append({"id": "_record_room", "label": "Record Room"})
+            self._pavilions_by_lane["_record_room"] = [{
+                "id": "_sources",
+                "label": "Sources & Further Reading",
+                "subtitle": "learn more here · where we got the info",
+                "default_tier": "know",
+            }]
 
             lane_list = self.query_one("#lane-list", ListView)
             for ln in self._lanes:
@@ -408,7 +436,7 @@ if TEXTUAL_OK:
             quote = bell.ticker_plain(engine.load_quotes())
             if len(quote) > 44:
                 quote = quote[:41] + "..."
-            bits = ["↑↓ ←→ · Enter · Ctrl+B bell · Q quit"]
+            bits = ["↑↓ ←→ · Enter · S sources · Ctrl+B bell · Q quit"]
             rows = db.top_scores("naturalization", limit=1)
             if rows:
                 s, t, _, _ = rows[0]
@@ -445,6 +473,15 @@ if TEXTUAL_OK:
             p = pavs[index]
             tier = p.get("default_tier", "show")
             icon = tui_art.PAVILION_ICONS.get(tier, "·")
+            if p["id"] == "_sources":
+                self.query_one("#preview", Static).update(
+                    f"[bold {NAVY}]{icon} {escape(p['label'])}[/bold {NAVY}]\n"
+                    f"[{STRIPES}]{escape(p.get('subtitle', ''))}[/{STRIPES}]\n\n"
+                    f"Every citation in the fair, linked —\n"
+                    f"and shelves worth reading past it.\n\n"
+                    f"[{ACCENT}]Enter to open · S works anywhere[/{ACCENT}]"
+                )
+                return
             acts = pavilion_activities(p["id"])
             act_lines = "\n".join(f"  · {label} ({hint})" for _aid, label, hint in acts) or "  · browse"
             extra = ""
@@ -474,11 +511,17 @@ if TEXTUAL_OK:
             if not pavs or idx is None or idx >= len(pavs):
                 return
             pavilion = pavs[idx]
+            if pavilion["id"] == "_sources":
+                self.app.push_screen(SourcesScreen())
+                return
             activity_id = primary_activity_id(pavilion["id"])
             if not activity_id:
                 self.notify("No activity wired for this pavilion yet.", timeout=3)
                 return
             self.app.push_screen(ActivityScreen(activity_id, pavilion["label"]))
+
+        def action_sources(self) -> None:
+            self.app.push_screen(SourcesScreen())
 
         def action_focus_lanes(self) -> None:
             self.query_one("#lane-list", ListView).focus()
@@ -666,7 +709,7 @@ if TEXTUAL_OK:
                 if step.get("context"):
                     text += f"\n\n[{INK_MUTED}]{escape(step['context'])}[/{INK_MUTED}]"
                 if step.get("source"):
-                    text += f"\n\n[{INK_MUTED}]source: {escape(step['source'])}[/{INK_MUTED}]"
+                    text += f"\n\n{source_markup(step['source'])}"
                 card.update(text)
                 n = self.session.index + 1
                 self._set_status(f"{n}/{self.session.total} — Enter for next")
@@ -845,6 +888,72 @@ if TEXTUAL_OK:
         def action_back(self) -> None:
             self.app.pop_screen()
 
+    class SourcesScreen(StageScreen):
+        """The Record Room — every source, framed both ways:
+        learn more here, and this is where we got the info."""
+
+        BINDINGS = [
+            Binding("escape", "back", "Fair map", show=True),
+        ]
+
+        CSS = STAGE_CSS + f"""
+        SourcesScreen {{
+            background: {PARCHMENT};
+        }}
+        #sources-herald {{
+            height: 1;
+            padding: 0 2;
+            background: {NAVY};
+            color: {CREAM};
+            border-bottom: heavy {GOLD};
+        }}
+        #sources-scroll {{
+            height: 1fr;
+        }}
+        #sources-body {{
+            padding: 1 2;
+            color: {INK};
+        }}
+        """
+
+        def compose_stage(self) -> ComposeResult:
+            yield Static(
+                f"[bold {GOLD}]★[/bold {GOLD}] THE RECORD ROOM — sources & further reading",
+                id="sources-herald",
+            )
+            yield VerticalScroll(Static("", id="sources-body"), id="sources-scroll")
+
+        def on_mount(self) -> None:
+            self.call_after_refresh(self._render_hero)
+            links = engine.load_source_links()
+            parts = [
+                f"[{INK_MUTED}]Every fact in this fair came from somewhere. These are the "
+                f"somewheres — and every one is a fine place to keep going.[/{INK_MUTED}]",
+                "",
+                f"[bold {NAVY}]WHERE WE GOT THE INFO[/bold {NAVY}]",
+            ]
+            for r in links.get("resolvers", []):
+                parts.append(
+                    f"\n[link='{r['url']}'][bold {ACCENT}]⧉ {escape(r['label'])}[/bold {ACCENT}][/link]"
+                    f"\n  {escape(r.get('blurb', ''))}"
+                    f"\n  [{INK_MUTED}]{escape(r['url'])}[/{INK_MUTED}]"
+                )
+            parts.append(f"\n[bold {NAVY}]LEARN MORE HERE[/bold {NAVY}]")
+            for m in links.get("more", []):
+                parts.append(
+                    f"\n[link='{m['url']}'][bold {ACCENT}]⧉ {escape(m['label'])}[/bold {ACCENT}][/link]"
+                    f"\n  {escape(m.get('blurb', ''))}"
+                    f"\n  [{INK_MUTED}]{escape(m['url'])}[/{INK_MUTED}]"
+                )
+            parts.append(
+                f"\n[{INK_MUTED}]Links open in your browser (Ctrl+click in most terminals)."
+                f" Esc returns to the fair.[/{INK_MUTED}]"
+            )
+            self.query_one("#sources-body", Static).update("\n".join(parts))
+
+        def action_back(self) -> None:
+            self.app.pop_screen()
+
     class DebateScreen(Screen):
         """Underground — DIENAMIC palette, real quotes."""
 
@@ -936,6 +1045,15 @@ if TEXTUAL_OK:
             ex = exchanges[index % len(exchanges)]
             speaker = ex.get("speaker", "")
             color = OBAMA_COLOR if speaker == "Obama" else TRUMP_COLOR if speaker == "Trump" else DEBATE_FG
+            citation = ex.get("citation", "")
+            cite = span(f"source: {citation}", DEBATE_FG, DEBATE_BG)
+            resolved = engine.resolve_source(citation)
+            if resolved:
+                cite += (
+                    f"\n[link='{resolved['url']}'][bold {DEBATE_FG} on {DEBATE_BG}]"
+                    f"⧉ learn more — {escape(resolved['label'])}"
+                    f"[/bold {DEBATE_FG} on {DEBATE_BG}][/link]"
+                )
             text = (
                 span(speaker, color, DEBATE_BG, bold=True)
                 + "\n"
@@ -943,7 +1061,7 @@ if TEXTUAL_OK:
                 + "\n\n"
                 + span(f'"{ex.get("quote", "")}"', DEBATE_FG, DEBATE_BG)
                 + "\n\n"
-                + span(f"source: {ex.get('citation', '')}", DEBATE_FG, DEBATE_BG)
+                + cite
             )
             self.query_one("#transcript", Static).update(text)
 

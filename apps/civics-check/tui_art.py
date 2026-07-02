@@ -259,6 +259,8 @@ LANE_ICONS = {
     "schoolhouse": "⌂ Schoolhouse",
     "constitution_hall": "§ Constitution Hall",
     "citizenship_court": "⚖ Citizenship Court",
+    "statehouse": "⚑ States' Rights & Duties",
+    "_record_room": "❧ Record Room",
 }
 
 EAGLE_PLAIN_BLOCK = bell.EAGLE_PLAIN.strip()  # CLI banner eagle lives in bell.py

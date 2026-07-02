@@ -1,0 +1,242 @@
+{
+  "powers": [
+    {
+      "id": "declare-war",
+      "title": "Declare war",
+      "prompt": "Who has the power to declare war?",
+      "body": "Only Congress can declare war — Article I, Section 8.",
+      "answer": "Federal",
+      "source": "https://constitution.congress.gov/browse/article-1/section-8/"
+    },
+    {
+      "id": "print-money",
+      "title": "Print money",
+      "prompt": "Who has the power to print and coin money?",
+      "body": "The Constitution gives Congress the power to coin money; states are forbidden to.",
+      "answer": "Federal",
+      "source": "https://constitution.congress.gov/browse/article-1/section-8/"
+    },
+    {
+      "id": "make-treaties",
+      "title": "Make treaties",
+      "prompt": "Who has the power to make treaties with other countries?",
+      "body": "The President makes treaties with Senate approval — states may not.",
+      "answer": "Federal",
+      "source": "https://constitution.congress.gov/browse/article-2/section-2/"
+    },
+    {
+      "id": "create-army",
+      "title": "Create an army",
+      "prompt": "Who has the power to create and maintain an army and navy?",
+      "body": "Raising and supporting armies is a federal power of Congress.",
+      "answer": "Federal",
+      "source": "https://constitution.congress.gov/browse/article-1/section-8/"
+    },
+    {
+      "id": "interstate-commerce",
+      "title": "Regulate interstate commerce",
+      "prompt": "Who regulates trade between the states?",
+      "body": "The Commerce Clause puts trade between states under federal control.",
+      "answer": "Federal",
+      "source": "https://constitution.congress.gov/browse/article-1/section-8/"
+    },
+    {
+      "id": "drivers-license",
+      "title": "Driver's licenses",
+      "prompt": "Who gives out driver's licenses?",
+      "body": "Licensing drivers is a classic reserved power of the states.",
+      "answer": "State",
+      "source": "https://www.usa.gov/motor-vehicle-services"
+    },
+    {
+      "id": "public-schools",
+      "title": "Public schools",
+      "prompt": "Who provides schooling and education?",
+      "body": "Education is run by states and their local districts.",
+      "answer": "State",
+      "source": "https://www.usa.gov/state-governments"
+    },
+    {
+      "id": "run-elections",
+      "title": "Run elections",
+      "prompt": "Who administers elections — even federal ones?",
+      "body": "States run the polls, count the votes, and certify results.",
+      "answer": "State",
+      "source": "https://www.usa.gov/election-office"
+    },
+    {
+      "id": "zoning",
+      "title": "Zoning and land use",
+      "prompt": "Who approves zoning and land use?",
+      "body": "Zoning is state and local business — the fair itself needed a permit.",
+      "answer": "State",
+      "source": "https://www.usa.gov/state-governments"
+    },
+    {
+      "id": "police-fire",
+      "title": "Police and fire protection",
+      "prompt": "Who provides police and fire departments?",
+      "body": "Public safety is a reserved power exercised by states and localities.",
+      "answer": "State",
+      "source": "https://www.usa.gov/state-governments"
+    },
+    {
+      "id": "collect-taxes",
+      "title": "Collect taxes",
+      "prompt": "Who has the power to collect taxes?",
+      "body": "Both. April 15 exists at every level of government.",
+      "answer": "Both",
+      "source": "https://constitution.congress.gov/browse/amendment-16/"
+    },
+    {
+      "id": "courts",
+      "title": "Establish courts",
+      "prompt": "Who has the power to establish courts?",
+      "body": "There are federal courts and state courts — two full ladders of justice.",
+      "answer": "Both",
+      "source": "https://www.usa.gov/branches-of-government"
+    },
+    {
+      "id": "build-roads",
+      "title": "Build roads",
+      "prompt": "Who has the power to build roads?",
+      "body": "Interstates are federal-aided, state-built; your street is local. Everyone paves.",
+      "answer": "Both",
+      "source": "https://www.usa.gov/state-governments"
+    },
+    {
+      "id": "make-laws",
+      "title": "Make and enforce laws",
+      "prompt": "Who has the power to make and enforce laws?",
+      "body": "Congress legislates for the nation; every state legislature does the same at home.",
+      "answer": "Both",
+      "source": "https://www.usa.gov/how-laws-are-made"
+    }
+  ],
+  "duties": [
+    {
+      "id": "citizen-responsibility",
+      "prompt": "Name one responsibility that is only for United States citizens.",
+      "answers": ["serve on a jury", "jury duty", "vote in a federal election"],
+      "body": "Jury duty and the federal ballot belong to citizens alone.",
+      "source": "USCIS 100 civics questions (2008 test)"
+    },
+    {
+      "id": "citizen-right",
+      "prompt": "Name one right that is only for United States citizens.",
+      "answers": ["vote in a federal election", "run for federal office"],
+      "body": "Citizens alone may vote in federal elections and run for federal office.",
+      "source": "USCIS 100 civics questions (2008 test)"
+    },
+    {
+      "id": "voting-age",
+      "prompt": "How old do citizens have to be to vote for President?",
+      "answers": ["18", "eighteen and older", "18 and older"],
+      "body": "The 26th Amendment set the voting age at 18.",
+      "source": "USCIS 100 civics questions (2008 test)"
+    },
+    {
+      "id": "selective-service",
+      "prompt": "When must all men register for the Selective Service?",
+      "answers": ["at age 18", "at 18", "between 18 and 26"],
+      "body": "Registration is required of men between 18 and 26.",
+      "source": "USCIS 100 civics questions (2008 test)"
+    },
+    {
+      "id": "tax-day",
+      "prompt": "What is the last day you can send in federal income tax forms?",
+      "answers": ["April 15"],
+      "body": "Tax Day — April 15. A responsibility with a deadline.",
+      "source": "USCIS 100 civics questions (2008 test)"
+    },
+    {
+      "id": "citizenship-promise",
+      "prompt": "What is one promise you make when you become a United States citizen?",
+      "answers": [
+        "give up loyalty to other countries",
+        "defend the Constitution and laws of the United States",
+        "obey the laws of the United States",
+        "serve in the U.S. military (if needed)",
+        "serve (do important work for) the nation (if needed)",
+        "be loyal to the United States"
+      ],
+      "body": "The Oath of Allegiance, in plain words.",
+      "source": "USCIS 100 civics questions (2008 test)"
+    },
+    {
+      "id": "participate",
+      "prompt": "What is one way Americans can participate in their democracy?",
+      "answers": [
+        "vote",
+        "join a political party",
+        "help with a campaign",
+        "join a civic group",
+        "join a community group",
+        "give an elected official your opinion on an issue",
+        "call Senators and Representatives",
+        "publicly support or oppose an issue or policy",
+        "run for office",
+        "write to a newspaper"
+      ],
+      "body": "Democracy is a participation sport with many positions.",
+      "source": "USCIS 100 civics questions (2008 test)"
+    },
+    {
+      "id": "pledge-loyalty",
+      "prompt": "What do we show loyalty to when we say the Pledge of Allegiance?",
+      "answers": ["the United States", "the flag"],
+      "body": "The flag, and the republic for which it stands.",
+      "source": "USCIS 100 civics questions (2008 test)"
+    }
+  ],
+  "reading": [
+    {
+      "id": "tenth-amendment",
+      "title": "The Tenth Amendment",
+      "body": "Powers not delegated to the United States, nor prohibited to the states, are reserved to the states — or to the people. Eleven words that started every states' rights argument since 1791.",
+      "source": "https://constitution.congress.gov/browse/amendment-10/"
+    },
+    {
+      "id": "federalism",
+      "title": "Federalism",
+      "body": "One country, two full governments over every citizen: national and state. Each has its own laws, courts, and taxes. The Constitution is the referee.",
+      "source": "https://www.usa.gov/state-governments"
+    },
+    {
+      "id": "supremacy-clause",
+      "title": "The Supremacy Clause",
+      "body": "When a valid federal law and a state law collide, federal law wins — Article VI calls the Constitution 'the supreme Law of the Land.'",
+      "source": "https://constitution.congress.gov/browse/article-6/"
+    },
+    {
+      "id": "reserved-powers",
+      "title": "Reserved Powers",
+      "body": "Schools, police, licenses, marriage, zoning, most criminal law — the everyday machinery of life is run by states because the Constitution never gave it to Washington.",
+      "source": "https://constitution.congress.gov/browse/amendment-10/"
+    },
+    {
+      "id": "concurrent-powers",
+      "title": "Concurrent Powers",
+      "body": "Some powers are shared: taxing, borrowing, building roads, running courts. Two governments, both with their hands in your wallet, legally.",
+      "source": "https://www.usa.gov/state-governments"
+    },
+    {
+      "id": "full-faith-credit",
+      "title": "Full Faith and Credit",
+      "body": "Article IV makes states honor each other's public acts, records, and court judgments — your license and your marriage travel with you across state lines.",
+      "source": "https://constitution.congress.gov/browse/article-4/"
+    },
+    {
+      "id": "state-constitutions",
+      "title": "State Constitutions",
+      "body": "Every state has its own constitution — most are longer than the federal one, and several are older. States are laboratories with their own rulebooks.",
+      "source": "https://www.usa.gov/state-governments"
+    },
+    {
+      "id": "mcculloch",
+      "title": "McCulloch v. Maryland (1819)",
+      "body": "Maryland tried to tax the national bank. Chief Justice Marshall said no: implied federal powers are real, and 'the power to tax involves the power to destroy.'",
+      "source": "https://www.archives.gov/milestone-documents/mcculloch-v-maryland"
+    }
+  ]
+}

@@ -1,102 +1,1376 @@
 [
-  {"id": 1, "category": "American Government", "subcategory": "Principles of American Democracy", "question": "What is the supreme law of the land?", "answers": ["the Constitution"], "context": "Every other law -- federal, state, or local -- must yield to it under the Supremacy Clause (Article VI).", "related_fact": "The Constitution is the oldest still-functioning written national constitution in the world.", "date": "1788 -- ratified"},
-  {"id": 2, "category": "American Government", "subcategory": "Principles of American Democracy", "question": "What does the Constitution do?", "answers": ["sets up the government", "defines the government", "protects basic rights of Americans"], "context": "It creates the three branches, divides power between federal and state government, and lists what the government cannot do to its citizens.", "related_fact": "It is famously short -- about 4,400 words in its original form, the shortest of any major world government's founding charter.", "date": "1787 -- written"},
-  {"id": 3, "category": "American Government", "subcategory": "Principles of American Democracy", "question": "The idea of self-government is in the first three words of the Constitution. What are these words?", "answers": ["We the People"], "context": "The framers opened with the source of the government's authority, not the government itself -- power flows up from citizens, not down from a ruler.", "related_fact": "Those three words are written in the original document at roughly triple the size of the rest of the text.", "date": "1787"},
-  {"id": 4, "category": "American Government", "subcategory": "Principles of American Democracy", "question": "What is an amendment?", "answers": ["a change (to the Constitution)", "an addition (to the Constitution)"], "context": "The framers built in a deliberately difficult process (Article V) so the Constitution could evolve without being easy to hijack.", "related_fact": "Thousands of amendments have been proposed in Congress; only 27 have ever been ratified.", "date": "Article V, 1787"},
-  {"id": 5, "category": "American Government", "subcategory": "Principles of American Democracy", "question": "What do we call the first ten amendments to the Constitution?", "answers": ["the Bill of Rights"], "context": "States only agreed to ratify the Constitution after being promised an explicit list of protected rights -- this was that promise, kept.", "related_fact": "James Madison, who once argued a bill of rights was unnecessary, ended up writing it.", "date": "1791 -- ratified"},
-  {"id": 6, "category": "American Government", "subcategory": "Principles of American Democracy", "question": "What is one right or freedom from the First Amendment?", "answers": ["speech", "religion", "assembly", "press", "petition the government"], "context": "The First Amendment bundles five distinct freedoms into 45 words, all aimed at keeping the government out of how people think, worship, and speak.", "related_fact": "It's called the 'First' Amendment by position, not importance -- the framers didn't rank the Bill of Rights.", "date": "1791"},
-  {"id": 7, "category": "American Government", "subcategory": "Principles of American Democracy", "question": "How many amendments does the Constitution have?", "answers": ["27", "twenty-seven"], "context": "27 in 235+ years is a slow pace by design -- ratification needs three-fourths of the states to agree.", "related_fact": "The most recent, the 27th, took 202 years to ratify -- proposed in 1789, finally adopted in 1992.", "date": "1791-1992"},
-  {"id": 8, "category": "American Government", "subcategory": "Principles of American Democracy", "question": "What did the Declaration of Independence do?", "answers": ["announced our independence (from Great Britain)", "declared our independence (from Great Britain)", "said that the United States is free (from Great Britain)"], "context": "It wasn't a legal document that created a government -- it was a public justification for a rebellion already underway.", "related_fact": "It didn't take effect until the Continental Congress actually voted for independence on July 2, 1776 -- the 4th is when the text was adopted.", "date": "July 4, 1776"},
-  {"id": 9, "category": "American Government", "subcategory": "Principles of American Democracy", "question": "What are two rights in the Declaration of Independence?", "answers": ["life", "liberty", "pursuit of happiness"], "context": "Jefferson borrowed the framework from Locke's 'life, liberty, and property' but swapped in 'pursuit of happiness.'", "related_fact": "The phrase has no legal force in U.S. law -- the Declaration is a statement of principle, not a binding statute.", "date": "1776"},
-  {"id": 10, "category": "American Government", "subcategory": "Principles of American Democracy", "question": "What is freedom of religion?", "answers": ["You can practice any religion, or not practice a religion."], "context": "The First Amendment protects belief AND disbelief equally -- the government can neither establish a religion nor punish someone for lacking one.", "related_fact": "Several of the original colonies had official state religions even after independence -- Massachusetts didn't disestablish its state church until 1833.", "date": "1791"},
-  {"id": 11, "category": "American Government", "subcategory": "Principles of American Democracy", "question": "What is the economic system in the United States?", "answers": ["capitalist economy", "market economy"], "context": "Private ownership and market pricing drive most production and trade decisions, with government regulation layered on top rather than replacing it.", "related_fact": "The Constitution itself is largely silent on economic system -- it grants Congress commerce powers but doesn't mandate capitalism by name.", "date": "ongoing"},
-  {"id": 12, "category": "American Government", "subcategory": "Principles of American Democracy", "question": "What is the 'rule of law'?", "answers": ["Everyone must follow the law.", "Leaders must obey the law.", "Government must obey the law.", "No one is above the law."], "context": "It's the idea that binds a president to the same courts as any citizen -- power comes with legal limits, not around them.", "related_fact": "United States v. Nixon (1974) is the clearest modern test of this principle -- the Supreme Court ordered a sitting president to comply with a subpoena.", "date": "ongoing principle"},
-  {"id": 13, "category": "American Government", "subcategory": "System of Government", "question": "Name one branch or part of the government.", "answers": ["Congress", "legislative", "President", "executive", "the courts", "judicial"], "context": "Three branches, each given a distinct job: Congress writes laws, the President enforces them, the courts interpret them.", "related_fact": "The Constitution describes the branches in that order -- Congress in Article I, the President in Article II, the courts in Article III.", "date": "1787"},
-  {"id": 14, "category": "American Government", "subcategory": "System of Government", "question": "What stops one branch of government from becoming too powerful?", "answers": ["checks and balances", "separation of powers"], "context": "Each branch has a tool to restrain the others -- vetoes, overrides, confirmations, judicial review -- so no single branch can act alone indefinitely.", "related_fact": "Montesquieu's writing on separated powers directly influenced the framers, especially Madison.", "date": "1787 design"},
-  {"id": 15, "category": "American Government", "subcategory": "System of Government", "question": "Who is in charge of the executive branch?", "answers": ["the President"], "context": "The President enforces and administers federal law, commands the military, and runs the executive agencies.", "related_fact": "The executive branch also includes 15 Cabinet departments and millions of federal employees the President oversees only indirectly.", "date": "Article II, 1787"},
-  {"id": 16, "category": "American Government", "subcategory": "System of Government", "question": "Who makes federal laws?", "answers": ["Congress", "Senate and House (of Representatives)", "(U.S. or national) legislature"], "context": "A bill must pass both chambers in identical form and get the President's signature (or a veto override) to become law.", "related_fact": "Only a small fraction of bills introduced in a given Congress -- typically under 5% -- ever become law.", "date": "Article I, 1787"},
-  {"id": 17, "category": "American Government", "subcategory": "System of Government", "question": "What are the two parts of the U.S. Congress?", "answers": ["the Senate and House (of Representatives)"], "context": "This split was the Great Compromise of 1787 -- the Senate gives every state equal footing, the House represents population.", "related_fact": "The compromise nearly broke the Constitutional Convention before it was adopted.", "date": "1787 -- Great Compromise"},
-  {"id": 18, "category": "American Government", "subcategory": "System of Government", "question": "How many U.S. Senators are there?", "answers": ["100", "one hundred"], "context": "Two per state, regardless of population -- California and Wyoming get the same two votes in the Senate.", "related_fact": "The Senate has had 100 members only since 1959, when Alaska and Hawaii became the 49th and 50th states.", "date": "since 1959"},
-  {"id": 19, "category": "American Government", "subcategory": "System of Government", "question": "We elect a U.S. Senator for how many years?", "answers": ["6", "six"], "context": "Senate terms are staggered so only about a third of seats are up in any given election, giving the chamber more continuity than the House.", "related_fact": "Senators were originally chosen by state legislatures, not voters directly, until the 17th Amendment in 1913.", "date": "Article I; 17th Amendment 1913"},
-  {"id": 20, "category": "American Government", "subcategory": "System of Government", "question": "Who is one of your state's U.S. Senators now?", "answers": ["varies by state"], "context": "This answer depends on where you live -- the USCIS test expects you to know your own current senators.", "related_fact": "Every state gets exactly two, regardless of population -- the only chamber built that way.", "date": "current"},
-  {"id": 21, "category": "American Government", "subcategory": "System of Government", "question": "The House of Representatives has how many voting members?", "answers": ["435", "four hundred thirty-five"], "context": "That number has been fixed by federal law since 1929 -- as population grows, each representative simply represents more people.", "related_fact": "In 1789 there were only 65 House members; the number grew with the country until Congress capped it.", "date": "capped since 1929"},
-  {"id": 22, "category": "American Government", "subcategory": "System of Government", "question": "We elect a U.S. Representative for how many years?", "answers": ["2", "two"], "context": "The short term was intentional -- the House was designed to be the branch most directly and frequently accountable to voters.", "related_fact": "All 435 House seats are up for election every single cycle, unlike the staggered Senate.", "date": "Article I, 1787"},
-  {"id": 23, "category": "American Government", "subcategory": "System of Government", "question": "Name your U.S. Representative.", "answers": ["varies by district"], "context": "This depends on your congressional district, redrawn roughly every ten years after the census.", "related_fact": "Congressional districts are redrawn after each decennial census to keep them roughly equal in population.", "date": "current"},
-  {"id": 24, "category": "American Government", "subcategory": "System of Government", "question": "Who does a U.S. Senator represent?", "answers": ["all people of the state"], "context": "Unlike a House member tied to one district, a Senator's constituency is the entire state.", "related_fact": "This statewide constituency is part of why Senate races often draw more national attention than individual House races.", "date": "ongoing"},
-  {"id": 25, "category": "American Government", "subcategory": "System of Government", "question": "Why do some states have more Representatives than other states?", "answers": ["(because of) the state's population", "(because) they have more people", "(because) some states have more people"], "context": "House seats are apportioned by population after every census -- more residents means more seats, up to the 435 cap.", "related_fact": "California currently has 52 House seats; several small states have only one.", "date": "post-census, every 10 years"},
-  {"id": 26, "category": "American Government", "subcategory": "System of Government", "question": "We elect a President for how many years?", "answers": ["4", "four"], "context": "A four-year term balances stability against accountability -- long enough to govern, short enough to face voters again soon.", "related_fact": "The 22nd Amendment (1951) later capped a President at two elected terms, a limit that didn't exist for the first 150+ years.", "date": "Article II, 1787"},
-  {"id": 27, "category": "American Government", "subcategory": "System of Government", "question": "In what month do we vote for President?", "answers": ["November"], "context": "Congress set a uniform national Election Day in 1845 -- the first Tuesday after the first Monday in November.", "related_fact": "November was chosen partly because harvests were in and winter travel hadn't yet made roads impassable.", "date": "set 1845"},
-  {"id": 28, "category": "American Government", "subcategory": "System of Government", "question": "What is the name of the President of the United States now?", "answers": ["varies (check current officeholder)"], "context": "This answer changes with each election -- the USCIS test expects the sitting President at time of interview.", "related_fact": "The President is not elected by direct popular vote but by the Electoral College.", "date": "current"},
-  {"id": 29, "category": "American Government", "subcategory": "System of Government", "question": "What is the name of the Vice President of the United States now?", "answers": ["varies (check current officeholder)"], "context": "The Vice President's main constitutional jobs are succession and breaking Senate ties -- everything else is by presidential assignment.", "related_fact": "John Adams, the first VP, called it 'the most insignificant office that ever the invention of man contrived.'", "date": "current"},
-  {"id": 30, "category": "American Government", "subcategory": "System of Government", "question": "If the President can no longer serve, who becomes President?", "answers": ["the Vice President"], "context": "This line of succession is set by the Constitution and reinforced by the 25th Amendment's procedures.", "related_fact": "Nine Vice Presidents have become President through the death or resignation of a sitting President.", "date": "Article II; 25th Amendment 1967"},
-  {"id": 31, "category": "American Government", "subcategory": "System of Government", "question": "If both the President and the Vice President can no longer serve, who becomes President?", "answers": ["the Speaker of the House"], "context": "The Presidential Succession Act of 1947 set this order after the Vice Presidency, ahead of the Senate President pro tempore and Cabinet.", "related_fact": "No Speaker of the House has ever actually had to assume the presidency.", "date": "1947 Succession Act"},
-  {"id": 32, "category": "American Government", "subcategory": "System of Government", "question": "Who is the Commander in Chief of the military?", "answers": ["the President"], "context": "This puts the military under civilian control -- an elected official, not a general, holds ultimate authority.", "related_fact": "Congress, not the President, holds the constitutional power to formally declare war -- a split that's caused friction for over a century.", "date": "Article II, 1787"},
-  {"id": 33, "category": "American Government", "subcategory": "System of Government", "question": "Who signs bills to become laws?", "answers": ["the President"], "context": "A bill passed by both chambers of Congress becomes law once the President signs it -- or becomes law automatically after 10 days if left unsigned.", "related_fact": "If Congress adjourns during that 10-day window and the President doesn't sign, the bill dies -- a 'pocket veto.'", "date": "Article I, Section 7"},
-  {"id": 34, "category": "American Government", "subcategory": "System of Government", "question": "Who vetoes bills?", "answers": ["the President"], "context": "A veto sends the bill back to Congress, which can override it with a two-thirds vote in both chambers.", "related_fact": "Overrides are rare -- fewer than 10% of vetoes in U.S. history have been overridden.", "date": "Article I, Section 7"},
-  {"id": 35, "category": "American Government", "subcategory": "System of Government", "question": "What does the President's Cabinet do?", "answers": ["advises the President"], "context": "The Cabinet has no constitutional power of its own -- it exists entirely to inform and advise the President's decisions.", "related_fact": "George Washington's original Cabinet had just four members: State, Treasury, War, and the Attorney General.", "date": "since 1789"},
-  {"id": 36, "category": "American Government", "subcategory": "System of Government", "question": "What are two Cabinet-level positions?", "answers": ["Secretary of State", "Secretary of Defense", "Secretary of the Treasury", "Attorney General"], "context": "Each Secretary leads a federal department and sits in the presidential line of succession.", "related_fact": "There are 15 executive departments today, up from Washington's original four.", "date": "current"},
-  {"id": 37, "category": "American Government", "subcategory": "System of Government", "question": "What does the judicial branch do?", "answers": ["reviews laws", "explains laws", "resolves disputes (disagreements)", "decides if a law goes against the Constitution"], "context": "Courts don't write or enforce law -- they interpret it, and can strike down laws that violate the Constitution.", "related_fact": "The power of judicial review isn't explicitly written in the Constitution -- the Supreme Court claimed it itself in Marbury v. Madison (1803).", "date": "Article III; established 1803"},
-  {"id": 38, "category": "American Government", "subcategory": "System of Government", "question": "What is the highest court in the United States?", "answers": ["the Supreme Court"], "context": "It's the final word on federal law and constitutional interpretation -- there's no appeal above it.", "related_fact": "The Supreme Court didn't get its own building until 1935; before that it met inside the Capitol.", "date": "Article III, 1787"},
-  {"id": 39, "category": "American Government", "subcategory": "System of Government", "question": "How many justices are on the Supreme Court?", "answers": ["nine", "9"], "context": "The number isn't fixed by the Constitution -- Congress sets it by statute, and it's changed several times in history.", "related_fact": "The Court has had as few as five and as many as ten justices; it's been nine since 1869.", "date": "fixed at 9 since 1869"},
-  {"id": 40, "category": "American Government", "subcategory": "System of Government", "question": "Who is the Chief Justice of the United States now?", "answers": ["John Roberts (John G. Roberts, Jr.)"], "context": "The Chief Justice presides over the Court, assigns opinion-writing when in the majority, and presides over presidential impeachment trials in the Senate.", "related_fact": "Roberts was confirmed in 2005 at age 50, making him one of the youngest Chief Justices in modern history.", "date": "confirmed 2005"},
-  {"id": 41, "category": "American Government", "subcategory": "System of Government", "question": "Under our Constitution, some powers belong to the federal government. What is one power of the federal government?", "answers": ["to print money", "to declare war", "to create an army", "to make treaties"], "context": "These are 'enumerated powers' -- specifically listed in Article I, Section 8, rather than left implied.", "related_fact": "States are explicitly forbidden from printing their own money or making treaties -- those powers are federal only.", "date": "Article I, Section 8"},
-  {"id": 42, "category": "American Government", "subcategory": "System of Government", "question": "Under our Constitution, some powers belong to the states. What is one power of the states?", "answers": ["provide schooling and education", "provide protection (police)", "provide safety (fire departments)", "give a driver's license", "approve zoning and land use"], "context": "The 10th Amendment reserves to the states everything not explicitly given to the federal government.", "related_fact": "There is no federal 'Department of Local Policing' -- nearly all U.S. law enforcement is organized at the state and local level.", "date": "10th Amendment, 1791"},
-  {"id": 43, "category": "American Government", "subcategory": "System of Government", "question": "Who is the Governor of your state now?", "answers": ["varies by state"], "context": "Each state's chief executive is elected independently of the federal government.", "related_fact": "Some states elect governors to two-year terms, others to four -- there's no federal standard.", "date": "current"},
-  {"id": 44, "category": "American Government", "subcategory": "System of Government", "question": "What is the capital of your state?", "answers": ["varies by state"], "context": "State capitals aren't always the largest city -- politics and geography, not population, often decided the choice.", "related_fact": "Albany, Sacramento, and Springfield are all state capitals that are not their state's largest city.", "date": "varies"},
-  {"id": 45, "category": "American Government", "subcategory": "System of Government", "question": "What are the two major political parties in the United States?", "answers": ["Democratic and Republican"], "context": "The U.S. effectively runs a two-party system, reinforced by winner-take-all elections rather than proportional representation.", "related_fact": "The modern Republican Party was founded in 1854; the Democratic Party traces to the 1820s, making it one of the world's oldest active parties.", "date": "1820s / 1854"},
-  {"id": 46, "category": "American Government", "subcategory": "System of Government", "question": "What is the political party of the President now?", "answers": ["varies (check current officeholder)"], "context": "This tracks whichever party the sitting President belongs to.", "related_fact": "Divided government -- a President of one party facing a Congress controlled partly or fully by the other -- has been the norm more often than not since the 1970s.", "date": "current"},
-  {"id": 47, "category": "American Government", "subcategory": "System of Government", "question": "What is the name of the Speaker of the House of Representatives now?", "answers": ["varies (check current officeholder)"], "context": "The Speaker is second in the presidential line of succession, right after the Vice President.", "related_fact": "The Speaker doesn't have to be a sitting member of Congress by the Constitution's text, though in practice every Speaker has been.", "date": "current"},
-  {"id": 48, "category": "American Government", "subcategory": "Rights and Responsibilities", "question": "There are four amendments to the Constitution about who can vote. Describe one of them.", "answers": ["Citizens eighteen (18) and older (can vote).", "You don't have to pay (a poll tax) to vote.", "Any citizen can vote. (Women and men can vote.)", "A male citizen of any race (can vote)."], "context": "The 15th, 19th, 24th, and 26th Amendments each expanded the franchise -- by race, then sex, then removing poll taxes, then age.", "related_fact": "It took over 150 years from the Constitution's ratification to reach universal adult suffrage on paper.", "date": "1870-1971"},
-  {"id": 49, "category": "American Government", "subcategory": "Rights and Responsibilities", "question": "What is one responsibility that is only for United States citizens?", "answers": ["serve on a jury", "vote in a federal election"], "context": "Permanent residents pay taxes and can be drafted in some contexts, but jury duty and federal voting are citizen-only obligations and rights.", "related_fact": "Jury service is treated as both a right and a civic duty -- the 6th and 7th Amendments guarantee trial by jury.", "date": "ongoing"},
-  {"id": 50, "category": "American Government", "subcategory": "Rights and Responsibilities", "question": "Name one right only for United States citizens.", "answers": ["vote in a federal election", "run for federal office"], "context": "Non-citizens, even permanent residents, cannot vote in federal elections or hold federal office.", "related_fact": "A President must be a natural-born citizen -- the only office with that specific requirement.", "date": "Article II, Section 1"},
-  {"id": 51, "category": "American Government", "subcategory": "Rights and Responsibilities", "question": "What are two rights of everyone living in the United States?", "answers": ["freedom of expression", "freedom of speech", "freedom of assembly", "freedom to petition the government", "freedom of worship", "the right to bear arms"], "context": "Most Bill of Rights protections apply to 'persons,' not just citizens -- they cover everyone on U.S. soil.", "related_fact": "This is a key distinction on the test: citizen-only rights (voting) versus everyone's rights (speech, worship).", "date": "1791"},
-  {"id": 52, "category": "American Government", "subcategory": "Rights and Responsibilities", "question": "What do we show loyalty to when we say the Pledge of Allegiance?", "answers": ["the United States", "the flag"], "context": "The Pledge, as recited, is an oath to the flag and 'the Republic for which it stands' -- not to any individual leader.", "related_fact": "The Pledge was written in 1892 and only got 'under God' added by Congress in 1954.", "date": "written 1892"},
-  {"id": 53, "category": "American Government", "subcategory": "Rights and Responsibilities", "question": "What is one promise you make when you become a United States citizen?", "answers": ["give up loyalty to other countries", "defend the Constitution and laws of the United States", "obey the laws of the United States", "serve in the U.S. military (if needed)", "serve (do important work for) the nation (if needed)", "be loyal to the United States"], "context": "This is the Oath of Allegiance, the final legal step of naturalization.", "related_fact": "The oath can be modified for those with religious objections to bearing arms -- they can swear to noncombatant service instead.", "date": "recited at naturalization"},
-  {"id": 54, "category": "American Government", "subcategory": "Rights and Responsibilities", "question": "How old do citizens have to be to vote for President?", "answers": ["18", "eighteen"], "context": "The voting age was lowered from 21 to 18 by the 26th Amendment, driven largely by Vietnam-era arguments that draft-age citizens should get a vote.", "related_fact": "'Old enough to fight, old enough to vote' was the actual slogan of the movement behind the 26th Amendment.", "date": "1971 -- 26th Amendment"},
-  {"id": 55, "category": "American Government", "subcategory": "Rights and Responsibilities", "question": "What are two ways that Americans can participate in their democracy?", "answers": ["vote", "join a political party", "help with a campaign", "join a civic group", "join a community group", "give an elected official your opinion on an issue", "call Senators and Representatives", "publicly support or oppose an issue or policy", "run for office", "write to a newspaper"], "context": "Voting is only one form of civic participation among many the Constitution protects.", "related_fact": "Petitioning the government -- writing, calling, showing up -- is itself a First Amendment-protected right, not just a courtesy.", "date": "ongoing"},
-  {"id": 56, "category": "American Government", "subcategory": "Rights and Responsibilities", "question": "When is the last day you can send in federal income tax forms?", "answers": ["April 15"], "context": "This deadline is set by federal statute, not the Constitution, and can shift slightly for weekends and holidays.", "related_fact": "The federal income tax itself only became permanent with the 16th Amendment in 1913.", "date": "16th Amendment, 1913"},
-  {"id": 57, "category": "American Government", "subcategory": "Rights and Responsibilities", "question": "When must all men register for the Selective Service?", "answers": ["at age eighteen (18)", "between eighteen (18) and twenty-six (26)"], "context": "Registration keeps a pool of eligible names on file in case a draft were ever reinstated -- there hasn't been an active draft since 1973.", "related_fact": "Selective Service registration applies to male immigrants living in the U.S. too, including many green card holders.", "date": "since 1980"},
-  {"id": 58, "category": "American History", "subcategory": "Colonial Period and Independence", "question": "What is one reason colonists came to America?", "answers": ["freedom", "political liberty", "religious freedom", "economic opportunity", "practice their religion", "escape persecution"], "context": "Motives varied hugely by colony and era -- Puritans fleeing religious conflict, debtors seeking a fresh start, merchants chasing trade.", "related_fact": "Many early colonists arrived as indentured servants, working years of unpaid labor to pay off the cost of the voyage.", "date": "1600s-1700s"},
-  {"id": 59, "category": "American History", "subcategory": "Colonial Period and Independence", "question": "Who lived in America before the Europeans arrived?", "answers": ["American Indians", "Native Americans"], "context": "Hundreds of distinct nations and cultures inhabited the continent for thousands of years before European contact.", "related_fact": "Estimates of the pre-contact Native population of North America range from several million to over 10 million.", "date": "pre-1492"},
-  {"id": 60, "category": "American History", "subcategory": "Colonial Period and Independence", "question": "What group of people was taken to America and sold as slaves?", "answers": ["Africans", "people from Africa"], "context": "The transatlantic slave trade forcibly brought an estimated 12.5 million Africans across the Atlantic over roughly 350 years.", "related_fact": "The first recorded Africans in English North America arrived at Point Comfort, Virginia, in 1619.", "date": "1619 onward"},
-  {"id": 61, "category": "American History", "subcategory": "Colonial Period and Independence", "question": "Why did the colonists fight the British?", "answers": ["because of high taxes (taxation without representation)", "because the British army stayed in their houses (boarding, quartering)", "because they didn't have self-government"], "context": "Colonists paid taxes to a Parliament they had no elected representation in -- the core grievance behind 'taxation without representation.'", "related_fact": "The Quartering Act, which forced colonists to house British troops, later inspired the Third Amendment.", "date": "1765-1775"},
-  {"id": 62, "category": "American History", "subcategory": "Colonial Period and Independence", "question": "Who wrote the Declaration of Independence?", "answers": ["(Thomas) Jefferson"], "context": "Jefferson drafted it at 33, drawing on Enlightenment political philosophy, while a five-man committee reviewed and edited his text.", "related_fact": "John Adams and Benjamin Franklin were both on that editing committee and made notable changes to Jefferson's draft.", "date": "drafted 1776"},
-  {"id": 63, "category": "American History", "subcategory": "Colonial Period and Independence", "question": "When was the Declaration of Independence adopted?", "answers": ["July 4, 1776"], "context": "The Continental Congress voted for independence on July 2 but formally adopted the Declaration's text two days later.", "related_fact": "Most delegates didn't actually sign the engrossed copy until August 2, 1776, weeks after adoption.", "date": "July 4, 1776"},
-  {"id": 64, "category": "American History", "subcategory": "Colonial Period and Independence", "question": "There were 13 original states. Name three.", "answers": ["New Hampshire", "Massachusetts", "Rhode Island", "Connecticut", "New York", "New Jersey", "Pennsylvania", "Delaware", "Maryland", "Virginia", "North Carolina", "South Carolina", "Georgia"], "context": "These 13 British colonies declared independence together in 1776 and became the founding states of the Union.", "related_fact": "The 13 stripes on the U.S. flag represent these same 13 original states, not the current 50.", "date": "1776"},
-  {"id": 65, "category": "American History", "subcategory": "Colonial Period and Independence", "question": "What happened at the Constitutional Convention?", "answers": ["The Constitution was written.", "The Founding Fathers wrote the Constitution."], "context": "Delegates gathered in Philadelphia originally just to revise the weak Articles of Confederation -- they ended up scrapping it and starting over.", "related_fact": "The convention was held in total secrecy, with windows nailed shut through a Philadelphia summer, to allow open debate.", "date": "May-Sept 1787"},
-  {"id": 66, "category": "American History", "subcategory": "Colonial Period and Independence", "question": "When was the Constitution written?", "answers": ["1787"], "context": "It took the Philadelphia convention about four months to draft, from May to September 1787.", "related_fact": "It then took nearly a year longer for enough states to ratify it before it took effect in 1789.", "date": "1787"},
-  {"id": 67, "category": "American History", "subcategory": "Colonial Period and Independence", "question": "The Federalist Papers supported the passage of the U.S. Constitution. Name one of the writers.", "answers": ["(James) Madison", "(Alexander) Hamilton", "(John) Jay", "Publius"], "context": "These 85 essays, published under the pen name 'Publius,' argued state by state for ratifying the new Constitution.", "related_fact": "Hamilton wrote the majority of the essays -- around 51 of the 85 -- often at a punishing writing pace.", "date": "1787-1788"},
-  {"id": 68, "category": "American History", "subcategory": "Colonial Period and Independence", "question": "What is one thing Benjamin Franklin is famous for?", "answers": ["U.S. diplomat", "oldest member of the Constitutional Convention", "first Postmaster General of the United States", "writer of 'Poor Richard's Almanac'", "started the first free libraries"], "context": "Franklin was 81 at the Constitutional Convention, decades older than most other delegates, and had already lived several careers.", "related_fact": "He's the only Founding Father to have signed all four major founding documents: the Declaration, the Treaty of Paris, the Treaty of Alliance with France, and the Constitution.", "date": "1706-1790"},
-  {"id": 69, "category": "American History", "subcategory": "Colonial Period and Independence", "question": "Who is the 'Father of Our Country'?", "answers": ["(George) Washington"], "context": "Washington led the Continental Army through the Revolution and then set the precedent of a peaceful transfer of power by voluntarily stepping down.", "related_fact": "He could have likely been President for life or even king -- he refused both.", "date": "1732-1799"},
-  {"id": 70, "category": "American History", "subcategory": "Colonial Period and Independence", "question": "Who was the first President?", "answers": ["(George) Washington"], "context": "Washington was elected unanimously by the Electoral College -- the only President in history to receive every vote.", "related_fact": "He was inaugurated in New York City, then the nation's capital, not Washington D.C., which didn't exist yet.", "date": "inaugurated 1789"},
-  {"id": 71, "category": "American History", "subcategory": "1800s", "question": "What territory did the United States buy from France in 1803?", "answers": ["the Louisiana Territory", "Louisiana"], "context": "The purchase roughly doubled the size of the United States overnight for about $15 million -- a few cents an acre.", "related_fact": "Napoleon sold it partly to fund his European wars and because he'd lost the ability to defend it after the Haitian Revolution.", "date": "1803"},
-  {"id": 72, "category": "American History", "subcategory": "1800s", "question": "Name one war fought by the United States in the 1800s.", "answers": ["War of 1812", "Mexican-American War", "Civil War", "Spanish-American War"], "context": "The 1800s bracketed a young, expanding nation, from the War of 1812 through westward expansion to a war with Spain that made the U.S. a colonial power.", "related_fact": "The White House was set on fire by British troops during the War of 1812.", "date": "1800s"},
-  {"id": 73, "category": "American History", "subcategory": "1800s", "question": "Name the U.S. war between the North and the South.", "answers": ["the Civil War"], "context": "It remains the deadliest war in American history, with roughly 620,000-750,000 deaths.", "related_fact": "It began at Fort Sumter, South Carolina, in April 1861 and ended with Confederate surrender in April 1865.", "date": "1861-1865"},
-  {"id": 74, "category": "American History", "subcategory": "1800s", "question": "Name one problem that led to the Civil War.", "answers": ["slavery", "economic reasons", "states' rights"], "context": "Slavery's expansion into new territories was the central, unresolved conflict; economic and states'-rights arguments largely orbited around defending it.", "related_fact": "Confederate declarations of secession explicitly named the preservation of slavery as a primary cause.", "date": "1850s-1861"},
-  {"id": 75, "category": "American History", "subcategory": "1800s", "question": "What was one important thing that Abraham Lincoln did?", "answers": ["freed the slaves (Emancipation Proclamation)", "saved (or preserved) the Union", "led the United States during the Civil War"], "context": "Lincoln held the Union together through the war and moved the country toward ending slavery, though full abolition needed the 13th Amendment.", "related_fact": "Lincoln was assassinated just five days after Confederate General Lee's surrender at Appomattox.", "date": "presidency 1861-1865"},
-  {"id": 76, "category": "American History", "subcategory": "1800s", "question": "What did the Emancipation Proclamation do?", "answers": ["freed the slaves", "freed slaves in the Confederacy", "freed slaves in the Confederate states", "freed slaves in most Southern states"], "context": "It only applied to Confederate territory not under Union control -- it didn't free enslaved people in border states that stayed loyal to the Union.", "related_fact": "Full, nationwide abolition required the 13th Amendment two years later, in 1865.", "date": "January 1, 1863"},
-  {"id": 77, "category": "American History", "subcategory": "1800s", "question": "What did Susan B. Anthony do?", "answers": ["fought for women's rights", "fought for civil rights"], "context": "She was arrested and fined for illegally voting in 1872, decades before women legally won that right.", "related_fact": "She died in 1906, 14 years before the 19th Amendment gave women the vote nationwide in 1920.", "date": "1820-1906"},
-  {"id": 78, "category": "American History", "subcategory": "Recent American History and Other Important Historical Information", "question": "Name one war fought by the United States in the 1900s.", "answers": ["World War I", "World War II", "Korean War", "Vietnam War", "(Persian) Gulf War"], "context": "The 20th century saw the U.S. become a global military power across two world wars and several Cold War-era conflicts.", "related_fact": "The U.S. entered World War I in 1917 and World War II in 1941 -- both after years of staying officially neutral.", "date": "1900s"},
-  {"id": 79, "category": "American History", "subcategory": "Recent American History and Other Important Historical Information", "question": "Who was President during World War I?", "answers": ["(Woodrow) Wilson"], "context": "Wilson led the U.S. into the war in 1917 after campaigning for reelection on keeping the country out of it.", "related_fact": "Wilson later pushed for the League of Nations, a precursor to the UN -- but the U.S. Senate refused to join it.", "date": "presidency 1913-1921"},
-  {"id": 80, "category": "American History", "subcategory": "Recent American History and Other Important Historical Information", "question": "Who was President during the Great Depression and World War II?", "answers": ["(Franklin) Roosevelt"], "context": "Roosevelt served an unprecedented four terms, launching the New Deal and leading the U.S. through most of WWII.", "related_fact": "His long tenure directly led to the 22nd Amendment, which later capped presidents at two terms.", "date": "presidency 1933-1945"},
-  {"id": 81, "category": "American History", "subcategory": "Recent American History and Other Important Historical Information", "question": "Who did the United States fight in World War II?", "answers": ["Japan, Germany, and Italy"], "context": "These were the three main Axis powers; the U.S. entered the war formally after the attack on Pearl Harbor.", "related_fact": "The U.S. fought a genuine two-front war -- against Japan in the Pacific and Germany/Italy in Europe -- simultaneously.", "date": "1941-1945"},
-  {"id": 82, "category": "American History", "subcategory": "Recent American History and Other Important Historical Information", "question": "Before he was President, Eisenhower was a general. What war was he in?", "answers": ["World War II"], "context": "Eisenhower served as Supreme Allied Commander in Europe, overseeing the D-Day invasion of Normandy.", "related_fact": "He later became President in 1953, one of very few generals to make that direct leap.", "date": "WWII service 1941-1945"},
-  {"id": 83, "category": "American History", "subcategory": "Recent American History and Other Important Historical Information", "question": "During the Cold War, what was the main concern of the United States?", "answers": ["Communism"], "context": "The decades-long standoff with the Soviet Union was defined by competing economic and political systems rather than direct military combat between the two powers.", "related_fact": "The Cold War never involved direct U.S.-Soviet combat, but it fueled proxy wars in Korea, Vietnam, and elsewhere.", "date": "roughly 1947-1991"},
-  {"id": 84, "category": "American History", "subcategory": "Recent American History and Other Important Historical Information", "question": "What movement tried to end racial discrimination?", "answers": ["civil rights (movement)"], "context": "The movement used protests, litigation, and legislation to dismantle Jim Crow segregation, especially through the 1950s-60s.", "related_fact": "It produced two landmark federal laws in quick succession: the Civil Rights Act of 1964 and the Voting Rights Act of 1965.", "date": "1950s-1960s"},
-  {"id": 85, "category": "American History", "subcategory": "Recent American History and Other Important Historical Information", "question": "What did Martin Luther King, Jr. do?", "answers": ["fought for civil rights", "worked for equality for all Americans"], "context": "King led the movement's nonviolent-resistance strategy, most famously through the 1963 March on Washington.", "related_fact": "He won the Nobel Peace Prize in 1964 at age 35, one of the youngest laureates ever.", "date": "1929-1968"},
-  {"id": 86, "category": "American History", "subcategory": "Recent American History and Other Important Historical Information", "question": "What major event happened on September 11, 2001, in the United States?", "answers": ["Terrorists attacked the United States."], "context": "Coordinated hijacked-plane attacks struck the World Trade Center and the Pentagon, and a fourth plane crashed in Pennsylvania.", "related_fact": "It remains the deadliest terrorist attack in world history, killing nearly 3,000 people.", "date": "September 11, 2001"},
-  {"id": 87, "category": "American History", "subcategory": "Recent American History and Other Important Historical Information", "question": "Name one American Indian tribe in the United States.", "answers": ["Cherokee", "Navajo", "Sioux", "Chippewa", "Choctaw", "Pueblo", "Apache", "Iroquois", "Creek", "Blackfeet", "Seminole", "Cheyenne", "Arawak", "Shawnee", "Mohegan", "Huron", "Oneida", "Lakota", "Crow", "Teton", "Hopi", "Inuit"], "context": "The federal government formally recognizes hundreds of distinct tribal nations today, each with its own history and government.", "related_fact": "The Navajo Nation is the largest reservation in the U.S. by land area, spanning parts of Arizona, New Mexico, and Utah.", "date": "ongoing"},
-  {"id": 88, "category": "Integrated Civics", "subcategory": "Geography", "question": "Name one of the two longest rivers in the United States.", "answers": ["Missouri (River)", "Mississippi (River)"], "context": "The Missouri and Mississippi are close competitors for longest, and together they drain a huge share of the central U.S.", "related_fact": "The Missouri River is technically slightly longer than the Mississippi, though the Mississippi is far more famous.", "date": "geography"},
-  {"id": 89, "category": "Integrated Civics", "subcategory": "Geography", "question": "What ocean is on the West Coast of the United States?", "answers": ["Pacific (Ocean)"], "context": "The Pacific borders California, Oregon, Washington, Alaska, and Hawaii.", "related_fact": "It's the largest and deepest ocean on Earth, covering roughly a third of the planet's surface.", "date": "geography"},
-  {"id": 90, "category": "Integrated Civics", "subcategory": "Geography", "question": "What ocean is on the East Coast of the United States?", "answers": ["Atlantic (Ocean)"], "context": "The Atlantic borders the original 13 colonies, which is why nearly all of early American history happened on its shores.", "related_fact": "The Atlantic is the second-largest ocean, roughly half the size of the Pacific.", "date": "geography"},
-  {"id": 91, "category": "Integrated Civics", "subcategory": "Geography", "question": "Name one U.S. territory.", "answers": ["Puerto Rico", "U.S. Virgin Islands", "American Samoa", "Northern Mariana Islands", "Guam"], "context": "Residents of these territories are largely U.S. citizens or nationals but cannot vote for President and have no full voting member of Congress.", "related_fact": "Puerto Rico has voted in multiple non-binding referendums on statehood, with mixed and contested results.", "date": "ongoing status"},
-  {"id": 92, "category": "Integrated Civics", "subcategory": "Geography", "question": "Name one state that borders Canada.", "answers": ["Maine", "New Hampshire", "Vermont", "New York", "Pennsylvania", "Ohio", "Michigan", "Minnesota", "North Dakota", "Montana", "Idaho", "Washington", "Alaska"], "context": "The U.S.-Canada border, including Alaska, is the longest international border in the world.", "related_fact": "It stretches roughly 5,525 miles, or about 8,891 kilometers.", "date": "geography"},
-  {"id": 93, "category": "Integrated Civics", "subcategory": "Geography", "question": "Name one state that borders Mexico.", "answers": ["California", "Arizona", "New Mexico", "Texas"], "context": "These four states share the roughly 1,954-mile U.S.-Mexico border.", "related_fact": "Texas has the longest stretch of that border of any of the four states.", "date": "geography"},
-  {"id": 94, "category": "Integrated Civics", "subcategory": "Geography", "question": "What is the capital of the United States?", "answers": ["Washington, D.C."], "context": "The capital sits in a federal district, not a state, specifically so no single state would host and dominate the national government.", "related_fact": "Residents of D.C. couldn't vote for President at all until the 23rd Amendment in 1961, and still have no full voting member of Congress.", "date": "capital since 1800"},
-  {"id": 95, "category": "Integrated Civics", "subcategory": "Geography", "question": "Where is the Statue of Liberty?", "answers": ["New York (Harbor)", "Liberty Island"], "context": "It was a gift from France, dedicated in 1886, and became a symbolic first sight for millions of immigrants arriving by sea.", "related_fact": "Nearby Ellis Island processed over 12 million immigrants between 1892 and 1954.", "date": "dedicated 1886"},
-  {"id": 96, "category": "Integrated Civics", "subcategory": "Symbols", "question": "Why does the flag have 13 stripes?", "answers": ["because there were 13 original colonies", "because the stripes represent the original colonies"], "context": "The stripe count was frozen at 13 by law in 1818, even as new states and stars were added, to honor the founding colonies permanently.", "related_fact": "Before that 1818 law, the flag briefly had 15 stripes to reflect two new states -- Congress then reversed course.", "date": "fixed 1818"},
-  {"id": 97, "category": "Integrated Civics", "subcategory": "Symbols", "question": "Why does the flag have 50 stars?", "answers": ["because there is one star for each state", "because each star represents a state", "because there are 50 states"], "context": "Unlike the fixed stripes, the star count has changed 26 times in U.S. history as new states joined the Union.", "related_fact": "The current 50-star design has been unchanged since 1960, the longest-running version of the flag in history.", "date": "since 1960"},
-  {"id": 98, "category": "Integrated Civics", "subcategory": "Symbols", "question": "What is the name of the national anthem?", "answers": ["The Star-Spangled Banner"], "context": "Francis Scott Key wrote the lyrics in 1814 while watching a British bombardment of Fort McHenry, seeing the flag still standing at dawn.", "related_fact": "It wasn't officially made the national anthem by Congress until 1931, over a century after it was written.", "date": "written 1814; official 1931"},
-  {"id": 99, "category": "Integrated Civics", "subcategory": "Holidays", "question": "When do we celebrate Independence Day?", "answers": ["July 4"], "context": "It marks the date the Declaration's text was formally adopted by the Continental Congress, not the vote for independence itself.", "related_fact": "2026 marks the Semiquincentennial -- the 250th anniversary of that adoption.", "date": "July 4"},
-  {"id": 100, "category": "Integrated Civics", "subcategory": "Holidays", "question": "Name two national U.S. holidays.", "answers": ["New Year's Day", "Martin Luther King, Jr. Day", "Presidents' Day", "Memorial Day", "Juneteenth", "Independence Day", "Labor Day", "Columbus Day", "Veterans Day", "Thanksgiving", "Christmas"], "context": "Federal holidays are set by Congress and apply to federal employees and the federal calendar, though most states follow suit.", "related_fact": "Juneteenth became the newest federal holiday in 2021, marking the 1865 announcement of emancipation in Texas.", "date": "federal holidays, various"}
+  {
+    "id": 1,
+    "category": "American Government",
+    "subcategory": "Principles of American Democracy",
+    "question": "What is the supreme law of the land?",
+    "answers": [
+      "the Constitution"
+    ],
+    "context": "Every other law -- federal, state, or local -- must yield to it under the Supremacy Clause (Article VI).",
+    "related_fact": "The Constitution is the oldest still-functioning written national constitution in the world.",
+    "date": "1788 -- ratified"
+  },
+  {
+    "id": 2,
+    "category": "American Government",
+    "subcategory": "Principles of American Democracy",
+    "question": "What does the Constitution do?",
+    "answers": [
+      "sets up the government",
+      "defines the government",
+      "protects basic rights of Americans"
+    ],
+    "context": "It creates the three branches, divides power between federal and state government, and lists what the government cannot do to its citizens.",
+    "related_fact": "It is famously short -- about 4,400 words in its original form, the shortest of any major world government's founding charter.",
+    "date": "1787 -- written"
+  },
+  {
+    "id": 3,
+    "category": "American Government",
+    "subcategory": "Principles of American Democracy",
+    "question": "The idea of self-government is in the first three words of the Constitution. What are these words?",
+    "answers": [
+      "We the People"
+    ],
+    "context": "The framers opened with the source of the government's authority, not the government itself -- power flows up from citizens, not down from a ruler.",
+    "related_fact": "Those three words are written in the original document at roughly triple the size of the rest of the text.",
+    "date": "1787"
+  },
+  {
+    "id": 4,
+    "category": "American Government",
+    "subcategory": "Principles of American Democracy",
+    "question": "What is an amendment?",
+    "answers": [
+      "a change (to the Constitution)",
+      "an addition (to the Constitution)"
+    ],
+    "context": "The framers built in a deliberately difficult process (Article V) so the Constitution could evolve without being easy to hijack.",
+    "related_fact": "Thousands of amendments have been proposed in Congress; only 27 have ever been ratified.",
+    "date": "Article V, 1787"
+  },
+  {
+    "id": 5,
+    "category": "American Government",
+    "subcategory": "Principles of American Democracy",
+    "question": "What do we call the first ten amendments to the Constitution?",
+    "answers": [
+      "the Bill of Rights"
+    ],
+    "context": "States only agreed to ratify the Constitution after being promised an explicit list of protected rights -- this was that promise, kept.",
+    "related_fact": "James Madison, who once argued a bill of rights was unnecessary, ended up writing it.",
+    "date": "1791 -- ratified"
+  },
+  {
+    "id": 6,
+    "category": "American Government",
+    "subcategory": "Principles of American Democracy",
+    "question": "What is one right or freedom from the First Amendment?",
+    "answers": [
+      "speech",
+      "religion",
+      "assembly",
+      "press",
+      "petition the government"
+    ],
+    "context": "The First Amendment bundles five distinct freedoms into 45 words, all aimed at keeping the government out of how people think, worship, and speak.",
+    "related_fact": "It's called the 'First' Amendment by position, not importance -- the framers didn't rank the Bill of Rights.",
+    "date": "1791"
+  },
+  {
+    "id": 7,
+    "category": "American Government",
+    "subcategory": "Principles of American Democracy",
+    "question": "How many amendments does the Constitution have?",
+    "answers": [
+      "27",
+      "twenty-seven"
+    ],
+    "context": "27 in 235+ years is a slow pace by design -- ratification needs three-fourths of the states to agree.",
+    "related_fact": "The most recent, the 27th, took 202 years to ratify -- proposed in 1789, finally adopted in 1992.",
+    "date": "1791-1992"
+  },
+  {
+    "id": 8,
+    "category": "American Government",
+    "subcategory": "Principles of American Democracy",
+    "question": "What did the Declaration of Independence do?",
+    "answers": [
+      "announced our independence (from Great Britain)",
+      "declared our independence (from Great Britain)",
+      "said that the United States is free (from Great Britain)"
+    ],
+    "context": "It wasn't a legal document that created a government -- it was a public justification for a rebellion already underway.",
+    "related_fact": "It didn't take effect until the Continental Congress actually voted for independence on July 2, 1776 -- the 4th is when the text was adopted.",
+    "date": "July 4, 1776"
+  },
+  {
+    "id": 9,
+    "category": "American Government",
+    "subcategory": "Principles of American Democracy",
+    "question": "What are two rights in the Declaration of Independence?",
+    "answers": [
+      "life",
+      "liberty",
+      "pursuit of happiness"
+    ],
+    "context": "Jefferson borrowed the framework from Locke's 'life, liberty, and property' but swapped in 'pursuit of happiness.'",
+    "related_fact": "The phrase has no legal force in U.S. law -- the Declaration is a statement of principle, not a binding statute.",
+    "date": "1776"
+  },
+  {
+    "id": 10,
+    "category": "American Government",
+    "subcategory": "Principles of American Democracy",
+    "question": "What is freedom of religion?",
+    "answers": [
+      "You can practice any religion, or not practice a religion."
+    ],
+    "context": "The First Amendment protects belief AND disbelief equally -- the government can neither establish a religion nor punish someone for lacking one.",
+    "related_fact": "Several of the original colonies had official state religions even after independence -- Massachusetts didn't disestablish its state church until 1833.",
+    "date": "1791"
+  },
+  {
+    "id": 11,
+    "category": "American Government",
+    "subcategory": "Principles of American Democracy",
+    "question": "What is the economic system in the United States?",
+    "answers": [
+      "capitalist economy",
+      "market economy"
+    ],
+    "context": "Private ownership and market pricing drive most production and trade decisions, with government regulation layered on top rather than replacing it.",
+    "related_fact": "The Constitution itself is largely silent on economic system -- it grants Congress commerce powers but doesn't mandate capitalism by name.",
+    "date": "ongoing"
+  },
+  {
+    "id": 12,
+    "category": "American Government",
+    "subcategory": "Principles of American Democracy",
+    "question": "What is the 'rule of law'?",
+    "answers": [
+      "Everyone must follow the law.",
+      "Leaders must obey the law.",
+      "Government must obey the law.",
+      "No one is above the law."
+    ],
+    "context": "It's the idea that binds a president to the same courts as any citizen -- power comes with legal limits, not around them.",
+    "related_fact": "United States v. Nixon (1974) is the clearest modern test of this principle -- the Supreme Court ordered a sitting president to comply with a subpoena.",
+    "date": "ongoing principle"
+  },
+  {
+    "id": 13,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "Name one branch or part of the government.",
+    "answers": [
+      "Congress",
+      "legislative",
+      "President",
+      "executive",
+      "the courts",
+      "judicial"
+    ],
+    "context": "Three branches, each given a distinct job: Congress writes laws, the President enforces them, the courts interpret them.",
+    "related_fact": "The Constitution describes the branches in that order -- Congress in Article I, the President in Article II, the courts in Article III.",
+    "date": "1787"
+  },
+  {
+    "id": 14,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "What stops one branch of government from becoming too powerful?",
+    "answers": [
+      "checks and balances",
+      "separation of powers"
+    ],
+    "context": "Each branch has a tool to restrain the others -- vetoes, overrides, confirmations, judicial review -- so no single branch can act alone indefinitely.",
+    "related_fact": "Montesquieu's writing on separated powers directly influenced the framers, especially Madison.",
+    "date": "1787 design"
+  },
+  {
+    "id": 15,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "Who is in charge of the executive branch?",
+    "answers": [
+      "the President"
+    ],
+    "context": "The President enforces and administers federal law, commands the military, and runs the executive agencies.",
+    "related_fact": "The executive branch also includes 15 Cabinet departments and millions of federal employees the President oversees only indirectly.",
+    "date": "Article II, 1787"
+  },
+  {
+    "id": 16,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "Who makes federal laws?",
+    "answers": [
+      "Congress",
+      "Senate and House (of Representatives)",
+      "(U.S. or national) legislature"
+    ],
+    "context": "A bill must pass both chambers in identical form and get the President's signature (or a veto override) to become law.",
+    "related_fact": "Only a small fraction of bills introduced in a given Congress -- typically under 5% -- ever become law.",
+    "date": "Article I, 1787"
+  },
+  {
+    "id": 17,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "What are the two parts of the U.S. Congress?",
+    "answers": [
+      "the Senate and House (of Representatives)"
+    ],
+    "context": "This split was the Great Compromise of 1787 -- the Senate gives every state equal footing, the House represents population.",
+    "related_fact": "The compromise nearly broke the Constitutional Convention before it was adopted.",
+    "date": "1787 -- Great Compromise"
+  },
+  {
+    "id": 18,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "How many U.S. Senators are there?",
+    "answers": [
+      "100",
+      "one hundred"
+    ],
+    "context": "Two per state, regardless of population -- California and Wyoming get the same two votes in the Senate.",
+    "related_fact": "The Senate has had 100 members only since 1959, when Alaska and Hawaii became the 49th and 50th states.",
+    "date": "since 1959"
+  },
+  {
+    "id": 19,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "We elect a U.S. Senator for how many years?",
+    "answers": [
+      "6",
+      "six"
+    ],
+    "context": "Senate terms are staggered so only about a third of seats are up in any given election, giving the chamber more continuity than the House.",
+    "related_fact": "Senators were originally chosen by state legislatures, not voters directly, until the 17th Amendment in 1913.",
+    "date": "Article I; 17th Amendment 1913"
+  },
+  {
+    "id": 20,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "Who is one of your state's U.S. Senators now?",
+    "answers": [
+      "varies by state"
+    ],
+    "context": "This answer depends on where you live -- the USCIS test expects you to know your own current senators.",
+    "related_fact": "Every state gets exactly two, regardless of population -- the only chamber built that way.",
+    "date": "current"
+  },
+  {
+    "id": 21,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "The House of Representatives has how many voting members?",
+    "answers": [
+      "435",
+      "four hundred thirty-five"
+    ],
+    "context": "That number has been fixed by federal law since 1929 -- as population grows, each representative simply represents more people.",
+    "related_fact": "In 1789 there were only 65 House members; the number grew with the country until Congress capped it.",
+    "date": "capped since 1929"
+  },
+  {
+    "id": 22,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "We elect a U.S. Representative for how many years?",
+    "answers": [
+      "2",
+      "two"
+    ],
+    "context": "The short term was intentional -- the House was designed to be the branch most directly and frequently accountable to voters.",
+    "related_fact": "All 435 House seats are up for election every single cycle, unlike the staggered Senate.",
+    "date": "Article I, 1787"
+  },
+  {
+    "id": 23,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "Name your U.S. Representative.",
+    "answers": [
+      "varies by district"
+    ],
+    "context": "This depends on your congressional district, redrawn roughly every ten years after the census.",
+    "related_fact": "Congressional districts are redrawn after each decennial census to keep them roughly equal in population.",
+    "date": "current"
+  },
+  {
+    "id": 24,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "Who does a U.S. Senator represent?",
+    "answers": [
+      "all people of the state"
+    ],
+    "context": "Unlike a House member tied to one district, a Senator's constituency is the entire state.",
+    "related_fact": "This statewide constituency is part of why Senate races often draw more national attention than individual House races.",
+    "date": "ongoing"
+  },
+  {
+    "id": 25,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "Why do some states have more Representatives than other states?",
+    "answers": [
+      "(because of) the state's population",
+      "(because) they have more people",
+      "(because) some states have more people"
+    ],
+    "context": "House seats are apportioned by population after every census -- more residents means more seats, up to the 435 cap.",
+    "related_fact": "California currently has 52 House seats; several small states have only one.",
+    "date": "post-census, every 10 years"
+  },
+  {
+    "id": 26,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "We elect a President for how many years?",
+    "answers": [
+      "4",
+      "four"
+    ],
+    "context": "A four-year term balances stability against accountability -- long enough to govern, short enough to face voters again soon.",
+    "related_fact": "The 22nd Amendment (1951) later capped a President at two elected terms, a limit that didn't exist for the first 150+ years.",
+    "date": "Article II, 1787"
+  },
+  {
+    "id": 27,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "In what month do we vote for President?",
+    "answers": [
+      "November"
+    ],
+    "context": "Congress set a uniform national Election Day in 1845 -- the first Tuesday after the first Monday in November.",
+    "related_fact": "November was chosen partly because harvests were in and winter travel hadn't yet made roads impassable.",
+    "date": "set 1845"
+  },
+  {
+    "id": 28,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "What is the name of the President of the United States now?",
+    "answers": [
+      "varies (check current officeholder)"
+    ],
+    "context": "This answer changes with each election -- the USCIS test expects the sitting President at time of interview.",
+    "related_fact": "The President is not elected by direct popular vote but by the Electoral College.",
+    "date": "current"
+  },
+  {
+    "id": 29,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "What is the name of the Vice President of the United States now?",
+    "answers": [
+      "varies (check current officeholder)"
+    ],
+    "context": "The Vice President's main constitutional jobs are succession and breaking Senate ties -- everything else is by presidential assignment.",
+    "related_fact": "John Adams, the first VP, called it 'the most insignificant office that ever the invention of man contrived.'",
+    "date": "current"
+  },
+  {
+    "id": 30,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "If the President can no longer serve, who becomes President?",
+    "answers": [
+      "the Vice President"
+    ],
+    "context": "This line of succession is set by the Constitution and reinforced by the 25th Amendment's procedures.",
+    "related_fact": "Nine Vice Presidents have become President through the death or resignation of a sitting President.",
+    "date": "Article II; 25th Amendment 1967"
+  },
+  {
+    "id": 31,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "If both the President and the Vice President can no longer serve, who becomes President?",
+    "answers": [
+      "the Speaker of the House"
+    ],
+    "context": "The Presidential Succession Act of 1947 set this order after the Vice Presidency, ahead of the Senate President pro tempore and Cabinet.",
+    "related_fact": "No Speaker of the House has ever actually had to assume the presidency.",
+    "date": "1947 Succession Act"
+  },
+  {
+    "id": 32,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "Who is the Commander in Chief of the military?",
+    "answers": [
+      "the President"
+    ],
+    "context": "This puts the military under civilian control -- an elected official, not a general, holds ultimate authority.",
+    "related_fact": "Congress, not the President, holds the constitutional power to formally declare war -- a split that's caused friction for over a century.",
+    "date": "Article II, 1787"
+  },
+  {
+    "id": 33,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "Who signs bills to become laws?",
+    "answers": [
+      "the President"
+    ],
+    "context": "A bill passed by both chambers of Congress becomes law once the President signs it -- or becomes law automatically after 10 days if left unsigned.",
+    "related_fact": "If Congress adjourns during that 10-day window and the President doesn't sign, the bill dies -- a 'pocket veto.'",
+    "date": "Article I, Section 7"
+  },
+  {
+    "id": 34,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "Who vetoes bills?",
+    "answers": [
+      "the President"
+    ],
+    "context": "A veto sends the bill back to Congress, which can override it with a two-thirds vote in both chambers.",
+    "related_fact": "Overrides are rare -- fewer than 10% of vetoes in U.S. history have been overridden.",
+    "date": "Article I, Section 7"
+  },
+  {
+    "id": 35,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "What does the President's Cabinet do?",
+    "answers": [
+      "advises the President"
+    ],
+    "context": "The Cabinet has no constitutional power of its own -- it exists entirely to inform and advise the President's decisions.",
+    "related_fact": "George Washington's original Cabinet had just four members: State, Treasury, War, and the Attorney General.",
+    "date": "since 1789"
+  },
+  {
+    "id": 36,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "What are two Cabinet-level positions?",
+    "answers": [
+      "Secretary of State",
+      "Secretary of Defense",
+      "Secretary of the Treasury",
+      "Attorney General"
+    ],
+    "context": "Each Secretary leads a federal department and sits in the presidential line of succession.",
+    "related_fact": "There are 15 executive departments today, up from Washington's original four.",
+    "date": "current"
+  },
+  {
+    "id": 37,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "What does the judicial branch do?",
+    "answers": [
+      "reviews laws",
+      "explains laws",
+      "resolves disputes (disagreements)",
+      "decides if a law goes against the Constitution"
+    ],
+    "context": "Courts don't write or enforce law -- they interpret it, and can strike down laws that violate the Constitution.",
+    "related_fact": "The power of judicial review isn't explicitly written in the Constitution -- the Supreme Court claimed it itself in Marbury v. Madison (1803).",
+    "date": "Article III; established 1803"
+  },
+  {
+    "id": 38,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "What is the highest court in the United States?",
+    "answers": [
+      "the Supreme Court"
+    ],
+    "context": "It's the final word on federal law and constitutional interpretation -- there's no appeal above it.",
+    "related_fact": "The Supreme Court didn't get its own building until 1935; before that it met inside the Capitol.",
+    "date": "Article III, 1787"
+  },
+  {
+    "id": 39,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "How many justices are on the Supreme Court?",
+    "answers": [
+      "nine",
+      "9"
+    ],
+    "context": "The number isn't fixed by the Constitution -- Congress sets it by statute, and it's changed several times in history.",
+    "related_fact": "The Court has had as few as five and as many as ten justices; it's been nine since 1869.",
+    "date": "fixed at 9 since 1869"
+  },
+  {
+    "id": 40,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "Who is the Chief Justice of the United States now?",
+    "answers": [
+      "John Roberts (John G. Roberts, Jr.)"
+    ],
+    "context": "The Chief Justice presides over the Court, assigns opinion-writing when in the majority, and presides over presidential impeachment trials in the Senate.",
+    "related_fact": "Roberts was confirmed in 2005 at age 50, making him one of the youngest Chief Justices in modern history.",
+    "date": "confirmed 2005"
+  },
+  {
+    "id": 41,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "Under our Constitution, some powers belong to the federal government. What is one power of the federal government?",
+    "answers": [
+      "to print money",
+      "to declare war",
+      "to create an army",
+      "to make treaties"
+    ],
+    "context": "These are 'enumerated powers' -- specifically listed in Article I, Section 8, rather than left implied.",
+    "related_fact": "States are explicitly forbidden from printing their own money or making treaties -- those powers are federal only.",
+    "date": "Article I, Section 8"
+  },
+  {
+    "id": 42,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "Under our Constitution, some powers belong to the states. What is one power of the states?",
+    "answers": [
+      "provide schooling and education",
+      "provide protection (police)",
+      "provide safety (fire departments)",
+      "give a driver's license",
+      "approve zoning and land use"
+    ],
+    "context": "The 10th Amendment reserves to the states everything not explicitly given to the federal government.",
+    "related_fact": "There is no federal 'Department of Local Policing' -- nearly all U.S. law enforcement is organized at the state and local level.",
+    "date": "10th Amendment, 1791"
+  },
+  {
+    "id": 43,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "Who is the Governor of your state now?",
+    "answers": [
+      "varies by state"
+    ],
+    "context": "Each state's chief executive is elected independently of the federal government.",
+    "related_fact": "Some states elect governors to two-year terms, others to four -- there's no federal standard.",
+    "date": "current"
+  },
+  {
+    "id": 44,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "What is the capital of your state?",
+    "answers": [
+      "varies by state"
+    ],
+    "context": "State capitals aren't always the largest city -- politics and geography, not population, often decided the choice.",
+    "related_fact": "Albany, Sacramento, and Springfield are all state capitals that are not their state's largest city.",
+    "date": "varies"
+  },
+  {
+    "id": 45,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "What are the two major political parties in the United States?",
+    "answers": [
+      "Democratic and Republican"
+    ],
+    "context": "The U.S. effectively runs a two-party system, reinforced by winner-take-all elections rather than proportional representation.",
+    "related_fact": "The modern Republican Party was founded in 1854; the Democratic Party traces to the 1820s, making it one of the world's oldest active parties.",
+    "date": "1820s / 1854"
+  },
+  {
+    "id": 46,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "What is the political party of the President now?",
+    "answers": [
+      "varies (check current officeholder)"
+    ],
+    "context": "This tracks whichever party the sitting President belongs to.",
+    "related_fact": "Divided government -- a President of one party facing a Congress controlled partly or fully by the other -- has been the norm more often than not since the 1970s.",
+    "date": "current"
+  },
+  {
+    "id": 47,
+    "category": "American Government",
+    "subcategory": "System of Government",
+    "question": "What is the name of the Speaker of the House of Representatives now?",
+    "answers": [
+      "varies (check current officeholder)"
+    ],
+    "context": "The Speaker is second in the presidential line of succession, right after the Vice President.",
+    "related_fact": "The Speaker doesn't have to be a sitting member of Congress by the Constitution's text, though in practice every Speaker has been.",
+    "date": "current"
+  },
+  {
+    "id": 48,
+    "category": "American Government",
+    "subcategory": "Rights and Responsibilities",
+    "question": "There are four amendments to the Constitution about who can vote. Describe one of them.",
+    "answers": [
+      "Citizens eighteen (18) and older (can vote).",
+      "You don't have to pay (a poll tax) to vote.",
+      "Any citizen can vote. (Women and men can vote.)",
+      "A male citizen of any race (can vote)."
+    ],
+    "context": "The 15th, 19th, 24th, and 26th Amendments each expanded the franchise -- by race, then sex, then removing poll taxes, then age.",
+    "related_fact": "It took over 150 years from the Constitution's ratification to reach universal adult suffrage on paper.",
+    "date": "1870-1971"
+  },
+  {
+    "id": 49,
+    "category": "American Government",
+    "subcategory": "Rights and Responsibilities",
+    "question": "What is one responsibility that is only for United States citizens?",
+    "answers": [
+      "serve on a jury",
+      "vote in a federal election",
+      "jury duty"
+    ],
+    "context": "Permanent residents pay taxes and can be drafted in some contexts, but jury duty and federal voting are citizen-only obligations and rights.",
+    "related_fact": "Jury service is treated as both a right and a civic duty -- the 6th and 7th Amendments guarantee trial by jury.",
+    "date": "ongoing"
+  },
+  {
+    "id": 50,
+    "category": "American Government",
+    "subcategory": "Rights and Responsibilities",
+    "question": "Name one right only for United States citizens.",
+    "answers": [
+      "vote in a federal election",
+      "run for federal office"
+    ],
+    "context": "Non-citizens, even permanent residents, cannot vote in federal elections or hold federal office.",
+    "related_fact": "A President must be a natural-born citizen -- the only office with that specific requirement.",
+    "date": "Article II, Section 1"
+  },
+  {
+    "id": 51,
+    "category": "American Government",
+    "subcategory": "Rights and Responsibilities",
+    "question": "What are two rights of everyone living in the United States?",
+    "answers": [
+      "freedom of expression",
+      "freedom of speech",
+      "freedom of assembly",
+      "freedom to petition the government",
+      "freedom of worship",
+      "the right to bear arms"
+    ],
+    "context": "Most Bill of Rights protections apply to 'persons,' not just citizens -- they cover everyone on U.S. soil.",
+    "related_fact": "This is a key distinction on the test: citizen-only rights (voting) versus everyone's rights (speech, worship).",
+    "date": "1791"
+  },
+  {
+    "id": 52,
+    "category": "American Government",
+    "subcategory": "Rights and Responsibilities",
+    "question": "What do we show loyalty to when we say the Pledge of Allegiance?",
+    "answers": [
+      "the United States",
+      "the flag"
+    ],
+    "context": "The Pledge, as recited, is an oath to the flag and 'the Republic for which it stands' -- not to any individual leader.",
+    "related_fact": "The Pledge was written in 1892 and only got 'under God' added by Congress in 1954.",
+    "date": "written 1892"
+  },
+  {
+    "id": 53,
+    "category": "American Government",
+    "subcategory": "Rights and Responsibilities",
+    "question": "What is one promise you make when you become a United States citizen?",
+    "answers": [
+      "give up loyalty to other countries",
+      "defend the Constitution and laws of the United States",
+      "obey the laws of the United States",
+      "serve in the U.S. military (if needed)",
+      "serve (do important work for) the nation (if needed)",
+      "be loyal to the United States"
+    ],
+    "context": "This is the Oath of Allegiance, the final legal step of naturalization.",
+    "related_fact": "The oath can be modified for those with religious objections to bearing arms -- they can swear to noncombatant service instead.",
+    "date": "recited at naturalization"
+  },
+  {
+    "id": 54,
+    "category": "American Government",
+    "subcategory": "Rights and Responsibilities",
+    "question": "How old do citizens have to be to vote for President?",
+    "answers": [
+      "18",
+      "eighteen"
+    ],
+    "context": "The voting age was lowered from 21 to 18 by the 26th Amendment, driven largely by Vietnam-era arguments that draft-age citizens should get a vote.",
+    "related_fact": "'Old enough to fight, old enough to vote' was the actual slogan of the movement behind the 26th Amendment.",
+    "date": "1971 -- 26th Amendment"
+  },
+  {
+    "id": 55,
+    "category": "American Government",
+    "subcategory": "Rights and Responsibilities",
+    "question": "What are two ways that Americans can participate in their democracy?",
+    "answers": [
+      "vote",
+      "join a political party",
+      "help with a campaign",
+      "join a civic group",
+      "join a community group",
+      "give an elected official your opinion on an issue",
+      "call Senators and Representatives",
+      "publicly support or oppose an issue or policy",
+      "run for office",
+      "write to a newspaper"
+    ],
+    "context": "Voting is only one form of civic participation among many the Constitution protects.",
+    "related_fact": "Petitioning the government -- writing, calling, showing up -- is itself a First Amendment-protected right, not just a courtesy.",
+    "date": "ongoing"
+  },
+  {
+    "id": 56,
+    "category": "American Government",
+    "subcategory": "Rights and Responsibilities",
+    "question": "When is the last day you can send in federal income tax forms?",
+    "answers": [
+      "April 15"
+    ],
+    "context": "This deadline is set by federal statute, not the Constitution, and can shift slightly for weekends and holidays.",
+    "related_fact": "The federal income tax itself only became permanent with the 16th Amendment in 1913.",
+    "date": "16th Amendment, 1913"
+  },
+  {
+    "id": 57,
+    "category": "American Government",
+    "subcategory": "Rights and Responsibilities",
+    "question": "When must all men register for the Selective Service?",
+    "answers": [
+      "at age eighteen (18)",
+      "between eighteen (18) and twenty-six (26)"
+    ],
+    "context": "Registration keeps a pool of eligible names on file in case a draft were ever reinstated -- there hasn't been an active draft since 1973.",
+    "related_fact": "Selective Service registration applies to male immigrants living in the U.S. too, including many green card holders.",
+    "date": "since 1980"
+  },
+  {
+    "id": 58,
+    "category": "American History",
+    "subcategory": "Colonial Period and Independence",
+    "question": "What is one reason colonists came to America?",
+    "answers": [
+      "freedom",
+      "political liberty",
+      "religious freedom",
+      "economic opportunity",
+      "practice their religion",
+      "escape persecution"
+    ],
+    "context": "Motives varied hugely by colony and era -- Puritans fleeing religious conflict, debtors seeking a fresh start, merchants chasing trade.",
+    "related_fact": "Many early colonists arrived as indentured servants, working years of unpaid labor to pay off the cost of the voyage.",
+    "date": "1600s-1700s"
+  },
+  {
+    "id": 59,
+    "category": "American History",
+    "subcategory": "Colonial Period and Independence",
+    "question": "Who lived in America before the Europeans arrived?",
+    "answers": [
+      "American Indians",
+      "Native Americans"
+    ],
+    "context": "Hundreds of distinct nations and cultures inhabited the continent for thousands of years before European contact.",
+    "related_fact": "Estimates of the pre-contact Native population of North America range from several million to over 10 million.",
+    "date": "pre-1492"
+  },
+  {
+    "id": 60,
+    "category": "American History",
+    "subcategory": "Colonial Period and Independence",
+    "question": "What group of people was taken to America and sold as slaves?",
+    "answers": [
+      "Africans",
+      "people from Africa"
+    ],
+    "context": "The transatlantic slave trade forcibly brought an estimated 12.5 million Africans across the Atlantic over roughly 350 years.",
+    "related_fact": "The first recorded Africans in English North America arrived at Point Comfort, Virginia, in 1619.",
+    "date": "1619 onward"
+  },
+  {
+    "id": 61,
+    "category": "American History",
+    "subcategory": "Colonial Period and Independence",
+    "question": "Why did the colonists fight the British?",
+    "answers": [
+      "because of high taxes (taxation without representation)",
+      "because the British army stayed in their houses (boarding, quartering)",
+      "because they didn't have self-government"
+    ],
+    "context": "Colonists paid taxes to a Parliament they had no elected representation in -- the core grievance behind 'taxation without representation.'",
+    "related_fact": "The Quartering Act, which forced colonists to house British troops, later inspired the Third Amendment.",
+    "date": "1765-1775"
+  },
+  {
+    "id": 62,
+    "category": "American History",
+    "subcategory": "Colonial Period and Independence",
+    "question": "Who wrote the Declaration of Independence?",
+    "answers": [
+      "(Thomas) Jefferson"
+    ],
+    "context": "Jefferson drafted it at 33, drawing on Enlightenment political philosophy, while a five-man committee reviewed and edited his text.",
+    "related_fact": "John Adams and Benjamin Franklin were both on that editing committee and made notable changes to Jefferson's draft.",
+    "date": "drafted 1776"
+  },
+  {
+    "id": 63,
+    "category": "American History",
+    "subcategory": "Colonial Period and Independence",
+    "question": "When was the Declaration of Independence adopted?",
+    "answers": [
+      "July 4, 1776"
+    ],
+    "context": "The Continental Congress voted for independence on July 2 but formally adopted the Declaration's text two days later.",
+    "related_fact": "Most delegates didn't actually sign the engrossed copy until August 2, 1776, weeks after adoption.",
+    "date": "July 4, 1776"
+  },
+  {
+    "id": 64,
+    "category": "American History",
+    "subcategory": "Colonial Period and Independence",
+    "question": "There were 13 original states. Name three.",
+    "answers": [
+      "New Hampshire",
+      "Massachusetts",
+      "Rhode Island",
+      "Connecticut",
+      "New York",
+      "New Jersey",
+      "Pennsylvania",
+      "Delaware",
+      "Maryland",
+      "Virginia",
+      "North Carolina",
+      "South Carolina",
+      "Georgia"
+    ],
+    "context": "These 13 British colonies declared independence together in 1776 and became the founding states of the Union.",
+    "related_fact": "The 13 stripes on the U.S. flag represent these same 13 original states, not the current 50.",
+    "date": "1776"
+  },
+  {
+    "id": 65,
+    "category": "American History",
+    "subcategory": "Colonial Period and Independence",
+    "question": "What happened at the Constitutional Convention?",
+    "answers": [
+      "The Constitution was written.",
+      "The Founding Fathers wrote the Constitution."
+    ],
+    "context": "Delegates gathered in Philadelphia originally just to revise the weak Articles of Confederation -- they ended up scrapping it and starting over.",
+    "related_fact": "The convention was held in total secrecy, with windows nailed shut through a Philadelphia summer, to allow open debate.",
+    "date": "May-Sept 1787"
+  },
+  {
+    "id": 66,
+    "category": "American History",
+    "subcategory": "Colonial Period and Independence",
+    "question": "When was the Constitution written?",
+    "answers": [
+      "1787"
+    ],
+    "context": "It took the Philadelphia convention about four months to draft, from May to September 1787.",
+    "related_fact": "It then took nearly a year longer for enough states to ratify it before it took effect in 1789.",
+    "date": "1787"
+  },
+  {
+    "id": 67,
+    "category": "American History",
+    "subcategory": "Colonial Period and Independence",
+    "question": "The Federalist Papers supported the passage of the U.S. Constitution. Name one of the writers.",
+    "answers": [
+      "(James) Madison",
+      "(Alexander) Hamilton",
+      "(John) Jay",
+      "Publius"
+    ],
+    "context": "These 85 essays, published under the pen name 'Publius,' argued state by state for ratifying the new Constitution.",
+    "related_fact": "Hamilton wrote the majority of the essays -- around 51 of the 85 -- often at a punishing writing pace.",
+    "date": "1787-1788"
+  },
+  {
+    "id": 68,
+    "category": "American History",
+    "subcategory": "Colonial Period and Independence",
+    "question": "What is one thing Benjamin Franklin is famous for?",
+    "answers": [
+      "U.S. diplomat",
+      "oldest member of the Constitutional Convention",
+      "first Postmaster General of the United States",
+      "writer of 'Poor Richard's Almanac'",
+      "started the first free libraries"
+    ],
+    "context": "Franklin was 81 at the Constitutional Convention, decades older than most other delegates, and had already lived several careers.",
+    "related_fact": "He's the only Founding Father to have signed all four major founding documents: the Declaration, the Treaty of Paris, the Treaty of Alliance with France, and the Constitution.",
+    "date": "1706-1790"
+  },
+  {
+    "id": 69,
+    "category": "American History",
+    "subcategory": "Colonial Period and Independence",
+    "question": "Who is the 'Father of Our Country'?",
+    "answers": [
+      "(George) Washington"
+    ],
+    "context": "Washington led the Continental Army through the Revolution and then set the precedent of a peaceful transfer of power by voluntarily stepping down.",
+    "related_fact": "He could have likely been President for life or even king -- he refused both.",
+    "date": "1732-1799"
+  },
+  {
+    "id": 70,
+    "category": "American History",
+    "subcategory": "Colonial Period and Independence",
+    "question": "Who was the first President?",
+    "answers": [
+      "(George) Washington"
+    ],
+    "context": "Washington was elected unanimously by the Electoral College -- the only President in history to receive every vote.",
+    "related_fact": "He was inaugurated in New York City, then the nation's capital, not Washington D.C., which didn't exist yet.",
+    "date": "inaugurated 1789"
+  },
+  {
+    "id": 71,
+    "category": "American History",
+    "subcategory": "1800s",
+    "question": "What territory did the United States buy from France in 1803?",
+    "answers": [
+      "the Louisiana Territory",
+      "Louisiana"
+    ],
+    "context": "The purchase roughly doubled the size of the United States overnight for about $15 million -- a few cents an acre.",
+    "related_fact": "Napoleon sold it partly to fund his European wars and because he'd lost the ability to defend it after the Haitian Revolution.",
+    "date": "1803"
+  },
+  {
+    "id": 72,
+    "category": "American History",
+    "subcategory": "1800s",
+    "question": "Name one war fought by the United States in the 1800s.",
+    "answers": [
+      "War of 1812",
+      "Mexican-American War",
+      "Civil War",
+      "Spanish-American War"
+    ],
+    "context": "The 1800s bracketed a young, expanding nation, from the War of 1812 through westward expansion to a war with Spain that made the U.S. a colonial power.",
+    "related_fact": "The White House was set on fire by British troops during the War of 1812.",
+    "date": "1800s"
+  },
+  {
+    "id": 73,
+    "category": "American History",
+    "subcategory": "1800s",
+    "question": "Name the U.S. war between the North and the South.",
+    "answers": [
+      "the Civil War"
+    ],
+    "context": "It remains the deadliest war in American history, with roughly 620,000-750,000 deaths.",
+    "related_fact": "It began at Fort Sumter, South Carolina, in April 1861 and ended with Confederate surrender in April 1865.",
+    "date": "1861-1865"
+  },
+  {
+    "id": 74,
+    "category": "American History",
+    "subcategory": "1800s",
+    "question": "Name one problem that led to the Civil War.",
+    "answers": [
+      "slavery",
+      "economic reasons",
+      "states' rights"
+    ],
+    "context": "Slavery's expansion into new territories was the central, unresolved conflict; economic and states'-rights arguments largely orbited around defending it.",
+    "related_fact": "Confederate declarations of secession explicitly named the preservation of slavery as a primary cause.",
+    "date": "1850s-1861"
+  },
+  {
+    "id": 75,
+    "category": "American History",
+    "subcategory": "1800s",
+    "question": "What was one important thing that Abraham Lincoln did?",
+    "answers": [
+      "freed the slaves (Emancipation Proclamation)",
+      "saved (or preserved) the Union",
+      "led the United States during the Civil War"
+    ],
+    "context": "Lincoln held the Union together through the war and moved the country toward ending slavery, though full abolition needed the 13th Amendment.",
+    "related_fact": "Lincoln was assassinated just five days after Confederate General Lee's surrender at Appomattox.",
+    "date": "presidency 1861-1865"
+  },
+  {
+    "id": 76,
+    "category": "American History",
+    "subcategory": "1800s",
+    "question": "What did the Emancipation Proclamation do?",
+    "answers": [
+      "freed the slaves",
+      "freed slaves in the Confederacy",
+      "freed slaves in the Confederate states",
+      "freed slaves in most Southern states"
+    ],
+    "context": "It only applied to Confederate territory not under Union control -- it didn't free enslaved people in border states that stayed loyal to the Union.",
+    "related_fact": "Full, nationwide abolition required the 13th Amendment two years later, in 1865.",
+    "date": "January 1, 1863"
+  },
+  {
+    "id": 77,
+    "category": "American History",
+    "subcategory": "1800s",
+    "question": "What did Susan B. Anthony do?",
+    "answers": [
+      "fought for women's rights",
+      "fought for civil rights"
+    ],
+    "context": "She was arrested and fined for illegally voting in 1872, decades before women legally won that right.",
+    "related_fact": "She died in 1906, 14 years before the 19th Amendment gave women the vote nationwide in 1920.",
+    "date": "1820-1906"
+  },
+  {
+    "id": 78,
+    "category": "American History",
+    "subcategory": "Recent American History and Other Important Historical Information",
+    "question": "Name one war fought by the United States in the 1900s.",
+    "answers": [
+      "World War I",
+      "World War II",
+      "Korean War",
+      "Vietnam War",
+      "(Persian) Gulf War"
+    ],
+    "context": "The 20th century saw the U.S. become a global military power across two world wars and several Cold War-era conflicts.",
+    "related_fact": "The U.S. entered World War I in 1917 and World War II in 1941 -- both after years of staying officially neutral.",
+    "date": "1900s"
+  },
+  {
+    "id": 79,
+    "category": "American History",
+    "subcategory": "Recent American History and Other Important Historical Information",
+    "question": "Who was President during World War I?",
+    "answers": [
+      "(Woodrow) Wilson"
+    ],
+    "context": "Wilson led the U.S. into the war in 1917 after campaigning for reelection on keeping the country out of it.",
+    "related_fact": "Wilson later pushed for the League of Nations, a precursor to the UN -- but the U.S. Senate refused to join it.",
+    "date": "presidency 1913-1921"
+  },
+  {
+    "id": 80,
+    "category": "American History",
+    "subcategory": "Recent American History and Other Important Historical Information",
+    "question": "Who was President during the Great Depression and World War II?",
+    "answers": [
+      "(Franklin) Roosevelt"
+    ],
+    "context": "Roosevelt served an unprecedented four terms, launching the New Deal and leading the U.S. through most of WWII.",
+    "related_fact": "His long tenure directly led to the 22nd Amendment, which later capped presidents at two terms.",
+    "date": "presidency 1933-1945"
+  },
+  {
+    "id": 81,
+    "category": "American History",
+    "subcategory": "Recent American History and Other Important Historical Information",
+    "question": "Who did the United States fight in World War II?",
+    "answers": [
+      "Japan, Germany, and Italy"
+    ],
+    "context": "These were the three main Axis powers; the U.S. entered the war formally after the attack on Pearl Harbor.",
+    "related_fact": "The U.S. fought a genuine two-front war -- against Japan in the Pacific and Germany/Italy in Europe -- simultaneously.",
+    "date": "1941-1945"
+  },
+  {
+    "id": 82,
+    "category": "American History",
+    "subcategory": "Recent American History and Other Important Historical Information",
+    "question": "Before he was President, Eisenhower was a general. What war was he in?",
+    "answers": [
+      "World War II"
+    ],
+    "context": "Eisenhower served as Supreme Allied Commander in Europe, overseeing the D-Day invasion of Normandy.",
+    "related_fact": "He later became President in 1953, one of very few generals to make that direct leap.",
+    "date": "WWII service 1941-1945"
+  },
+  {
+    "id": 83,
+    "category": "American History",
+    "subcategory": "Recent American History and Other Important Historical Information",
+    "question": "During the Cold War, what was the main concern of the United States?",
+    "answers": [
+      "Communism"
+    ],
+    "context": "The decades-long standoff with the Soviet Union was defined by competing economic and political systems rather than direct military combat between the two powers.",
+    "related_fact": "The Cold War never involved direct U.S.-Soviet combat, but it fueled proxy wars in Korea, Vietnam, and elsewhere.",
+    "date": "roughly 1947-1991"
+  },
+  {
+    "id": 84,
+    "category": "American History",
+    "subcategory": "Recent American History and Other Important Historical Information",
+    "question": "What movement tried to end racial discrimination?",
+    "answers": [
+      "civil rights (movement)"
+    ],
+    "context": "The movement used protests, litigation, and legislation to dismantle Jim Crow segregation, especially through the 1950s-60s.",
+    "related_fact": "It produced two landmark federal laws in quick succession: the Civil Rights Act of 1964 and the Voting Rights Act of 1965.",
+    "date": "1950s-1960s"
+  },
+  {
+    "id": 85,
+    "category": "American History",
+    "subcategory": "Recent American History and Other Important Historical Information",
+    "question": "What did Martin Luther King, Jr. do?",
+    "answers": [
+      "fought for civil rights",
+      "worked for equality for all Americans"
+    ],
+    "context": "King led the movement's nonviolent-resistance strategy, most famously through the 1963 March on Washington.",
+    "related_fact": "He won the Nobel Peace Prize in 1964 at age 35, one of the youngest laureates ever.",
+    "date": "1929-1968"
+  },
+  {
+    "id": 86,
+    "category": "American History",
+    "subcategory": "Recent American History and Other Important Historical Information",
+    "question": "What major event happened on September 11, 2001, in the United States?",
+    "answers": [
+      "Terrorists attacked the United States."
+    ],
+    "context": "Coordinated hijacked-plane attacks struck the World Trade Center and the Pentagon, and a fourth plane crashed in Pennsylvania.",
+    "related_fact": "It remains the deadliest terrorist attack in world history, killing nearly 3,000 people.",
+    "date": "September 11, 2001"
+  },
+  {
+    "id": 87,
+    "category": "American History",
+    "subcategory": "Recent American History and Other Important Historical Information",
+    "question": "Name one American Indian tribe in the United States.",
+    "answers": [
+      "Cherokee",
+      "Navajo",
+      "Sioux",
+      "Chippewa",
+      "Choctaw",
+      "Pueblo",
+      "Apache",
+      "Iroquois",
+      "Creek",
+      "Blackfeet",
+      "Seminole",
+      "Cheyenne",
+      "Arawak",
+      "Shawnee",
+      "Mohegan",
+      "Huron",
+      "Oneida",
+      "Lakota",
+      "Crow",
+      "Teton",
+      "Hopi",
+      "Inuit"
+    ],
+    "context": "The federal government formally recognizes hundreds of distinct tribal nations today, each with its own history and government.",
+    "related_fact": "The Navajo Nation is the largest reservation in the U.S. by land area, spanning parts of Arizona, New Mexico, and Utah.",
+    "date": "ongoing"
+  },
+  {
+    "id": 88,
+    "category": "Integrated Civics",
+    "subcategory": "Geography",
+    "question": "Name one of the two longest rivers in the United States.",
+    "answers": [
+      "Missouri (River)",
+      "Mississippi (River)"
+    ],
+    "context": "The Missouri and Mississippi are close competitors for longest, and together they drain a huge share of the central U.S.",
+    "related_fact": "The Missouri River is technically slightly longer than the Mississippi, though the Mississippi is far more famous.",
+    "date": "geography"
+  },
+  {
+    "id": 89,
+    "category": "Integrated Civics",
+    "subcategory": "Geography",
+    "question": "What ocean is on the West Coast of the United States?",
+    "answers": [
+      "Pacific (Ocean)"
+    ],
+    "context": "The Pacific borders California, Oregon, Washington, Alaska, and Hawaii.",
+    "related_fact": "It's the largest and deepest ocean on Earth, covering roughly a third of the planet's surface.",
+    "date": "geography"
+  },
+  {
+    "id": 90,
+    "category": "Integrated Civics",
+    "subcategory": "Geography",
+    "question": "What ocean is on the East Coast of the United States?",
+    "answers": [
+      "Atlantic (Ocean)"
+    ],
+    "context": "The Atlantic borders the original 13 colonies, which is why nearly all of early American history happened on its shores.",
+    "related_fact": "The Atlantic is the second-largest ocean, roughly half the size of the Pacific.",
+    "date": "geography"
+  },
+  {
+    "id": 91,
+    "category": "Integrated Civics",
+    "subcategory": "Geography",
+    "question": "Name one U.S. territory.",
+    "answers": [
+      "Puerto Rico",
+      "U.S. Virgin Islands",
+      "American Samoa",
+      "Northern Mariana Islands",
+      "Guam"
+    ],
+    "context": "Residents of these territories are largely U.S. citizens or nationals but cannot vote for President and have no full voting member of Congress.",
+    "related_fact": "Puerto Rico has voted in multiple non-binding referendums on statehood, with mixed and contested results.",
+    "date": "ongoing status"
+  },
+  {
+    "id": 92,
+    "category": "Integrated Civics",
+    "subcategory": "Geography",
+    "question": "Name one state that borders Canada.",
+    "answers": [
+      "Maine",
+      "New Hampshire",
+      "Vermont",
+      "New York",
+      "Pennsylvania",
+      "Ohio",
+      "Michigan",
+      "Minnesota",
+      "North Dakota",
+      "Montana",
+      "Idaho",
+      "Washington",
+      "Alaska"
+    ],
+    "context": "The U.S.-Canada border, including Alaska, is the longest international border in the world.",
+    "related_fact": "It stretches roughly 5,525 miles, or about 8,891 kilometers.",
+    "date": "geography"
+  },
+  {
+    "id": 93,
+    "category": "Integrated Civics",
+    "subcategory": "Geography",
+    "question": "Name one state that borders Mexico.",
+    "answers": [
+      "California",
+      "Arizona",
+      "New Mexico",
+      "Texas"
+    ],
+    "context": "These four states share the roughly 1,954-mile U.S.-Mexico border.",
+    "related_fact": "Texas has the longest stretch of that border of any of the four states.",
+    "date": "geography"
+  },
+  {
+    "id": 94,
+    "category": "Integrated Civics",
+    "subcategory": "Geography",
+    "question": "What is the capital of the United States?",
+    "answers": [
+      "Washington, D.C."
+    ],
+    "context": "The capital sits in a federal district, not a state, specifically so no single state would host and dominate the national government.",
+    "related_fact": "Residents of D.C. couldn't vote for President at all until the 23rd Amendment in 1961, and still have no full voting member of Congress.",
+    "date": "capital since 1800"
+  },
+  {
+    "id": 95,
+    "category": "Integrated Civics",
+    "subcategory": "Geography",
+    "question": "Where is the Statue of Liberty?",
+    "answers": [
+      "New York (Harbor)",
+      "Liberty Island"
+    ],
+    "context": "It was a gift from France, dedicated in 1886, and became a symbolic first sight for millions of immigrants arriving by sea.",
+    "related_fact": "Nearby Ellis Island processed over 12 million immigrants between 1892 and 1954.",
+    "date": "dedicated 1886"
+  },
+  {
+    "id": 96,
+    "category": "Integrated Civics",
+    "subcategory": "Symbols",
+    "question": "Why does the flag have 13 stripes?",
+    "answers": [
+      "because there were 13 original colonies",
+      "because the stripes represent the original colonies"
+    ],
+    "context": "The stripe count was frozen at 13 by law in 1818, even as new states and stars were added, to honor the founding colonies permanently.",
+    "related_fact": "Before that 1818 law, the flag briefly had 15 stripes to reflect two new states -- Congress then reversed course.",
+    "date": "fixed 1818"
+  },
+  {
+    "id": 97,
+    "category": "Integrated Civics",
+    "subcategory": "Symbols",
+    "question": "Why does the flag have 50 stars?",
+    "answers": [
+      "because there is one star for each state",
+      "because each star represents a state",
+      "because there are 50 states"
+    ],
+    "context": "Unlike the fixed stripes, the star count has changed 26 times in U.S. history as new states joined the Union.",
+    "related_fact": "The current 50-star design has been unchanged since 1960, the longest-running version of the flag in history.",
+    "date": "since 1960"
+  },
+  {
+    "id": 98,
+    "category": "Integrated Civics",
+    "subcategory": "Symbols",
+    "question": "What is the name of the national anthem?",
+    "answers": [
+      "The Star-Spangled Banner"
+    ],
+    "context": "Francis Scott Key wrote the lyrics in 1814 while watching a British bombardment of Fort McHenry, seeing the flag still standing at dawn.",
+    "related_fact": "It wasn't officially made the national anthem by Congress until 1931, over a century after it was written.",
+    "date": "written 1814; official 1931"
+  },
+  {
+    "id": 99,
+    "category": "Integrated Civics",
+    "subcategory": "Holidays",
+    "question": "When do we celebrate Independence Day?",
+    "answers": [
+      "July 4"
+    ],
+    "context": "It marks the date the Declaration's text was formally adopted by the Continental Congress, not the vote for independence itself.",
+    "related_fact": "2026 marks the Semiquincentennial -- the 250th anniversary of that adoption.",
+    "date": "July 4"
+  },
+  {
+    "id": 100,
+    "category": "Integrated Civics",
+    "subcategory": "Holidays",
+    "question": "Name two national U.S. holidays.",
+    "answers": [
+      "New Year's Day",
+      "Martin Luther King, Jr. Day",
+      "Presidents' Day",
+      "Memorial Day",
+      "Juneteenth",
+      "Independence Day",
+      "Labor Day",
+      "Columbus Day",
+      "Veterans Day",
+      "Thanksgiving",
+      "Christmas"
+    ],
+    "context": "Federal holidays are set by Congress and apply to federal employees and the federal calendar, though most states follow suit.",
+    "related_fact": "Juneteenth became the newest federal holiday in 2021, marking the 1865 announcement of emancipation in Texas.",
+    "date": "federal holidays, various"
+  }
 ]
