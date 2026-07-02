@@ -21,6 +21,16 @@ EAGLE = f"""{BOLD}{BLUE}
 {RESET}{DIM}                 est. 1776 -- still ringing, barely{RESET}
 """
 
+# Plain (no ANSI) variants -- for Textual/Rich widgets, which use their own
+# markup syntax ([red]...[/red]) and would render raw \033[ codes as garbage.
+EAGLE_PLAIN = """
+        .  *  .    /=\\   .  *  .
+           *   .--( o )--.  *
+             _/  /_____\\  \\_
+            (___/       \\___)
+                 est. 1776 -- still ringing, barely
+"""
+
 _WRONG = [
     "Wrong. I'd crack again if I could.",
     "No. I've heard worse, but not by much.",
@@ -58,10 +68,23 @@ def perfect():
     return f"{GOLD}{BOLD}THE BELL:{RESET} {random.choice(_PERFECT)}"
 
 
+def wrong_plain():
+    return f"THE BELL: {random.choice(_WRONG)}"
+
+
+def right_plain():
+    return f"THE BELL: {random.choice(_RIGHT)}"
+
+
 def ticker(quotes):
     """One-line marquee of a real founding-era quote, picked fresh each call."""
     q = random.choice(quotes)
     return f"{DIM}~~~ {q['quote']} -- {q['person']} ~~~{RESET}"
+
+
+def ticker_plain(quotes):
+    q = random.choice(quotes)
+    return f"{q['quote']} -- {q['person']}"
 
 
 MEDALS = [
@@ -101,4 +124,25 @@ def telegram(mode, score, total, elapsed_s=None):
     else:
         lines.append(f"{DIM}THE BELL SENDS REGARDS STOP GRUDGINGLY STOP{RESET}")
     lines.append(f"{GOLD}{BOLD}*****************************{RESET}")
+    return "\n".join(lines)
+
+
+def telegram_plain(mode, score, total, elapsed_s=None):
+    """Same telegram, no ANSI -- caller wraps in Rich markup if it wants color."""
+    passed = total and score / total >= 0.6
+    m = medal(score, total)
+    lines = [
+        "********* TELEGRAM *********",
+        f"RESULT MODE {mode.upper()} STOP",
+        f"SCORE {score} OF {total} STOP",
+    ]
+    if elapsed_s is not None:
+        lines.append(f"TIME {elapsed_s:.1f}S STOP")
+    lines.append("STATUS PASSED STOP" if passed else "STATUS KEEP STUDYING STOP")
+    lines.append(f"MEDAL {m} STOP")
+    if total and score == total:
+        lines.append("THE BELL SENDS REGARDS STOP ENTHUSIASTICALLY STOP")
+    else:
+        lines.append("THE BELL SENDS REGARDS STOP GRUDGINGLY STOP")
+    lines.append("*****************************")
     return "\n".join(lines)
