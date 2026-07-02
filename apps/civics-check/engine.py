@@ -44,6 +44,10 @@ def load_states():
     return _load("states.json")
 
 
+def load_debate():
+    return _load("debate.json")
+
+
 def today_events():
     key = date.today().strftime("%m-%d")
     return load_on_this_day().get(key, [])

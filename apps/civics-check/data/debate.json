@@ -1,0 +1,40 @@
+[
+  {
+    "topic": "Executive Power",
+    "exchanges": [
+      {
+        "speaker": "Trump",
+        "quote": "Then I have an Article 2, where I have the right to do whatever I want as President.",
+        "occasion": "Remarks at Turning Point USA's Teen Student Action Summit, Washington, D.C.",
+        "date": "July 23, 2019",
+        "citation": "trumpwhitehouse.archives.gov (official White House transcript)"
+      },
+      {
+        "speaker": "Obama",
+        "quote": "I've got a pen and I've got a phone -- and I can use that pen to sign executive orders and take executive actions and administrative actions that move the ball forward.",
+        "occasion": "Remarks by the President Before Cabinet Meeting, White House",
+        "date": "January 14, 2014",
+        "citation": "obamawhitehouse.archives.gov (official White House transcript)"
+      }
+    ]
+  },
+  {
+    "topic": "The Courts",
+    "exchanges": [
+      {
+        "speaker": "Obama",
+        "quote": "Now, imagine the power this will give special interests over politicians.",
+        "occasion": "Remarks on the Citizens United decision and the DISCLOSE Act, Rose Garden, White House",
+        "date": "July 26, 2010",
+        "citation": "obamawhitehouse.archives.gov (official White House blog transcript)"
+      },
+      {
+        "speaker": "Trump",
+        "quote": "The Supreme Court's ruling on tariffs is deeply disappointing, and I'm ashamed of certain members of the court, absolutely ashamed for not having the courage to do what's right for our country.",
+        "occasion": "Remarks at the White House after the Supreme Court's tariff ruling",
+        "date": "February 20, 2026",
+        "citation": "NBC News, direct quotation (Lawrence Hurley)"
+      }
+    ]
+  }
+]

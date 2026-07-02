@@ -114,11 +114,30 @@ def _amendments_cards():
     ]
 
 
+def _debate_cards():
+    """Easter egg: real, sourced quotes from Obama and Trump on shared constitutional
+    topics, arranged as a straight-faced juxtaposition. No paraphrase, no invented
+    dialogue -- every line is verbatim and cited (see data/debate.json)."""
+    cards = []
+    for topic in engine.load_debate():
+        cards.append((f"CONSTITUTIONAL DEBATE: {topic['topic']}", "real quotes, real dates, no editorializing", "", "", ""))
+        for ex in topic["exchanges"]:
+            cards.append((
+                ex["speaker"],
+                f"{ex['occasion']} -- {ex['date']}",
+                f'"{ex["quote"]}"',
+                "",
+                ex["citation"],
+            ))
+    return cards
+
+
 BROWSE_SOURCES = {
     "colonies": _colonies_cards,
     "on_this_day": _on_this_day_cards,
     "signers": _signers_cards,
     "amendments": _amendments_cards,
+    "debate": _debate_cards,
 }
 
 
@@ -284,6 +303,7 @@ if TEXTUAL_OK:
             Binding("ctrl+c", "quit", "Quit", show=True),
             Binding("escape", "collapse", "Back to modes", show=True),
             Binding("ctrl+b", "bell_easter_egg", "Ring the Bell", show=False),
+            Binding("ctrl+d", "debate_easter_egg", "Debate", show=False),
         ]
 
         def __init__(self) -> None:
@@ -380,6 +400,9 @@ if TEXTUAL_OK:
                 "THE BELL: ring me again and see what happens. (nothing will happen.)",
                 "THE BELL: 250 years and you're pressing buttons at me.",
             ]), title="the Bell", timeout=4)
+
+        def action_debate_easter_egg(self) -> None:
+            self._start_mode("debate", "Constitutional Debate", "browse")
 
         def _pop_to_runner(self):
             self.query_one("#mode-select", Vertical).styles.display = "none"
