@@ -1,856 +1,960 @@
 #!/usr/bin/env python3
-"""Civics Check dashboard -- Textual TUI. America's 250th, with cards.
+"""Civics Check — Freedom 250 fair map TUI (Textual).
+
+Surface: parchment civics fair with pavilion lanes.
+Underground: DIENAMIC debate easter egg (109 or ctrl+d).
 
 Usage:
   python3 tui.py
-  make tui app=civics-check
-
-Falls back to nothing gracefully: if textual isn't installed, this prints
-a one-line message and exits. app.py (pure stdlib) always works regardless.
-
-Palette follows the SAFE Design System's Terminal-surface token structure
-(bg / panel / input / border / fg, one primary accent) -- but civics-check
-gets its own accent trio (red/blue/gold) rather than SAFE's orange, per the
-house rule that every app carries family resemblance, not a shared skin.
+  make tui
 """
 from __future__ import annotations
 
 import datetime
 import random
-import time
 
 import bell
 import db
 import engine
+import tui_art
+from civics.session import ActivitySession
 
 try:
     from rich.markup import escape
     from textual.app import App, ComposeResult
     from textual.binding import Binding
-    from textual.containers import Grid, Horizontal, Vertical, VerticalScroll
-    from textual.message import Message
-    from textual.widgets import Footer, Header, Input, Static
+    from textual.containers import Horizontal, Vertical, VerticalScroll
+    from textual.screen import Screen
+    from textual.widgets import Input, ListItem, ListView, Static
 
     TEXTUAL_OK = True
 except ImportError:
     TEXTUAL_OK = False
 
+# ── Parchment surface (civics_tui_scope.json) ─────────────────────────────────
+# Richer amber than #e8d4a8 — reads as parchment on bright terminals, not white.
 
-# ── Palette -- SAFE Terminal token structure, civics-check's own accents ────
+PARCHMENT = "#c9a85c"
+PARCHMENT_DEEP = "#b89248"
+PARCHMENT_LIGHT = "#e2c992"
+INK = "#1a1008"
+INK_MUTED = "#4a3828"
+ACCENT = "#3d5166"
+BRASS = "#6b4e0a"
+RULE = "#8a7040"
+NAVY = "#1a2744"
+NAVY_LIGHT = "#2a3d66"
+STRIPES = "#8b1a1a"
+GOLD = "#d4a017"
+FLAG_FIELD = "#2a4a8a"
+FLAG_STAR = "#f0e4c8"
+CREAM = "#f0e4c8"
+CURTAIN_BG = "#3f0c0c"  # matches tui_art curtain texture background
 
-BG = "#0d0d0d"
-PANEL = "#111111"
-INPUT_BG = "#1a1a1a"
-BORDER = "#2a2a2a"
-FG = "#f5f5f0"
-FG_MUTED = "#888888"
-RED = "#e63946"
-BLUE = "#457b9d"
-GOLD = "#f4a300"
-
-# DIENAMIC palette -- the debate easter egg's own hard-inverted world.
-# Falling through the floor of the civics tool into the factory beneath it.
+# DIENAMIC underground
 DEBATE_BG = "#e8d100"
 DEBATE_FG = "#0a0a0a"
 OBAMA_COLOR = "#00bcd4"
 TRUMP_COLOR = "#d97706"
 
+KIND_ORDER = ("quiz", "pick", "match", "sort", "states", "duel", "browse", "debate")
 
-def span(text, fg, bg, bold=False):
-    """Rich markup span with an EXPLICIT background. Rich paints an implicit
-    black background under any span that only sets a foreground color --
-    invisible on this app's near-black panels, but glaring against the
-    debate view's yellow. Always pair fg+bg explicitly, never rely on
-    inheriting the widget's CSS background."""
+FIREWORK_FRAMES = tui_art.FIREWORK_FRAMES
+
+
+def span(text: str, fg: str, bg: str, bold: bool = False) -> str:
     style = f"bold {fg} on {bg}" if bold else f"{fg} on {bg}"
-    return f"[{style}]{text}[/]"
-
-MODES = [
-    ("naturalization", "Naturalization Quiz", "10 real USCIS questions", "quiz"),
-    ("missed", "Missed Review", "resurface what you got wrong", "quiz"),
-    ("states", "State Matchup", "capitals + admission order", "states"),
-    ("timeline", "Timeline Sort", "order 8 events by year", "timeline"),
-    ("colonies", "13 Colonies", "flashcards, founding to founding", "browse"),
-    ("on_this_day", "On This Day", "today in the founding era", "browse"),
-    ("quotes", "Quote Match", "who said it", "quotes"),
-    ("signers", "Declaration Signers", "13 lives, 13 cards", "browse"),
-    ("amendments", "Amendment Explorer", "browse or quiz all 27", "browse"),
-    ("speed", "Speed Round", "60 seconds, no mercy", "quiz"),
-    ("duel", "Pass-the-Keyboard Duel", "two players, one keyboard", "duel"),
-]
-
-EAGLE_FRAMES = [
-    """
-        .  *  .    /=\\   .  *  .
-           *   .--( o )--.  *
-             _/  /_____\\  \\_
-            (___/       \\___)
-""",
-    """
-        .  *  .    /=\\   .  *  .
-           *   .--( o )--.  *
-            _/  /_______\\  \\_
-           (___/         \\___)
-""",
-]
-
-FIREWORK_FRAMES = [
-    "        .        *          .    ",
-    "      \\  |  /   \\ | /    .       ",
-    "    -- * --  *  -- * --   \\|/    ",
-    "      /  |  \\   / | \\   -- * --  ",
-    "        '        '        /|\\    ",
-]
+    return f"[{style}]{escape(text)}[/]"
 
 
-def _colonies_cards():
-    return [
-        (c["name"], f"founded {c['founded']} by {c['founder']}", c["fact"], c.get("context", ""), c.get("source", ""))
-        for c in engine.load_colonies()
-    ]
+def activities_for_pavilion(pavilion_id: str) -> list[dict]:
+    return [a for a in engine.get_catalog().activities if a.get("pavilion") == pavilion_id]
 
 
-def _signers_cards():
-    return [
-        (s["name"], s["state"], s["fact"], s.get("context", ""), s.get("source", ""))
-        for s in engine.load_signers()
-    ]
+def primary_activity_id(pavilion_id: str) -> str | None:
+    acts = activities_for_pavilion(pavilion_id)
+    if not acts:
+        return None
+    for kind in KIND_ORDER:
+        for act in acts:
+            if act.get("kind") == kind:
+                return act["id"]
+    return acts[0]["id"]
 
 
-def _on_this_day_cards():
-    events = engine.today_events()
-    if not events:
-        return [("No events today", "", "Try July 4th weekend for the good stuff.", "", "")]
-    return [("On this day", "", e, "", "") for e in events]
+def pavilion_activities(pavilion_id: str) -> list[tuple[str, str, str]]:
+    """(activity_id, label, hint) for pavilion sub-menu."""
+    rows = []
+    for act in activities_for_pavilion(pavilion_id):
+        label = act["id"].replace("-", " ").title()
+        hint = act.get("kind", "")
+        if act["id"] == "amendment-quiz":
+            label = "Amendment Quiz"
+        rows.append((act["id"], label, hint))
+    return rows
 
 
-def _amendments_cards():
-    return [
-        (f"Amendment {a['number']}", str(a["year"]), a["summary"], a.get("context", ""), a.get("source", ""))
-        for a in engine.load_amendments()
-    ]
-
-
-def _debate_cards():
-    """Easter egg: real, sourced quotes from Obama and Trump on shared constitutional
-    topics, arranged as a straight-faced juxtaposition. No paraphrase, no invented
-    dialogue -- every line is verbatim and cited (see data/debate.json)."""
-    cards = []
-    for topic in engine.load_debate():
-        cards.append((f"CONSTITUTIONAL DEBATE: {topic['topic']}", "real quotes, real dates, no editorializing", "", "", ""))
-        for ex in topic["exchanges"]:
-            cards.append((
-                ex["speaker"],
-                f"{ex['occasion']} -- {ex['date']}",
-                f'"{ex["quote"]}"',
-                "",
-                ex["citation"],
-            ))
-    return cards
-
-
-BROWSE_SOURCES = {
-    "colonies": _colonies_cards,
-    "on_this_day": _on_this_day_cards,
-    "signers": _signers_cards,
-    "amendments": _amendments_cards,
-    "debate": _debate_cards,
-}
+# App-wide base — Textual's default theme paints widgets white unless overridden here.
+APP_BASE_CSS = f"""
+Screen {{
+    background: {PARCHMENT};
+    color: {INK};
+}}
+Static, Horizontal, Vertical, VerticalScroll {{
+    background: {PARCHMENT};
+    color: {INK};
+}}
+ListView {{
+    background: {PARCHMENT};
+    border: none;
+    scrollbar-color: {ACCENT};
+    scrollbar-background: {PARCHMENT_DEEP};
+}}
+ListView:focus {{
+    background: {PARCHMENT};
+}}
+ListItem {{
+    padding: 0 1;
+    background: {PARCHMENT};
+    color: {INK};
+}}
+ListItem Static {{
+    background: {PARCHMENT};
+    color: {INK};
+}}
+ListItem:hover, ListItem:hover Static {{
+    background: {PARCHMENT_DEEP};
+}}
+ListItem.--highlight, ListItem.--highlight Static {{
+    background: {ACCENT};
+    color: {PARCHMENT_LIGHT};
+}}
+Input {{
+    background: {PARCHMENT_DEEP};
+    color: {INK};
+    border: tall {RULE};
+}}
+Input:focus {{
+    border: tall {BRASS};
+}}
+"""
 
 
 if TEXTUAL_OK:
 
-    class ModeCard(Static):
-        """A dressed-up tile in the mode grid. Click it, it pops out to run."""
+    from textual.app import App
 
-        def __init__(self, key, title, subtitle, **kwargs):
-            super().__init__(**kwargs)
-            self.mode_key = key
-            self.mode_title = title
-            self.mode_subtitle = subtitle
-            self.can_focus = True
+    def enter_underground(app: App) -> None:
+        """Ceremonial rupture: parchment fair → DIENAMIC debate."""
+        app.push_screen(FallThroughScreen())
 
-        def on_mount(self) -> None:
-            self.update(f"[bold]{escape(self.mode_title)}[/bold]\n[dim]{escape(self.mode_subtitle)}[/dim]")
-
-        def on_click(self) -> None:
-            self.post_message(self.Picked(self, self.mode_key))
-
-        def on_key(self, event) -> None:
-            if event.key == "enter":
-                self.post_message(self.Picked(self, self.mode_key))
-
-        class Picked(Message):
-            def __init__(self, card: "ModeCard", key: str) -> None:
-                self.card = card
-                self.key = key
-                super().__init__()
-
-    class CivicsCheckApp(App):
-        """America's 250th, as a dashboard."""
-
-        TITLE = "CIVICS CHECK"
-        SUB_TITLE = "America's 250th -- 1776 * 2026"
+    class FallThroughScreen(Screen):
+        """109-second energy in three frames — floor gives way."""
 
         CSS = f"""
-        Screen {{
-            layout: vertical;
-            background: {BG};
-            color: {FG};
+        FallThroughScreen {{
+            background: {DEBATE_BG};
+            color: {DEBATE_FG};
+            align: center middle;
         }}
-
-        #body {{
-            height: 1fr;
-        }}
-
-        #sidebar {{
-            width: 30;
-            background: {PANEL};
-            border-right: solid {BORDER};
-            padding: 0 1;
-        }}
-
-        #sidebar-header {{
-            height: 1;
-            color: {GOLD};
-            text-style: bold;
-            padding: 0 1;
-            margin-top: 1;
-        }}
-
-        #scoreboard {{
-            height: 1fr;
-        }}
-
-        #ticker {{
-            height: 2;
-            color: {FG_MUTED};
-            padding: 0 1;
-            text-style: italic;
-        }}
-
-        #main {{
-            width: 1fr;
-            padding: 0 1;
-        }}
-
-        #mode-grid {{
-            layout: grid;
-            grid-size: 3;
-            grid-gutter: 1 2;
-            padding: 1;
-            height: 1fr;
-        }}
-
-        ModeCard {{
-            background: {PANEL};
-            border: heavy {BORDER};
-            padding: 1 2;
-            height: 5;
-        }}
-
-        ModeCard:hover {{
-            border: heavy {GOLD};
-            background: {INPUT_BG};
-        }}
-
-        ModeCard:focus {{
-            border: heavy {BLUE};
-        }}
-
-        #eagle-banner {{
-            height: 6;
+        #fall-text {{
+            width: 100%;
+            height: 100%;
             content-align: center middle;
-            color: {BLUE};
             text-style: bold;
-        }}
-
-        #runner {{
-            height: 1fr;
-            display: none;
-        }}
-
-        #status-bar {{
-            height: 1;
-            background: {PANEL};
-            color: {GOLD};
-            text-style: bold;
-            padding: 0 1;
-        }}
-
-        #card {{
-            height: 1fr;
-            border: heavy {FG};
-            background: {PANEL};
-            padding: 1 2;
-            margin-top: 1;
-        }}
-
-        #feedback {{
-            height: auto;
-            max-height: 10;
-            border: heavy {GOLD};
-            background: {INPUT_BG};
-            padding: 1 2;
-            margin-top: 1;
-            display: none;
-        }}
-
-        #firework-overlay {{
-            height: 5;
-            content-align: center middle;
-            color: {RED};
-            text-style: bold;
-            display: none;
-        }}
-
-        #answer-input {{
-            height: 3;
-            margin-top: 1;
-            background: {INPUT_BG};
-            border: solid {BORDER};
-        }}
-
-        #answer-input:focus {{
-            border: solid {GOLD};
-        }}
-
-        /* DIENAMIC palette -- debate easter egg hard color-invert. Toggled via
-           add_class/remove_class, not ad-hoc .styles.X assignment, so it goes
-           through Textual's actual stylesheet engine instead of an imperative
-           override that can end up inconsistent with cached widget render state. */
-        Screen.debate-mode #runner {{
-            background: {DEBATE_BG};
-        }}
-        Screen.debate-mode #card {{
             background: {DEBATE_BG};
             color: {DEBATE_FG};
-            border: heavy {DEBATE_FG};
-        }}
-        Screen.debate-mode #feedback {{
-            background: {DEBATE_BG};
-            color: {DEBATE_FG};
-            border: heavy {DEBATE_FG};
-        }}
-        Screen.debate-mode #status-bar {{
-            background: {DEBATE_BG};
-            color: {DEBATE_FG};
-        }}
-        Screen.debate-mode #answer-input {{
-            background: {DEBATE_BG};
-            color: {DEBATE_FG};
-            border: solid {DEBATE_FG};
-        }}
-        Screen.debate-mode #answer-input:focus {{
-            border: solid {DEBATE_FG};
         }}
         """
 
+        def compose(self) -> ComposeResult:
+            yield Static("", id="fall-text")
+
+        def on_mount(self) -> None:
+            self._frame = 0
+            self._timer = self.set_interval(0.45, self._tick)
+
+        def _tick(self) -> None:
+            frames = tui_art.FALL_THROUGH_FRAMES
+            widget = self.query_one("#fall-text", Static)
+            if self._frame < len(frames):
+                widget.update(f"[bold]{escape(frames[self._frame])}[/bold]")
+                self._frame += 1
+                return
+            self._timer.stop()
+            self.app.pop_screen()
+            self.app.push_screen(DebateScreen())
+
+    class FairMapScreen(Screen):
+        """Pavilion fair — lanes as paths, not a dashboard grid."""
+
         BINDINGS = [
-            Binding("ctrl+c", "quit", "Quit", show=True),
-            Binding("escape", "collapse", "Back to modes", show=True),
-            Binding("ctrl+b", "bell_easter_egg", "Ring the Bell", show=False),
-            Binding("ctrl+d", "debate_easter_egg", "Debate", show=False),
+            Binding("enter", "visit", "Visit pavilion", show=True),
+            Binding("left", "focus_lanes", "Lanes", show=False),
+            Binding("right", "focus_pavilions", "Pavilions", show=False),
+            Binding("q", "quit_app", "Quit", show=True),
+            Binding("ctrl+b", "ring_bell", "Ring the Bell", show=False),
+            Binding("ctrl+d", "debate", "Debate", show=False),
         ]
+
+        CSS = APP_BASE_CSS + f"""
+        FairMapScreen {{
+            background: {PARCHMENT};
+        }}
+        #ceremony-band {{
+            height: 10;
+            max-height: 10;
+            background: {NAVY};
+            border-bottom: heavy {GOLD};
+        }}
+        #hero-field {{
+            width: 100%;
+            height: {tui_art.HERO_ROWS};
+            max-height: {tui_art.HERO_ROWS};
+            background: {NAVY};
+        }}
+        #firework-banner {{
+            height: 1;
+            text-align: center;
+            color: {STRIPES};
+            background: {PARCHMENT};
+            display: none;
+        }}
+        #fair-body {{
+            height: 1fr;
+            min-height: 12;
+        }}
+        #curtain-left, #curtain-right {{
+            width: {tui_art.CURTAIN_W};
+            min-width: {tui_art.CURTAIN_W};
+            height: 1fr;
+            background: {CURTAIN_BG};
+            overflow: hidden hidden;
+        }}
+        #lane-col {{
+            width: 26;
+            height: 1fr;
+            padding: 0 1;
+        }}
+        #lane-list, #pavilion-list {{
+            height: 1fr;
+            min-height: 8;
+        }}
+        #pavilion-col {{
+            width: 1fr;
+            height: 1fr;
+        }}
+        #lane-label, #pavilion-label {{
+            height: 1;
+            padding: 0 1;
+            color: {NAVY};
+            text-style: bold;
+            background: {PARCHMENT_LIGHT};
+        }}
+        #preview-col {{
+            width: 30;
+            height: 1fr;
+            border-left: tall {NAVY};
+            background: {PARCHMENT_LIGHT};
+        }}
+        #preview {{
+            height: 1fr;
+            padding: 0 1;
+            color: {INK};
+        }}
+        #flare-plaza {{
+            height: 1;
+            padding: 0 1;
+            color: {NAVY};
+            background: {CREAM};
+            border-top: tall {GOLD};
+        }}
+        #footline {{
+            height: 1;
+            padding: 0 1;
+            color: {CREAM};
+            background: {NAVY};
+            border-top: heavy {GOLD};
+        }}
+        """
 
         def __init__(self) -> None:
             super().__init__()
-            self.kind = None
-            self.mode_key = None
-            self.mode_name = ""
-            self.pool = []
-            self.index = 0
-            self.score = 0
-            self.total = 0
-            self.start_time = None
-            self.time_limit = None
-            self.browse_items = []
-            self.duel_players = ["Player 1", "Player 2"]
-            self.duel_scores = {}
-            self.awaiting_duel_setup = 0
-            self.timeline_shuffled = []
-            self.timeline_correct_order = []
-            self.states_current = None
-            self.quotes_current = None
-            self.quotes_options = []
-            self._eagle_frame = 0
+            self._lanes: list[dict] = []
+            self._pavilions_by_lane: dict[str, list[dict]] = {}
+            self._current_lane_id: str | None = None
+            self._fair_day_label = "open all week"
+            self._star_phase = 0
 
         def compose(self) -> ComposeResult:
-            yield Header()
-            with Horizontal(id="body"):
-                with Vertical(id="sidebar"):
-                    yield Static("  SCOREBOARD", id="sidebar-header")
-                    yield VerticalScroll(Static("", id="scoreboard-body"), id="scoreboard")
-                with Vertical(id="main"):
-                    yield Static("", id="firework-overlay")
-                    with Vertical(id="mode-select"):
-                        yield Static(EAGLE_FRAMES[0], id="eagle-banner")
-                        yield Static("", id="ticker")
-                        with Grid(id="mode-grid"):
-                            for key, title, subtitle, _kind in MODES:
-                                yield ModeCard(key, title, subtitle, id=f"card-{key}")
-                    with Vertical(id="runner"):
-                        yield Static("", id="status-bar")
-                        yield Static("", id="card")
-                        yield Static("", id="feedback")
-                        yield Input(placeholder="your answer", id="answer-input")
-            yield Footer()
+            with Horizontal(id="ceremony-band"):
+                # markup=False — star glyphs must never parse as Rich tags
+                yield Static("", id="hero-field", markup=False)
+            yield Static("", id="firework-banner")
+            with Horizontal(id="fair-body"):
+                yield Static(tui_art.curtain_rich(), id="curtain-left", markup=False)
+                with Vertical(id="lane-col"):
+                    yield Static(" LANES", id="lane-label")
+                    yield ListView(id="lane-list")
+                with Vertical(id="pavilion-col"):
+                    yield Static(" PAVILIONS", id="pavilion-label")
+                    yield ListView(id="pavilion-list")
+                with Vertical(id="preview-col"):
+                    yield Static("", id="preview")
+                    yield Static(tui_art.FLARE_PLAZA, id="flare-plaza")
+                yield Static(tui_art.curtain_rich(), id="curtain-right", markup=False)
+            yield Static("", id="footline")
 
         def on_mount(self) -> None:
-            self._refresh_scoreboard()
-            self.query_one("#ticker", Static).update(bell.ticker_plain(engine.load_quotes()))
-            self.set_interval(0.7, self._flap_eagle)
+            cat = engine.get_catalog()
+            self._lanes = [ln for ln in cat.lanes if not ln.get("hidden")]
+            self._pavilions_by_lane = {}
+            for p in engine.pavilions(hidden=False):
+                lane = p.get("lane", "schoolhouse")
+                self._pavilions_by_lane.setdefault(lane, []).append(p)
+
+            lane_list = self.query_one("#lane-list", ListView)
+            for ln in self._lanes:
+                label = tui_art.LANE_ICONS.get(ln["id"], ln["label"])
+                lane_list.append(ListItem(Static(label)))
+            if self._lanes:
+                lane_list.index = 0
+                self._select_lane(0)
+            try:
+                day = engine.fair_day()
+                if day:
+                    self._fair_day_label = day.get("title", self._fair_day_label)
+            except FileNotFoundError:
+                pass
+            self.call_after_refresh(self._render_hero)
+            self._refresh_footline()
+            lane_list.focus()
             today = datetime.date.today()
             if (today.month, today.day) == (7, 4):
                 self._show_fireworks(loud=True)
+                self._sparkle(ticks=20)
 
-        def _flap_eagle(self) -> None:
-            self._eagle_frame = (self._eagle_frame + 1) % len(EAGLE_FRAMES)
-            banner = self.query_one("#eagle-banner", Static)
-            if banner.styles.display != "none":
-                banner.update(EAGLE_FRAMES[self._eagle_frame])
+        def _render_hero(self) -> None:
+            field = self.query_one("#hero-field", Static)
+            width = field.size.width or self.app.size.width
+            field.update(tui_art.hero_field(width, tui_art.HERO_ROWS, self._star_phase))
 
-        def _refresh_scoreboard(self) -> None:
-            lines = []
-            any_scores = False
-            for mode in ["naturalization", "speed", "states", "quotes", "amendment-quiz", "timeline-sort"]:
-                rows = db.top_scores(mode, limit=2)
-                if rows:
-                    any_scores = True
-                    lines.append(f"[bold {GOLD}]{mode}[/bold {GOLD}]")
-                    for score, total, elapsed_s, played_at in rows:
-                        medal = bell.medal(score, total)
-                        lines.append(f"  {score}/{total}  [{BLUE}]{medal}[/{BLUE}]")
-                    lines.append("")
-            if not any_scores:
-                lines.append(f"[{FG_MUTED}]No scores yet.\nPick a mode to start.[/{FG_MUTED}]")
-            self.query_one("#scoreboard-body", Static).update("\n".join(lines))
+        def on_resize(self, event) -> None:
+            self._render_hero()
 
-        # ── Card grid <-> runner pop/collapse ───────────────────────────────
+        def _sparkle(self, ticks: int = 8) -> None:
+            """Event flourish: cycle star brightness a few beats, then rest."""
+            state = {"n": 0, "timer": None}
 
-        def on_mode_card_picked(self, message) -> None:
-            for key, label, _subtitle, kind in MODES:
-                if key == message.key:
-                    self._start_mode(key, label, kind)
-                    return
-
-        def action_collapse(self) -> None:
-            self._exit_debate_palette()
-            self.query_one("#runner", Vertical).styles.display = "none"
-            self.query_one("#mode-select", Vertical).styles.display = "block"
-            self._refresh_scoreboard()
-            self.query_one("#mode-grid", Grid).focus()
-
-        def action_bell_easter_egg(self) -> None:
-            self.notify(random.choice([
-                "THE BELL: I heard that. I have opinions.",
-                "THE BELL: still cracked. still here.",
-                "THE BELL: ring me again and see what happens. (nothing will happen.)",
-                "THE BELL: 250 years and you're pressing buttons at me.",
-            ]), title="the Bell", timeout=4)
-
-        def action_debate_easter_egg(self) -> None:
-            self._start_mode("debate", "Constitutional Debate", "browse")
-            self._enter_debate_palette()
-
-        def _enter_debate_palette(self) -> None:
-            """Hard color-invert: parchment/terminal civics tool -> DIENAMIC yellow-and-black."""
-            self.screen.add_class("debate-mode")
-
-        def _exit_debate_palette(self) -> None:
-            """Returns cleanly to the civics surface -- no fanfare, like it didn't happen."""
-            self.screen.remove_class("debate-mode")
-
-        def _pop_to_runner(self):
-            self.query_one("#mode-select", Vertical).styles.display = "none"
-            runner = self.query_one("#runner", Vertical)
-            runner.styles.display = "block"
-            runner.styles.opacity = 0.0
-            runner.styles.animate("opacity", value=1.0, duration=0.25)
-
-        def _start_mode(self, key, label, kind):
-            self.mode_key = key
-            self.mode_name = label
-            self.kind = kind
-            self.index = 0
-            self.score = 0
-            self.total = 0
-            self.start_time = time.time()
-            self.time_limit = 60 if key == "speed" else None
-            self._hide_feedback()
-            self._pop_to_runner()
-
-            if kind == "quiz":
-                pool = engine.load_naturalization_questions()
-                if key == "missed":
-                    ids = db.missed_question_ids(limit=10)
-                    if not ids:
-                        self._render_card("Missed Questions", "Nothing missed yet -- clean slate.", "")
-                        self._update_status("missed-review: nothing to show")
-                        self.query_one("#answer-input", Input).placeholder = "press escape to go back"
-                        return
-                    self.pool = engine.pick_questions(pool, len(ids), ids)
-                elif key == "speed":
-                    self.pool = engine.pick_questions(pool, 100)
+            def tick() -> None:
+                state["n"] += 1
+                if state["n"] > ticks:
+                    if state["timer"]:
+                        state["timer"].stop()
+                    self._star_phase = 0
                 else:
-                    self.pool = engine.pick_questions(pool, 10)
-                self.total = len(self.pool)
-                self._render_quiz_question()
+                    self._star_phase = (self._star_phase + 1) % 3
+                self._render_hero()
 
-            elif kind == "states":
-                self.pool = engine.load_states()
-                random.shuffle(self.pool)
-                self.total = min(8, len(self.pool))
-                self._render_states_question()
+            state["timer"] = self.set_interval(0.18, tick)
 
-            elif kind == "quotes":
-                self.pool = engine.load_quotes()
-                random.shuffle(self.pool)
-                self.total = min(6, len(self.pool))
-                self._render_quote_question()
+        def _show_fireworks(self, loud: bool = False) -> None:
+            banner = self.query_one("#firework-banner", Static)
+            banner.styles.display = "block"
+            frames = tui_art.FIREWORK_FRAMES * (3 if loud else 1)
+            state = {"i": 0, "timer": None}
 
-            elif kind == "browse":
-                self.browse_items = BROWSE_SOURCES[key]()
-                self.index = 0
-                self._render_browse_card()
+            def tick() -> None:
+                if state["i"] >= len(frames):
+                    banner.styles.display = "none"
+                    if state["timer"]:
+                        state["timer"].stop()
+                    return
+                banner.update(f"[bold {STRIPES}]{frames[state['i']]}[/bold {STRIPES}]")
+                state["i"] += 1
 
-            elif kind == "timeline":
-                events = engine.load_timeline_events()
-                sample = random.sample(events, min(8, len(events)))
-                self.timeline_shuffled = sample[:]
-                random.shuffle(self.timeline_shuffled)
-                self.timeline_correct_order = sorted(
-                    range(len(self.timeline_shuffled)), key=lambda i: self.timeline_shuffled[i]["year"]
+            state["timer"] = self.set_interval(0.14, tick)
+
+        def _refresh_footline(self) -> None:
+            # Lanes live in the grid now — no rail. Keys, one score, one quote.
+            quote = bell.ticker_plain(engine.load_quotes())
+            if len(quote) > 44:
+                quote = quote[:41] + "..."
+            bits = ["↑↓ ←→ · Enter · Ctrl+B bell · Q quit"]
+            rows = db.top_scores("naturalization", limit=1)
+            if rows:
+                s, t, _, _ = rows[0]
+                bits.append(f"nat {s}/{t}")
+            bits.append(self._fair_day_label[:22])
+            self.query_one("#footline", Static).update(
+                f" {' · '.join(bits)}  │  \"{escape(quote)}\""
+            )
+
+        def _select_lane(self, index: int) -> None:
+            if not self._lanes:
+                return
+            lane = self._lanes[index]
+            self._current_lane_id = lane["id"]
+            pavs = self._pavilions_by_lane.get(lane["id"], [])
+            pavilion_list = self.query_one("#pavilion-list", ListView)
+            pavilion_list.clear()
+            for p in pavs:
+                tier = p.get("default_tier", "show")
+                icon = tui_art.PAVILION_ICONS.get(tier, "·")
+                pavilion_list.append(
+                    ListItem(Static(f"{icon}  {p['label']}  [{tier}]"))
                 )
-                lines = "\n".join(
-                    f"  {i + 1}. {e['event']}" for i, e in enumerate(self.timeline_shuffled)
-                )
-                self._render_card(
-                    "Timeline Sort",
-                    "Put these in chronological order (earliest first).",
-                    lines,
-                )
-                self._update_status("type numbers in order, space-separated")
-                self.query_one("#answer-input", Input).placeholder = "3 1 2 4 5 6 7 8"
+            if pavs:
+                pavilion_list.index = 0
+                self._update_preview(0)
+            else:
+                self.query_one("#preview", Static).update("[dim]No tents on this lane yet.[/dim]")
 
-            elif kind == "duel":
-                self.awaiting_duel_setup = 1
-                self._render_card("Pass-the-Keyboard Duel", "", "")
-                self._update_status("enter Player 1's name")
-                self.query_one("#answer-input", Input).placeholder = "Player 1 name"
+        def _update_preview(self, index: int) -> None:
+            pavs = self._pavilions_by_lane.get(self._current_lane_id or "", [])
+            if not pavs or index >= len(pavs):
+                return
+            p = pavs[index]
+            tier = p.get("default_tier", "show")
+            icon = tui_art.PAVILION_ICONS.get(tier, "·")
+            acts = pavilion_activities(p["id"])
+            act_lines = "\n".join(f"  · {label} ({hint})" for _aid, label, hint in acts) or "  · browse"
+            extra = ""
+            if p["id"] == "amendments":
+                extra = "\n\n[bold]Press A[/bold] for amendment quiz."
+            text = (
+                f"[bold {NAVY}]{icon} {escape(p['label'])}[/bold {NAVY}]\n"
+                f"[{STRIPES}]{escape(p.get('subtitle', ''))}[/{STRIPES}]\n\n"
+                f"[{ACCENT}]Activities[/{ACCENT}]\n{act_lines}{extra}"
+            )
+            self.query_one("#preview", Static).update(text)
 
-            self.query_one("#answer-input", Input).value = ""
+        def on_list_view_selected(self, event: ListView.Selected) -> None:
+            if event.list_view.id == "lane-list":
+                self._select_lane(event.list_view.index)
+                self.query_one("#pavilion-list", ListView).focus()
+            elif event.list_view.id == "pavilion-list":
+                self.action_visit()
+
+        def on_list_view_highlighted(self, event: ListView.Highlighted) -> None:
+            if event.list_view.id == "pavilion-list":
+                self._update_preview(event.list_view.index)
+
+        def action_visit(self) -> None:
+            pavs = self._pavilions_by_lane.get(self._current_lane_id or "", [])
+            idx = self.query_one("#pavilion-list", ListView).index
+            if not pavs or idx is None or idx >= len(pavs):
+                return
+            pavilion = pavs[idx]
+            activity_id = primary_activity_id(pavilion["id"])
+            if not activity_id:
+                self.notify("No activity wired for this pavilion yet.", timeout=3)
+                return
+            self.app.push_screen(ActivityScreen(activity_id, pavilion["label"]))
+
+        def action_focus_lanes(self) -> None:
+            self.query_one("#lane-list", ListView).focus()
+
+        def action_focus_pavilions(self) -> None:
+            self.query_one("#pavilion-list", ListView).focus()
+
+        def action_debate(self) -> None:
+            enter_underground(self.app)
+
+        def action_ring_bell(self) -> None:
+            self.notify(
+                random.choice([
+                    "THE BELL: I heard that. I have opinions.",
+                    "THE BELL: still cracked. still here.",
+                    "THE BELL: 250 years and you're pressing buttons at me.",
+                    "THE BELL: the floor beneath Liberty Plaza is NOT load-bearing.",
+                ]),
+                title="Liberty Bell",
+                timeout=5,
+            )
+            # the ring shivers the sky: sparkle the stars, flash the plaza hint
+            self._sparkle()
+            plaza = self.query_one("#flare-plaza", Static)
+            plaza.update(tui_art.FLARE_PLAZA_HOT)
+            self.set_timer(1.6, lambda: plaza.update(tui_art.FLARE_PLAZA))
+
+        def action_quit_app(self) -> None:
+            self.app.exit()
+
+        def on_key(self, event) -> None:
+            if event.key == "a":
+                pavs = self._pavilions_by_lane.get(self._current_lane_id or "", [])
+                idx = self.query_one("#pavilion-list", ListView).index
+                if pavs and idx is not None and pavs[idx]["id"] == "amendments":
+                    self.app.push_screen(ActivityScreen("amendment-quiz", "Amendment Quiz"))
+
+    class ActivityScreen(Screen):
+        """Run one catalog activity via ActivitySession."""
+
+        BINDINGS = [
+            Binding("escape", "back", "Fair map", show=True),
+        ]
+
+        CSS = APP_BASE_CSS + f"""
+        ActivityScreen {{
+            background: {PARCHMENT};
+        }}
+        #activity-herald {{
+            height: 1;
+            padding: 0 2;
+            background: {NAVY};
+            color: {CREAM};
+            border-bottom: heavy {GOLD};
+        }}
+        ActivityScreen.debate-mode {{
+            background: {DEBATE_BG};
+            color: {DEBATE_FG};
+        }}
+        ActivityScreen.debate-mode Static,
+        ActivityScreen.debate-mode Horizontal,
+        ActivityScreen.debate-mode Vertical {{
+            background: {DEBATE_BG};
+            color: {DEBATE_FG};
+        }}
+        #status {{
+            height: 1;
+            padding: 0 2;
+            color: {ACCENT};
+            background: {PARCHMENT_DEEP};
+            border-bottom: heavy {RULE};
+        }}
+        ActivityScreen.debate-mode #status {{
+            background: {DEBATE_BG};
+            color: {DEBATE_FG};
+            border-bottom: heavy {DEBATE_FG};
+        }}
+        #card {{
+            height: 1fr;
+            padding: 1 2;
+        }}
+        #feedback {{
+            height: auto;
+            max-height: 8;
+            padding: 0 2;
+            color: {INK_MUTED};
+            display: none;
+        }}
+        #answer-input {{
+            height: 3;
+            margin: 0 2 1 2;
+        }}
+        #firework {{
+            height: 3;
+            content-align: center middle;
+            color: {BRASS};
+            display: none;
+        }}
+        """
+
+        def __init__(self, activity_id: str, title: str) -> None:
+            super().__init__()
+            self.activity_id = activity_id
+            self.title = title
+            self.session: ActivitySession | None = None
+            self.duel_setup = 0
+            self.duel_names = ["Player 1", "Player 2"]
+            self._done = False
+
+        def compose(self) -> ComposeResult:
+            yield Static("", id="activity-herald")
+            yield Static("", id="status")
+            yield Static("", id="firework")
+            yield Static("", id="card")
+            yield Static("", id="feedback")
+            yield Input(placeholder="", id="answer-input")
+
+        def on_mount(self) -> None:
+            self._render_herald()
+            try:
+                self.session = ActivitySession(self.activity_id)
+            except (ValueError, FileNotFoundError) as exc:
+                self.query_one("#card", Static).update(f"[bold]{escape(str(exc))}[/bold]")
+                return
+            if self.session.kind == "duel":
+                self.duel_setup = 1
+                self._set_status("enter Player 1 name")
+                self.query_one("#answer-input", Input).placeholder = "Player 1"
+            elif self.activity_id == "missed":
+                import db as _db
+
+                if not _db.missed_card_ids(1) and not _db.missed_question_ids(1):
+                    self._render_message("Missed Review", "Nothing missed yet — clean slate.")
+                    self._done = True
+                    return
+            self._render_step()
             self.query_one("#answer-input", Input).focus()
 
-        # ── Rendering helpers ───────────────────────────────────────────────
+        def _render_herald(self) -> None:
+            self.query_one("#activity-herald", Static).update(
+                f"[bold {GOLD}]★[/bold {GOLD}] {escape(self.title)}"
+            )
 
-        def _render_card(self, title, subtitle, body):
-            card = self.query_one("#card", Static)
-            text = f"[bold {GOLD}]{escape(title)}[/bold {GOLD}]\n"
-            if subtitle:
-                text += f"[{FG_MUTED}]{escape(subtitle)}[/{FG_MUTED}]\n"
-            text += "\n" + escape(body)
-            card.update(text)
+        def _set_status(self, text: str) -> None:
+            self.query_one("#status", Static).update(
+                f" [bold {INK}]{escape(self.title)}[/bold {INK}] — {escape(text)}"
+            )
 
-        def _update_status(self, text):
-            self.query_one("#status-bar", Static).update(f" {text}")
-
-        def _show_feedback(self, verdict_markup, context="", related="", source=""):
-            fb = self.query_one("#feedback", Static)
-            lines = [verdict_markup]
-            if context:
-                lines.append(f"[{FG_MUTED}]why:[/{FG_MUTED}] {escape(context)}")
-            if related:
-                lines.append(f"[{FG_MUTED}]also:[/{FG_MUTED}] {escape(related)}")
-            if source:
-                lines.append(f"[{FG_MUTED}]source: {escape(source)}[/{FG_MUTED}]")
-            fb.update("\n".join(lines))
-            fb.styles.display = "block"
-            fb.styles.opacity = 0.0
-            fb.styles.animate("opacity", value=1.0, duration=0.2)
-
-        def _hide_feedback(self):
+        def _hide_feedback(self) -> None:
             fb = self.query_one("#feedback", Static)
             fb.update("")
             fb.styles.display = "none"
 
-        def _progress(self):
-            return f"Q {self.index}/{self.total} -- score {self.score}"
+        def _show_feedback(self, verdict: str, detail: str = "") -> None:
+            fb = self.query_one("#feedback", Static)
+            lines = [verdict]
+            if detail:
+                lines.append(f"[{INK_MUTED}]{escape(detail)}[/{INK_MUTED}]")
+            fb.update("\n".join(lines))
+            fb.styles.display = "block"
 
-        def _show_fireworks(self, loud=False):
-            overlay = self.query_one("#firework-overlay", Static)
+        def _render_message(self, heading: str, body: str) -> None:
+            self.query_one("#card", Static).update(
+                f"[bold {INK}]{escape(heading)}[/bold {INK}]\n\n{escape(body)}"
+            )
+            self.query_one("#answer-input", Input).placeholder = "Esc — back to fair"
+
+        def _render_step(self) -> None:
+            if not self.session or self._done:
+                return
+            step = self.session.current()
+            if step is None:
+                self._finish()
+                return
+            kind = self.session.kind
+            card = self.query_one("#card", Static)
+
+            if kind == "browse":
+                text = (
+                    f"[bold {INK}]{escape(step.get('title', ''))}[/bold {INK}]\n"
+                    f"[{INK_MUTED}]{escape(step.get('subtitle', ''))}[/{INK_MUTED}]\n\n"
+                    f"{escape(step.get('body', ''))}"
+                )
+                if step.get("context"):
+                    text += f"\n\n[{INK_MUTED}]{escape(step['context'])}[/{INK_MUTED}]"
+                if step.get("source"):
+                    text += f"\n\n[{INK_MUTED}]source: {escape(step['source'])}[/{INK_MUTED}]"
+                card.update(text)
+                n = self.session.index + 1
+                self._set_status(f"{n}/{self.session.total} — Enter for next")
+                self.query_one("#answer-input", Input).placeholder = "Enter — next card"
+
+            elif kind in ("quiz", "duel", "states"):
+                if kind == "duel" and self.session._duel_players:
+                    player = self.session.duel_player() or ""
+                    sub = f"{player}'s turn"
+                else:
+                    sub = step.get("category", "") or self.session.activity.get("kind", "")
+                card.update(
+                    f"[bold {INK}]{escape(step.get('question') or step.get('prompt', ''))}[/bold {INK}]\n"
+                    f"[{INK_MUTED}]{escape(sub)}[/{INK_MUTED}]"
+                )
+                self._set_status(
+                    f"Q {self.session.index + 1}/{self.session.total} · score {self.session.score}"
+                )
+                self.query_one("#answer-input", Input).placeholder = "type your answer"
+
+            elif kind in ("pick", "match"):
+                prompt = step.get("prompt") or step.get("quote", "")
+                opts = step.get("options", [])
+                body = "\n".join(f"  {i + 1}. {opt}" for i, opt in enumerate(opts))
+                card.update(f"[bold {INK}]{escape(prompt)}[/bold {INK}]\n\n{body}")
+                self._set_status(f"Q {self.session.index + 1}/{self.session.total}")
+                self.query_one("#answer-input", Input).placeholder = "enter number"
+
+            elif kind == "sort":
+                items = step.get("items", [])
+                body = "\n".join(f"  {num}. {label}" for num, label in items)
+                card.update(
+                    f"[bold {INK}]Timeline Sort[/bold {INK}]\n\n"
+                    f"Put these in chronological order (earliest first).\n\n{body}"
+                )
+                self._set_status("type numbers space-separated, e.g. 3 1 2 4")
+                self.query_one("#answer-input", Input).placeholder = "3 1 2 ..."
+
+        def _finish(self) -> None:
+            if not self.session:
+                return
+            self._done = True
+            summary = self.session.summary()
+            elapsed = summary.get("elapsed_s")
+            passed = summary.get("passed")
+            medal = bell.medal(summary["score"], summary["total"])
+            lines = [
+                bell.telegram_plain(self.activity_id, summary["score"], summary["total"], elapsed),
+                f"{'PASS' if passed else 'KEEP STUDYING'} — {medal}",
+            ]
+            if summary.get("duel_scores"):
+                ds = summary["duel_scores"]
+                lines.append(" · ".join(f"{k}: {v}" for k, v in ds.items()))
+            self._render_message("Round complete", "\n".join(lines))
+            db.record_score(
+                self.activity_id,
+                summary["score"],
+                summary["total"],
+                elapsed,
+            )
+            if summary["total"] and summary["score"] == summary["total"]:
+                self._fireworks()
+                self.notify(bell.perfect_plain(), title="Liberty Bell", timeout=6)
+            self._set_status("Esc — back to fair")
+
+        def _fireworks(self) -> None:
+            overlay = self.query_one("#firework", Static)
             overlay.styles.display = "block"
-            frames = FIREWORK_FRAMES * (2 if loud else 1)
             state = {"i": 0, "timer": None}
 
-            def _tick():
-                if state["i"] >= len(frames):
+            def tick() -> None:
+                if state["i"] >= len(FIREWORK_FRAMES):
                     overlay.styles.display = "none"
-                    state["timer"].stop()
+                    if state["timer"]:
+                        state["timer"].stop()
                     return
-                overlay.update(f"[{GOLD}]{frames[state['i']]}[/{GOLD}]")
+                overlay.update(f"[bold {BRASS}]{FIREWORK_FRAMES[state['i']]}[/bold {BRASS}]")
                 state["i"] += 1
 
-            state["timer"] = self.set_interval(0.15, _tick)
-
-        # ── Quiz (naturalization / missed / speed) ──────────────────────────
-
-        def _render_quiz_question(self):
-            if self.time_limit and (time.time() - self.start_time) > self.time_limit:
-                self._finish_quiz()
-                return
-            if self.index >= len(self.pool):
-                self._finish_quiz()
-                return
-            q = self.pool[self.index]
-            self._render_card(
-                f"Q{self.index + 1}. {q['question']}",
-                f"{q['category']} / {q['subcategory']}",
-                "",
-            )
-            self._update_status(self._progress())
-            self.query_one("#answer-input", Input).placeholder = "your answer"
-
-        def _answer_quiz(self, raw):
-            if raw.strip() == "1776":
-                self._show_feedback(
-                    f"[bold {GOLD}]THE BELL:[/bold {GOLD}] I admire the commitment to the bit. Still not the answer.",
-                )
-                return
-            if raw.strip() == "109":
-                self._start_mode("debate", "Constitutional Debate", "browse")
-                self._enter_debate_palette()
-                return
-            q = self.pool[self.index]
-            correct = engine.answer_matches(raw, q["answers"])
-            if correct:
-                self.score += 1
-                db.clear_miss(q["id"])
-                self._show_feedback(f"[bold {GOLD}]{bell.right_plain()}[/bold {GOLD}]", q.get("context", ""), q.get("related_fact", ""), q.get("date", ""))
-            else:
-                db.record_miss(q["id"])
-                accepted = ", ".join(str(a) for a in q["answers"])
-                self._show_feedback(
-                    f"[bold {RED}]{bell.wrong_plain()}[/bold {RED}]", q.get("context", f"Accepted: {accepted}"), q.get("related_fact", ""), q.get("date", "")
-                )
-            self.index += 1
-            if self.time_limit and (time.time() - self.start_time) > self.time_limit:
-                self._finish_quiz()
-            elif self.index >= len(self.pool):
-                self._finish_quiz()
-            else:
-                self._render_quiz_question()
-
-        def _finish_quiz(self):
-            elapsed = time.time() - self.start_time if self.start_time else None
-            self._render_card("Round complete", "", bell.telegram_plain(self.mode_key, self.score, self.total, elapsed))
-            self._update_status(f"final: {self.score}/{self.total} -- {bell.medal(self.score, self.total)}")
-            db.record_score(self.mode_key, self.score, self.total, elapsed)
-            if self.total and self.score == self.total:
-                self._show_fireworks()
-            self.query_one("#answer-input", Input).placeholder = "press escape to go back"
-            self._refresh_scoreboard()
-
-        # ── State matchup ────────────────────────────────────────────────────
-
-        def _render_states_question(self):
-            if self.index >= self.total:
-                self._finish_quiz()
-                return
-            s = self.pool[self.index]
-            mode = random.choice(["capital", "order"])
-            self.states_current = (s, mode)
-            if mode == "capital":
-                q_text = f"What is the capital of {s['name']}?"
-            else:
-                q_text = f"{s['name']} was admitted as the __th state. (number)"
-            self._render_card(f"Q{self.index + 1}. {q_text}", "State Matchup", "")
-            self._update_status(self._progress())
-
-        def _answer_states(self, raw):
-            s, mode = self.states_current
-            expected = [s["capital"]] if mode == "capital" else [str(s["order"])]
-            correct = engine.answer_matches(raw, expected)
-            fact = f"Capital: {s['capital']} -- admitted #{s['order']} ({s['admitted']})"
-            color = GOLD if correct else RED
-            verdict = bell.right_plain() if correct else bell.wrong_plain()
-            if correct:
-                self.score += 1
-            self._show_feedback(f"[bold {color}]{verdict}[/bold {color}]", s["fact"], fact, s["admitted"])
-            self.index += 1
-            self._render_states_question()
-
-        # ── Quote match ──────────────────────────────────────────────────────
-
-        def _render_quote_question(self):
-            if self.index >= self.total:
-                self._finish_quiz()
-                return
-            q = self.pool[self.index]
-            options = [q["person"]] + q["distractors"]
-            random.shuffle(options)
-            self.quotes_current = q
-            self.quotes_options = options
-            body = "\n".join(f"  {i + 1}. {opt}" for i, opt in enumerate(options))
-            self._render_card(f'Q{self.index + 1}. "{q["quote"]}"', "Who said it? (enter the number)", body)
-            self._update_status(self._progress())
-
-        def _answer_quote(self, raw):
-            q = self.quotes_current
-            try:
-                pick = self.quotes_options[int(raw.strip()) - 1]
-            except (ValueError, IndexError):
-                pick = ""
-            correct = pick == q["person"]
-            color = GOLD if correct else RED
-            verdict = bell.right_plain() if correct else bell.wrong_plain()
-            if correct:
-                self.score += 1
-            context = q.get("context", f"Said by {q['person']}.")
-            self._show_feedback(f"[bold {color}]{verdict}[/bold {color}]", context, "", "")
-            self.index += 1
-            self._render_quote_question()
-
-        # ── Browse ───────────────────────────────────────────────────────────
-
-        def _render_browse_card(self):
-            if not self.browse_items:
-                return
-            title, subtitle, fact, context, source = self.browse_items[self.index % len(self.browse_items)]
-            card = self.query_one("#card", Static)
-            if self.mode_key == "debate":
-                title_color = {"Obama": OBAMA_COLOR, "Trump": TRUMP_COLOR}.get(title, DEBATE_FG)
-                text = span(escape(title), title_color, DEBATE_BG, bold=True) + "\n"
-                text += span(escape(subtitle), DEBATE_FG, DEBATE_BG) + "\n\n"
-                text += span(escape(fact), DEBATE_FG, DEBATE_BG)
-                if source:
-                    text += "\n\n" + span(f"source: {escape(source)}", DEBATE_FG, DEBATE_BG)
-            else:
-                text = f"[bold {GOLD}]{escape(title)}[/bold {GOLD}]\n[{FG_MUTED}]{escape(subtitle)}[/{FG_MUTED}]\n\n{escape(fact)}"
-                if context:
-                    text += f"\n\n{escape(context)}"
-                if source:
-                    text += f"\n\n[{FG_MUTED}]source: {escape(source)}[/{FG_MUTED}]"
-            card.update(text)
-            n = len(self.browse_items)
-            self._update_status(f"{self.index + 1}/{n} -- press enter for next")
-            self.query_one("#answer-input", Input).placeholder = "press enter for next"
-
-        def _advance_browse(self):
-            self.index += 1
-            if self.index >= len(self.browse_items):
-                self.index = 0
-            self._render_browse_card()
-
-        # ── Timeline ─────────────────────────────────────────────────────────
-
-        def _answer_timeline(self, raw):
-            try:
-                user_order = [int(x) - 1 for x in raw.split()]
-            except ValueError:
-                user_order = []
-            score = sum(
-                1 for a, b in zip(user_order, self.timeline_correct_order) if a == b
-            )
-            lines = "\n".join(
-                f"  {self.timeline_shuffled[i]['year']} -- {self.timeline_shuffled[i]['event']}"
-                for i in self.timeline_correct_order
-            )
-            elapsed = time.time() - self.start_time
-            self._render_card("Round complete", "Actual chronological order:", lines)
-            total = len(self.timeline_shuffled)
-            self._update_status(f"final: {score}/{total} -- {bell.medal(score, total)}")
-            db.record_score("timeline-sort", score, total, elapsed)
-            if score == total:
-                self._show_fireworks()
-            self.query_one("#answer-input", Input).placeholder = "press escape to go back"
-            self._refresh_scoreboard()
-
-        # ── Duel ─────────────────────────────────────────────────────────────
-
-        def _answer_duel_setup(self, raw):
-            name = raw.strip()
-            if self.awaiting_duel_setup == 1:
-                self.duel_players[0] = name or "Player 1"
-                self.awaiting_duel_setup = 2
-                self._update_status(f"enter {self.duel_players[1]}'s name (or press enter)")
-                self.query_one("#answer-input", Input).placeholder = "Player 2 name"
-                return
-            self.duel_players[1] = name or "Player 2"
-            self.awaiting_duel_setup = 0
-            self.duel_scores = {p: 0 for p in self.duel_players}
-            self.pool = engine.pick_questions(engine.load_naturalization_questions(), 10)
-            self.total = len(self.pool)
-            self.index = 0
-            self._render_duel_question()
-
-        def _render_duel_question(self):
-            if self.index >= len(self.pool):
-                self._finish_duel()
-                return
-            player = self.duel_players[self.index % 2]
-            q = self.pool[self.index]
-            self._render_card(f"Q{self.index + 1}. {q['question']}", f"{player}'s turn", "")
-            self._update_status(
-                f"{self.duel_players[0]}: {self.duel_scores[self.duel_players[0]]}  |  "
-                f"{self.duel_players[1]}: {self.duel_scores[self.duel_players[1]]}"
-            )
-
-        def _answer_duel(self, raw):
-            player = self.duel_players[self.index % 2]
-            q = self.pool[self.index]
-            correct = engine.answer_matches(raw, q["answers"])
-            color = GOLD if correct else RED
-            verdict = bell.right_plain() if correct else bell.wrong_plain()
-            if correct:
-                self.duel_scores[player] += 1
-            self._show_feedback(f"[bold {color}]{verdict}[/bold {color}]", q.get("context", ""), q.get("related_fact", ""), q.get("date", ""))
-            self.index += 1
-            self._render_duel_question()
-
-        def _finish_duel(self):
-            p1, p2 = self.duel_players
-            s1, s2 = self.duel_scores[p1], self.duel_scores[p2]
-            if s1 == s2:
-                result = "It's a tie!"
-            else:
-                winner = p1 if s1 > s2 else p2
-                result = f"{winner} wins!"
-            self._render_card("Duel complete", f"{p1}: {s1}  |  {p2}: {s2}", result)
-            db.record_score(f"duel:{p1}-vs-{p2}", max(s1, s2), len(self.pool))
-            if s1 == len(self.pool) or s2 == len(self.pool):
-                self._show_fireworks()
-            self.query_one("#answer-input", Input).placeholder = "press escape to go back"
-            self._refresh_scoreboard()
-
-        # ── Input dispatch ───────────────────────────────────────────────────
+            state["timer"] = self.set_interval(0.12, tick)
 
         def on_input_submitted(self, event: Input.Submitted) -> None:
-            raw = event.value
+            raw = event.value.strip()
             event.input.value = ""
-            if self.kind == "quiz":
-                self._answer_quiz(raw)
-            elif self.kind == "states":
-                self._answer_states(raw)
-            elif self.kind == "quotes":
-                self._answer_quote(raw)
-            elif self.kind == "browse":
-                self._advance_browse()
-            elif self.kind == "timeline":
-                self._answer_timeline(raw)
-            elif self.kind == "duel":
-                if self.awaiting_duel_setup:
-                    self._answer_duel_setup(raw)
+            if self._done:
+                return
+
+            if raw == "109":
+                enter_underground(self.app)
+                return
+            if raw == "1776":
+                self._show_feedback(f"[bold {BRASS}]THE BELL:[/bold {BRASS}] Still not the answer.")
+                return
+
+            if self.session and self.session.kind == "duel" and self.duel_setup:
+                if self.duel_setup == 1:
+                    self.duel_names[0] = raw or "Player 1"
+                    self.duel_setup = 2
+                    self._set_status("enter Player 2 name")
+                    self.query_one("#answer-input", Input).placeholder = "Player 2"
+                    return
+                self.duel_names[1] = raw or "Player 2"
+                self.duel_setup = 0
+                self.session.setup_duel(self.duel_names[0], self.duel_names[1])
+                self._render_step()
+                return
+
+            if not self.session:
+                return
+
+            self._hide_feedback()
+            result = self.session.submit(raw if self.session.kind != "browse" else raw or " ")
+
+            if self.session.kind == "browse":
+                if result.get("done"):
+                    self._finish()
                 else:
-                    self._answer_duel(raw)
+                    self._render_step()
+                return
+
+            if self.session.kind == "sort" and result.get("done"):
+                ordered = result.get("ordered", [])
+                body = "\n".join(
+                    f"  {e['year']} — {e['event']}" for e in ordered
+                )
+                self._render_message(
+                    "Timeline",
+                    f"Score {result.get('score', 0)}/{result.get('total', 0)}\n\n{body}",
+                )
+                db.record_score(
+                    "timeline",
+                    result.get("score", 0),
+                    result.get("total", 0),
+                    self.session.elapsed(),
+                )
+                self._done = True
+                self._set_status("Esc — back to fair")
+                return
+
+            card_id = result.get("card_id")
+            if card_id and self.session.kind in ("quiz", "duel", "states"):
+                if result.get("correct"):
+                    db.clear_miss(card_id)
+                else:
+                    db.record_miss(card_id)
+
+            if result.get("correct"):
+                verdict = f"[bold {BRASS}]{bell.right_plain()}[/bold {BRASS}]"
+            else:
+                expected = result.get("expected", "")
+                if isinstance(expected, list):
+                    expected = ", ".join(str(x) for x in expected)
+                verdict = f"[bold #8b2500]{bell.wrong_plain()}[/bold #8b2500]"
+                if expected:
+                    self._show_feedback(verdict, f"Accepted: {expected}")
+                else:
+                    self._show_feedback(verdict)
+                if result.get("done"):
+                    self._finish()
+                else:
+                    self._render_step()
+                return
+
+            fact = result.get("fact") or result.get("person", "")
+            if fact:
+                self._show_feedback(verdict, str(fact))
+            else:
+                self._show_feedback(verdict)
+
+            if result.get("done"):
+                self._finish()
+            else:
+                self._render_step()
+
+        def action_back(self) -> None:
+            self.app.pop_screen()
+
+    class DebateScreen(Screen):
+        """Underground — DIENAMIC palette, real quotes."""
+
+        BINDINGS = [
+            Binding("escape", "back", "Surface", show=True),
+        ]
+
+        CSS = APP_BASE_CSS + f"""
+        DebateScreen {{
+            background: {DEBATE_BG};
+            color: {DEBATE_FG};
+        }}
+        DebateScreen Static,
+        DebateScreen Horizontal,
+        DebateScreen VerticalScroll {{
+            background: {DEBATE_BG};
+            color: {DEBATE_FG};
+        }}
+        DebateScreen ListItem, DebateScreen ListItem Static {{
+            background: {DEBATE_BG};
+            color: {DEBATE_FG};
+        }}
+        DebateScreen ListItem.--highlight,
+        DebateScreen ListItem.--highlight Static {{
+            background: {DEBATE_FG};
+            color: {DEBATE_BG};
+        }}
+        #debate-status {{
+            height: 1;
+            padding: 0 2;
+            border-bottom: heavy {DEBATE_FG};
+        }}
+        #topic-list {{
+            width: 32;
+            height: 1fr;
+        }}
+        #transcript-scroll {{
+            width: 1fr;
+            height: 1fr;
+        }}
+        #transcript {{
+            height: 1fr;
+            padding: 1 2;
+        }}
+        """
+
+        def __init__(self, topic_index: int | None = None) -> None:
+            super().__init__()
+            self._topics = engine.load_debate()
+            self._topic_index = topic_index
+            self._exchange_index = 0
+            self._shown_index: int | None = None
+
+        def compose(self) -> ComposeResult:
+            yield Static(tui_art.DIENAMIC_LOGO, id="debate-logo")
+            yield Static("CONSTITUTIONAL DEBATE — real quotes, cited", id="debate-status")
+            with Horizontal():
+                yield ListView(id="topic-list")
+                yield VerticalScroll(Static("", id="transcript"), id="transcript-scroll")
+
+        def on_mount(self) -> None:
+            topic_list = self.query_one("#topic-list", ListView)
+            for t in self._topics:
+                topic_list.append(ListItem(Static(t["topic"])))
+            if self._topic_index is not None:
+                topic_list.index = self._topic_index
+                self._show_topic(self._topic_index)
+            elif self._topics:
+                topic_list.index = 0
+                self._show_topic(0)
+            topic_list.focus()
+
+        def _show_topic(self, index: int) -> None:
+            if index < 0 or index >= len(self._topics):
+                return
+            topic = self._topics[index]
+            self._shown_index = index
+            self._exchange_index = 0
+            self._render_exchange(topic, 0)
+            self.query_one("#debate-status", Static).update(
+                f" {topic['topic']} — Enter next quote · Esc surface"
+            )
+
+        def _render_exchange(self, topic: dict, index: int) -> None:
+            exchanges = topic.get("exchanges", [])
+            if not exchanges:
+                self.query_one("#transcript", Static).update("[dim]No exchanges.[/dim]")
+                return
+            ex = exchanges[index % len(exchanges)]
+            speaker = ex.get("speaker", "")
+            color = OBAMA_COLOR if speaker == "Obama" else TRUMP_COLOR if speaker == "Trump" else DEBATE_FG
+            text = (
+                span(speaker, color, DEBATE_BG, bold=True)
+                + "\n"
+                + span(f"{ex.get('occasion', '')} — {ex.get('date', '')}", DEBATE_FG, DEBATE_BG)
+                + "\n\n"
+                + span(f'"{ex.get("quote", "")}"', DEBATE_FG, DEBATE_BG)
+                + "\n\n"
+                + span(f"source: {ex.get('citation', '')}", DEBATE_FG, DEBATE_BG)
+            )
+            self.query_one("#transcript", Static).update(text)
+
+        def on_list_view_highlighted(self, event: ListView.Highlighted) -> None:
+            # arrow keys change topic; guard so mount/select don't re-reset
+            if event.list_view.id == "topic-list" and event.list_view.index is not None:
+                if event.list_view.index != self._shown_index:
+                    self._show_topic(event.list_view.index)
+
+        def on_list_view_selected(self, event: ListView.Selected) -> None:
+            # Enter on the highlighted topic advances through its exchanges
+            if event.list_view.id == "topic-list" and self._topics:
+                idx = event.list_view.index or 0
+                self._exchange_index += 1
+                self._render_exchange(self._topics[idx], self._exchange_index)
+
+        def action_back(self) -> None:
+            self.app.pop_screen()
+
+    class CivicsFairApp(App):
+        TITLE = "Civics Fair"
+        SUB_TITLE = "Freedom 250"
+        CSS = APP_BASE_CSS
+
+        BINDINGS = [
+            Binding("ctrl+c", "quit", "Quit", show=False),
+        ]
+
+        def on_mount(self) -> None:
+            self.push_screen(FairMapScreen())
+
+        def action_quit(self) -> None:
+            self.exit()
 
 
-def main():
+def main() -> None:
     if not TEXTUAL_OK:
         print("textual is not installed. Run: pip install -r requirements-tui.txt")
-        print("Or use the zero-dependency version: python3 app.py")
+        print("Or use the CLI: python3 app.py")
         return
-    CivicsCheckApp().run()
+    CivicsFairApp().run()
 
 
 if __name__ == "__main__":

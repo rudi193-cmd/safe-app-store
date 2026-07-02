@@ -56,6 +56,10 @@ _PERFECT = [
 _ELECTION_YEAR_ASIDE = "// the Bell has opinions about November but the Bell keeps them to itself."
 
 
+def perfect_plain():
+    return f"THE BELL: {random.choice(_PERFECT)}"
+
+
 def wrong():
     return f"{RED}THE BELL:{RESET} {random.choice(_WRONG)}"
 

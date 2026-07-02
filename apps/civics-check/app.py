@@ -64,7 +64,9 @@ def fireworks():
 
 
 def run_quiz(pool, count, mode_name, time_limit=None, weighted=False):
-    weighted_ids = db.missed_question_ids() if weighted else None
+    weighted_ids = None
+    if weighted:
+        weighted_ids = db.missed_card_ids(limit=count) or db.missed_question_ids(limit=count)
     questions = engine.pick_questions(pool, count, weighted_ids)
     if not questions:
         print("No questions available.")
@@ -80,11 +82,11 @@ def run_quiz(pool, count, mode_name, time_limit=None, weighted=False):
         if correct:
             print(bell.right())
             score += 1
-            db.clear_miss(q["id"])
+            db.clear_miss(engine.question_key(q))
         else:
             print(bell.wrong())
             print(f"{DIM}Accepted answer(s): {', '.join(str(a) for a in q['answers'])}{RESET}")
-            db.record_miss(q["id"])
+            db.record_miss(engine.question_key(q))
     elapsed = time.time() - start
     certificate(mode_name, score, len(questions), elapsed)
 
@@ -291,6 +293,12 @@ HANDLERS = {
 
 def main():
     print(BANNER)
+    try:
+        day = engine.fair_day()
+        if day:
+            print(f"\n{GOLD}Fair pavilion today: {day.get('title')} — {day.get('exhibit')}{RESET}\n")
+    except FileNotFoundError:
+        pass
     print(bell.ticker(engine.load_quotes()))
     today = engine.today_events()
     if today:

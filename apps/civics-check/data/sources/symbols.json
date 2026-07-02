@@ -1,0 +1,52 @@
+[
+  {
+    "id": "flag",
+    "title": "American Flag",
+    "body": "50 stars — one for each state. 13 stripes — one for each original colony.",
+    "prompt": "How many stars are on the flag today?",
+    "choices": ["50", "13", "48", "51"],
+    "answer": "50",
+    "context": "The star count last changed in 1959 when Alaska and Hawaii joined the Union.",
+    "source": "https://www.usa.gov/flag"
+  },
+  {
+    "id": "eagle",
+    "title": "Bald Eagle",
+    "body": "National bird since 1782 — symbol on the Great Seal of the United States.",
+    "prompt": "What bird is on the Great Seal of the United States?",
+    "choices": ["Bald Eagle", "Turkey", "Falcon", "Osprey"],
+    "answer": "Bald Eagle",
+    "context": "Ben Franklin famously preferred the turkey — the eagle won anyway.",
+    "source": "https://www.loc.gov/exhibits/treasures/tr22.html"
+  },
+  {
+    "id": "bell",
+    "title": "Liberty Bell",
+    "body": "Cast in 1752 for the Pennsylvania State House — cracked, still here.",
+    "prompt": "What famous cracked bell is a symbol of American independence?",
+    "choices": ["Liberty Bell", "Big Ben", "Freedom Bell", "Independence Gong"],
+    "answer": "Liberty Bell",
+    "context": "The bell rang for the first public reading of the Declaration in Philadelphia, July 8, 1776.",
+    "source": "https://www.nps.gov/inde/learn/historyculture/stories-libertybell.htm"
+  },
+  {
+    "id": "anthem",
+    "title": "The Star-Spangled Banner",
+    "body": "National anthem since 1931 — written by Francis Scott Key during the War of 1812.",
+    "prompt": "What is the national anthem of the United States?",
+    "choices": ["The Star-Spangled Banner", "America the Beautiful", "God Bless America", "My Country 'Tis of Thee"],
+    "answer": "The Star-Spangled Banner",
+    "context": "Key wrote it after seeing the flag still flying over Fort McHenry in 1814.",
+    "source": "https://www.loc.gov/item/ihas.200000098/"
+  },
+  {
+    "id": "seal",
+    "title": "Great Seal",
+    "body": "E pluribus unum — Out of many, one.",
+    "prompt": "What Latin motto appears on the Great Seal?",
+    "choices": ["E pluribus unum", "Novus ordo seclorum", "Semper fidelis", "Ad astra"],
+    "answer": "E pluribus unum",
+    "context": "The reverse of the seal (pyramid and eye) appears on the one-dollar bill.",
+    "source": "https://www.usa.gov/seal"
+  }
+]

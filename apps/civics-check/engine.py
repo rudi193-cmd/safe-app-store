@@ -1,91 +1,179 @@
-"""Data loading and quiz-scoring engine for civics-check. Pure stdlib, no network."""
-import json
+"""Civics-check engine — catalog-backed facade for CLI and TUI."""
+
+from __future__ import annotations
+
 import random
 from datetime import date
-from pathlib import Path
 
-DATA_DIR = Path(__file__).parent / "data"
+from civics.catalog import get_catalog, reload_catalog
+from civics.scoring import answer_matches, pick_items, score_pass_fail
+from civics.session import ActivitySession
+
+__all__ = [
+    "get_catalog",
+    "reload_catalog",
+    "ActivitySession",
+    "load_naturalization_questions",
+    "load_colonies",
+    "load_amendments",
+    "load_quotes",
+    "load_on_this_day",
+    "load_timeline_events",
+    "load_signers",
+    "load_states",
+    "load_debate",
+    "today_events",
+    "fair_day",
+    "pavilions",
+    "activities",
+    "normalize",
+    "answer_matches",
+    "pick_questions",
+    "question_key",
+    "score_pass_fail",
+]
+
+normalize = __import__("civics.scoring", fromlist=["normalize"]).normalize
 
 
-def _load(name):
-    with open(DATA_DIR / name, encoding="utf-8") as f:
-        return json.load(f)
+def _cat():
+    return get_catalog()
 
 
 def load_naturalization_questions():
-    return _load("naturalization_questions.json")
+    return _cat().legacy_naturalization_pool()
 
 
 def load_colonies():
-    return _load("colonies.json")
-
-
-def load_amendments():
-    return _load("amendments.json")
-
-
-def load_quotes():
-    return _load("quotes.json")
-
-
-def load_on_this_day():
-    return _load("on_this_day.json")
-
-
-def load_timeline_events():
-    return _load("timeline_events.json")
+    return [
+        {
+            "name": c["title"],
+            "founded": c.get("meta", {}).get("founded"),
+            "founder": c.get("meta", {}).get("founder", ""),
+            "fact": c.get("body", ""),
+            "context": c.get("context", ""),
+            "source": c.get("source", ""),
+        }
+        for c in _cat().cards_for(pavilion="colonies", kind="browse")
+    ]
 
 
 def load_signers():
-    return _load("signers.json")
+    return [
+        {
+            "name": c["title"],
+            "state": c.get("subtitle", ""),
+            "fact": c.get("body", ""),
+            "context": c.get("context", ""),
+            "source": c.get("source", ""),
+        }
+        for c in _cat().cards_for(pavilion="signers", kind="browse")
+    ]
+
+
+def load_amendments():
+    return [
+        {
+            "number": c.get("meta", {}).get("number"),
+            "year": c.get("meta", {}).get("year"),
+            "summary": c.get("body", ""),
+            "context": c.get("context", ""),
+            "source": c.get("source", ""),
+        }
+        for c in _cat().cards_for(pavilion="amendments", kind="browse")
+    ]
+
+
+def load_quotes():
+    return [
+        {
+            "quote": c.get("prompt") or c.get("body"),
+            "person": c.get("answer"),
+            "distractors": c.get("distractors", []),
+            "context": c.get("context", ""),
+        }
+        for c in _cat().cards_for(pavilion="quotes", kind="match")
+    ]
 
 
 def load_states():
-    return _load("states.json")
+    return [
+        {
+            "name": c["title"],
+            "capital": c.get("meta", {}).get("capital", ""),
+            "order": c.get("meta", {}).get("order"),
+            "admitted": c.get("meta", {}).get("admitted", ""),
+            "fact": c.get("body", ""),
+        }
+        for c in _cat().cards_for(pavilion="states", kind="states")
+    ]
+
+
+def load_timeline_events():
+    return [
+        {"year": c.get("meta", {}).get("year"), "event": c.get("body", "")}
+        for c in _cat().cards_for(pavilion="timeline", kind="sort")
+    ]
+
+
+def load_on_this_day():
+    return _cat().raw.get("calendar", {})
 
 
 def load_debate():
-    return _load("debate.json")
+    topics = {}
+    for c in _cat().cards_for(pavilion="debate"):
+        if c.get("kind") == "browse" and c["title"].startswith("CONSTITUTIONAL DEBATE:"):
+            topic_name = c["title"].replace("CONSTITUTIONAL DEBATE: ", "")
+            topics[topic_name] = {"topic": topic_name, "exchanges": []}
+    for c in _cat().cards_for(pavilion="debate", kind="debate"):
+        topic = c.get("meta", {}).get("topic")
+        if not topic:
+            continue
+        if topic not in topics:
+            topics[topic] = {"topic": topic, "exchanges": []}
+        topics[topic]["exchanges"].append(
+            {
+                "speaker": c["title"],
+                "quote": c.get("body", "").strip('"'),
+                "occasion": c.get("subtitle", "").split(" — ")[0] if " — " in c.get("subtitle", "") else c.get("subtitle", ""),
+                "date": c.get("subtitle", "").split(" — ")[-1] if " — " in c.get("subtitle", "") else "",
+                "citation": c.get("source", ""),
+            }
+        )
+    return list(topics.values())
 
 
 def today_events():
-    key = date.today().strftime("%m-%d")
-    return load_on_this_day().get(key, [])
+    return _cat().today_events()
 
 
-def normalize(text):
-    return "".join(ch for ch in text.lower() if ch.isalnum() or ch.isspace()).strip()
+def fair_day():
+    return _cat().fair_day()
 
 
-def answer_matches(user_answer, accepted_answers):
-    norm_user = normalize(user_answer)
-    if not norm_user:
-        return False
-    for accepted in accepted_answers:
-        norm_accepted = normalize(accepted)
-        if norm_user == norm_accepted:
-            return True
-        if norm_user in norm_accepted or norm_accepted in norm_user:
-            return True
-    return False
+def pavilions(lane: str | None = None, hidden: bool = False):
+    pavs = _cat().pavilions
+    if lane:
+        pavs = [p for p in pavs if p.get("lane") == lane]
+    if not hidden:
+        pavs = [p for p in pavs if not p.get("hidden")]
+    return pavs
+
+
+def activities():
+    return _cat().activities
 
 
 def pick_questions(pool, count, weighted_ids=None):
-    """Pick `count` questions from pool, optionally favoring weighted_ids (missed questions)."""
-    pool_by_id = {q["id"]: q for q in pool}
-    chosen = []
-    if weighted_ids:
-        for qid in weighted_ids:
-            if qid in pool_by_id and pool_by_id[qid] not in chosen:
-                chosen.append(pool_by_id[qid])
-            if len(chosen) >= count:
-                return chosen[:count]
-    remaining = [q for q in pool if q not in chosen]
-    random.shuffle(remaining)
-    chosen.extend(remaining[: count - len(chosen)])
-    return chosen[:count]
+    """Legacy adapter — pool items use 'id' or 'card_id'."""
+    key = "card_id" if pool and "card_id" in pool[0] else "id"
+    if weighted_ids and pool and isinstance(weighted_ids[0], int):
+        # legacy missed question ints → map to card ids
+        weighted_ids = [f"nat-{i:03d}" for i in weighted_ids]
+    return pick_items(pool, count, weighted_ids, id_key=key)
 
 
-def score_pass_fail(score, total):
-    """USCIS-style: need 60% correct (6/10 on the real test) to pass."""
-    return score / total >= 0.6 if total else False
+def question_key(q: dict) -> int | str:
+    """Stable miss-tracking id for a quiz pool item."""
+    return q.get("card_id", q["id"])

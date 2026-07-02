@@ -1,0 +1,18 @@
+[
+  {"month": 6, "day": 25, "title": "Opening Day", "theme": "We the People", "exhibit": "Preamble and self-government", "source": "Freedom 250 / National Mall fair metaphor"},
+  {"month": 6, "day": 26, "title": "Colony Row", "theme": "13 Originals", "exhibit": "Thirteen colonies flashcards", "source": "civics-check pavilion map"},
+  {"month": 6, "day": 27, "title": "Rights Pavilion", "theme": "Bill of Rights", "exhibit": "First ten amendments", "source": "Library of Congress"},
+  {"month": 6, "day": 28, "title": "Branches Booth", "theme": "Three Branches", "exhibit": "Legislative, executive, judicial", "source": "USAGov"},
+  {"month": 6, "day": 29, "title": "Founders Hall", "theme": "Voices of '76", "exhibit": "Quotes and signers", "source": "civics-check"},
+  {"month": 6, "day": 30, "title": "States Fair", "theme": "50 Stars", "exhibit": "Capitals and admission order", "source": "civics-check"},
+  {"month": 7, "day": 1, "title": "Timeline Walk", "theme": "From Jamestown to Today", "exhibit": "Sort the founding era", "source": "civics-check"},
+  {"month": 7, "day": 2, "title": "Citizenship Court", "theme": "Naturalization", "exhibit": "USCIS practice quiz", "source": "USCIS"},
+  {"month": 7, "day": 3, "title": "Electoral Arcade", "theme": "270 to Win", "exhibit": "Electoral College basics", "source": "USAGov"},
+  {"month": 7, "day": 4, "title": "Independence Day", "theme": "1776", "exhibit": "Declaration and convergence", "source": "Independence Debates scope"},
+  {"month": 7, "day": 5, "title": "Amendment Hall", "theme": "27 Changes", "exhibit": "Full amendment explorer", "source": "National Archives"},
+  {"month": 7, "day": 6, "title": "Federalism Field", "theme": "States and Nation", "exhibit": "Federal vs state powers", "source": "USAGov"},
+  {"month": 7, "day": 7, "title": "Civic Duty Day", "theme": "Participation", "exhibit": "Vote, jury, taxes, school", "source": "USAGov"},
+  {"month": 7, "day": 8, "title": "Schoolhouse Stage", "theme": "Kids' Lane", "exhibit": "Symbols and pick-a-answer", "source": "civics-check"},
+  {"month": 7, "day": 9, "title": "Debate Tent", "theme": "Constitutional Fault Lines", "exhibit": "Sourced quote juxtaposition", "source": "Independence Debates"},
+  {"month": 7, "day": 10, "title": "Closing Night", "theme": "The Vow", "exhibit": "What does the Constitution bind us to?", "source": "civics_tui_context.json"}
+]

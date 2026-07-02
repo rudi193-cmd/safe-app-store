@@ -36,5 +36,62 @@
         "citation": "presidency.ucsb.edu, The American Presidency Project (tweet archive)"
       }
     ]
+  },
+  {
+    "topic": "Equal Protection",
+    "exchanges": [
+      {
+        "speaker": "Obama",
+        "quote": "We are here today because we know that our work is not yet finished. The work of perfecting our union goes on.",
+        "occasion": "Remarks on the 50th Anniversary of the March on Washington, Lincoln Memorial",
+        "date": "August 28, 2013",
+        "citation": "obamawhitehouse.archives.gov (official White House transcript)"
+      },
+      {
+        "speaker": "Trump",
+        "quote": "We all salute the same great American flag, and we are all made equal by the same almighty God.",
+        "occasion": "Remarks at the 2017 National Scout Jamboree, Glen Jean, West Virginia",
+        "date": "July 24, 2017",
+        "citation": "trumpwhitehouse.archives.gov (official White House transcript)"
+      }
+    ]
+  },
+  {
+    "topic": "Commerce Clause",
+    "exchanges": [
+      {
+        "speaker": "Obama",
+        "quote": "We can't just drill our way out of the energy and climate challenge that we face.",
+        "occasion": "Remarks on American Energy, Nashua, New Hampshire",
+        "date": "March 1, 2012",
+        "citation": "obamawhitehouse.archives.gov (official White House transcript)"
+      },
+      {
+        "speaker": "Trump",
+        "quote": "We have ended the war on American energy, and we have ended the war on beautiful, clean coal.",
+        "occasion": "State of the Union Address, U.S. Capitol",
+        "date": "January 30, 2018",
+        "citation": "trumpwhitehouse.archives.gov (official White House transcript)"
+      }
+    ]
+  },
+  {
+    "topic": "Democratic Legitimacy",
+    "exchanges": [
+      {
+        "speaker": "Obama",
+        "quote": "The peaceful transfer of power from one freely elected president to the next is a hallmark of our democracy.",
+        "occasion": "Remarks at the White House After the 2016 Election",
+        "date": "November 9, 2016",
+        "citation": "obamawhitehouse.archives.gov (official White House transcript)"
+      },
+      {
+        "speaker": "Trump",
+        "quote": "We will never give up. We will never concede. It doesn't happen.",
+        "occasion": "Remarks at the Save America Rally, Washington, D.C.",
+        "date": "January 6, 2021",
+        "citation": "presidency.ucsb.edu, The American Presidency Project (speech archive)"
+      }
+    ]
   }
 ]
