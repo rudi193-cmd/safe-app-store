@@ -55,6 +55,16 @@ DEBATE_FG = "#0a0a0a"
 OBAMA_COLOR = "#00bcd4"
 TRUMP_COLOR = "#d97706"
 
+
+def span(text, fg, bg, bold=False):
+    """Rich markup span with an EXPLICIT background. Rich paints an implicit
+    black background under any span that only sets a foreground color --
+    invisible on this app's near-black panels, but glaring against the
+    debate view's yellow. Always pair fg+bg explicitly, never rely on
+    inheriting the widget's CSS background."""
+    style = f"bold {fg} on {bg}" if bold else f"{fg} on {bg}"
+    return f"[{style}]{text}[/]"
+
 MODES = [
     ("naturalization", "Naturalization Quiz", "10 real USCIS questions", "quiz"),
     ("missed", "Missed Review", "resurface what you got wrong", "quiz"),
@@ -304,6 +314,36 @@ if TEXTUAL_OK:
         #answer-input:focus {{
             border: solid {GOLD};
         }}
+
+        /* DIENAMIC palette -- debate easter egg hard color-invert. Toggled via
+           add_class/remove_class, not ad-hoc .styles.X assignment, so it goes
+           through Textual's actual stylesheet engine instead of an imperative
+           override that can end up inconsistent with cached widget render state. */
+        Screen.debate-mode #runner {{
+            background: {DEBATE_BG};
+        }}
+        Screen.debate-mode #card {{
+            background: {DEBATE_BG};
+            color: {DEBATE_FG};
+            border: heavy {DEBATE_FG};
+        }}
+        Screen.debate-mode #feedback {{
+            background: {DEBATE_BG};
+            color: {DEBATE_FG};
+            border: heavy {DEBATE_FG};
+        }}
+        Screen.debate-mode #status-bar {{
+            background: {DEBATE_BG};
+            color: {DEBATE_FG};
+        }}
+        Screen.debate-mode #answer-input {{
+            background: {DEBATE_BG};
+            color: {DEBATE_FG};
+            border: solid {DEBATE_FG};
+        }}
+        Screen.debate-mode #answer-input:focus {{
+            border: solid {DEBATE_FG};
+        }}
         """
 
         BINDINGS = [
@@ -415,36 +455,11 @@ if TEXTUAL_OK:
 
         def _enter_debate_palette(self) -> None:
             """Hard color-invert: parchment/terminal civics tool -> DIENAMIC yellow-and-black."""
-            self.query_one("#runner", Vertical).styles.background = DEBATE_BG
-            for wid in ("#card", "#feedback", "#status-bar"):
-                w = self.query_one(wid, Static)
-                w.styles.background = DEBATE_BG
-                w.styles.color = DEBATE_FG
-            self.query_one("#card", Static).styles.border = ("heavy", DEBATE_FG)
-            self.query_one("#feedback", Static).styles.border = ("heavy", DEBATE_FG)
-            inp = self.query_one("#answer-input", Input)
-            inp.styles.background = DEBATE_BG
-            inp.styles.color = DEBATE_FG
-            inp.styles.border = ("solid", DEBATE_FG)
+            self.screen.add_class("debate-mode")
 
         def _exit_debate_palette(self) -> None:
             """Returns cleanly to the civics surface -- no fanfare, like it didn't happen."""
-            self.query_one("#runner", Vertical).styles.background = BG
-            card = self.query_one("#card", Static)
-            card.styles.background = PANEL
-            card.styles.color = FG
-            card.styles.border = ("heavy", FG)
-            fb = self.query_one("#feedback", Static)
-            fb.styles.background = INPUT_BG
-            fb.styles.color = FG
-            fb.styles.border = ("heavy", GOLD)
-            status = self.query_one("#status-bar", Static)
-            status.styles.background = PANEL
-            status.styles.color = GOLD
-            inp = self.query_one("#answer-input", Input)
-            inp.styles.background = INPUT_BG
-            inp.styles.color = FG
-            inp.styles.border = ("solid", BORDER)
+            self.screen.remove_class("debate-mode")
 
         def _pop_to_runner(self):
             self.query_one("#mode-select", Vertical).styles.display = "none"
@@ -705,9 +720,11 @@ if TEXTUAL_OK:
             card = self.query_one("#card", Static)
             if self.mode_key == "debate":
                 title_color = {"Obama": OBAMA_COLOR, "Trump": TRUMP_COLOR}.get(title, DEBATE_FG)
-                text = f"[bold {title_color}]{escape(title)}[/bold {title_color}]\n[{DEBATE_FG}]{escape(subtitle)}[/{DEBATE_FG}]\n\n{escape(fact)}"
+                text = span(escape(title), title_color, DEBATE_BG, bold=True) + "\n"
+                text += span(escape(subtitle), DEBATE_FG, DEBATE_BG) + "\n\n"
+                text += span(escape(fact), DEBATE_FG, DEBATE_BG)
                 if source:
-                    text += f"\n\n[{DEBATE_FG}]source: {escape(source)}[/{DEBATE_FG}]"
+                    text += "\n\n" + span(f"source: {escape(source)}", DEBATE_FG, DEBATE_BG)
             else:
                 text = f"[bold {GOLD}]{escape(title)}[/bold {GOLD}]\n[{FG_MUTED}]{escape(subtitle)}[/{FG_MUTED}]\n\n{escape(fact)}"
                 if context:
