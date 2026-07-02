@@ -1,0 +1,104 @@
+"""The Liberty Bell -- civics-check's narrator. Cracked, deadpan, unimpressed by wrong answers.
+
+House rule from the design system: jokes are load-bearing or they get cut. The Bell only
+speaks when it has something to say -- on a wrong answer, a right one, or a perfect round.
+It does not narrate the menu. It does not say hello.
+"""
+import random
+
+RED = "\033[91m"
+BLUE = "\033[94m"
+GOLD = "\033[93m"
+BOLD = "\033[1m"
+DIM = "\033[2m"
+RESET = "\033[0m"
+
+EAGLE = f"""{BOLD}{BLUE}
+        .  *  .    /=\\   .  *  .
+           *   .--( o )--.  *
+             _/  /_____\\  \\_
+            (___/       \\___)
+{RESET}{DIM}                 est. 1776 -- still ringing, barely{RESET}
+"""
+
+_WRONG = [
+    "Wrong. I'd crack again if I could.",
+    "No. I've heard worse, but not by much.",
+    "That's not it. I've been broken longer and I'm still more right than that.",
+    "Incorrect. Bold guess, though.",
+    "No. Try reading a pamphlet sometime.",
+    "Wrong answer. The Founders are, once again, disappointed in a different way.",
+]
+
+_RIGHT = [
+    "Correct. Don't let it go to your head.",
+    "Right. I'm grudgingly impressed.",
+    "Correct. Even a cracked bell rings sometimes.",
+    "Yes. Fine. Good.",
+    "Correct. Someone read the pamphlet.",
+]
+
+_PERFECT = [
+    "Perfect score. I would ring properly if I could. I cannot. You'll have to imagine it.",
+    "All of them. Even I'm surprised, and I've been standing here since 1752.",
+]
+
+_ELECTION_YEAR_ASIDE = "// the Bell has opinions about November but the Bell keeps them to itself."
+
+
+def wrong():
+    return f"{RED}THE BELL:{RESET} {random.choice(_WRONG)}"
+
+
+def right():
+    return f"{GOLD}THE BELL:{RESET} {random.choice(_RIGHT)}"
+
+
+def perfect():
+    return f"{GOLD}{BOLD}THE BELL:{RESET} {random.choice(_PERFECT)}"
+
+
+def ticker(quotes):
+    """One-line marquee of a real founding-era quote, picked fresh each call."""
+    q = random.choice(quotes)
+    return f"{DIM}~~~ {q['quote']} -- {q['person']} ~~~{RESET}"
+
+
+MEDALS = [
+    (1.0, "FOUNDING FATHER"),
+    (0.9, "PATRIOT"),
+    (0.75, "MINUTEMAN"),
+    (0.6, "ALMOST FOUNDING FATHER"),
+    (0.0, "REDCOAT SYMPATHIZER"),
+]
+
+
+def medal(score, total):
+    if not total:
+        return MEDALS[-1][1]
+    pct = score / total
+    for threshold, name in MEDALS:
+        if pct >= threshold:
+            return name
+    return MEDALS[-1][1]
+
+
+def telegram(mode, score, total, elapsed_s=None):
+    passed = total and score / total >= 0.6
+    m = medal(score, total)
+    lines = [
+        f"{GOLD}{BOLD}********* TELEGRAM *********{RESET}",
+        f"RESULT MODE {mode.upper()} STOP",
+        f"SCORE {score} OF {total} STOP",
+    ]
+    if elapsed_s is not None:
+        lines.append(f"TIME {elapsed_s:.1f}S STOP")
+    status = f"{GOLD}STATUS PASSED STOP{RESET}" if passed else f"{RED}STATUS KEEP STUDYING STOP{RESET}"
+    lines.append(status)
+    lines.append(f"{BLUE}MEDAL {m} STOP{RESET}")
+    if total and score == total:
+        lines.append(f"{GOLD}THE BELL SENDS REGARDS STOP ENTHUSIASTICALLY STOP{RESET}")
+    else:
+        lines.append(f"{DIM}THE BELL SENDS REGARDS STOP GRUDGINGLY STOP{RESET}")
+    lines.append(f"{GOLD}{BOLD}*****************************{RESET}")
+    return "\n".join(lines)

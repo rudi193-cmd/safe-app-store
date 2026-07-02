@@ -3,6 +3,7 @@
 import random
 import time
 
+import bell
 import db
 import engine
 
@@ -13,13 +14,9 @@ BOLD = "\033[1m"
 DIM = "\033[2m"
 RESET = "\033[0m"
 
-BANNER = f"""{BOLD}{BLUE}
-   *  *  *  *  *  *  *  *  *  *  *  *  *
-  {RED}=================================={BLUE}
+BANNER = f"""{bell.EAGLE}{BOLD}
      C I V I C S   C H E C K
      America's 250th -- 1776 * 2026
-  {RED}=================================={BLUE}
-   *  *  *  *  *  *  *  *  *  *  *  *  *
 {RESET}"""
 
 MENU = [
@@ -53,27 +50,15 @@ def ask_open(question, accepted):
 
 
 def certificate(mode, score, total, elapsed_s=None):
-    passed = engine.score_pass_fail(score, total)
-    stars = "*" * 13
-    print(f"\n{BOLD}{GOLD}{stars}{RESET}")
-    print(f"{BOLD}  CERTIFICATE OF COMPLETION{RESET}")
-    print(f"  Mode: {mode}")
-    print(f"  Score: {score}/{total}")
-    if elapsed_s is not None:
-        print(f"  Time: {elapsed_s:.1f}s")
-    if total and score / total >= 0.6:
-        print(f"  {GOLD}Status: PASSED{RESET}")
-    else:
-        print(f"  {RED}Status: keep studying{RESET}")
-    print(f"{BOLD}{GOLD}{stars}{RESET}\n")
+    print(f"\n{bell.telegram(mode, score, total, elapsed_s)}\n")
     if total and score == total:
         fireworks()
+        print(bell.perfect())
     db.record_score(mode, score, total, elapsed_s)
 
 
 def fireworks():
     frames = ["  .  *  .  ", "  * *** *  ", " *  *#*  * ", "  * *** *  ", "  .  *  .  "]
-    print(f"{GOLD}{BOLD}PERFECT SCORE!{RESET}")
     for f in frames:
         print(f"{RED}{f}{RESET}")
 
@@ -93,11 +78,12 @@ def run_quiz(pool, count, mode_name, time_limit=None, weighted=False):
         print(f"\n{DIM}[{q['category']} / {q['subcategory']}]{RESET}")
         correct = ask_open(f"Q{i}. {q['question']}", q["answers"])
         if correct:
-            print(f"{GOLD}Correct.{RESET}")
+            print(bell.right())
             score += 1
             db.clear_miss(q["id"])
         else:
-            print(f"{RED}Not quite. Accepted answer(s): {', '.join(str(a) for a in q['answers'])}{RESET}")
+            print(bell.wrong())
+            print(f"{DIM}Accepted answer(s): {', '.join(str(a) for a in q['answers'])}{RESET}")
             db.record_miss(q["id"])
     elapsed = time.time() - start
     certificate(mode_name, score, len(questions), elapsed)
@@ -133,10 +119,12 @@ def mode_states():
                 f"{s['name']} was admitted as the __th state. (number)", [str(s["order"])]
             )
         if correct:
-            print(f"{GOLD}Correct.{RESET} {s['fact']}")
+            print(bell.right())
+            print(f"  {s['fact']}")
             score += 1
         else:
-            print(f"{RED}Nope.{RESET} {s['name']} -- capital {s['capital']}, admitted #{s['order']} ({s['admitted']}). {s['fact']}")
+            print(bell.wrong())
+            print(f"  {s['name']} -- capital {s['capital']}, admitted #{s['order']} ({s['admitted']}). {s['fact']}")
     certificate("state-matchup", score, rounds)
 
 
@@ -198,10 +186,11 @@ def mode_quotes():
         except (ValueError, IndexError):
             pick = ""
         if pick == q["person"]:
-            print(f"{GOLD}Correct.{RESET}")
+            print(bell.right())
             score += 1
         else:
-            print(f"{RED}It was {q['person']}.{RESET}")
+            print(bell.wrong())
+            print(f"  {DIM}It was {q['person']}.{RESET}")
     certificate("quote-match", score, min(6, len(quotes)))
 
 
@@ -225,10 +214,11 @@ def mode_amendments():
         for a in sample:
             correct = ask_open(f"Which amendment (number): \"{a['summary']}\"", [str(a["number"])])
             if correct:
-                print(f"{GOLD}Correct.{RESET}")
+                print(bell.right())
                 score += 1
             else:
-                print(f"{RED}That's the {a['number']}th Amendment ({a['year']}).{RESET}")
+                print(bell.wrong())
+                print(f"  {DIM}That's the {a['number']}th Amendment ({a['year']}).{RESET}")
         certificate("amendment-quiz", score, len(sample))
         return
     try:
@@ -269,10 +259,11 @@ def mode_duel():
         print(f"\n{BOLD}{player}'s turn.{RESET}")
         correct = ask_open(f"Q{i + 1}. {q['question']}", q["answers"])
         if correct:
-            print(f"{GOLD}Correct.{RESET}")
+            print(bell.right())
             scores[player] += 1
         else:
-            print(f"{RED}Nope. Answer: {q['answers'][0]}{RESET}")
+            print(bell.wrong())
+            print(f"  {DIM}Answer: {q['answers'][0]}{RESET}")
     print(f"\n{BOLD}Final score:{RESET} {p1}: {scores[p1]}  |  {p2}: {scores[p2]}")
     if scores[p1] == scores[p2]:
         print("It's a tie!")
@@ -300,9 +291,10 @@ HANDLERS = {
 
 def main():
     print(BANNER)
+    print(bell.ticker(engine.load_quotes()))
     today = engine.today_events()
     if today:
-        print(f"{GOLD}On this day: {today[0]}{RESET}\n")
+        print(f"\n{GOLD}On this day: {today[0]}{RESET}\n")
     while True:
         header("Main Menu")
         for key, label in MENU:
