@@ -10,17 +10,17 @@ from __future__ import annotations
 import json
 import random
 from dataclasses import dataclass
-from pathlib import Path
 
 from rich.style import Style
 from rich.text import Text
 
 import bell
+from civics.paths import data_dir
 
 HERO_ROWS = 11
 CURTAIN_W = 8
 
-_DATA = Path(__file__).resolve().parent / "data" / "sources"
+_DATA = data_dir() / "sources"
 
 # Rich styles (Textual Static.update accepts Text — avoids markup parse errors)
 _STYLE_MARK = Style(color="#d4a017", bold=True)

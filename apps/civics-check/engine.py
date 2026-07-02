@@ -6,8 +6,7 @@ import json
 import random
 from datetime import date
 from functools import lru_cache
-from pathlib import Path
-from urllib.parse import urlparse
+from civics.paths import data_dir
 
 from civics.catalog import get_catalog, reload_catalog
 from civics.scoring import answer_matches, pick_items, score_pass_fail
@@ -166,7 +165,7 @@ def load_debate():
 @lru_cache(maxsize=1)
 def load_source_links() -> dict:
     """links.json: 'resolvers' map citation strings to URLs; 'more' feeds the Record Room."""
-    path = Path(__file__).resolve().parent / "data" / "sources" / "links.json"
+    path = data_dir() / "sources" / "links.json"
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):

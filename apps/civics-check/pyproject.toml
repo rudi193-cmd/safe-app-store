@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-civics-check"
+version = "0.1.0"
+description = "America's 250th civics fair — naturalization test, pavilion quizzes, offline Python TUI and CLI."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Sean Campbell" }]
+dependencies = [
+    "textual>=0.50.0",
+]
+
+[project.scripts]
+civics-check = "app:main"
+
+[project.urls]
+Repository = "https://github.com/rudi193-cmd/safe-app-store"
+Documentation = "https://github.com/rudi193-cmd/safe-app-store/tree/master/apps/civics-check"
+
+[project.optional-dependencies]
+dev = []
+
+[tool.setuptools]
+packages = ["civics"]
+py-modules = ["app", "bell", "db", "engine", "tui", "tui_art"]
+
+[tool.setuptools.package-data]
+civics = ["data/**/*"]
+
+[tool.setuptools.exclude-package-data]
+civics = ["data/**/*.pyc"]

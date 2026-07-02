@@ -1,0 +1,9 @@
+include README.md
+include LICENSE
+include safe-app-manifest.json
+recursive-include data *
+graft civics/data
+include app.py bell.py db.py engine.py tui.py tui_art.py
+recursive-include civics *.py
+recursive-include scripts *.py
+recursive-include tests *.py
