@@ -86,6 +86,54 @@ def source_markup(source: str, fg: str = INK_MUTED, link_fg: str = ACCENT) -> st
     return out
 
 
+def _motto_for_today() -> str:
+    return tui_art.MOTTOS[datetime.date.today().toordinal() % len(tui_art.MOTTOS)]
+
+
+def _fair_day_lines() -> tuple[str, str]:
+    """Return (fair_day banner, numerology line) from today's fair schedule."""
+    try:
+        entry = engine.fair_day()
+    except FileNotFoundError:
+        return "", ""
+    if not entry:
+        return "", ""
+    fair = f"{entry.get('title', '')} · {entry.get('theme', '')}".strip(" ·")
+    num_line = ""
+    theme = entry.get("theme", "")
+    for key, (num, gloss) in tui_art.FAIR_DAY_NUMBERS.items():
+        if key.lower() in theme.lower() or theme.lower() in key.lower():
+            num_line = f"{num} · {gloss}"
+            break
+    return fair[:52], num_line
+
+
+def _session_catalog_card(session: ActivitySession | None) -> dict | None:
+    if not session or session.index >= session.total:
+        return None
+    if session.kind == "browse":
+        cards = session.catalog.pool_for_activity(session.activity_id)
+        return cards[session.index] if session.index < len(cards) else None
+    if session.index < len(session._pool):
+        card = session._pool[session.index]
+        cid = card.get("card_id") or card.get("id")
+        if cid:
+            full = session.catalog.card(str(cid))
+            return full or card
+        return card
+    return None
+
+
+def _activity_lane_pavilion(activity_id: str) -> tuple[str, str]:
+    act = engine.get_catalog().activity(activity_id)
+    if not act:
+        return "", ""
+    pavilion_id = act.get("pool_filter", {}).get("pavilion", act.get("pavilion", ""))
+    pav = engine.get_catalog().pavilion(pavilion_id)
+    lane_id = pav.get("lane", "") if pav else ""
+    return lane_id, pavilion_id
+
+
 def activities_for_pavilion(pavilion_id: str) -> list[dict]:
     return [a for a in engine.get_catalog().activities if a.get("pavilion") == pavilion_id]
 
@@ -209,8 +257,8 @@ if TEXTUAL_OK:
 
     STAGE_CSS = APP_BASE_CSS + f"""
     #ceremony-band {{
-        height: 10;
-        max-height: 10;
+        height: {tui_art.HERO_ROWS};
+        max-height: {tui_art.HERO_ROWS};
         background: {NAVY};
         border-bottom: heavy {GOLD};
     }}
@@ -245,6 +293,13 @@ if TEXTUAL_OK:
         def __init__(self) -> None:
             super().__init__()
             self._star_phase = 0
+            self._sparkle_mode = "normal"
+            self._ripple_tick = 0
+            self._landmark_accent = ""
+
+        def _hero_context(self) -> tui_art.HeroContext:
+            fair, num = _fair_day_lines()
+            return tui_art.HeroContext(motto=_motto_for_today(), fair_day=fair, number_line=num)
 
         def compose_stage(self) -> ComposeResult:
             return
@@ -263,14 +318,28 @@ if TEXTUAL_OK:
         def _render_hero(self) -> None:
             field = self.query_one("#hero-field", Static)
             width = field.size.width or self.app.size.width
-            field.update(tui_art.hero_field(width, tui_art.HERO_ROWS, self._star_phase))
+            ctx = self._hero_context()
+            if self._landmark_accent:
+                ctx.landmark_accent = self._landmark_accent
+            field.update(
+                tui_art.hero_field(
+                    width,
+                    tui_art.HERO_ROWS,
+                    self._star_phase,
+                    ctx,
+                    sparkle_mode=self._sparkle_mode,
+                    ripple_tick=self._ripple_tick,
+                )
+            )
 
         def on_resize(self, event) -> None:
             self._render_hero()
 
-        def _sparkle(self, ticks: int = 8) -> None:
-            """Event flourish: cycle star brightness a few beats, then rest."""
-            state = {"n": 0, "timer": None}
+        def _sparkle(self, ticks: int = 8, mode: str = "normal", accent: str = "") -> None:
+            """Event flourish: cycle star brightness, optional bell ripple or landmark glow."""
+            self._sparkle_mode = mode
+            self._landmark_accent = accent
+            state: dict = {"n": 0, "timer": None}
 
             def tick() -> None:
                 state["n"] += 1
@@ -278,8 +347,12 @@ if TEXTUAL_OK:
                     if state["timer"]:
                         state["timer"].stop()
                     self._star_phase = 0
+                    self._sparkle_mode = "normal"
+                    self._ripple_tick = 0
+                    self._landmark_accent = ""
                 else:
                     self._star_phase = (self._star_phase + 1) % 3
+                    self._ripple_tick = state["n"]
                 self._render_hero()
 
             state["timer"] = self.set_interval(0.18, tick)
@@ -449,6 +522,25 @@ if TEXTUAL_OK:
                 f" {' · '.join(bits)}  │  \"{escape(quote)}\""
             )
 
+        def _hero_context(self) -> tui_art.HeroContext:
+            ctx = super()._hero_context()
+            lane_label = tui_art.LANE_ICONS.get(self._current_lane_id or "", "")
+            pavs = self._pavilions_by_lane.get(self._current_lane_id or "", [])
+            idx = self.query_one("#pavilion-list", ListView).index
+            pavilion_id = ""
+            pavilion_label = ""
+            if pavs and idx is not None and 0 <= idx < len(pavs):
+                pavilion_id = pavs[idx]["id"]
+                pavilion_label = pavs[idx]["label"]
+            if pavilion_label:
+                ctx.caption = f"{lane_label} · {pavilion_label}"[:58]
+            elif lane_label:
+                ctx.caption = lane_label[:58]
+            ctx.canton = tui_art.canton_for_lane(self._current_lane_id, pavilion_id or None)
+            ctx.nat_pass_hint = self._current_lane_id == "citizenship_court"
+            ctx.record_room = self._current_lane_id == "_record_room"
+            return ctx
+
         def _select_lane(self, index: int) -> None:
             if not self._lanes:
                 return
@@ -468,6 +560,7 @@ if TEXTUAL_OK:
                 self._update_preview(0)
             else:
                 self.query_one("#preview", Static).update("[dim]No tents on this lane yet.[/dim]")
+            self._render_hero()
 
         def _update_preview(self, index: int) -> None:
             pavs = self._pavilions_by_lane.get(self._current_lane_id or "", [])
@@ -507,6 +600,7 @@ if TEXTUAL_OK:
         def on_list_view_highlighted(self, event: ListView.Highlighted) -> None:
             if event.list_view.id == "pavilion-list":
                 self._update_preview(event.list_view.index)
+                self._render_hero()
 
         def action_visit(self) -> None:
             pavs = self._pavilions_by_lane.get(self._current_lane_id or "", [])
@@ -546,8 +640,8 @@ if TEXTUAL_OK:
                 title="Liberty Bell",
                 timeout=5,
             )
-            # the ring shivers the sky: sparkle the stars, flash the plaza hint
-            self._sparkle()
+            # the ring shivers the sky: ripple outward from center, flash the plaza hint
+            self._sparkle(ticks=14, mode="ripple")
             plaza = self.query_one("#flare-plaza", Static)
             plaza.update(tui_art.FLARE_PLAZA_HOT)
             self.set_timer(1.6, lambda: plaza.update(tui_art.FLARE_PLAZA))
@@ -669,6 +763,25 @@ if TEXTUAL_OK:
                 f"[bold {GOLD}]★[/bold {GOLD}] {escape(self.title)}"
             )
 
+        def _hero_context(self) -> tui_art.HeroContext:
+            ctx = super()._hero_context()
+            lane_id, pavilion_id = _activity_lane_pavilion(self.activity_id)
+            lane_label = tui_art.LANE_ICONS.get(lane_id, "")
+            if lane_label:
+                ctx.caption = f"{lane_label} · {self.title}"[:58]
+            else:
+                ctx.caption = self.title[:58]
+            ctx.canton = tui_art.canton_for_lane(lane_id, pavilion_id or None)
+            ctx.nat_pass_hint = (
+                self.activity_id in tui_art.NAT_ACTIVITY_IDS
+                or lane_id == "citizenship_court"
+            )
+            card = _session_catalog_card(self.session)
+            if card:
+                ctx.solemn = tui_art.card_is_solemn(card)
+                ctx.official_line = tui_art.official_line_for_card(card)
+            return ctx
+
         def _set_status(self, text: str) -> None:
             self.query_one("#status", Static).update(
                 f" [bold {INK}]{escape(self.title)}[/bold {INK}] — {escape(text)}"
@@ -750,6 +863,8 @@ if TEXTUAL_OK:
                 )
                 self._set_status("type numbers space-separated, e.g. 3 1 2 4")
                 self.query_one("#answer-input", Input).placeholder = "3 1 2 ..."
+
+            self._render_hero()
 
         def _finish(self) -> None:
             if not self.session:
@@ -862,6 +977,15 @@ if TEXTUAL_OK:
 
             if result.get("correct"):
                 verdict = f"[bold {BRASS}]{bell.right_plain()}[/bold {BRASS}]"
+                card = None
+                cid = result.get("card_id")
+                if cid:
+                    card = engine.get_catalog().card(str(cid))
+                accent = tui_art.card_landmark_accent(card)
+                if accent:
+                    self._sparkle(ticks=8, accent=accent)
+                elif not (self._hero_context().solemn):
+                    self._sparkle(ticks=5)
             else:
                 expected = result.get("expected", "")
                 if isinstance(expected, list):
@@ -953,6 +1077,12 @@ if TEXTUAL_OK:
                 f" Esc returns to the fair.[/{INK_MUTED}]"
             )
             self.query_one("#sources-body", Static).update("\n".join(parts))
+
+        def _hero_context(self) -> tui_art.HeroContext:
+            ctx = super()._hero_context()
+            ctx.record_room = True
+            ctx.caption = ""
+            return ctx
 
         def action_back(self) -> None:
             self.app.pop_screen()
