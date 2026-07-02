@@ -48,6 +48,13 @@ RED = "#e63946"
 BLUE = "#457b9d"
 GOLD = "#f4a300"
 
+# DIENAMIC palette -- the debate easter egg's own hard-inverted world.
+# Falling through the floor of the civics tool into the factory beneath it.
+DEBATE_BG = "#e8d100"
+DEBATE_FG = "#0a0a0a"
+OBAMA_COLOR = "#00bcd4"
+TRUMP_COLOR = "#d97706"
+
 MODES = [
     ("naturalization", "Naturalization Quiz", "10 real USCIS questions", "quiz"),
     ("missed", "Missed Review", "resurface what you got wrong", "quiz"),
@@ -388,6 +395,7 @@ if TEXTUAL_OK:
                     return
 
         def action_collapse(self) -> None:
+            self._exit_debate_palette()
             self.query_one("#runner", Vertical).styles.display = "none"
             self.query_one("#mode-select", Vertical).styles.display = "block"
             self._refresh_scoreboard()
@@ -403,6 +411,40 @@ if TEXTUAL_OK:
 
         def action_debate_easter_egg(self) -> None:
             self._start_mode("debate", "Constitutional Debate", "browse")
+            self._enter_debate_palette()
+
+        def _enter_debate_palette(self) -> None:
+            """Hard color-invert: parchment/terminal civics tool -> DIENAMIC yellow-and-black."""
+            self.query_one("#runner", Vertical).styles.background = DEBATE_BG
+            for wid in ("#card", "#feedback", "#status-bar"):
+                w = self.query_one(wid, Static)
+                w.styles.background = DEBATE_BG
+                w.styles.color = DEBATE_FG
+            self.query_one("#card", Static).styles.border = ("heavy", DEBATE_FG)
+            self.query_one("#feedback", Static).styles.border = ("heavy", DEBATE_FG)
+            inp = self.query_one("#answer-input", Input)
+            inp.styles.background = DEBATE_BG
+            inp.styles.color = DEBATE_FG
+            inp.styles.border = ("solid", DEBATE_FG)
+
+        def _exit_debate_palette(self) -> None:
+            """Returns cleanly to the civics surface -- no fanfare, like it didn't happen."""
+            self.query_one("#runner", Vertical).styles.background = BG
+            card = self.query_one("#card", Static)
+            card.styles.background = PANEL
+            card.styles.color = FG
+            card.styles.border = ("heavy", FG)
+            fb = self.query_one("#feedback", Static)
+            fb.styles.background = INPUT_BG
+            fb.styles.color = FG
+            fb.styles.border = ("heavy", GOLD)
+            status = self.query_one("#status-bar", Static)
+            status.styles.background = PANEL
+            status.styles.color = GOLD
+            inp = self.query_one("#answer-input", Input)
+            inp.styles.background = INPUT_BG
+            inp.styles.color = FG
+            inp.styles.border = ("solid", BORDER)
 
         def _pop_to_runner(self):
             self.query_one("#mode-select", Vertical).styles.display = "none"
@@ -560,6 +602,10 @@ if TEXTUAL_OK:
                     f"[bold {GOLD}]THE BELL:[/bold {GOLD}] I admire the commitment to the bit. Still not the answer.",
                 )
                 return
+            if raw.strip() == "109":
+                self._start_mode("debate", "Constitutional Debate", "browse")
+                self._enter_debate_palette()
+                return
             q = self.pool[self.index]
             correct = engine.answer_matches(raw, q["answers"])
             if correct:
@@ -657,11 +703,17 @@ if TEXTUAL_OK:
                 return
             title, subtitle, fact, context, source = self.browse_items[self.index % len(self.browse_items)]
             card = self.query_one("#card", Static)
-            text = f"[bold {GOLD}]{escape(title)}[/bold {GOLD}]\n[{FG_MUTED}]{escape(subtitle)}[/{FG_MUTED}]\n\n{escape(fact)}"
-            if context:
-                text += f"\n\n{escape(context)}"
-            if source:
-                text += f"\n\n[{FG_MUTED}]source: {escape(source)}[/{FG_MUTED}]"
+            if self.mode_key == "debate":
+                title_color = {"Obama": OBAMA_COLOR, "Trump": TRUMP_COLOR}.get(title, DEBATE_FG)
+                text = f"[bold {title_color}]{escape(title)}[/bold {title_color}]\n[{DEBATE_FG}]{escape(subtitle)}[/{DEBATE_FG}]\n\n{escape(fact)}"
+                if source:
+                    text += f"\n\n[{DEBATE_FG}]source: {escape(source)}[/{DEBATE_FG}]"
+            else:
+                text = f"[bold {GOLD}]{escape(title)}[/bold {GOLD}]\n[{FG_MUTED}]{escape(subtitle)}[/{FG_MUTED}]\n\n{escape(fact)}"
+                if context:
+                    text += f"\n\n{escape(context)}"
+                if source:
+                    text += f"\n\n[{FG_MUTED}]source: {escape(source)}[/{FG_MUTED}]"
             card.update(text)
             n = len(self.browse_items)
             self._update_status(f"{self.index + 1}/{n} -- press enter for next")
