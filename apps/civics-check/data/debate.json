@@ -15,6 +15,20 @@
         "occasion": "Remarks by the President Before Cabinet Meeting, White House",
         "date": "January 14, 2014",
         "citation": "obamawhitehouse.archives.gov (official White House transcript)"
+      },
+      {
+        "speaker": "Trump",
+        "quote": "Article II allows me to do whatever I want. Article II would have allowed me to fire him.",
+        "occasion": "ABC News interview, on his authority to remove Special Counsel Robert Mueller",
+        "date": "June 2019",
+        "citation": "syracuse.com (citing ABC News interview transcript)"
+      },
+      {
+        "speaker": "Obama",
+        "quote": "But wherever I can act on my own, without Congress, by using my pen to take executive actions, or picking up the phone and rallying folks around a common cause, that's what I'm going to do.",
+        "occasion": "Remarks by the President on Signing of Executive Order, White House",
+        "date": "February 12, 2014",
+        "citation": "obamawhitehouse.archives.gov (official White House transcript)"
       }
     ]
   },
@@ -34,6 +48,20 @@
         "occasion": "Twitter/X post",
         "date": "February 17, 2017",
         "citation": "presidency.ucsb.edu, The American Presidency Project (tweet archive)"
+      },
+      {
+        "speaker": "Obama",
+        "quote": "So I heard firsthand I think from all of them the importance of all of us, including the United States government, speaking out on behalf of the value of freedom of the press.",
+        "occasion": "Remarks by the President on World Press Freedom Day, Roosevelt Room, White House",
+        "date": "May 1, 2015",
+        "citation": "obamawhitehouse.archives.gov (official White House transcript)"
+      },
+      {
+        "speaker": "Trump",
+        "quote": "It is the FAKE NEWS, which is a large percentage of the media, that is the enemy of the people!",
+        "occasion": "Twitter/X post",
+        "date": "August 2, 2018",
+        "citation": "cbsnews.com (citing @realDonaldTrump tweet archive)"
       }
     ]
   },
@@ -53,6 +81,20 @@
         "occasion": "Remarks at the 2017 National Scout Jamboree, Glen Jean, West Virginia",
         "date": "July 24, 2017",
         "citation": "trumpwhitehouse.archives.gov (official White House transcript)"
+      },
+      {
+        "speaker": "Obama",
+        "quote": "When they wage peaceful protest, they're not demanding special treatment but the equal treatment that our Founders promised.",
+        "occasion": "Farewell Address to the Nation, McCormick Place, Chicago",
+        "date": "January 10, 2017",
+        "citation": "obamawhitehouse.archives.gov (official White House transcript)"
+      },
+      {
+        "speaker": "Trump",
+        "quote": "Under my leadership, we will restore fair, equal, and impartial justice under the constitutional rule of law.",
+        "occasion": "Inaugural Address, U.S. Capitol",
+        "date": "January 20, 2025",
+        "citation": "whitehouse.gov (official White House transcript)"
       }
     ]
   },
@@ -71,6 +113,20 @@
         "quote": "We have ended the war on American energy, and we have ended the war on beautiful, clean coal.",
         "occasion": "State of the Union Address, U.S. Capitol",
         "date": "January 30, 2018",
+        "citation": "trumpwhitehouse.archives.gov (official White House transcript)"
+      },
+      {
+        "speaker": "Obama",
+        "quote": "There have never been federal limits on the amount of carbon that power plants can dump into the air. Think about that. ... For the sake of our kids and the health and safety of all Americans, that has to change.",
+        "occasion": "Remarks by the President in Announcing the Clean Power Plan, East Room, White House",
+        "date": "August 3, 2015",
+        "citation": "obamawhitehouse.archives.gov (official White House transcript)"
+      },
+      {
+        "speaker": "Trump",
+        "quote": "For many years, Washington betrayed workers like you with trade deals that were rigged to benefit foreign countries and the lobbyists. Since NAFTA was signed, the United States lost one in four manufacturing jobs.",
+        "occasion": "Remarks at a USMCA Celebration with American Workers, Warren, Michigan",
+        "date": "January 30, 2020",
         "citation": "trumpwhitehouse.archives.gov (official White House transcript)"
       }
     ]
@@ -91,6 +147,20 @@
         "occasion": "Remarks at the Save America Rally, Washington, D.C.",
         "date": "January 6, 2021",
         "citation": "presidency.ucsb.edu, The American Presidency Project (speech archive)"
+      },
+      {
+        "speaker": "Obama",
+        "quote": "Our Constitution is a remarkable, beautiful gift. But it's really just a piece of parchment. It has no power on its own. We, the people, give it power.",
+        "occasion": "Farewell Address to the Nation, McCormick Place, Chicago",
+        "date": "January 10, 2017",
+        "citation": "obamawhitehouse.archives.gov (official White House transcript)"
+      },
+      {
+        "speaker": "Trump",
+        "quote": "This is a case where they're trying to steal an election, they're trying to rig an election, and we can't let that happen.",
+        "occasion": "Remarks by President Trump on the Election, James S. Brady Press Briefing Room",
+        "date": "November 5, 2020",
+        "citation": "trumpwhitehouse.archives.gov (official White House transcript)"
       }
     ]
   }
