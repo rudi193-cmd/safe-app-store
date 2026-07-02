@@ -13,23 +13,44 @@ BOLD = "\033[1m"
 DIM = "\033[2m"
 RESET = "\033[0m"
 
-EAGLE = f"""{BOLD}{BLUE}
-        .  *  .    /=\\   .  *  .
-           *   .--( o )--.  *
-             _/  /_____\\  \\_
-            (___/       \\___)
-{RESET}{DIM}                 est. 1776 -- still ringing, barely{RESET}
-"""
+# Joan G. Stark (jgs / Spunk), "Liberty Bell" (7/97), rec.arts.ascii / alt.ascii-art.
+# Archive: https://oldcompcz.github.io/jgs/joan_stark/july4.html
+# Also catalogued: Christopher Johnson's ASCII Art Collection (art #1711).
+_LIBERTY_BELL_LINES = [
+    "     .--.-,-.-.-,-.--.",
+    "     |     \\   /     |",
+    "     |      \\ /      |",
+    "     |  .===,=,===.  |",
+    "   _/\\_; .-'`^`'-. ;_/\\_",
+    "  (  /` /_________\\ `\\  )",
+    "  |  | |===========| |  |",
+    "  |  | |           | |  |",
+    "  |  | |  ,        | |  |",
+    "  |  | ;_{_________; |  |",
+    "  |  |/===`>========\\|  |",
+    "  |  ;-._<`________.-;  |",
+    "  |  | |     U     | |  |",
+    " /   | |___________| |   \\",
+    "|                         |",
+    "|jgs                      |",
+    "'-------------------------'",
+]
 
-# Plain (no ANSI) variants -- for Textual/Rich widgets, which use their own
-# markup syntax ([red]...[/red]) and would render raw \033[ codes as garbage.
-EAGLE_PLAIN = """
-        .  *  .    /=\\   .  *  .
-           *   .--( o )--.  *
-             _/  /_____\\  \\_
-            (___/       \\___)
-                 est. 1776 -- still ringing, barely
-"""
+LIBERTY_BELL_PLAIN = (
+    "-=[ Liberty Bell ]=-  7/97\n"
+    + "\n".join(_LIBERTY_BELL_LINES)
+    + "\n                 est. 1776 — still ringing, barely\n"
+)
+
+LIBERTY_BELL = (
+    f"{BOLD}{BLUE}\n"
+    + "\n".join(_LIBERTY_BELL_LINES)
+    + f"\n{RESET}{DIM}                 est. 1776 — still ringing, barely{RESET}\n"
+)
+
+# Legacy names — prefer LIBERTY_BELL / LIBERTY_BELL_PLAIN.
+EAGLE = LIBERTY_BELL
+EAGLE_PLAIN = LIBERTY_BELL_PLAIN
 
 _WRONG = [
     "Wrong. I'd crack again if I could.",

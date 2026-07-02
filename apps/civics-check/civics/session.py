@@ -114,7 +114,9 @@ class ActivitySession:
         card = self._pool[self.index]
         self._current = card
         if self.kind == "states":
-            self._mode = random.choice(["capital", "order"])
+            if self._current is not card:
+                self._mode = random.choice(["capital", "order"])
+            self._current = card
             return self._format_states_prompt(card)
         if self.kind == "pick":
             self._options = list(card.get("choices", []))
@@ -189,8 +191,15 @@ class ActivitySession:
         return {"error": "unsupported"}
 
     def _grade_typed(self, raw: str) -> dict:
+        if self.timed_out():
+            return {"correct": False, "done": True, "timed_out": True}
+        if self.index >= len(self._pool):
+            return {"correct": False, "done": True}
         card = self._pool[self.index]
-        expected = self.current().get("answers", card.get("answers", []))
+        if self.kind == "states":
+            expected = self._format_states_prompt(card).get("answers", [])
+        else:
+            expected = card.get("answers", [])
         correct = answer_matches(raw, expected)
         if correct:
             self.score += 1
@@ -250,15 +259,25 @@ class ActivitySession:
             "done": True,
         }
 
+    def resolved_total(self) -> int:
+        """Questions that count toward pass/fail (speed round stops early on timeout)."""
+        if self.timed_out():
+            return min(self.index, len(self._pool))
+        return self.total
+
     def passed(self) -> bool:
-        return score_pass_fail(self.score, self.total, self.pass_ratio)
+        total = self.resolved_total()
+        if not total:
+            return False
+        return score_pass_fail(self.score, total, self.pass_ratio)
 
     def summary(self) -> dict:
+        total = self.resolved_total()
         return {
             "activity_id": self.activity_id,
             "kind": self.kind,
             "score": self.score,
-            "total": self.total,
+            "total": total,
             "elapsed_s": self.elapsed(),
             "passed": self.passed(),
             "duel_scores": dict(self._duel_scores) if self._duel_scores else None,

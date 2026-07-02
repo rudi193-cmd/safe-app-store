@@ -1,328 +1,414 @@
 #!/usr/bin/env python3
-"""Civics Check — America's 250th civics quiz. Pure Python, offline, stdlib only."""
-import random
-import time
+"""Civics Check — America's 250th civics fair.
+
+SAFE entry point: ``make run app=civics-check`` launches the Textual fair when
+Textual is installed; use ``--cli`` for the stdlib fair map. Prefer ``./dev.sh`` for
+a self-contained venv + catalog rebuild.
+
+The CLI mirrors the TUI fair map: lanes → pavilions → catalog activities via
+``ActivitySession`` (same grading, pools, and pass rules as the Textual stage).
+"""
+from __future__ import annotations
+
+import sys
 
 import bell
 import db
 import engine
+import tui_art
+from civics.session import ActivitySession
 
 RED = "\033[91m"
-BLUE = "\033[94m"
 GOLD = "\033[93m"
 BOLD = "\033[1m"
 DIM = "\033[2m"
 RESET = "\033[0m"
 
-BANNER = f"""{bell.EAGLE}{BOLD}
+BANNER = f"""{bell.LIBERTY_BELL}{BOLD}
      C I V I C S   C H E C K
-     America's 250th -- 1776 * 2026
+     America's 250th — Freedom 250 fair
 {RESET}"""
 
-MENU = [
-    ("1", "Naturalization quiz (10 questions, need 6 to pass)"),
-    ("2", "Review my missed questions"),
-    ("3", "State matchup (capital / admission order)"),
-    ("4", "Timeline sort (put history in order)"),
-    ("5", "13 Colonies flashcards"),
-    ("6", "On This Day"),
-    ("7", "Founding Fathers quote match"),
-    ("8", "Declaration signers browser"),
-    ("9", "Amendment explorer"),
-    ("10", "Speed round (60 seconds, naturalization bank)"),
-    ("11", "View last certificate"),
-    ("12", "Pass-the-keyboard duel"),
-    ("Q", "Quit"),
-]
+TIER_ICON = tui_art.PAVILION_ICONS
 
 
-def pause():
-    input(f"{DIM}(press enter to continue){RESET}\n")
+def pause(msg: str = "(press enter to continue)") -> None:
+    try:
+        input(f"{DIM}{msg}{RESET}\n")
+    except (KeyboardInterrupt, EOFError):
+        raise
 
 
-def header(title):
+def header(title: str) -> None:
     print(f"\n{BOLD}{GOLD}--- {title} ---{RESET}\n")
 
 
-def ask_open(question, accepted):
-    ans = input(f"{question}\n> ").strip()
-    return engine.answer_matches(ans, accepted)
+def format_source(source: str) -> str:
+    resolved = engine.resolve_source(source)
+    if resolved:
+        return f"{DIM}Source: {resolved['label']} — {resolved['url']}{RESET}"
+    return f"{DIM}Source: {source}{RESET}"
 
 
-def certificate(mode, score, total, elapsed_s=None):
-    print(f"\n{bell.telegram(mode, score, total, elapsed_s)}\n")
-    if total and score == total:
-        fireworks()
-        print(bell.perfect())
-    db.record_score(mode, score, total, elapsed_s)
+def print_fair_intro() -> None:
+    print(BANNER)
+    playbill = engine.fair_playbill()
+    if playbill.get("fair_day"):
+        print(f"{GOLD}Today's pavilion: {playbill['fair_day']}{RESET}")
+    if playbill.get("number_line"):
+        print(f"{DIM}By the numbers: {playbill['number_line']}{RESET}")
+    if playbill.get("motto"):
+        print(f"{DIM}{playbill['motto']}{RESET}")
+    if playbill.get("on_this_day"):
+        print(f"{GOLD}On this day: {playbill['on_this_day']}{RESET}")
+    if playbill.get("ticker"):
+        print(f"{DIM}~~~ {playbill['ticker']} ~~~{RESET}")
+    print()
 
 
-def fireworks():
-    frames = ["  .  *  .  ", "  * *** *  ", " *  *#*  * ", "  * *** *  ", "  .  *  .  "]
-    for f in frames:
-        print(f"{RED}{f}{RESET}")
-
-
-def run_quiz(pool, count, mode_name, time_limit=None, weighted=False):
-    weighted_ids = None
-    if weighted:
-        weighted_ids = db.missed_card_ids(limit=count) or db.missed_question_ids(limit=count)
-    questions = engine.pick_questions(pool, count, weighted_ids)
-    if not questions:
-        print("No questions available.")
-        return
-    score = 0
-    start = time.time()
-    for i, q in enumerate(questions, 1):
-        if time_limit and (time.time() - start) > time_limit:
-            print(f"\n{RED}Time's up!{RESET}")
-            break
-        print(f"\n{DIM}[{q['category']} / {q['subcategory']}]{RESET}")
-        correct = ask_open(f"Q{i}. {q['question']}", q["answers"])
-        if correct:
-            print(bell.right())
-            score += 1
-            db.clear_miss(engine.question_key(q))
-        else:
-            print(bell.wrong())
-            print(f"{DIM}Accepted answer(s): {', '.join(str(a) for a in q['answers'])}{RESET}")
-            db.record_miss(engine.question_key(q))
-    elapsed = time.time() - start
-    certificate(mode_name, score, len(questions), elapsed)
-
-
-def mode_naturalization():
-    header("Naturalization Quiz")
-    run_quiz(engine.load_naturalization_questions(), 10, "naturalization")
-
-
-def mode_missed():
-    header("Missed Questions Review")
-    ids = db.missed_question_ids(limit=10)
-    if not ids:
-        print("Nothing missed yet -- clean slate.")
-        return
-    pool = engine.load_naturalization_questions()
-    run_quiz(pool, len(ids), "missed-review", weighted=True)
-
-
-def mode_states():
-    header("State Matchup")
-    states = engine.load_states()
-    random.shuffle(states)
-    score = 0
-    rounds = min(8, len(states))
-    for s in states[:rounds]:
-        mode = random.choice(["capital", "order"])
-        if mode == "capital":
-            correct = ask_open(f"What is the capital of {s['name']}?", [s["capital"]])
-        else:
-            correct = ask_open(
-                f"{s['name']} was admitted as the __th state. (number)", [str(s["order"])]
-            )
-        if correct:
-            print(bell.right())
-            print(f"  {s['fact']}")
-            score += 1
-        else:
-            print(bell.wrong())
-            print(f"  {s['name']} -- capital {s['capital']}, admitted #{s['order']} ({s['admitted']}). {s['fact']}")
-    certificate("state-matchup", score, rounds)
-
-
-def mode_timeline():
-    header("Timeline Sort")
-    events = engine.load_timeline_events()
-    sample = random.sample(events, min(8, len(events)))
-    shuffled = sample[:]
-    random.shuffle(shuffled)
-    print("Put these in chronological order (earliest first) by typing the numbers, e.g. '3 1 2 ...':\n")
-    for i, e in enumerate(shuffled, 1):
-        print(f"  {i}. {e['event']}")
-    raw = input("\nYour order> ").split()
-    correct_order = sorted(range(len(shuffled)), key=lambda i: shuffled[i]["year"])
-    try:
-        user_order = [int(x) - 1 for x in raw]
-    except ValueError:
-        user_order = []
-    score = sum(1 for a, b in zip(user_order, correct_order) if a == b)
-    print(f"\nActual chronological order:")
-    for i in correct_order:
-        print(f"  {shuffled[i]['year']} -- {shuffled[i]['event']}")
-    certificate("timeline-sort", score, len(shuffled))
-
-
-def mode_colonies():
-    header("13 Colonies Flashcards")
-    colonies = engine.load_colonies()
-    random.shuffle(colonies)
-    for c in colonies:
-        print(f"\n{BOLD}{c['name']}{RESET} -- founded {c['founded']} by {c['founder']}")
-        print(f"  {c['fact']}")
-        input(f"{DIM}(press enter for next colony){RESET}")
-
-
-def mode_on_this_day():
-    header("On This Day")
-    events = engine.today_events()
-    if not events:
-        print("No recorded events for today in this dataset -- try July 4th weekend for the good stuff.")
-    for e in events:
-        print(f"  * {e}")
-
-
-def mode_quotes():
-    header("Founding Fathers Quote Match")
-    quotes = engine.load_quotes()
-    random.shuffle(quotes)
-    score = 0
-    for q in quotes[:6]:
-        options = [q["person"]] + q["distractors"]
-        random.shuffle(options)
-        print(f"\n\"{q['quote']}\"")
-        for i, opt in enumerate(options, 1):
-            print(f"  {i}. {opt}")
-        raw = input("Who said it? > ").strip()
-        try:
-            pick = options[int(raw) - 1]
-        except (ValueError, IndexError):
-            pick = ""
-        if pick == q["person"]:
-            print(bell.right())
-            score += 1
-        else:
-            print(bell.wrong())
-            print(f"  {DIM}It was {q['person']}.{RESET}")
-    certificate("quote-match", score, min(6, len(quotes)))
-
-
-def mode_signers():
-    header("Declaration Signers Browser")
-    signers = engine.load_signers()
-    for s in signers:
-        print(f"\n{BOLD}{s['name']}{RESET} ({s['state']})")
-        print(f"  {s['fact']}")
+def print_record_room() -> None:
+    header("The Record Room")
+    print(
+        f"{DIM}Every fact in this fair came from somewhere. "
+        f"These are the somewheres — and every one is a fine place to keep going.{RESET}\n"
+    )
+    links = engine.load_source_links()
+    print(f"{BOLD}WHERE WE GOT THE INFO{RESET}")
+    for r in links.get("resolvers", []):
+        print(f"\n  ⧉ {r['label']}")
+        if r.get("blurb"):
+            print(f"    {r['blurb']}")
+        print(f"    {DIM}{r['url']}{RESET}")
+    print(f"\n{BOLD}LEARN MORE HERE{RESET}")
+    for m in links.get("more", []):
+        print(f"\n  ⧉ {m['label']}")
+        if m.get("blurb"):
+            print(f"    {m['blurb']}")
+        print(f"    {DIM}{m['url']}{RESET}")
     pause()
 
 
-def mode_amendments():
-    header("Amendment Explorer")
-    amendments = engine.load_amendments()
-    print("Browse: enter a number 1-27, or 'quiz' for a quick round.\n")
-    choice = input("> ").strip().lower()
-    if choice == "quiz":
-        sample = random.sample(amendments, 5)
-        score = 0
-        for a in sample:
-            correct = ask_open(f"Which amendment (number): \"{a['summary']}\"", [str(a["number"])])
-            if correct:
-                print(bell.right())
-                score += 1
-            else:
-                print(bell.wrong())
-                print(f"  {DIM}That's the {a['number']}th Amendment ({a['year']}).{RESET}")
-        certificate("amendment-quiz", score, len(sample))
+def fireworks() -> None:
+    for f in ["  .  *  .  ", "  * *** *  ", " *  *#*  * ", "  * *** *  ", "  .  *  .  "]:
+        print(f"{RED}{f}{RESET}")
+
+
+def finish_session(activity_id: str, session: ActivitySession) -> None:
+    summary = session.summary()
+    elapsed = summary.get("elapsed_s")
+    print(f"\n{bell.telegram(activity_id, summary['score'], summary['total'], elapsed)}\n")
+    if summary["total"] and summary["score"] == summary["total"]:
+        fireworks()
+        print(bell.perfect())
+    db.record_score(activity_id, summary["score"], summary["total"], elapsed)
+
+
+def _print_step(session: ActivitySession, step: dict) -> None:
+    kind = session.kind
+    if kind == "browse":
+        print(f"{BOLD}{step.get('title', '')}{RESET}")
+        if step.get("subtitle"):
+            print(f"{DIM}{step['subtitle']}{RESET}")
+        print(f"\n{step.get('body', '')}")
+        if step.get("context"):
+            print(f"\n{DIM}{step['context']}{RESET}")
+        if step.get("source"):
+            print(f"\n{format_source(step['source'])}")
+        n = session.index + 1
+        print(f"\n{DIM}[{n}/{session.total} — Enter for next]{RESET}")
         return
+
+    if kind in ("quiz", "duel", "states"):
+        if kind == "duel" and session._duel_players:
+            player = session.duel_player() or ""
+            sub = f"{player}'s turn"
+        else:
+            sub = step.get("category", "") or kind
+        print(f"{BOLD}{step.get('question') or step.get('prompt', '')}{RESET}")
+        print(f"{DIM}{sub} · Q {session.index + 1}/{session.total} · score {session.score}{RESET}")
+        return
+
+    if kind in ("pick", "match"):
+        prompt = step.get("prompt") or step.get("quote", "")
+        print(f"{BOLD}{prompt}{RESET}\n")
+        for i, opt in enumerate(step.get("options", []), 1):
+            print(f"  {i}. {opt}")
+        print(f"\n{DIM}Q {session.index + 1}/{session.total}{RESET}")
+        return
+
+    if kind == "sort":
+        print(f"{BOLD}Timeline Sort{RESET}\nPut these in chronological order (earliest first).\n")
+        for num, label in step.get("items", []):
+            print(f"  {num}. {label}")
+        print(f"\n{DIM}Type numbers space-separated, e.g. 3 1 2 4{RESET}")
+
+
+def run_activity(activity_id: str, title: str) -> None:
+    """Run one catalog activity — same session engine as the Textual stage."""
+    header(title)
+    lane_id, _ = engine.activity_lane_pavilion(activity_id)
+    lane_label = tui_art.LANE_ICONS.get(lane_id, "")
+    if lane_label:
+        print(f"{DIM}{lane_label}{RESET}\n")
+    if activity_id in tui_art.NAT_ACTIVITY_IDS or lane_id == "citizenship_court":
+        print(f"{DIM}Passing score: 6 of 10 on naturalization-style rounds.{RESET}\n")
+
     try:
-        n = int(choice)
-        match = next(a for a in amendments if a["number"] == n)
-        print(f"\n{BOLD}Amendment {match['number']} ({match['year']}){RESET}: {match['summary']}")
-    except (ValueError, StopIteration):
-        print("Not a valid amendment number.")
+        session = ActivitySession(activity_id)
+    except (ValueError, FileNotFoundError) as exc:
+        print(f"Could not start activity: {exc}")
+        pause()
+        return
+
+    if session.kind == "duel":
+        try:
+            p1 = input("Player 1 name> ").strip() or "Player 1"
+            p2 = input("Player 2 name> ").strip() or "Player 2"
+        except (KeyboardInterrupt, EOFError):
+            return
+        session.setup_duel(p1, p2)
+
+    if activity_id == "missed":
+        if not db.missed_card_ids(1) and not db.missed_question_ids(1):
+            print("Nothing missed yet — clean slate.")
+            pause()
+            return
 
 
-def mode_speed_round():
-    header("Speed Round -- 60 seconds")
-    run_quiz(engine.load_naturalization_questions(), 100, "speed-round", time_limit=60)
+    while True:
+        step = session.current()
+        if step is None:
+            finish_session(activity_id, session)
+            pause()
+            return
 
+        _print_step(session, step)
 
-def mode_certificate():
-    header("Recent Scores")
-    for mode in ["naturalization", "speed-round", "state-matchup", "quote-match", "amendment-quiz"]:
-        rows = db.top_scores(mode, limit=3)
-        if rows:
-            print(f"\n{BOLD}{mode}{RESET}")
-            for score, total, elapsed_s, played_at in rows:
-                t = f", {elapsed_s:.1f}s" if elapsed_s else ""
-                print(f"  {score}/{total}{t}  ({played_at})")
-    if not any(db.top_scores(m, 1) for m in ["naturalization", "speed-round", "state-matchup", "quote-match", "amendment-quiz"]):
-        print("No scores recorded yet -- play a round first.")
+        try:
+            if session.kind == "browse":
+                raw = input("\n> ").strip()
+            else:
+                raw = input("\n> ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print("\nInterrupted.")
+            return
 
+        if raw == "1776":
+            print(f"{GOLD}THE BELL: Still not the answer.{RESET}")
+            continue
 
-def mode_duel():
-    header("Pass-the-Keyboard Duel")
-    p1 = input("Player 1 name: ").strip() or "Player 1"
-    p2 = input("Player 2 name: ").strip() or "Player 2"
-    pool = engine.load_naturalization_questions()
-    questions = engine.pick_questions(pool, 10)
-    scores = {p1: 0, p2: 0}
-    for i, q in enumerate(questions):
-        player = p1 if i % 2 == 0 else p2
-        print(f"\n{BOLD}{player}'s turn.{RESET}")
-        correct = ask_open(f"Q{i + 1}. {q['question']}", q["answers"])
-        if correct:
+        submit_arg = raw if session.kind != "browse" else (raw or " ")
+        result = session.submit(submit_arg)
+
+        if result.get("timed_out"):
+            finish_session(activity_id, session)
+            pause()
+            return
+
+        if session.kind == "browse":
+            if result.get("done"):
+                finish_session(activity_id, session)
+                pause()
+            continue
+
+        if session.kind == "sort" and result.get("done"):
+            print(f"\nScore {result.get('score', 0)}/{result.get('total', 0)}")
+            for entry in result.get("ordered", []):
+                print(f"  {entry['year']} — {entry['event']}")
+            db.record_score(activity_id, result.get("score", 0), result.get("total", 0), session.elapsed())
+            pause()
+            return
+
+        card_id = result.get("card_id")
+        if card_id and session.kind in ("quiz", "duel", "states"):
+            if result.get("correct"):
+                db.clear_miss(card_id)
+            else:
+                db.record_miss(card_id)
+
+        if result.get("correct"):
             print(bell.right())
-            scores[player] += 1
+            fact = result.get("fact") or result.get("person", "")
+            if fact:
+                print(f"  {DIM}{fact}{RESET}")
         else:
             print(bell.wrong())
-            print(f"  {DIM}Answer: {q['answers'][0]}{RESET}")
-    print(f"\n{BOLD}Final score:{RESET} {p1}: {scores[p1]}  |  {p2}: {scores[p2]}")
-    if scores[p1] == scores[p2]:
-        print("It's a tie!")
-    else:
-        winner = p1 if scores[p1] > scores[p2] else p2
-        print(f"{GOLD}{winner} wins!{RESET}")
-    db.record_score(f"duel:{p1}-vs-{p2}", max(scores.values()), len(questions))
+            expected = result.get("expected", "")
+            if isinstance(expected, list):
+                expected = ", ".join(str(x) for x in expected)
+            if expected:
+                print(f"  {DIM}Accepted: {expected}{RESET}")
+
+        if result.get("done"):
+            if session.kind == "duel" and session._duel_scores:
+                ds = session._duel_scores
+                print(f"\n{BOLD}Final:{RESET} " + " · ".join(f"{k}: {v}" for k, v in ds.items()))
+            finish_session(activity_id, session)
+            pause()
+            return
 
 
-HANDLERS = {
-    "1": mode_naturalization,
-    "2": mode_missed,
-    "3": mode_states,
-    "4": mode_timeline,
-    "5": mode_colonies,
-    "6": mode_on_this_day,
-    "7": mode_quotes,
-    "8": mode_signers,
-    "9": mode_amendments,
-    "10": mode_speed_round,
-    "11": mode_certificate,
-    "12": mode_duel,
-}
-
-
-def main():
-    print(BANNER)
-    try:
-        day = engine.fair_day()
-        if day:
-            print(f"\n{GOLD}Fair pavilion today: {day.get('title')} — {day.get('exhibit')}{RESET}\n")
-    except FileNotFoundError:
-        pass
-    print(bell.ticker(engine.load_quotes()))
-    today = engine.today_events()
-    if today:
-        print(f"\n{GOLD}On this day: {today[0]}{RESET}\n")
-    while True:
-        header("Main Menu")
-        for key, label in MENU:
-            print(f"  {BOLD}{key:>2}{RESET}  {label}")
+def pick_activity_for_pavilion(pavilion: dict) -> str | None:
+    if pavilion["id"] == "_sources":
+        print_record_room()
+        return None
+    menu = engine.pavilion_activity_menu(pavilion["id"])
+    if len(menu) > 1:
+        header(pavilion["label"])
+        if pavilion.get("subtitle"):
+            print(f"{DIM}{pavilion['subtitle']}{RESET}\n")
+        for i, (act_id, label, kind) in enumerate(menu, 1):
+            print(f"  {i}. {label}  [{kind}]")
+        print(f"  {DIM}Enter — default activity{RESET}")
         try:
-            choice = input("\n> ").strip().upper()
+            raw = input("\n> ").strip()
         except (KeyboardInterrupt, EOFError):
-            print("\nHappy 250th.")
-            break
-        if choice == "Q":
-            print("Happy 250th.")
-            break
-        handler = HANDLERS.get(choice)
-        if handler:
-            try:
-                handler()
-            except (KeyboardInterrupt, EOFError):
-                print("\nInterrupted.")
-        else:
-            print("Not a valid option.")
+            return None
+        if not raw:
+            act_id = engine.primary_activity_id(pavilion["id"])
+            return act_id
+        try:
+            idx = int(raw) - 1
+            if 0 <= idx < len(menu):
+                return menu[idx][0]
+        except ValueError:
+            pass
+        print("Not a valid choice.")
+        return None
+    return engine.primary_activity_id(pavilion["id"])
+
+
+def browse_lane(lane: dict) -> None:
+    pavs = engine.pavilions_for_lane(lane["id"])
+    if not pavs:
+        print("No tents on this lane yet.")
+        pause()
+        return
+
+    while True:
+        lane_label = tui_art.LANE_ICONS.get(lane["id"], lane["label"])
+        header(lane_label)
+        for i, p in enumerate(pavs, 1):
+            tier = p.get("default_tier", "show")
+            icon = TIER_ICON.get(tier, "·")
+            sub = p.get("subtitle", "")
+            line = f"  {i}. {icon}  {p['label']}"
+            if sub:
+                line += f"  {DIM}— {sub}{RESET}"
+            print(line)
+        print(f"\n  {DIM}B — back to lanes · Q — quit fair{RESET}")
+        try:
+            raw = input("\n> ").strip().upper()
+        except (KeyboardInterrupt, EOFError):
+            return
+        if raw in ("B", "BACK"):
+            return
+        if raw == "Q":
+            raise KeyboardInterrupt
+        try:
+            idx = int(raw) - 1
+        except ValueError:
+            print("Pick a pavilion number.")
+            continue
+        if not (0 <= idx < len(pavs)):
+            print("Not a valid pavilion.")
+            continue
+        pavilion = pavs[idx]
+        activity_id = pick_activity_for_pavilion(pavilion)
+        if activity_id:
+            run_activity(activity_id, pavilion["label"])
+
+
+def fair_map_loop() -> None:
+    lanes = engine.lanes_for_fair()
+    while True:
+        header("Freedom 250 Fair Map")
+        print(f"{DIM}Pick a lane, then a pavilion — same tents as the Textual fair.{RESET}\n")
+        for i, ln in enumerate(lanes, 1):
+            label = tui_art.LANE_ICONS.get(ln["id"], ln["label"])
+            print(f"  {i}. {label}")
+        print(f"\n  S. Recent scores")
+        print(f"  {DIM}109 — underground (if you know) · Q — quit{RESET}")
+        try:
+            raw = input("\n> ").strip().upper()
+        except (KeyboardInterrupt, EOFError):
+            raise
+        if raw == "Q":
+            return
+        if raw == "S":
+            show_scores()
+            continue
+        if raw == "109":
+            cat = engine.get_catalog()
+            ug = next((ln for ln in cat.lanes if ln["id"] == "underground"), None)
+            if ug:
+                browse_lane(ug)
+            else:
+                print(f"{DIM}The floor beneath Liberty Plaza is not load-bearing.{RESET}")
+                pause()
+            continue
+        try:
+            idx = int(raw) - 1
+        except ValueError:
+            print("Pick a lane number, S for scores, or Q to quit.")
+            continue
+        if not (0 <= idx < len(lanes)):
+            print("Not a valid lane.")
+            continue
+        browse_lane(lanes[idx])
+
+
+def show_scores() -> None:
+    header("Recent Scores")
+    activity_ids = sorted({a["id"] for a in engine.activities()})
+    any_rows = False
+    for mode in activity_ids:
+        rows = db.top_scores(mode, limit=3)
+        if not rows:
+            continue
+        any_rows = True
+        pav_id = engine.get_catalog().activity(mode)
+        label = mode
+        if pav_id:
+            pid = pav_id.get("pavilion", mode)
+            pav = engine.pavilion(pid)
+            if pav:
+                label = pav.get("label", mode)
+        print(f"\n{BOLD}{label}{RESET} ({mode})")
+        for score, total, elapsed_s, played_at in rows:
+            t = f", {elapsed_s:.1f}s" if elapsed_s else ""
+            print(f"  {score}/{total}{t}  ({played_at})")
+    if not any_rows:
+        print("No scores recorded yet — visit a pavilion first.")
+    pause()
+
+
+def main() -> None:
+    """Launch fair TUI when Textual is available; otherwise stdlib fair map."""
+    if "--cli" in sys.argv:
+        _cli_main()
+        return
+    from tui import TEXTUAL_OK, main as tui_main
+
+    if TEXTUAL_OK:
+        tui_main()
+        return
+    print(
+        "Textual is not installed.\n"
+        "  pip install -r requirements.txt\n"
+        "  ./dev.sh\n"
+        "Starting CLI fair map instead.\n"
+    )
+    _cli_main()
+
+
+def _cli_main() -> None:
+    print_fair_intro()
+    try:
+        fair_map_loop()
+    except (KeyboardInterrupt, EOFError):
+        pass
+    print("\nHappy 250th.")
 
 
 if __name__ == "__main__":

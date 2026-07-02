@@ -452,4 +452,4 @@ LANE_ICONS = {
     "_record_room": "❧ Record Room",
 }
 
-EAGLE_PLAIN_BLOCK = bell.EAGLE_PLAIN.strip()
+LIBERTY_BELL_BLOCK = bell.LIBERTY_BELL_PLAIN.strip()

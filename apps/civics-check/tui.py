@@ -57,8 +57,6 @@ DEBATE_FG = "#0a0a0a"
 OBAMA_COLOR = "#00bcd4"
 TRUMP_COLOR = "#d97706"
 
-KIND_ORDER = ("quiz", "pick", "match", "sort", "states", "duel", "browse", "debate")
-
 FIREWORK_FRAMES = tui_art.FIREWORK_FRAMES
 
 
@@ -125,43 +123,19 @@ def _session_catalog_card(session: ActivitySession | None) -> dict | None:
 
 
 def _activity_lane_pavilion(activity_id: str) -> tuple[str, str]:
-    act = engine.get_catalog().activity(activity_id)
-    if not act:
-        return "", ""
-    pavilion_id = act.get("pool_filter", {}).get("pavilion", act.get("pavilion", ""))
-    pav = engine.get_catalog().pavilion(pavilion_id)
-    lane_id = pav.get("lane", "") if pav else ""
-    return lane_id, pavilion_id
+    return engine.activity_lane_pavilion(activity_id)
 
 
 def activities_for_pavilion(pavilion_id: str) -> list[dict]:
-    return [a for a in engine.get_catalog().activities if a.get("pavilion") == pavilion_id]
+    return engine.activities_for_pavilion(pavilion_id)
 
 
 def primary_activity_id(pavilion_id: str) -> str | None:
-    acts = activities_for_pavilion(pavilion_id)
-    if not acts:
-        return None
-    for act in acts:
-        if act.get("primary"):
-            return act["id"]
-    for kind in KIND_ORDER:
-        for act in acts:
-            if act.get("kind") == kind:
-                return act["id"]
-    return acts[0]["id"]
+    return engine.primary_activity_id(pavilion_id)
 
 
 def pavilion_activities(pavilion_id: str) -> list[tuple[str, str, str]]:
-    """(activity_id, label, hint) for pavilion sub-menu."""
-    rows = []
-    for act in activities_for_pavilion(pavilion_id):
-        label = act["id"].replace("-", " ").title()
-        hint = act.get("kind", "")
-        if act["id"] == "amendment-quiz":
-            label = "Amendment Quiz"
-        rows.append((act["id"], label, hint))
-    return rows
+    return engine.pavilion_activity_menu(pavilion_id)
 
 
 # App-wide base — Textual's default theme paints widgets white unless overridden here.
@@ -553,7 +527,7 @@ if TEXTUAL_OK:
                 tier = p.get("default_tier", "show")
                 icon = tui_art.PAVILION_ICONS.get(tier, "·")
                 pavilion_list.append(
-                    ListItem(Static(f"{icon}  {p['label']}  [{tier}]"))
+                    ListItem(Static(f"{icon}  {p['label']}  [{tier}]", markup=False))
                 )
             if pavs:
                 pavilion_list.index = 0
@@ -942,6 +916,10 @@ if TEXTUAL_OK:
             self._hide_feedback()
             result = self.session.submit(raw if self.session.kind != "browse" else raw or " ")
 
+            if result.get("timed_out"):
+                self._finish()
+                return
+
             if self.session.kind == "browse":
                 if result.get("done"):
                     self._finish()
@@ -1232,8 +1210,8 @@ if TEXTUAL_OK:
 
 def main() -> None:
     if not TEXTUAL_OK:
-        print("textual is not installed. Run: pip install -r requirements-tui.txt")
-        print("Or use the CLI: python3 app.py")
+        print("textual is not installed. Run: pip install -r requirements.txt")
+        print("Or: ./dev.sh   ·   CLI fallback: python3 app.py --cli")
         return
     CivicsFairApp().run()
 

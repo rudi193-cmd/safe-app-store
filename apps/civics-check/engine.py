@@ -13,7 +13,12 @@ from civics.catalog import get_catalog, reload_catalog
 from civics.scoring import answer_matches, pick_items, score_pass_fail
 from civics.session import ActivitySession
 
+import bell
+
+KIND_ORDER = ("quiz", "pick", "match", "sort", "states", "duel", "browse", "debate")
+
 __all__ = [
+    "KIND_ORDER",
     "get_catalog",
     "reload_catalog",
     "ActivitySession",
@@ -31,7 +36,15 @@ __all__ = [
     "today_events",
     "fair_day",
     "pavilions",
+    "pavilion",
     "activities",
+    "lanes_for_fair",
+    "pavilions_for_lane",
+    "activities_for_pavilion",
+    "primary_activity_id",
+    "pavilion_activity_menu",
+    "activity_lane_pavilion",
+    "fair_playbill",
     "normalize",
     "answer_matches",
     "pick_questions",
@@ -193,6 +206,97 @@ def pavilions(lane: str | None = None, hidden: bool = False):
 
 def activities():
     return _cat().activities
+
+
+def pavilion(pavilion_id: str) -> dict | None:
+    return _cat().pavilion(pavilion_id)
+
+
+def lanes_for_fair() -> list[dict]:
+    """Visible fair lanes plus synthetic Record Room row (matches TUI fair map)."""
+    visible = [ln for ln in _cat().lanes if not ln.get("hidden")]
+    visible.append({"id": "_record_room", "label": "Record Room", "order": 99})
+    return sorted(visible, key=lambda x: x.get("order", 99))
+
+
+def pavilions_for_lane(lane_id: str) -> list[dict]:
+    if lane_id == "_record_room":
+        return [
+            {
+                "id": "_sources",
+                "label": "Sources & further reading",
+                "subtitle": "The Record Room",
+                "default_tier": "show",
+            }
+        ]
+    return [p for p in pavilions(hidden=False) if p.get("lane") == lane_id]
+
+
+def activities_for_pavilion(pavilion_id: str) -> list[dict]:
+    return [a for a in _cat().activities if a.get("pavilion") == pavilion_id]
+
+
+def primary_activity_id(pavilion_id: str) -> str | None:
+    acts = activities_for_pavilion(pavilion_id)
+    if not acts:
+        return None
+    for act in acts:
+        if act.get("primary"):
+            return act["id"]
+    for kind in KIND_ORDER:
+        for act in acts:
+            if act.get("kind") == kind:
+                return act["id"]
+    return acts[0]["id"]
+
+
+def pavilion_activity_menu(pavilion_id: str) -> list[tuple[str, str, str]]:
+    """(activity_id, label, kind) for pavilion sub-menus."""
+    rows: list[tuple[str, str, str]] = []
+    labels = {
+        "amendment-quiz": "Amendment Quiz",
+        "presidents-quiz": "Presidents Quiz",
+        "numbers-quiz": "By the Numbers Quiz",
+        "timeline-tap": "Timeline Sort (short)",
+    }
+    for act in activities_for_pavilion(pavilion_id):
+        label = labels.get(act["id"], act["id"].replace("-", " ").title())
+        rows.append((act["id"], label, act.get("kind", "")))
+    return rows
+
+
+def activity_lane_pavilion(activity_id: str) -> tuple[str, str]:
+    act = _cat().activity(activity_id)
+    if not act:
+        return "", ""
+    pavilion_id = act.get("pool_filter", {}).get("pavilion", act.get("pavilion", ""))
+    pav = _cat().pavilion(pavilion_id)
+    lane_id = pav.get("lane", "") if pav else ""
+    return lane_id, pavilion_id
+
+
+def fair_playbill() -> dict[str, str]:
+    """Hero-band context for CLI banner — mirrors tui_art HeroContext fields."""
+    import tui_art
+
+    lines: dict[str, str] = {}
+    day = fair_day()
+    if day:
+        title = day.get("title", "")
+        exhibit = day.get("exhibit", "")
+        theme = day.get("theme", "")
+        lines["fair_day"] = f"{title} — {exhibit}" if exhibit else title
+        num = tui_art.FAIR_DAY_NUMBERS.get(theme)
+        if num:
+            lines["number_line"] = f"{num[0]} · {num[1]}"
+    lines["motto"] = random.choice(tui_art.MOTTOS)
+    events = today_events()
+    if events:
+        lines["on_this_day"] = events[0]
+    quotes = load_quotes()
+    if quotes:
+        lines["ticker"] = bell.ticker_plain(quotes)
+    return lines
 
 
 def pick_questions(pool, count, weighted_ids=None):
