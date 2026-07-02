@@ -5,10 +5,11 @@ from __future__ import annotations
 import json
 from datetime import date
 from functools import lru_cache
-from pathlib import Path
 from typing import Any
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+from civics.paths import data_dir
+
+DATA_DIR = data_dir()
 CATALOG_PATH = DATA_DIR / "catalog.json"
 
 

@@ -5,7 +5,20 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent / "civics_check.db"
+from civics.paths import app_root
+
+
+def _db_path() -> Path:
+    """Scores DB beside app in dev; under ~/.willow when installed as a package."""
+    root = app_root()
+    if (root / "safe-app-manifest.json").exists() or (root / "scripts").is_dir():
+        return root / "civics_check.db"
+    store = Path.home() / ".willow" / "apps" / "civics-check"
+    store.mkdir(parents=True, exist_ok=True)
+    return store / "civics_check.db"
+
+
+DB_PATH = _db_path()
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS missed_questions (

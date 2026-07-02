@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# dev.sh — Civics Check local launcher (Textual fair TUI, local SQLite).
+# dev.sh — Civics Check standalone launcher (Textual fair TUI, local SQLite).
 #
-# Runs standalone: no Willow checkout, no Postgres, no network required.
-# Progress lives in apps/civics-check/civics_check.db (or cwd).
+# No monorepo, Willow, Postgres, or network required. Works from any copy of
+# apps/civics-check (or pip install -e . in this directory).
 #
 # Usage:
 #   ./dev.sh          # rebuild catalog + launch fair TUI (default)
-#   ./dev.sh --cli    # stdlib CLI menu (no Textual)
+#   ./dev.sh --cli    # stdlib fair map (app.py --cli)
 #
-# Override venv:  CIVICS_CHECK_VENV=~/github/willow-2.0/.venv-dev ./dev.sh
+# Override venv:  CIVICS_CHECK_VENV=~/my-venv ./dev.sh
 
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -29,6 +29,7 @@ find_python() {
     "$HOME/github/willow-2.0/.venv-dev/bin/python3"
     "../../.venv-dev/bin/python3"
     "$HOME/.willow/venv/bin/python3"
+    "./.venv/bin/python3"
   )
   local c
   for c in "${candidates[@]}"; do

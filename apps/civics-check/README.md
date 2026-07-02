@@ -2,26 +2,49 @@
 
 America's 250th civics fair — offline quizzes, pavilion browsing, and the USCIS naturalization test bank. Pure Python; no accounts, no network required after install.
 
-## Quick start
+**Runs on its own.** You do not need the SAFE App Store monorepo — copy this directory anywhere, or install with pip.
 
-**Recommended** — self-contained venv, rebuilds catalog, launches the fair:
+## Install (standalone)
+
+From this directory (`apps/civics-check` in the monorepo, or a copy of that folder):
 
 ```bash
-cd apps/civics-check
-./dev.sh
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -e .
+civics-check                       # console script → app.py
 ```
 
-From the monorepo root (uses repo `.venv-dev` after install):
+Or use the launcher (creates `~/.willow/apps/civics-check/.venv` automatically):
+
+```bash
+./dev.sh                           # fair TUI (default)
+./dev.sh --cli                     # stdlib fair map only
+```
+
+## Run (standalone)
+
+| What | Command |
+|------|---------|
+| **Primary entry** | `python3 app.py` — SAFE manifest `entry_point`; launches Textual fair when installed, else CLI fair map |
+| **CLI fair only** | `python3 app.py --cli` |
+| **TUI directly** | `python3 tui.py` |
+| **After pip install** | `civics-check` (same as `python3 app.py`) |
+
+Rebuild catalog after editing sources:
+
+```bash
+python3 scripts/build_catalog.py
+```
+
+## Monorepo (optional)
+
+If you have the full [safe-app-store](https://github.com/rudi193-cmd/safe-app-store) checkout:
 
 ```bash
 make install app=civics-check
-make run app=civics-check          # fair TUI when Textual is installed
+make run app=civics-check          # runs app.py in apps/civics-check
 ```
-
-| Surface | Command | Dependencies |
-|---------|---------|--------------|
-| **TUI fair** (default) | `./dev.sh` or `make run` | `textual` (`requirements.txt`) |
-| **CLI fair map** | `./dev.sh --cli` or `python3 app.py --cli` | stdlib only — same lanes, pavilions, and activities as the TUI |
 
 ## What you get
 
@@ -30,7 +53,7 @@ make run app=civics-check          # fair TUI when Textual is installed
 - **Speed round** — 60 seconds against the full bank
 - **State matchups** — capitals and admission order
 - **Timeline sort, quote match, colonies flashcards, amendment explorer**, and more
-- **Local progress** — missed-question tracking and scores in `civics_check.db` (never leaves your machine)
+- **Local progress** — missed-question tracking and scores in `civics_check.db` (dev tree) or `~/.willow/apps/civics-check/` (pip install)
 
 ## Keyboard (TUI)
 
@@ -49,31 +72,25 @@ make run app=civics-check          # fair TUI when Textual is installed
 **Never hand-edit `data/catalog.json`.** It is compiled output.
 
 1. Edit JSON under `data/sources/` (questions, presidents, numbers, links, fair schedule, …)
-2. Rebuild:
-
-   ```bash
-   python3 scripts/build_catalog.py
-   ```
-
-3. Run tests:
-
-   ```bash
-   python3 -m unittest discover -s tests -v
-   ```
+2. Rebuild: `python3 scripts/build_catalog.py`
+3. Test: `python3 -m unittest discover -s tests -v`
 
 ### Current officeholders
 
-Questions about “the President now”, party, Speaker, and Vice President are pinned in `data/sources/current_officials.json`. Update that file when leadership changes, then rebuild the catalog. The build script fails if placeholder answers remain in the naturalization bank.
+Questions about “the President now”, party, Speaker, and Vice President are pinned in `data/sources/current_officials.json`. Update that file when leadership changes, then rebuild the catalog.
 
 ## Project layout
 
 ```
-app.py              CLI menu (stdlib)
-tui.py              Textual fair + stage
+app.py              Primary entry (SAFE) — TUI when Textual present, else fair CLI
+tui.py              Textual fair map + stage (optional direct launch)
 tui_art.py          Hero band, curtains, ASCII ceremony
-engine.py           CLI helpers over catalog
+engine.py           Catalog facade shared by CLI and TUI
+bell.py             Liberty Bell narrator + Joan Stark banner art
+db.py               Local SQLite scores / missed questions
 civics/
   catalog.py        Load compiled catalog
+  paths.py          Resolve app root + data/ (dev, editable, wheel)
   scoring.py        Answer matching
   session.py        Activity state machine
 scripts/
@@ -82,11 +99,14 @@ data/
   sources/          Authoritative JSON (edit these)
   catalog.json      Generated — do not edit
 tests/
+dev.sh              Standalone launcher (venv + catalog + run)
+pyproject.toml      pip install -e . / civics-check console script
+safe-app-manifest.json
 ```
 
 ## SAFE manifest
 
-Registered as `civics-check` in the SAFE App Store monorepo. See `safe-app-manifest.json` for permissions (`file_write` for local SQLite only).
+Registered as `civics-check` in the SAFE App Store monorepo (`entry_point`: `app.py`). Permissions: `file_write` for local SQLite only.
 
 ## License
 
