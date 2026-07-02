@@ -185,7 +185,84 @@ if TEXTUAL_OK:
             self.app.pop_screen()
             self.app.push_screen(DebateScreen())
 
-    class FairMapScreen(Screen):
+    STAGE_CSS = APP_BASE_CSS + f"""
+    #ceremony-band {{
+        height: 10;
+        max-height: 10;
+        background: {NAVY};
+        border-bottom: heavy {GOLD};
+    }}
+    #hero-field {{
+        width: 100%;
+        height: {tui_art.HERO_ROWS};
+        max-height: {tui_art.HERO_ROWS};
+        background: {NAVY};
+    }}
+    #stage-body {{
+        height: 1fr;
+        min-height: 12;
+    }}
+    #stage-center {{
+        width: 1fr;
+        height: 1fr;
+    }}
+    #curtain-left, #curtain-right {{
+        width: {tui_art.CURTAIN_W};
+        min-width: {tui_art.CURTAIN_W};
+        height: 1fr;
+        background: {CURTAIN_BG};
+        overflow: hidden hidden;
+    }}
+    """
+
+    class StageScreen(Screen):
+        """Permanent scenery: hero star field above, curtains flanking.
+
+        Subclasses fill the center via compose_stage()."""
+
+        def __init__(self) -> None:
+            super().__init__()
+            self._star_phase = 0
+
+        def compose_stage(self) -> ComposeResult:
+            return
+            yield  # pragma: no cover — makes this a generator; subclasses override
+
+        def compose(self) -> ComposeResult:
+            with Horizontal(id="ceremony-band"):
+                # markup=False — star glyphs must never parse as Rich tags
+                yield Static("", id="hero-field", markup=False)
+            with Horizontal(id="stage-body"):
+                yield Static(tui_art.curtain_rich(), id="curtain-left", markup=False)
+                with Vertical(id="stage-center"):
+                    yield from self.compose_stage()
+                yield Static(tui_art.curtain_rich(), id="curtain-right", markup=False)
+
+        def _render_hero(self) -> None:
+            field = self.query_one("#hero-field", Static)
+            width = field.size.width or self.app.size.width
+            field.update(tui_art.hero_field(width, tui_art.HERO_ROWS, self._star_phase))
+
+        def on_resize(self, event) -> None:
+            self._render_hero()
+
+        def _sparkle(self, ticks: int = 8) -> None:
+            """Event flourish: cycle star brightness a few beats, then rest."""
+            state = {"n": 0, "timer": None}
+
+            def tick() -> None:
+                state["n"] += 1
+                if state["n"] > ticks:
+                    if state["timer"]:
+                        state["timer"].stop()
+                    self._star_phase = 0
+                else:
+                    self._star_phase = (self._star_phase + 1) % 3
+                self._render_hero()
+
+            state["timer"] = self.set_interval(0.18, tick)
+
+    class FairMapScreen(StageScreen):
         """Pavilion fair — lanes as paths, not a dashboard grid."""
 
         BINDINGS = [
@@ -197,21 +274,9 @@ if TEXTUAL_OK:
             Binding("ctrl+d", "debate", "Debate", show=False),
         ]
 
-        CSS = APP_BASE_CSS + f"""
+        CSS = STAGE_CSS + f"""
         FairMapScreen {{
             background: {PARCHMENT};
-        }}
-        #ceremony-band {{
-            height: 10;
-            max-height: 10;
-            background: {NAVY};
-            border-bottom: heavy {GOLD};
-        }}
-        #hero-field {{
-            width: 100%;
-            height: {tui_art.HERO_ROWS};
-            max-height: {tui_art.HERO_ROWS};
-            background: {NAVY};
         }}
         #firework-banner {{
             height: 1;
@@ -223,13 +288,6 @@ if TEXTUAL_OK:
         #fair-body {{
             height: 1fr;
             min-height: 12;
-        }}
-        #curtain-left, #curtain-right {{
-            width: {tui_art.CURTAIN_W};
-            min-width: {tui_art.CURTAIN_W};
-            height: 1fr;
-            background: {CURTAIN_BG};
-            overflow: hidden hidden;
         }}
         #lane-col {{
             width: 26;
@@ -284,15 +342,10 @@ if TEXTUAL_OK:
             self._pavilions_by_lane: dict[str, list[dict]] = {}
             self._current_lane_id: str | None = None
             self._fair_day_label = "open all week"
-            self._star_phase = 0
 
-        def compose(self) -> ComposeResult:
-            with Horizontal(id="ceremony-band"):
-                # markup=False — star glyphs must never parse as Rich tags
-                yield Static("", id="hero-field", markup=False)
+        def compose_stage(self) -> ComposeResult:
             yield Static("", id="firework-banner")
             with Horizontal(id="fair-body"):
-                yield Static(tui_art.curtain_rich(), id="curtain-left", markup=False)
                 with Vertical(id="lane-col"):
                     yield Static(" LANES", id="lane-label")
                     yield ListView(id="lane-list")
@@ -302,7 +355,6 @@ if TEXTUAL_OK:
                 with Vertical(id="preview-col"):
                     yield Static("", id="preview")
                     yield Static(tui_art.FLARE_PLAZA, id="flare-plaza")
-                yield Static(tui_art.curtain_rich(), id="curtain-right", markup=False)
             yield Static("", id="footline")
 
         def on_mount(self) -> None:
@@ -333,30 +385,6 @@ if TEXTUAL_OK:
             if (today.month, today.day) == (7, 4):
                 self._show_fireworks(loud=True)
                 self._sparkle(ticks=20)
-
-        def _render_hero(self) -> None:
-            field = self.query_one("#hero-field", Static)
-            width = field.size.width or self.app.size.width
-            field.update(tui_art.hero_field(width, tui_art.HERO_ROWS, self._star_phase))
-
-        def on_resize(self, event) -> None:
-            self._render_hero()
-
-        def _sparkle(self, ticks: int = 8) -> None:
-            """Event flourish: cycle star brightness a few beats, then rest."""
-            state = {"n": 0, "timer": None}
-
-            def tick() -> None:
-                state["n"] += 1
-                if state["n"] > ticks:
-                    if state["timer"]:
-                        state["timer"].stop()
-                    self._star_phase = 0
-                else:
-                    self._star_phase = (self._star_phase + 1) % 3
-                self._render_hero()
-
-            state["timer"] = self.set_interval(0.18, tick)
 
         def _show_fireworks(self, loud: bool = False) -> None:
             banner = self.query_one("#firework-banner", Static)
@@ -488,14 +516,14 @@ if TEXTUAL_OK:
                 if pavs and idx is not None and pavs[idx]["id"] == "amendments":
                     self.app.push_screen(ActivityScreen("amendment-quiz", "Amendment Quiz"))
 
-    class ActivityScreen(Screen):
-        """Run one catalog activity via ActivitySession."""
+    class ActivityScreen(StageScreen):
+        """Run one catalog activity via ActivitySession — center stage, chrome up."""
 
         BINDINGS = [
             Binding("escape", "back", "Fair map", show=True),
         ]
 
-        CSS = APP_BASE_CSS + f"""
+        CSS = STAGE_CSS + f"""
         ActivityScreen {{
             background: {PARCHMENT};
         }}
@@ -560,7 +588,7 @@ if TEXTUAL_OK:
             self.duel_names = ["Player 1", "Player 2"]
             self._done = False
 
-        def compose(self) -> ComposeResult:
+        def compose_stage(self) -> ComposeResult:
             yield Static("", id="activity-herald")
             yield Static("", id="status")
             yield Static("", id="firework")
@@ -569,6 +597,7 @@ if TEXTUAL_OK:
             yield Input(placeholder="", id="answer-input")
 
         def on_mount(self) -> None:
+            self.call_after_refresh(self._render_hero)
             self._render_herald()
             try:
                 self.session = ActivitySession(self.activity_id)
@@ -700,6 +729,7 @@ if TEXTUAL_OK:
             )
             if summary["total"] and summary["score"] == summary["total"]:
                 self._fireworks()
+                self._sparkle(ticks=12)
                 self.notify(bell.perfect_plain(), title="Liberty Bell", timeout=6)
             self._set_status("Esc — back to fair")
 
