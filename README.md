@@ -15,6 +15,7 @@ Local-first apps built on the SAFE framework. No ports. No servers. No subscript
 | [private-ledger](apps/private-ledger/) | beta | Local-first private financial ledger |
 | [field-notes](apps/field-notes/) | beta | Plain-text field notes and observations |
 | [law-gazelle](apps/law-gazelle/) | coming soon | Legal case management and document analysis |
+| [civics-check](apps/civics-check/) | beta | America's 250th civics fair — naturalization test, pavilion quizzes, offline Python TUI |
 
 See [`catalog.json`](catalog.json) for the full catalog.
 

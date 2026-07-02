@@ -1,0 +1,360 @@
+[
+  {
+    "n": 1,
+    "name": "George Washington",
+    "years": "1789-1797",
+    "fact": "Unanimous choice of the Electoral College — twice. Turned down anything resembling a crown and went home to farm.",
+    "reckoning": "Enslaved more than 300 people at Mount Vernon, signed the Fugitive Slave Act of 1793, and pursued those who escaped him, including Ona Judge."
+  },
+  {
+    "n": 2,
+    "name": "John Adams",
+    "years": "1797-1801",
+    "fact": "First to live in the White House. As a young lawyer, defended the British soldiers of the Boston Massacre — and won.",
+    "reckoning": "The Alien and Sedition Acts jailed editors and journalists for criticizing his administration."
+  },
+  {
+    "n": 3,
+    "name": "Thomas Jefferson",
+    "years": "1801-1809",
+    "fact": "Wrote the Declaration, doubled the country with the Louisiana Purchase, died July 4, 1826 — fifty years to the day.",
+    "reckoning": "Wrote 'all men are created equal' while enslaving more than 600 people — including Sally Hemings and children who were his own."
+  },
+  {
+    "n": 4,
+    "name": "James Madison",
+    "years": "1809-1817",
+    "fact": "Father of the Constitution. Smallest president, largest framework.",
+    "reckoning": "Enslaved over 100 people while drafting liberty's framework, and freed none of them, not even in his will."
+  },
+  {
+    "n": 5,
+    "name": "James Monroe",
+    "years": "1817-1825",
+    "fact": "The Monroe Doctrine and the Era of Good Feelings. Also died on July 4. The founders kept doing that.",
+    "reckoning": "A lifelong slaveholder; his colonization project aimed to remove free Black Americans from the country, not to free the enslaved."
+  },
+  {
+    "n": 6,
+    "name": "John Quincy Adams",
+    "years": "1825-1829",
+    "fact": "Son of a president. Argued the Amistad case before the Supreme Court after leaving office — and won.",
+    "reckoning": "As president and diplomat, advanced treaties and expansion that dispossessed Native nations of their land."
+  },
+  {
+    "n": 7,
+    "name": "Andrew Jackson",
+    "years": "1829-1837",
+    "fact": "First populist president. His parrot was reportedly removed from his funeral for swearing.",
+    "reckoning": "Signed the Indian Removal Act — the Trail of Tears followed. Enslaved about 150 people and once offered 'ten dollars extra for every hundred lashes' to an escapee's captor."
+  },
+  {
+    "n": 8,
+    "name": "Martin Van Buren",
+    "years": "1837-1841",
+    "fact": "First president born a U.S. citizen. The word 'OK' may trace to his nickname, Old Kinderhook.",
+    "reckoning": "The Trail of Tears was largely carried out on his watch, and he defended the policy to the end."
+  },
+  {
+    "n": 9,
+    "name": "William Henry Harrison",
+    "years": "1841",
+    "fact": "31 days in office. The two-hour inaugural address in the freezing rain did not help.",
+    "reckoning": "As governor of Indiana Territory, extracted treaties that stripped millions of acres from Native nations, by whiskey and by pressure."
+  },
+  {
+    "n": 10,
+    "name": "John Tyler",
+    "years": "1841-1845",
+    "fact": "First vice president to succeed to the office — and he made sure the precedent stuck.",
+    "reckoning": "Died a member of the Confederate Congress — Washington officially ignored his death as that of a man in rebellion."
+  },
+  {
+    "n": 11,
+    "name": "James K. Polk",
+    "years": "1845-1849",
+    "fact": "Promised one term and four goals. Delivered all four and left.",
+    "reckoning": "A slaveholder who bought children while in the White House, and engineered the Mexican-American War on a pretext Lincoln stood up in Congress to call a lie."
+  },
+  {
+    "n": 12,
+    "name": "Zachary Taylor",
+    "years": "1849-1850",
+    "fact": "Forty years a soldier; reportedly never voted in a presidential election before his own.",
+    "reckoning": "Enslaved more than 100 people on his Louisiana and Mississippi plantations."
+  },
+  {
+    "n": 13,
+    "name": "Millard Fillmore",
+    "years": "1850-1853",
+    "fact": "Last Whig president. Installed the White House's first permanent library.",
+    "reckoning": "Signed the Fugitive Slave Act of 1850, drafting the whole North into the business of hunting escaped human beings."
+  },
+  {
+    "n": 14,
+    "name": "Franklin Pierce",
+    "years": "1853-1857",
+    "fact": "Recited his entire inaugural address from memory — 3,319 words.",
+    "reckoning": "Championed the Kansas-Nebraska Act, opening new territory to slavery — 'Bleeding Kansas' was the bill's first harvest."
+  },
+  {
+    "n": 15,
+    "name": "James Buchanan",
+    "years": "1857-1861",
+    "fact": "The only bachelor president. Watched the Union crack and handed Lincoln the pieces.",
+    "reckoning": "Lobbied the Supreme Court toward Dred Scott, blamed abolitionists for the crisis, and watched secession begin without lifting a hand."
+  },
+  {
+    "n": 16,
+    "name": "Abraham Lincoln",
+    "years": "1861-1865",
+    "fact": "Preserved the Union, freed the slaves, and needed only 272 words at Gettysburg.",
+    "reckoning": "Suspended habeas corpus, long endorsed colonization of freed Black Americans, and approved the largest mass execution in U.S. history — 38 Dakota men at Mankato, 1862."
+  },
+  {
+    "n": 17,
+    "name": "Andrew Johnson",
+    "years": "1865-1869",
+    "fact": "First president impeached — acquitted by a single vote.",
+    "reckoning": "Sabotaged Reconstruction at every turn — vetoed civil rights bills and let white rule rebuild itself in the South."
+  },
+  {
+    "n": 18,
+    "name": "Ulysses S. Grant",
+    "years": "1869-1877",
+    "fact": "Won the war, then raced death to finish his memoirs and provide for his family. He won that too.",
+    "reckoning": "His administration drowned in corruption scandals, and his 1862 General Order No. 11 expelled Jews 'as a class' from his military district — an order he spent years regretting."
+  },
+  {
+    "n": 19,
+    "name": "Rutherford B. Hayes",
+    "years": "1877-1881",
+    "fact": "Won by one electoral vote. His wife banned alcohol from the White House — 'Lemonade Lucy.'",
+    "reckoning": "The Compromise of 1877 traded Reconstruction away for the presidency — federal troops left the South, and Jim Crow moved in."
+  },
+  {
+    "n": 20,
+    "name": "James A. Garfield",
+    "years": "1881",
+    "fact": "Could reportedly write Latin with one hand and Greek with the other — at the same time.",
+    "reckoning": "Two hundred days. The record is thin on both counts — he ran on rights for Black citizens and died before the promise could be tested."
+  },
+  {
+    "n": 21,
+    "name": "Chester A. Arthur",
+    "years": "1881-1885",
+    "fact": "The machine politician who signed civil-service reform anyway. Nobody was more surprised than the machine.",
+    "reckoning": "Signed the Chinese Exclusion Act of 1882 — the first federal law to ban immigrants by race and nation."
+  },
+  {
+    "n": 22,
+    "name": "Grover Cleveland",
+    "years": "1885-1889",
+    "fact": "The first president to serve two non-consecutive terms. Hold that thought until #24.",
+    "reckoning": "Signed the Dawes Act, which broke up tribal lands and stripped Native nations of some 90 million acres."
+  },
+  {
+    "n": 23,
+    "name": "Benjamin Harrison",
+    "years": "1889-1893",
+    "fact": "Electricity was installed in the White House on his watch — he and his wife were afraid to touch the switches.",
+    "reckoning": "The Wounded Knee massacre happened on his watch — and his government pinned Medals of Honor on the soldiers who carried it out."
+  },
+  {
+    "n": 24,
+    "name": "Grover Cleveland",
+    "years": "1893-1897",
+    "fact": "Told you. The same Grover Cleveland, back by popular demand — literally.",
+    "reckoning": "Back in office, he sent federal troops to crush the Pullman Strike, killing workers to move the mail."
+  },
+  {
+    "n": 25,
+    "name": "William McKinley",
+    "years": "1897-1901",
+    "fact": "Ran the famous front-porch campaign — the voters came to him.",
+    "reckoning": "Annexed the Philippines and started the war to keep it — at least 200,000 Filipino civilians died."
+  },
+  {
+    "n": 26,
+    "name": "Theodore Roosevelt",
+    "years": "1901-1909",
+    "fact": "Youngest president ever. The teddy bear is named for him. Spoke softly; the stick, famously, was big.",
+    "aliases": [
+      "Teddy Roosevelt"
+    ],
+    "reckoning": "Believed sincerely in racial hierarchy; dishonorably discharged 167 Black soldiers at Brownsville on evidence that was never there."
+  },
+  {
+    "n": 27,
+    "name": "William Howard Taft",
+    "years": "1909-1913",
+    "fact": "Later Chief Justice of the United States — the only person to lead two branches of government.",
+    "reckoning": "Ran the Philippine occupation and called its people 'little brown brothers' — empire wearing a paternal smile."
+  },
+  {
+    "n": 28,
+    "name": "Woodrow Wilson",
+    "years": "1913-1921",
+    "fact": "Nobel Peace Prize for the League of Nations. Also the only president with a Ph.D.",
+    "reckoning": "Resegregated the federal civil service, screened 'The Birth of a Nation' at the White House, and jailed dissenters — including Eugene Debs — under the Espionage and Sedition Acts."
+  },
+  {
+    "n": 29,
+    "name": "Warren G. Harding",
+    "years": "1921-1923",
+    "fact": "Won by promising a 'return to normalcy' — a word his critics insisted was not one.",
+    "reckoning": "Teapot Dome: his friends sold the nation's oil reserves for bribes in black bags."
+  },
+  {
+    "n": 30,
+    "name": "Calvin Coolidge",
+    "years": "1923-1929",
+    "fact": "Silent Cal. A dinner guest bet she could get more than two words out of him. 'You lose.'",
+    "reckoning": "Signed the Immigration Act of 1924 — race quotas engineered to shut out Italians, Jews, and all of Asia."
+  },
+  {
+    "n": 31,
+    "name": "Herbert Hoover",
+    "years": "1929-1933",
+    "fact": "Fed millions in postwar Europe before the Crash made his name a shantytown.",
+    "reckoning": "Sent the Army with tanks and tear gas against the Bonus Army — veterans camped in the capital asking to be paid — and began the 'repatriation' drives that expelled up to a million people of Mexican descent, many of them citizens."
+  },
+  {
+    "n": 32,
+    "name": "Franklin D. Roosevelt",
+    "years": "1933-1945",
+    "fact": "Four terms — the reason the 22nd Amendment exists. Fireside chats, the New Deal, the war.",
+    "aliases": [
+      "FDR"
+    ],
+    "reckoning": "Executive Order 9066 imprisoned 120,000 Japanese Americans, most of them citizens; the St. Louis and its Jewish refugees were turned back to Europe on his watch."
+  },
+  {
+    "n": 33,
+    "name": "Harry S. Truman",
+    "years": "1945-1953",
+    "fact": "The buck stopped there. Held up the wrong headline, grinning like a man who'd read the right one.",
+    "reckoning": "Ordered the atomic bombings of Hiroshima and Nagasaki — more than 200,000 dead, most of them civilians. History still argues the necessity; the dead do not."
+  },
+  {
+    "n": 34,
+    "name": "Dwight D. Eisenhower",
+    "years": "1953-1961",
+    "fact": "Supreme Allied Commander on D-Day; built the interstate highway system in peacetime.",
+    "aliases": [
+      "Ike",
+      "Eisenhower"
+    ],
+    "reckoning": "The CIA overthrew elected governments in Iran and Guatemala on his orders; Executive Order 10450 purged thousands of gay Americans from federal service; 'Operation Wetback' deported en masse."
+  },
+  {
+    "n": 35,
+    "name": "John F. Kennedy",
+    "years": "1961-1963",
+    "fact": "Youngest elected president. Promised the Moon within the decade — delivery arrived on schedule, 1969.",
+    "aliases": [
+      "JFK"
+    ],
+    "reckoning": "Authorized the FBI's wiretaps on Martin Luther King Jr., owned the Bay of Pigs, and walked the country deeper into Vietnam."
+  },
+  {
+    "n": 36,
+    "name": "Lyndon B. Johnson",
+    "years": "1963-1969",
+    "fact": "Civil Rights Act, Voting Rights Act, Medicare — passed by pure applied force of personality.",
+    "aliases": [
+      "LBJ"
+    ],
+    "reckoning": "Escalated Vietnam on the Gulf of Tonkin's false pretenses — 58,000 Americans and well over a million Vietnamese died in the war he chose not to lose."
+  },
+  {
+    "n": 37,
+    "name": "Richard Nixon",
+    "years": "1969-1974",
+    "fact": "Opened China, created the EPA, and remains the only president to resign the office.",
+    "reckoning": "Watergate. Also: the secret bombing of Cambodia, and a drug war his own aide admitted was built to criminalize Black Americans and the antiwar left."
+  },
+  {
+    "n": 38,
+    "name": "Gerald Ford",
+    "years": "1974-1977",
+    "fact": "The only president never elected president or vice president. The Constitution has a footnote just for him.",
+    "reckoning": "Pardoned Nixon before any charge could be tried, and gave Indonesia the green light to invade East Timor days before it happened."
+  },
+  {
+    "n": 39,
+    "name": "Jimmy Carter",
+    "years": "1977-1981",
+    "fact": "Brokered the Camp David Accords; won the Nobel Peace Prize 21 years after leaving office.",
+    "reckoning": "The human-rights presidency had asterisks: arms kept flowing to Indonesia mid-atrocity, and the Shah kept American backing nearly to the fall."
+  },
+  {
+    "n": 40,
+    "name": "Ronald Reagan",
+    "years": "1981-1989",
+    "fact": "The Great Communicator. 'Mr. Gorbachev, tear down this wall.'",
+    "reckoning": "Stayed publicly silent on AIDS for years while thousands died; Iran-Contra sold missiles to Iran to illegally fund the Contras; the drug war's mass-incarceration era began in earnest here."
+  },
+  {
+    "n": 41,
+    "name": "George H. W. Bush",
+    "years": "1989-1993",
+    "fact": "One of the Navy's youngest aviators in WWII; celebrated his 90th birthday by skydiving.",
+    "aliases": [
+      "Bush Senior",
+      "George Bush Sr"
+    ],
+    "reckoning": "Pardoned the Iran-Contra principals on his way out the door, burying the case; his campaign's Willie Horton ad set the standard for racial fear politics."
+  },
+  {
+    "n": 42,
+    "name": "Bill Clinton",
+    "years": "1993-2001",
+    "fact": "Presided over the longest peacetime economic expansion to that point. Plays the saxophone.",
+    "reckoning": "The 1994 crime bill helped build mass incarceration; welfare 'reform' and bank deregulation aged badly; lied under oath and was impeached for it."
+  },
+  {
+    "n": 43,
+    "name": "George W. Bush",
+    "years": "2001-2009",
+    "fact": "The bullhorn at Ground Zero. Took up portrait painting after office — mostly of veterans.",
+    "aliases": [
+      "George W",
+      "Bush Junior"
+    ],
+    "reckoning": "Invaded Iraq over weapons that were not there — hundreds of thousands died; authorized torture and called it 'enhanced interrogation'; Katrina drowned while FEMA fumbled."
+  },
+  {
+    "n": 44,
+    "name": "Barack Obama",
+    "years": "2009-2017",
+    "fact": "First African American president. It started with one convention speech in 2004.",
+    "reckoning": "Expanded drone warfare with a personal kill list that included a U.S. citizen — and, two weeks later, the citizen's 16-year-old son; deported more people than any president before him; Guantanamo never closed."
+  },
+  {
+    "n": 45,
+    "name": "Donald Trump",
+    "years": "2017-2021",
+    "fact": "First president with no prior government or military service.",
+    "reckoning": "Impeached twice — for pressuring Ukraine to smear a rival, and for January 6. The family-separation policy took thousands of children from their parents at the border."
+  },
+  {
+    "n": 46,
+    "name": "Joe Biden",
+    "years": "2021-2025",
+    "fact": "Oldest president at inauguration; 36 years a senator before the White House.",
+    "reckoning": "The Afghanistan withdrawal collapsed into chaos — thirteen service members and some 170 Afghans died at Abbey Gate; many border policies he campaigned against, he kept."
+  },
+  {
+    "n": 47,
+    "name": "Donald Trump",
+    "years": "2025-",
+    "aliases": [
+      "Trump",
+      "Donald J. Trump",
+      "Donald J Trump"
+    ],
+    "fact": "The second president with non-consecutive terms. Somewhere, Grover Cleveland finally has company.",
+    "reckoning": "Took office as the first president with a felony record — convicted on 34 counts in New York in 2024, months before the election."
+  }
+]

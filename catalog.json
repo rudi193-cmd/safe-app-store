@@ -168,6 +168,15 @@
       "tags": ["messaging", "p2p", "chat", "u2u", "encrypted"]
     },
     {
+      "id": "civics-check",
+      "name": "Civics Check",
+      "description": "America's 250th civics quiz — naturalization test, state matchups, timeline sort, quote matching, and more. Pure Python, offline, no dependencies.",
+      "author": "USER",
+      "status": "beta",
+      "path": "apps/civics-check",
+      "tags": ["civics", "history", "quiz", "americas250", "offline"]
+    },
+    {
       "id": "genealogy",
       "name": "Genealogy",
       "description": "Local-first family tree and genealogy research. Merged into the-squirrel.",

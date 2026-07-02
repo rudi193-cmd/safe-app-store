@@ -1,4 +1,8 @@
 APP    ?= story-timeline
+# Docs use ``make run app=<name>`` — honor lowercase alias.
+ifdef app
+APP := $(app)
+endif
 VENV   := $(CURDIR)/.venv-dev
 PYTHON := $(VENV)/bin/python3
 PIP    := $(VENV)/bin/pip

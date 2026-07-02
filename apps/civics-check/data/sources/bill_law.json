@@ -1,0 +1,8 @@
+[
+  {"step": 1, "title": "Bill introduced", "body": "A member of Congress introduces a bill in the House or Senate.", "source": "https://www.usa.gov/how-laws-are-made"},
+  {"step": 2, "title": "Committee", "body": "The bill is referred to a committee for study, hearings, and markup.", "source": "https://www.usa.gov/how-laws-are-made"},
+  {"step": 3, "title": "Floor vote", "body": "If released from committee, each chamber votes on the bill.", "source": "https://www.usa.gov/how-laws-are-made"},
+  {"step": 4, "title": "Other chamber", "body": "The bill goes to the other chamber. Differences are reconciled in conference if needed.", "source": "https://www.usa.gov/how-laws-are-made"},
+  {"step": 5, "title": "President", "body": "The President signs the bill into law or vetoes it. Congress may override a veto with a two-thirds vote.", "source": "https://www.usa.gov/how-laws-are-made"},
+  {"step": 6, "title": "Law", "body": "A signed bill becomes a public law and is assigned a number.", "source": "https://www.usa.gov/how-laws-are-made"}
+]

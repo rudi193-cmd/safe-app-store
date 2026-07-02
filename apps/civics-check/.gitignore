@@ -1,0 +1,5 @@
+civics_check.db
+__pycache__/
+# Generated previews / lane art — sources documented in art/ATTRIBUTION.md
+art/*
+!art/ATTRIBUTION.md

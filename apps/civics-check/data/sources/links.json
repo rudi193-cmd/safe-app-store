@@ -1,0 +1,73 @@
+{
+  "resolvers": [
+    {
+      "match": "trumpwhitehouse.archives.gov",
+      "label": "Trump White House Archives",
+      "url": "https://trumpwhitehouse.archives.gov/",
+      "blurb": "Official archived transcripts of the Trump administration (2017-2021)."
+    },
+    {
+      "match": "obamawhitehouse.archives.gov",
+      "label": "Obama White House Archives",
+      "url": "https://obamawhitehouse.archives.gov/",
+      "blurb": "Official archived transcripts of the Obama administration (2009-2017)."
+    },
+    {
+      "match": "presidency.ucsb.edu",
+      "label": "The American Presidency Project (UCSB)",
+      "url": "https://www.presidency.ucsb.edu/",
+      "blurb": "Scholarly archive of presidential documents, speeches, and social media."
+    },
+    {
+      "match": "library of congress",
+      "label": "Library of Congress",
+      "url": "https://www.loc.gov/",
+      "blurb": "The nation's library - primary documents, exhibits, and the America250 series."
+    },
+    {
+      "match": "national archives",
+      "label": "National Archives",
+      "url": "https://www.archives.gov/founding-docs",
+      "blurb": "Keeper of the Declaration, Constitution, and Bill of Rights - full transcriptions."
+    },
+    {
+      "match": "project gutenberg",
+      "label": "Project Gutenberg",
+      "url": "https://www.gutenberg.org/",
+      "blurb": "Free primary texts, including the Federalist Papers."
+    },
+    {
+      "match": "uscis",
+      "label": "USCIS Civics Test (official)",
+      "url": "https://www.uscis.gov/citizenship/find-study-materials-and-resources",
+      "blurb": "The official 100 civics questions and study materials."
+    }
+  ],
+  "more": [
+    {
+      "label": "USCIS Civics Test Study Materials",
+      "url": "https://www.uscis.gov/citizenship/find-study-materials-and-resources",
+      "blurb": "The official 100 civics questions this fair's naturalization decks are built from."
+    },
+    {
+      "label": "Constitution Annotated (Congress.gov)",
+      "url": "https://constitution.congress.gov/",
+      "blurb": "The Constitution, clause by clause, with Supreme Court interpretation."
+    },
+    {
+      "label": "USA.gov - How Government Works",
+      "url": "https://www.usa.gov/how-government-works",
+      "blurb": "Branches, elections, laws, and symbols in plain language."
+    },
+    {
+      "label": "Independence National Historical Park (NPS)",
+      "url": "https://www.nps.gov/inde/",
+      "blurb": "The Liberty Bell and Independence Hall, from the people who keep them."
+    },
+    {
+      "label": "Ben's Guide to the U.S. Government",
+      "url": "https://bensguide.gpo.gov/",
+      "blurb": "GPO's civics primer - friendly, official, surprisingly good."
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "legislative",
+    "title": "Congress",
+    "body": "Makes federal laws.",
+    "prompt": "Who makes federal laws?",
+    "choices": ["Congress", "The President", "The Supreme Court", "The States alone"],
+    "answer": "Congress",
+    "context": "Article I — the legislative branch. A bill must pass both chambers before the President can sign or veto it.",
+    "source": "https://www.usa.gov/branches-of-government"
+  },
+  {
+    "id": "executive",
+    "title": "President",
+    "body": "Enforces federal laws and runs the executive branch.",
+    "prompt": "Who is in charge of the executive branch?",
+    "choices": ["The President", "Congress", "The Supreme Court", "The Speaker of the House"],
+    "answer": "The President",
+    "context": "Article II — commander in chief, veto power, and head of federal agencies.",
+    "source": "https://www.usa.gov/branches-of-government"
+  },
+  {
+    "id": "judicial",
+    "title": "Courts",
+    "body": "Interpret laws and decide if they follow the Constitution.",
+    "prompt": "What does the judicial branch do?",
+    "choices": ["Reviews and explains laws", "Writes all federal laws", "Commands the military", "Collects taxes"],
+    "answer": "Reviews and explains laws",
+    "context": "Article III — judicial review was claimed by the Supreme Court in Marbury v. Madison (1803).",
+    "source": "https://www.usa.gov/branches-of-government"
+  }
+]

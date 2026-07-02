@@ -1,0 +1,43 @@
+[
+  {
+    "id": "ec-basics",
+    "title": "What is the Electoral College?",
+    "body": "When citizens vote for President, they choose electors pledged to candidates. Electors meet to cast official votes.",
+    "context": "The Constitution (Article II, amended by the 12th) created the system; Congress sets the timeline for counting electoral votes.",
+    "source": "https://www.usa.gov/electoral-college"
+  },
+  {
+    "id": "ec-total",
+    "title": "538 electors",
+    "body": "There are 538 electoral votes total — 435 House + 100 Senate + 3 for Washington, D.C.",
+    "prompt": "How many electoral votes are there in total?",
+    "choices": ["538", "435", "270", "100"],
+    "answer": "538",
+    "context": "The number changes only if House seat apportionment or D.C. status changes.",
+    "source": "https://www.usa.gov/electoral-college"
+  },
+  {
+    "id": "ec-win",
+    "title": "270 to win",
+    "body": "A candidate needs a majority of electoral votes — at least 270 — to become President.",
+    "prompt": "How many electoral votes does a presidential candidate need to win?",
+    "choices": ["270", "538", "435", "218"],
+    "answer": "270",
+    "context": "If no candidate reaches 270, the House decides the President (12th Amendment procedure).",
+    "source": "https://www.usa.gov/electoral-college"
+  },
+  {
+    "id": "ec-popular",
+    "title": "Popular vote vs electoral vote",
+    "body": "The national popular vote total does not decide the presidency — electoral votes do, state by state (mostly winner-take-all).",
+    "context": "Five elections (including 2000 and 2016) saw a president elected without winning the national popular vote.",
+    "source": "https://www.usa.gov/electoral-college"
+  },
+  {
+    "id": "ec-meet",
+    "title": "When electors meet",
+    "body": "Electors meet in their states in December after the November general election; Congress counts votes in January.",
+    "context": "The President is inaugurated on January 20.",
+    "source": "https://www.usa.gov/electoral-college"
+  }
+]
