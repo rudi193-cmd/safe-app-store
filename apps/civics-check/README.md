@@ -64,7 +64,6 @@ make run app=civics-check          # runs app.py in apps/civics-check
 | Type answer + `Enter` | Submit |
 | `Esc` | Back to fair map |
 | `q` | Quit |
-| `109` | Easter egg |
 | `1776` | Liberty Bell commentary |
 
 ## Data workflow
@@ -74,10 +73,6 @@ make run app=civics-check          # runs app.py in apps/civics-check
 1. Edit JSON under `data/sources/` (questions, presidents, numbers, links, fair schedule, …)
 2. Rebuild: `python3 scripts/build_catalog.py`
 3. Test: `python3 -m unittest discover -s tests -v`
-
-### Current officeholders
-
-Questions about “the President now”, party, Speaker, and Vice President are pinned in `data/sources/current_officials.json`. Update that file when leadership changes, then rebuild the catalog.
 
 ## Project layout
 
