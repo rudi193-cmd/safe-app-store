@@ -1,0 +1,15 @@
+[
+  {"name": "Virginia", "founded": 1607, "founder": "London Company (Jamestown)", "fact": "First permanent English settlement in North America."},
+  {"name": "Massachusetts", "founded": 1620, "founder": "Pilgrims / Puritans (Plymouth, then Mass. Bay Colony 1630)", "fact": "Founded by Pilgrims seeking religious freedom aboard the Mayflower."},
+  {"name": "New Hampshire", "founded": 1623, "founder": "John Mason", "fact": "Named after Hampshire, England."},
+  {"name": "Maryland", "founded": 1634, "founder": "Cecilius Calvert (Lord Baltimore)", "fact": "Founded as a haven for English Catholics."},
+  {"name": "Connecticut", "founded": 1636, "founder": "Thomas Hooker", "fact": "Wrote the Fundamental Orders, an early constitution."},
+  {"name": "Rhode Island", "founded": 1636, "founder": "Roger Williams", "fact": "Founded on principles of religious tolerance and separation of church and state."},
+  {"name": "Delaware", "founded": 1638, "founder": "Swedish settlers (New Sweden)", "fact": "First state to ratify the U.S. Constitution, Dec 7, 1787."},
+  {"name": "North Carolina", "founded": 1653, "founder": "Settlers from Virginia", "fact": "Split from the Province of Carolina in 1712."},
+  {"name": "South Carolina", "founded": 1663, "founder": "Eight Lords Proprietors", "fact": "Split from the Province of Carolina in 1712."},
+  {"name": "New Jersey", "founded": 1664, "founder": "John Berkeley and George Carteret", "fact": "Named after the Isle of Jersey."},
+  {"name": "New York", "founded": 1664, "founder": "English (seized from Dutch New Netherland)", "fact": "Originally the Dutch colony of New Netherland, capital New Amsterdam."},
+  {"name": "Pennsylvania", "founded": 1681, "founder": "William Penn", "fact": "Founded as a haven for Quakers; Philadelphia hosted both Continental Congresses."},
+  {"name": "Georgia", "founded": 1732, "founder": "James Oglethorpe", "fact": "The last of the 13 colonies to be founded, named for King George II."}
+]

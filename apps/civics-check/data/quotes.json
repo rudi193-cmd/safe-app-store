@@ -1,0 +1,12 @@
+[
+  {"quote": "We hold these truths to be self-evident, that all men are created equal...", "person": "Thomas Jefferson", "distractors": ["George Washington", "John Adams", "Benjamin Franklin"]},
+  {"quote": "Give me liberty, or give me death!", "person": "Patrick Henry", "distractors": ["Samuel Adams", "Paul Revere", "James Madison"]},
+  {"quote": "I only regret that I have but one life to lose for my country.", "person": "Nathan Hale", "distractors": ["Ethan Allen", "John Hancock", "Alexander Hamilton"]},
+  {"quote": "These are the times that try men's souls.", "person": "Thomas Paine", "distractors": ["John Jay", "Thomas Jefferson", "James Monroe"]},
+  {"quote": "Government of the people, by the people, for the people, shall not perish from the earth.", "person": "Abraham Lincoln", "distractors": ["Ulysses S. Grant", "Frederick Douglass", "Andrew Johnson"]},
+  {"quote": "I have a dream that my four little children will one day live in a nation where they will not be judged by the color of their skin.", "person": "Martin Luther King, Jr.", "distractors": ["Malcolm X", "John Lewis", "Thurgood Marshall"]},
+  {"quote": "Ask not what your country can do for you — ask what you can do for your country.", "person": "John F. Kennedy", "distractors": ["Lyndon B. Johnson", "Richard Nixon", "Dwight Eisenhower"]},
+  {"quote": "The only thing we have to fear is fear itself.", "person": "Franklin D. Roosevelt", "distractors": ["Harry Truman", "Herbert Hoover", "Woodrow Wilson"]},
+  {"quote": "Fourscore and seven years ago our fathers brought forth on this continent, a new nation...", "person": "Abraham Lincoln", "distractors": ["Stephen Douglas", "Jefferson Davis", "William Seward"]},
+  {"quote": "United we stand, divided we fall.", "person": "John Dickinson", "distractors": ["Patrick Henry", "George Mason", "Roger Sherman"]}
+]
