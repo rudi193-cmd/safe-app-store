@@ -2,7 +2,7 @@
   "version": 2,
   "meta": {
     "built_by": "scripts/build_catalog.py",
-    "card_count": 556,
+    "card_count": 566,
     "kb_hub": "CVRAMERICA01",
     "textual_hub": "TXR04B11D4B8D"
   },
@@ -5889,9 +5889,9 @@
       },
       "choices": [
         "Dover",
-        "Baton Rouge",
-        "Jackson",
-        "Topeka"
+        "Salt Lake City",
+        "Harrisburg",
+        "Baton Rouge"
       ],
       "answer": "Dover"
     },
@@ -5943,9 +5943,9 @@
       },
       "choices": [
         "Harrisburg",
-        "Boston",
-        "Atlanta",
-        "Oklahoma City"
+        "Baton Rouge",
+        "Indianapolis",
+        "Hartford"
       ],
       "answer": "Harrisburg"
     },
@@ -5997,9 +5997,9 @@
       },
       "choices": [
         "Trenton",
-        "Bismarck",
-        "Hartford",
-        "Lincoln"
+        "Tallahassee",
+        "Oklahoma City",
+        "Des Moines"
       ],
       "answer": "Trenton"
     },
@@ -6051,9 +6051,9 @@
       },
       "choices": [
         "Atlanta",
-        "Helena",
-        "Springfield",
-        "Augusta"
+        "Sacramento",
+        "Boise",
+        "Concord"
       ],
       "answer": "Atlanta"
     },
@@ -6105,9 +6105,9 @@
       },
       "choices": [
         "Hartford",
-        "Harrisburg",
-        "Santa Fe",
-        "Olympia"
+        "Little Rock",
+        "Bismarck",
+        "Dover"
       ],
       "answer": "Hartford"
     },
@@ -6159,9 +6159,9 @@
       },
       "choices": [
         "Boston",
-        "Salt Lake City",
-        "Nashville",
-        "Baton Rouge"
+        "Richmond",
+        "Lansing",
+        "Tallahassee"
       ],
       "answer": "Boston"
     },
@@ -6213,9 +6213,9 @@
       },
       "choices": [
         "Annapolis",
-        "Salt Lake City",
-        "Charleston",
-        "Austin"
+        "Salem",
+        "Saint Paul",
+        "Harrisburg"
       ],
       "answer": "Annapolis"
     },
@@ -6267,9 +6267,9 @@
       },
       "choices": [
         "Columbia",
-        "Salem",
-        "Albany",
-        "Jefferson City"
+        "Baton Rouge",
+        "Atlanta",
+        "Saint Paul"
       ],
       "answer": "Columbia"
     },
@@ -6321,9 +6321,9 @@
       },
       "choices": [
         "Concord",
-        "Helena",
-        "Carson City",
-        "Augusta"
+        "Austin",
+        "Jackson",
+        "Montpelier"
       ],
       "answer": "Concord"
     },
@@ -6375,9 +6375,9 @@
       },
       "choices": [
         "Richmond",
-        "Cheyenne",
-        "Topeka",
-        "Atlanta"
+        "Austin",
+        "Honolulu",
+        "Lansing"
       ],
       "answer": "Richmond"
     },
@@ -6429,9 +6429,9 @@
       },
       "choices": [
         "Albany",
-        "Little Rock",
-        "Indianapolis",
-        "Lincoln"
+        "Lansing",
+        "Salt Lake City",
+        "Austin"
       ],
       "answer": "Albany"
     },
@@ -6483,9 +6483,9 @@
       },
       "choices": [
         "Raleigh",
-        "Topeka",
-        "Phoenix",
-        "Frankfort"
+        "Honolulu",
+        "Boise",
+        "Austin"
       ],
       "answer": "Raleigh"
     },
@@ -6537,9 +6537,9 @@
       },
       "choices": [
         "Providence",
-        "Madison",
-        "Atlanta",
-        "Little Rock"
+        "Bismarck",
+        "Denver",
+        "Augusta"
       ],
       "answer": "Providence"
     },
@@ -6591,9 +6591,9 @@
       },
       "choices": [
         "Montpelier",
-        "Harrisburg",
-        "Trenton",
-        "Madison"
+        "Augusta",
+        "Oklahoma City",
+        "Honolulu"
       ],
       "answer": "Montpelier"
     },
@@ -6645,9 +6645,9 @@
       },
       "choices": [
         "Frankfort",
-        "Saint Paul",
-        "Columbus",
-        "Jefferson City"
+        "Charleston",
+        "Annapolis",
+        "Atlanta"
       ],
       "answer": "Frankfort"
     },
@@ -6699,9 +6699,9 @@
       },
       "choices": [
         "Nashville",
-        "Richmond",
-        "Lansing",
-        "Saint Paul"
+        "Madison",
+        "Indianapolis",
+        "Salt Lake City"
       ],
       "answer": "Nashville"
     },
@@ -6753,9 +6753,9 @@
       },
       "choices": [
         "Columbus",
-        "Denver",
-        "Dover",
-        "Raleigh"
+        "Phoenix",
+        "Helena",
+        "Nashville"
       ],
       "answer": "Columbus"
     },
@@ -6807,9 +6807,9 @@
       },
       "choices": [
         "Baton Rouge",
-        "Topeka",
-        "Columbus",
-        "Des Moines"
+        "Nashville",
+        "Indianapolis",
+        "Richmond"
       ],
       "answer": "Baton Rouge"
     },
@@ -6861,9 +6861,9 @@
       },
       "choices": [
         "Indianapolis",
-        "Santa Fe",
-        "Lincoln",
-        "Harrisburg"
+        "Helena",
+        "Austin",
+        "Lansing"
       ],
       "answer": "Indianapolis"
     },
@@ -6915,9 +6915,9 @@
       },
       "choices": [
         "Jackson",
-        "Boston",
-        "Atlanta",
-        "Oklahoma City"
+        "Frankfort",
+        "Charleston",
+        "Cheyenne"
       ],
       "answer": "Jackson"
     },
@@ -6969,9 +6969,9 @@
       },
       "choices": [
         "Springfield",
-        "Saint Paul",
-        "Des Moines",
-        "Little Rock"
+        "Montpelier",
+        "Cheyenne",
+        "Providence"
       ],
       "answer": "Springfield"
     },
@@ -7023,9 +7023,9 @@
       },
       "choices": [
         "Montgomery",
-        "Columbus",
-        "Nashville",
-        "Frankfort"
+        "Atlanta",
+        "Lincoln",
+        "Raleigh"
       ],
       "answer": "Montgomery"
     },
@@ -7077,9 +7077,9 @@
       },
       "choices": [
         "Augusta",
-        "Frankfort",
-        "Helena",
-        "Baton Rouge"
+        "Montgomery",
+        "Lansing",
+        "Madison"
       ],
       "answer": "Augusta"
     },
@@ -7131,9 +7131,9 @@
       },
       "choices": [
         "Jefferson City",
-        "Salem",
-        "Bismarck",
-        "Montpelier"
+        "Juneau",
+        "Pierre",
+        "Providence"
       ],
       "answer": "Jefferson City"
     },
@@ -7185,9 +7185,9 @@
       },
       "choices": [
         "Little Rock",
-        "Carson City",
-        "Jackson",
-        "Lansing"
+        "Denver",
+        "Albany",
+        "Cheyenne"
       ],
       "answer": "Little Rock"
     },
@@ -7239,9 +7239,9 @@
       },
       "choices": [
         "Lansing",
-        "Montpelier",
-        "Providence",
-        "Olympia"
+        "Denver",
+        "Montgomery",
+        "Augusta"
       ],
       "answer": "Lansing"
     },
@@ -7293,9 +7293,9 @@
       },
       "choices": [
         "Tallahassee",
-        "Harrisburg",
-        "Springfield",
-        "Saint Paul"
+        "Atlanta",
+        "Honolulu",
+        "Bismarck"
       ],
       "answer": "Tallahassee"
     },
@@ -7347,9 +7347,9 @@
       },
       "choices": [
         "Austin",
-        "Denver",
-        "Carson City",
-        "Oklahoma City"
+        "Montgomery",
+        "Sacramento",
+        "Honolulu"
       ],
       "answer": "Austin"
     },
@@ -7401,9 +7401,9 @@
       },
       "choices": [
         "Des Moines",
-        "Juneau",
-        "Saint Paul",
-        "Springfield"
+        "Nashville",
+        "Trenton",
+        "Boston"
       ],
       "answer": "Des Moines"
     },
@@ -7455,9 +7455,9 @@
       },
       "choices": [
         "Madison",
-        "Denver",
-        "Austin",
-        "Tallahassee"
+        "Augusta",
+        "Boston",
+        "Oklahoma City"
       ],
       "answer": "Madison"
     },
@@ -7509,9 +7509,9 @@
       },
       "choices": [
         "Sacramento",
-        "Raleigh",
-        "Phoenix",
-        "Trenton"
+        "Jackson",
+        "Albany",
+        "Helena"
       ],
       "answer": "Sacramento"
     },
@@ -7563,9 +7563,9 @@
       },
       "choices": [
         "Saint Paul",
-        "Lansing",
-        "Augusta",
-        "Nashville"
+        "Charleston",
+        "Hartford",
+        "Madison"
       ],
       "answer": "Saint Paul"
     },
@@ -7617,9 +7617,9 @@
       },
       "choices": [
         "Salem",
-        "Des Moines",
         "Columbus",
-        "Columbia"
+        "Jackson",
+        "Bismarck"
       ],
       "answer": "Salem"
     },
@@ -7671,9 +7671,9 @@
       },
       "choices": [
         "Topeka",
-        "Salt Lake City",
-        "Madison",
-        "Boise"
+        "Little Rock",
+        "Nashville",
+        "Olympia"
       ],
       "answer": "Topeka"
     },
@@ -7725,9 +7725,9 @@
       },
       "choices": [
         "Charleston",
-        "Oklahoma City",
-        "Richmond",
-        "Columbus"
+        "Raleigh",
+        "Salt Lake City",
+        "Honolulu"
       ],
       "answer": "Charleston"
     },
@@ -7779,9 +7779,9 @@
       },
       "choices": [
         "Carson City",
-        "Austin",
-        "Little Rock",
-        "Concord"
+        "Columbia",
+        "Denver",
+        "Olympia"
       ],
       "answer": "Carson City"
     },
@@ -7833,9 +7833,9 @@
       },
       "choices": [
         "Lincoln",
-        "Santa Fe",
-        "Salt Lake City",
-        "Atlanta"
+        "Sacramento",
+        "Charleston",
+        "Concord"
       ],
       "answer": "Lincoln"
     },
@@ -7887,9 +7887,9 @@
       },
       "choices": [
         "Denver",
-        "Tallahassee",
-        "Saint Paul",
-        "Charleston"
+        "Santa Fe",
+        "Jefferson City",
+        "Phoenix"
       ],
       "answer": "Denver"
     },
@@ -7941,9 +7941,9 @@
       },
       "choices": [
         "Bismarck",
-        "Albany",
-        "Juneau",
-        "Austin"
+        "Cheyenne",
+        "Pierre",
+        "Olympia"
       ],
       "answer": "Bismarck"
     },
@@ -7995,9 +7995,9 @@
       },
       "choices": [
         "Pierre",
-        "Hartford",
-        "Indianapolis",
-        "Montpelier"
+        "Charleston",
+        "Topeka",
+        "Providence"
       ],
       "answer": "Pierre"
     },
@@ -8049,9 +8049,9 @@
       },
       "choices": [
         "Helena",
-        "Jefferson City",
-        "Des Moines",
-        "Providence"
+        "Cheyenne",
+        "Pierre",
+        "Atlanta"
       ],
       "answer": "Helena"
     },
@@ -8103,9 +8103,9 @@
       },
       "choices": [
         "Olympia",
-        "Juneau",
-        "Harrisburg",
-        "Nashville"
+        "Oklahoma City",
+        "Boston",
+        "Richmond"
       ],
       "answer": "Olympia"
     },
@@ -8157,9 +8157,9 @@
       },
       "choices": [
         "Boise",
-        "Lincoln",
-        "Little Rock",
-        "Harrisburg"
+        "Augusta",
+        "Frankfort",
+        "Santa Fe"
       ],
       "answer": "Boise"
     },
@@ -8211,9 +8211,9 @@
       },
       "choices": [
         "Cheyenne",
-        "Albany",
-        "Annapolis",
-        "Austin"
+        "Trenton",
+        "Honolulu",
+        "Columbia"
       ],
       "answer": "Cheyenne"
     },
@@ -8265,9 +8265,9 @@
       },
       "choices": [
         "Salt Lake City",
-        "Dover",
-        "Austin",
-        "Augusta"
+        "Cheyenne",
+        "Hartford",
+        "Concord"
       ],
       "answer": "Salt Lake City"
     },
@@ -8319,9 +8319,9 @@
       },
       "choices": [
         "Oklahoma City",
-        "Santa Fe",
-        "Concord",
-        "Augusta"
+        "Des Moines",
+        "Providence",
+        "Sacramento"
       ],
       "answer": "Oklahoma City"
     },
@@ -8373,9 +8373,9 @@
       },
       "choices": [
         "Santa Fe",
-        "Annapolis",
-        "Boston",
-        "Salt Lake City"
+        "Denver",
+        "Carson City",
+        "Columbia"
       ],
       "answer": "Santa Fe"
     },
@@ -8427,9 +8427,9 @@
       },
       "choices": [
         "Phoenix",
-        "Columbus",
-        "Montpelier",
-        "Richmond"
+        "Bismarck",
+        "Boise",
+        "Denver"
       ],
       "answer": "Phoenix"
     },
@@ -8481,9 +8481,9 @@
       },
       "choices": [
         "Juneau",
-        "Pierre",
-        "Carson City",
-        "Salem"
+        "Tallahassee",
+        "Sacramento",
+        "Austin"
       ],
       "answer": "Juneau"
     },
@@ -8535,9 +8535,9 @@
       },
       "choices": [
         "Honolulu",
-        "Denver",
-        "Richmond",
-        "Juneau"
+        "Montgomery",
+        "Charleston",
+        "Austin"
       ],
       "answer": "Honolulu"
     },
@@ -9068,6 +9068,52 @@
       }
     },
     {
+      "id": "debate-1-3",
+      "pavilion": "debate",
+      "lane": "underground",
+      "kind": "debate",
+      "tiers": [
+        "know"
+      ],
+      "title": "Trump",
+      "body": "\"Article II allows me to do whatever I want. Article II would have allowed me to fire him.\"",
+      "subtitle": "ABC News interview, on his authority to remove Special Counsel Robert Mueller — June 2019",
+      "prompt": "Trump",
+      "context": "",
+      "source": "syracuse.com (citing ABC News interview transcript)",
+      "tags": [
+        "debate",
+        "easter_egg",
+        "trump"
+      ],
+      "meta": {
+        "topic": "Executive Power"
+      }
+    },
+    {
+      "id": "debate-1-4",
+      "pavilion": "debate",
+      "lane": "underground",
+      "kind": "debate",
+      "tiers": [
+        "know"
+      ],
+      "title": "Obama",
+      "body": "\"But wherever I can act on my own, without Congress, by using my pen to take executive actions, or picking up the phone and rallying folks around a common cause, that's what I'm going to do.\"",
+      "subtitle": "Remarks by the President on Signing of Executive Order, White House — February 12, 2014",
+      "prompt": "Obama",
+      "context": "",
+      "source": "obamawhitehouse.archives.gov (official White House transcript)",
+      "tags": [
+        "debate",
+        "easter_egg",
+        "obama"
+      ],
+      "meta": {
+        "topic": "Executive Power"
+      }
+    },
+    {
       "id": "debate-topic-2",
       "pavilion": "debate",
       "lane": "underground",
@@ -9124,6 +9170,52 @@
       "prompt": "Trump",
       "context": "",
       "source": "presidency.ucsb.edu, The American Presidency Project (tweet archive)",
+      "tags": [
+        "debate",
+        "easter_egg",
+        "trump"
+      ],
+      "meta": {
+        "topic": "Free Speech & the First Amendment"
+      }
+    },
+    {
+      "id": "debate-2-3",
+      "pavilion": "debate",
+      "lane": "underground",
+      "kind": "debate",
+      "tiers": [
+        "know"
+      ],
+      "title": "Obama",
+      "body": "\"So I heard firsthand I think from all of them the importance of all of us, including the United States government, speaking out on behalf of the value of freedom of the press.\"",
+      "subtitle": "Remarks by the President on World Press Freedom Day, Roosevelt Room, White House — May 1, 2015",
+      "prompt": "Obama",
+      "context": "",
+      "source": "obamawhitehouse.archives.gov (official White House transcript)",
+      "tags": [
+        "debate",
+        "easter_egg",
+        "obama"
+      ],
+      "meta": {
+        "topic": "Free Speech & the First Amendment"
+      }
+    },
+    {
+      "id": "debate-2-4",
+      "pavilion": "debate",
+      "lane": "underground",
+      "kind": "debate",
+      "tiers": [
+        "know"
+      ],
+      "title": "Trump",
+      "body": "\"It is the FAKE NEWS, which is a large percentage of the media, that is the enemy of the people!\"",
+      "subtitle": "Twitter/X post — August 2, 2018",
+      "prompt": "Trump",
+      "context": "",
+      "source": "cbsnews.com (citing @realDonaldTrump tweet archive)",
       "tags": [
         "debate",
         "easter_egg",
@@ -9200,6 +9292,52 @@
       }
     },
     {
+      "id": "debate-3-3",
+      "pavilion": "debate",
+      "lane": "underground",
+      "kind": "debate",
+      "tiers": [
+        "know"
+      ],
+      "title": "Obama",
+      "body": "\"When they wage peaceful protest, they're not demanding special treatment but the equal treatment that our Founders promised.\"",
+      "subtitle": "Farewell Address to the Nation, McCormick Place, Chicago — January 10, 2017",
+      "prompt": "Obama",
+      "context": "",
+      "source": "obamawhitehouse.archives.gov (official White House transcript)",
+      "tags": [
+        "debate",
+        "easter_egg",
+        "obama"
+      ],
+      "meta": {
+        "topic": "Equal Protection"
+      }
+    },
+    {
+      "id": "debate-3-4",
+      "pavilion": "debate",
+      "lane": "underground",
+      "kind": "debate",
+      "tiers": [
+        "know"
+      ],
+      "title": "Trump",
+      "body": "\"Under my leadership, we will restore fair, equal, and impartial justice under the constitutional rule of law.\"",
+      "subtitle": "Inaugural Address, U.S. Capitol — January 20, 2025",
+      "prompt": "Trump",
+      "context": "",
+      "source": "whitehouse.gov (official White House transcript)",
+      "tags": [
+        "debate",
+        "easter_egg",
+        "trump"
+      ],
+      "meta": {
+        "topic": "Equal Protection"
+      }
+    },
+    {
       "id": "debate-topic-4",
       "pavilion": "debate",
       "lane": "underground",
@@ -9253,6 +9391,52 @@
       "title": "Trump",
       "body": "\"We have ended the war on American energy, and we have ended the war on beautiful, clean coal.\"",
       "subtitle": "State of the Union Address, U.S. Capitol — January 30, 2018",
+      "prompt": "Trump",
+      "context": "",
+      "source": "trumpwhitehouse.archives.gov (official White House transcript)",
+      "tags": [
+        "debate",
+        "easter_egg",
+        "trump"
+      ],
+      "meta": {
+        "topic": "Commerce Clause"
+      }
+    },
+    {
+      "id": "debate-4-3",
+      "pavilion": "debate",
+      "lane": "underground",
+      "kind": "debate",
+      "tiers": [
+        "know"
+      ],
+      "title": "Obama",
+      "body": "\"There have never been federal limits on the amount of carbon that power plants can dump into the air. Think about that. ... For the sake of our kids and the health and safety of all Americans, that has to change.\"",
+      "subtitle": "Remarks by the President in Announcing the Clean Power Plan, East Room, White House — August 3, 2015",
+      "prompt": "Obama",
+      "context": "",
+      "source": "obamawhitehouse.archives.gov (official White House transcript)",
+      "tags": [
+        "debate",
+        "easter_egg",
+        "obama"
+      ],
+      "meta": {
+        "topic": "Commerce Clause"
+      }
+    },
+    {
+      "id": "debate-4-4",
+      "pavilion": "debate",
+      "lane": "underground",
+      "kind": "debate",
+      "tiers": [
+        "know"
+      ],
+      "title": "Trump",
+      "body": "\"For many years, Washington betrayed workers like you with trade deals that were rigged to benefit foreign countries and the lobbyists. Since NAFTA was signed, the United States lost one in four manufacturing jobs.\"",
+      "subtitle": "Remarks at a USMCA Celebration with American Workers, Warren, Michigan — January 30, 2020",
       "prompt": "Trump",
       "context": "",
       "source": "trumpwhitehouse.archives.gov (official White House transcript)",
@@ -9322,6 +9506,52 @@
       "prompt": "Trump",
       "context": "",
       "source": "presidency.ucsb.edu, The American Presidency Project (speech archive)",
+      "tags": [
+        "debate",
+        "easter_egg",
+        "trump"
+      ],
+      "meta": {
+        "topic": "Democratic Legitimacy"
+      }
+    },
+    {
+      "id": "debate-5-3",
+      "pavilion": "debate",
+      "lane": "underground",
+      "kind": "debate",
+      "tiers": [
+        "know"
+      ],
+      "title": "Obama",
+      "body": "\"Our Constitution is a remarkable, beautiful gift. But it's really just a piece of parchment. It has no power on its own. We, the people, give it power.\"",
+      "subtitle": "Farewell Address to the Nation, McCormick Place, Chicago — January 10, 2017",
+      "prompt": "Obama",
+      "context": "",
+      "source": "obamawhitehouse.archives.gov (official White House transcript)",
+      "tags": [
+        "debate",
+        "easter_egg",
+        "obama"
+      ],
+      "meta": {
+        "topic": "Democratic Legitimacy"
+      }
+    },
+    {
+      "id": "debate-5-4",
+      "pavilion": "debate",
+      "lane": "underground",
+      "kind": "debate",
+      "tiers": [
+        "know"
+      ],
+      "title": "Trump",
+      "body": "\"This is a case where they're trying to steal an election, they're trying to rig an election, and we can't let that happen.\"",
+      "subtitle": "Remarks by President Trump on the Election, James S. Brady Press Briefing Room — November 5, 2020",
+      "prompt": "Trump",
+      "context": "",
+      "source": "trumpwhitehouse.archives.gov (official White House transcript)",
       "tags": [
         "debate",
         "easter_egg",
