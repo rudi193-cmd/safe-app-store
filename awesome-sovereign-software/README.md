@@ -185,6 +185,7 @@ Academic grounding for the movement — local-first computing, digital sovereign
 - [Sovereign AI: Rethinking Autonomy in the Age of Global Interdependence](https://arxiv.org/abs/2511.15734) — what it takes to own the AI stack: data, models, compute, governance.
 - [Trustless Autonomy: Understanding Motivations, Benefits, and Governance Dilemmas in Self-Sovereign Decentralized AI Agents](https://arxiv.org/abs/2505.09757) — the self-sovereign framing applied to autonomous agents.
 - [My self-sovereign / local / private / secure LLM setup](https://vitalik.eth.limo/general/2026/04/02/secure_llms.html) — Vitalik Buterin's practical walkthrough of running capable AI with nothing leaving your machine.
+- [The Illusion of Sovereign AI](https://rudi193.substack.com/p/the-illusion-of-sovereign-ai) — a skeptical look at what "sovereign AI" actually delivers at the personal scale, and where the claims break down. *Disclosure: by this list's author.*
 
 ## Related Lists
 
