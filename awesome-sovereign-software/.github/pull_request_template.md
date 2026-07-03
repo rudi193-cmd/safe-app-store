@@ -17,9 +17,16 @@ Check each box only if it is fully true:
 - [ ] **Readable data** — local storage in an open/documented format, or first-class export
 - [ ] **Survives the vendor** — the installed app keeps working if the project disappears today
 
+## Exit plan
+
+<!-- One sentence, concrete mechanism: the file format, export command, or folder you copy.
+     Example: "Export decks as .apkg or plain text; the collection is a local SQLite file." -->
+
+**Exit:**
+
 ## Housekeeping
 
-- [ ] Entry follows the format in [CONTRIBUTING.md](../CONTRIBUTING.md) (license tag, badges, ≤25-word description)
+- [ ] Entry follows the format in [CONTRIBUTING.md](../CONTRIBUTING.md) (license tag, badges, ≤25-word description, exit line)
 - [ ] Placed in alphabetical order within its category
 - [ ] I am not affiliated with this project — or I have disclosed my affiliation below
 
