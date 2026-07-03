@@ -45,10 +45,12 @@ fully open and everything else passes — and it is always marked.
 - [Drawing & Diagrams](#drawing--diagrams)
 - [Photos](#photos)
 - [Learning](#learning)
+- [Local AI](#local-ai)
 - [Messaging](#messaging)
 - [Documents & Office](#documents--office)
 - [Suites & Stores](#suites--stores)
-- [Resources](#resources)
+- [Building Sovereign Software](#building-sovereign-software)
+- [Papers & Research](#papers--research)
 - [Related Lists](#related-lists)
 
 ## Notes & Knowledge
@@ -113,6 +115,14 @@ fully open and everything else passes — and it is always marked.
 
 - [Anki](https://apps.ankiweb.net/) `AGPL-3.0` 🔁 — Spaced-repetition flashcards; decks are local, and the optional AnkiWeb sync is free, not required.
 
+## Local AI
+
+Models you run on your own hardware. No API key, no per-token bill, no transcript leaving your machine.
+
+- [Jan](https://jan.ai/) `AGPL-3.0` — Desktop ChatGPT alternative running open-weight models locally; conversations stored on your device.
+- [llama.cpp](https://github.com/ggml-org/llama.cpp) `MIT` 📵 — The engine of the local-inference movement: run open-weight LLMs on ordinary CPUs and GPUs, from a single binary.
+- [Ollama](https://ollama.com/) `MIT` — Pull and run open-weight models locally with one command; models are files on your disk in an open format.
+
 ## Messaging
 
 - [Briar](https://briarproject.org/) `GPL-3.0` 🔁 — Peer-to-peer encrypted messaging over Tor, Wi-Fi, or Bluetooth; no server and no phone number.
@@ -126,11 +136,55 @@ fully open and everything else passes — and it is always marked.
 
 - [SAFE App Store](https://github.com/rudi193-cmd/safe-app-store) `Various` 📄 🗃️ — Local-first app suite where every app declares its permissions and data flows in a manifest before install. *Disclosure: maintained by this list's author.*
 
-## Resources
+## Building Sovereign Software
 
-- [Local-first software: You own your data, in spite of the cloud](https://www.inkandswitch.com/local-first/) — the Ink & Switch essay that named the movement.
+Resources for building apps that pass the test, not just using them.
+
+### Principles & essays
+
+- [Local-first software: You own your data, in spite of the cloud](https://www.inkandswitch.com/local-first/) — the Ink & Switch essay that named the movement and set out its seven ideals.
 - [File over app](https://stephango.com/file-over-app) — Steph Ango on why durable data formats outlive the software that writes them.
-- [Plain Text Accounting](https://plaintextaccounting.org/) — the philosophy applied to money.
+- [SQLite As An Application File Format](https://sqlite.org/appfileformat.html) — the case for a single, open, queryable file as your app's data store.
+- [Plain Text Accounting](https://plaintextaccounting.org/) — a whole app category rebuilt on files; a masterclass in format-first design.
+
+### Sync & data layer
+
+- [Automerge](https://automerge.org/) — CRDT library for building collaborative local-first apps; JSON-shaped data that merges automatically.
+- [Yjs](https://yjs.dev/) — high-performance CRDT framework powering many production collaborative editors.
+- [crdt.tech](https://crdt.tech/) — the reference site for conflict-free replicated data types: papers, implementations, explainers.
+- [ElectricSQL](https://electric-sql.com/) — Postgres-to-client sync engine for local-first apps.
+- [CRDTs: The Hard Parts](https://martin.kleppmann.com/2020/07/06/crdt-hard-parts-hydra.html) — Martin Kleppmann's talk on where naive CRDT usage breaks down.
+
+### Community
+
+- [localfirstweb.dev](https://localfirstweb.dev/) — the Local-First Web community: meetups, newsletter, directory.
+- [localfirst.fm](https://www.localfirst.fm/) — podcast interviewing the people building this space.
+- [Local-First Conf](https://www.localfirstconf.com/) — the movement's annual conference.
+- [selfh.st](https://selfh.st/) — weekly news and app directory for the self-hosted movement.
+- [Self-Hosted podcast](https://selfhosted.show/) — long-running show on running your own services.
+
+## Papers & Research
+
+Academic grounding for the movement — local-first computing, digital sovereignty, and sovereign AI.
+
+### Local-first & CRDTs
+
+- [Local-first software: You own your data, in spite of the cloud](https://www.inkandswitch.com/local-first/) — Kleppmann, Wiggins, van Hardenberg & McGranaghan (Onward! 2019). The founding paper; the essay page includes the full text.
+- [Conflict-free Replicated Data Types](https://inria.hal.science/inria-00609399) — Shapiro, Preguiça, Baquero & Zawirski (SSS 2011). The paper that formalized CRDTs.
+- [A Conflict-Free Replicated JSON Datatype](https://arxiv.org/abs/1608.03960) — Kleppmann & Beresford (2017). CRDTs generalized to arbitrary JSON documents.
+
+### Digital sovereignty & the self-hosted web
+
+- [Digital sovereignty](https://policyreview.info/concepts/digital-sovereignty) — Pohle & Thiel (Internet Policy Review, 2020). The standard survey of what "sovereignty" means applied to computing.
+- [Survey on Digital Sovereignty and Identity](https://dl.acm.org/doi/10.1145/3616400) — ACM Computing Surveys. Self-sovereign identity and data control, systematized.
+- [Towards a decentralized data privacy protocol for self-sovereignty in the digital world](https://arxiv.org/abs/2404.12837) — a protocol design for user-held privacy preferences, self-hosted or delegated.
+- [Solid Project](https://solidproject.org/) — Tim Berners-Lee's personal-data-store architecture: your data in a pod you control, apps come to you.
+
+### Sovereign AI
+
+- [Sovereign AI: Rethinking Autonomy in the Age of Global Interdependence](https://arxiv.org/abs/2511.15734) — what it takes to own the AI stack: data, models, compute, governance.
+- [Trustless Autonomy: Understanding Motivations, Benefits, and Governance Dilemmas in Self-Sovereign Decentralized AI Agents](https://arxiv.org/abs/2505.09757) — the self-sovereign framing applied to autonomous agents.
+- [My self-sovereign / local / private / secure LLM setup](https://vitalik.eth.limo/general/2026/04/02/secure_llms.html) — Vitalik Buterin's practical walkthrough of running capable AI with nothing leaving your machine.
 
 ## Related Lists
 
