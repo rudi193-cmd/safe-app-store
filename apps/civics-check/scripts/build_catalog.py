@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+import zlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -244,7 +245,8 @@ def build_cards() -> list[dict]:
         distractors = [c for c in all_capitals if c != s["capital"]]
         import random
 
-        random.seed(hash(s["name"]) % (2**32))
+        # str hash() is salted per-process; crc32 keeps rebuilds deterministic
+        random.seed(zlib.crc32(s["name"].encode("utf-8")))
         pick = random.sample(distractors, min(3, len(distractors)))
         choices = [s["capital"]] + pick
         cards.append(
