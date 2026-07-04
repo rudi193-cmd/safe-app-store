@@ -5889,9 +5889,9 @@
       },
       "choices": [
         "Dover",
-        "Salt Lake City",
-        "Harrisburg",
-        "Baton Rouge"
+        "Santa Fe",
+        "Columbus",
+        "Richmond"
       ],
       "answer": "Dover"
     },
@@ -5943,9 +5943,9 @@
       },
       "choices": [
         "Harrisburg",
-        "Baton Rouge",
-        "Indianapolis",
-        "Hartford"
+        "Olympia",
+        "Pierre",
+        "Cheyenne"
       ],
       "answer": "Harrisburg"
     },
@@ -5997,9 +5997,9 @@
       },
       "choices": [
         "Trenton",
-        "Tallahassee",
-        "Oklahoma City",
-        "Des Moines"
+        "Columbus",
+        "Little Rock",
+        "Lansing"
       ],
       "answer": "Trenton"
     },
@@ -6051,8 +6051,8 @@
       },
       "choices": [
         "Atlanta",
-        "Sacramento",
-        "Boise",
+        "Columbus",
+        "Harrisburg",
         "Concord"
       ],
       "answer": "Atlanta"
@@ -6105,9 +6105,9 @@
       },
       "choices": [
         "Hartford",
-        "Little Rock",
-        "Bismarck",
-        "Dover"
+        "Des Moines",
+        "Concord",
+        "Raleigh"
       ],
       "answer": "Hartford"
     },
@@ -6159,9 +6159,9 @@
       },
       "choices": [
         "Boston",
-        "Richmond",
-        "Lansing",
-        "Tallahassee"
+        "Augusta",
+        "Nashville",
+        "Honolulu"
       ],
       "answer": "Boston"
     },
@@ -6213,9 +6213,9 @@
       },
       "choices": [
         "Annapolis",
-        "Salem",
-        "Saint Paul",
-        "Harrisburg"
+        "Concord",
+        "Montpelier",
+        "Columbia"
       ],
       "answer": "Annapolis"
     },
@@ -6267,9 +6267,9 @@
       },
       "choices": [
         "Columbia",
-        "Baton Rouge",
-        "Atlanta",
-        "Saint Paul"
+        "Phoenix",
+        "Augusta",
+        "Albany"
       ],
       "answer": "Columbia"
     },
@@ -6321,9 +6321,9 @@
       },
       "choices": [
         "Concord",
-        "Austin",
-        "Jackson",
-        "Montpelier"
+        "Santa Fe",
+        "Columbia",
+        "Tallahassee"
       ],
       "answer": "Concord"
     },
@@ -6375,9 +6375,9 @@
       },
       "choices": [
         "Richmond",
-        "Austin",
-        "Honolulu",
-        "Lansing"
+        "Charleston",
+        "Columbus",
+        "Raleigh"
       ],
       "answer": "Richmond"
     },
@@ -6429,9 +6429,9 @@
       },
       "choices": [
         "Albany",
-        "Lansing",
-        "Salt Lake City",
-        "Austin"
+        "Montgomery",
+        "Honolulu",
+        "Madison"
       ],
       "answer": "Albany"
     },
@@ -6483,9 +6483,9 @@
       },
       "choices": [
         "Raleigh",
-        "Honolulu",
-        "Boise",
-        "Austin"
+        "Harrisburg",
+        "Little Rock",
+        "Topeka"
       ],
       "answer": "Raleigh"
     },
@@ -6537,9 +6537,9 @@
       },
       "choices": [
         "Providence",
-        "Bismarck",
-        "Denver",
-        "Augusta"
+        "Lansing",
+        "Cheyenne",
+        "Oklahoma City"
       ],
       "answer": "Providence"
     },
@@ -6591,9 +6591,9 @@
       },
       "choices": [
         "Montpelier",
-        "Augusta",
-        "Oklahoma City",
-        "Honolulu"
+        "Bismarck",
+        "Sacramento",
+        "Augusta"
       ],
       "answer": "Montpelier"
     },
@@ -6645,9 +6645,9 @@
       },
       "choices": [
         "Frankfort",
-        "Charleston",
-        "Annapolis",
-        "Atlanta"
+        "Jackson",
+        "Juneau",
+        "Boise"
       ],
       "answer": "Frankfort"
     },
@@ -6699,9 +6699,9 @@
       },
       "choices": [
         "Nashville",
-        "Madison",
-        "Indianapolis",
-        "Salt Lake City"
+        "Augusta",
+        "Helena",
+        "Oklahoma City"
       ],
       "answer": "Nashville"
     },
@@ -6753,9 +6753,9 @@
       },
       "choices": [
         "Columbus",
-        "Phoenix",
-        "Helena",
-        "Nashville"
+        "Austin",
+        "Tallahassee",
+        "Sacramento"
       ],
       "answer": "Columbus"
     },
@@ -6807,9 +6807,9 @@
       },
       "choices": [
         "Baton Rouge",
-        "Nashville",
-        "Indianapolis",
-        "Richmond"
+        "Des Moines",
+        "Salt Lake City",
+        "Raleigh"
       ],
       "answer": "Baton Rouge"
     },
@@ -6861,9 +6861,9 @@
       },
       "choices": [
         "Indianapolis",
-        "Helena",
-        "Austin",
-        "Lansing"
+        "Columbia",
+        "Topeka",
+        "Annapolis"
       ],
       "answer": "Indianapolis"
     },
@@ -6915,9 +6915,9 @@
       },
       "choices": [
         "Jackson",
-        "Frankfort",
-        "Charleston",
-        "Cheyenne"
+        "Raleigh",
+        "Columbus",
+        "Concord"
       ],
       "answer": "Jackson"
     },
@@ -6969,9 +6969,9 @@
       },
       "choices": [
         "Springfield",
-        "Montpelier",
-        "Cheyenne",
-        "Providence"
+        "Hartford",
+        "Topeka",
+        "Honolulu"
       ],
       "answer": "Springfield"
     },
@@ -7023,9 +7023,9 @@
       },
       "choices": [
         "Montgomery",
-        "Atlanta",
-        "Lincoln",
-        "Raleigh"
+        "Madison",
+        "Denver",
+        "Phoenix"
       ],
       "answer": "Montgomery"
     },
@@ -7077,9 +7077,9 @@
       },
       "choices": [
         "Augusta",
-        "Montgomery",
-        "Lansing",
-        "Madison"
+        "Concord",
+        "Lincoln",
+        "Bismarck"
       ],
       "answer": "Augusta"
     },
@@ -7131,9 +7131,9 @@
       },
       "choices": [
         "Jefferson City",
-        "Juneau",
-        "Pierre",
-        "Providence"
+        "Concord",
+        "Honolulu",
+        "Augusta"
       ],
       "answer": "Jefferson City"
     },
@@ -7185,9 +7185,9 @@
       },
       "choices": [
         "Little Rock",
-        "Denver",
-        "Albany",
-        "Cheyenne"
+        "Madison",
+        "Honolulu",
+        "Salem"
       ],
       "answer": "Little Rock"
     },
@@ -7239,9 +7239,9 @@
       },
       "choices": [
         "Lansing",
-        "Denver",
-        "Montgomery",
-        "Augusta"
+        "Madison",
+        "Topeka",
+        "Des Moines"
       ],
       "answer": "Lansing"
     },
@@ -7293,9 +7293,9 @@
       },
       "choices": [
         "Tallahassee",
-        "Atlanta",
-        "Honolulu",
-        "Bismarck"
+        "Pierre",
+        "Santa Fe",
+        "Little Rock"
       ],
       "answer": "Tallahassee"
     },
@@ -7347,9 +7347,9 @@
       },
       "choices": [
         "Austin",
-        "Montgomery",
-        "Sacramento",
-        "Honolulu"
+        "Boise",
+        "Juneau",
+        "Salem"
       ],
       "answer": "Austin"
     },
@@ -7401,9 +7401,9 @@
       },
       "choices": [
         "Des Moines",
-        "Nashville",
-        "Trenton",
-        "Boston"
+        "Hartford",
+        "Boston",
+        "Pierre"
       ],
       "answer": "Des Moines"
     },
@@ -7456,8 +7456,8 @@
       "choices": [
         "Madison",
         "Augusta",
-        "Boston",
-        "Oklahoma City"
+        "Denver",
+        "Saint Paul"
       ],
       "answer": "Madison"
     },
@@ -7509,9 +7509,9 @@
       },
       "choices": [
         "Sacramento",
-        "Jackson",
-        "Albany",
-        "Helena"
+        "Hartford",
+        "Tallahassee",
+        "Columbus"
       ],
       "answer": "Sacramento"
     },
@@ -7563,9 +7563,9 @@
       },
       "choices": [
         "Saint Paul",
-        "Charleston",
-        "Hartford",
-        "Madison"
+        "Des Moines",
+        "Annapolis",
+        "Boise"
       ],
       "answer": "Saint Paul"
     },
@@ -7617,9 +7617,9 @@
       },
       "choices": [
         "Salem",
-        "Columbus",
-        "Jackson",
-        "Bismarck"
+        "Salt Lake City",
+        "Helena",
+        "Des Moines"
       ],
       "answer": "Salem"
     },
@@ -7671,9 +7671,9 @@
       },
       "choices": [
         "Topeka",
-        "Little Rock",
-        "Nashville",
-        "Olympia"
+        "Raleigh",
+        "Cheyenne",
+        "Atlanta"
       ],
       "answer": "Topeka"
     },
@@ -7725,9 +7725,9 @@
       },
       "choices": [
         "Charleston",
-        "Raleigh",
-        "Salt Lake City",
-        "Honolulu"
+        "Springfield",
+        "Oklahoma City",
+        "Jackson"
       ],
       "answer": "Charleston"
     },
@@ -7779,9 +7779,9 @@
       },
       "choices": [
         "Carson City",
-        "Columbia",
-        "Denver",
-        "Olympia"
+        "Concord",
+        "Charleston",
+        "Boise"
       ],
       "answer": "Carson City"
     },
@@ -7833,9 +7833,9 @@
       },
       "choices": [
         "Lincoln",
-        "Sacramento",
-        "Charleston",
-        "Concord"
+        "Hartford",
+        "Denver",
+        "Austin"
       ],
       "answer": "Lincoln"
     },
@@ -7887,9 +7887,9 @@
       },
       "choices": [
         "Denver",
-        "Santa Fe",
-        "Jefferson City",
-        "Phoenix"
+        "Boston",
+        "Madison",
+        "Little Rock"
       ],
       "answer": "Denver"
     },
@@ -7941,9 +7941,9 @@
       },
       "choices": [
         "Bismarck",
-        "Cheyenne",
-        "Pierre",
-        "Olympia"
+        "Lincoln",
+        "Salem",
+        "Helena"
       ],
       "answer": "Bismarck"
     },
@@ -7995,9 +7995,9 @@
       },
       "choices": [
         "Pierre",
-        "Charleston",
+        "Cheyenne",
         "Topeka",
-        "Providence"
+        "Bismarck"
       ],
       "answer": "Pierre"
     },
@@ -8049,8 +8049,8 @@
       },
       "choices": [
         "Helena",
-        "Cheyenne",
-        "Pierre",
+        "Columbia",
+        "Concord",
         "Atlanta"
       ],
       "answer": "Helena"
@@ -8103,9 +8103,9 @@
       },
       "choices": [
         "Olympia",
-        "Oklahoma City",
-        "Boston",
-        "Richmond"
+        "Tallahassee",
+        "Charleston",
+        "Pierre"
       ],
       "answer": "Olympia"
     },
@@ -8157,9 +8157,9 @@
       },
       "choices": [
         "Boise",
-        "Augusta",
-        "Frankfort",
-        "Santa Fe"
+        "Olympia",
+        "Topeka",
+        "Raleigh"
       ],
       "answer": "Boise"
     },
@@ -8211,9 +8211,9 @@
       },
       "choices": [
         "Cheyenne",
-        "Trenton",
-        "Honolulu",
-        "Columbia"
+        "Baton Rouge",
+        "Tallahassee",
+        "Madison"
       ],
       "answer": "Cheyenne"
     },
@@ -8265,9 +8265,9 @@
       },
       "choices": [
         "Salt Lake City",
-        "Cheyenne",
-        "Hartford",
-        "Concord"
+        "Lincoln",
+        "Indianapolis",
+        "Austin"
       ],
       "answer": "Salt Lake City"
     },
@@ -8319,9 +8319,9 @@
       },
       "choices": [
         "Oklahoma City",
-        "Des Moines",
-        "Providence",
-        "Sacramento"
+        "Nashville",
+        "Salem",
+        "Tallahassee"
       ],
       "answer": "Oklahoma City"
     },
@@ -8373,9 +8373,9 @@
       },
       "choices": [
         "Santa Fe",
-        "Denver",
-        "Carson City",
-        "Columbia"
+        "Montgomery",
+        "Montpelier",
+        "Phoenix"
       ],
       "answer": "Santa Fe"
     },
@@ -8427,9 +8427,9 @@
       },
       "choices": [
         "Phoenix",
-        "Bismarck",
-        "Boise",
-        "Denver"
+        "Sacramento",
+        "Providence",
+        "Montpelier"
       ],
       "answer": "Phoenix"
     },
@@ -8481,9 +8481,9 @@
       },
       "choices": [
         "Juneau",
-        "Tallahassee",
-        "Sacramento",
-        "Austin"
+        "Dover",
+        "Jefferson City",
+        "Frankfort"
       ],
       "answer": "Juneau"
     },
@@ -8535,9 +8535,9 @@
       },
       "choices": [
         "Honolulu",
-        "Montgomery",
-        "Charleston",
-        "Austin"
+        "Little Rock",
+        "Saint Paul",
+        "Albany"
       ],
       "answer": "Honolulu"
     },
