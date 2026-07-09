@@ -193,6 +193,31 @@ It's discovered automatically in the MCP drawer (`m`) as "AskJeles corpus
 (built-in)" — no `.mcp.json` entry needed for Jeles' own use, since the path
 is computed from `__file__` rather than hardcoded.
 
+### Forwarding gaps to willow-mcp's fleet-wide backlog
+
+`askjeles/willow_mcp_client.py` best-effort forwards every logged gap to
+[willow-mcp](https://github.com/rudi193-cmd/willow-mcp)'s `gap_log` tool
+(topic `ask-jeles-corpus`), so a question AskJeles can't answer also shows
+up in the wider fleet's shared "what don't we know yet" backlog, not just
+this app's own local one. This is additive only:
+
+- The local gap log (`corpus.log_gap`, called from `corpus.ask_corpus`) is
+  synchronous and is always the source of truth for AskJeles itself —
+  nothing here changes if willow-mcp is absent, unreachable, or this
+  app_id isn't authorized.
+- The willow-mcp forward runs in a daemon thread and never blocks the
+  caller or raises into it. If `willow-mcp` isn't installed, `forward_gap()`
+  resolves that in milliseconds and returns.
+- willow-mcp is located via `WILLOW_MCP_CMD` (explicit override), else a
+  `willow-mcp` console script on `PATH`, else `python -m willow_mcp` against
+  the current interpreter. No hardcoded personal paths.
+- For the forward to actually be authorized, `willow-mcp`'s operator needs
+  a manifest at `$WILLOW_HOME/mcp_apps/ask-jeles/manifest.json` granting at
+  least `gap_write` (see willow-mcp's own README § Authorization) — without
+  one, the call is denied server-side and silently dropped here, same as
+  any other unreachable/misconfigured case.
+- Set `ASK_JELES_USE_WILLOW_MCP=0` to disable the forward entirely.
+
 ## MCP Adapters
 
 Ask Jeles can discover MCP servers from local `.mcp.json` files without auto-starting them.

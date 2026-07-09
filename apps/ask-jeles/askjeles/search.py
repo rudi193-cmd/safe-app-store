@@ -7,7 +7,7 @@ import re
 from typing import Any
 from urllib.parse import urlparse
 
-from askjeles import corpus
+from askjeles import corpus, willow_mcp_client
 from askjeles.classify import QueryClass, classify
 from askjeles.spell import correct_query
 from askjeles.willow_path import bootstrap
@@ -476,14 +476,19 @@ def synthesize_answer(question: str) -> dict[str, Any]:
 
     Checks the verified corpus first (the spec's exact/partial-match step):
     a confident nugget match answers directly, no search or LLM call
-    needed. A miss logs a gap via corpus.ask_corpus() and falls through to
-    the existing search+LLM synthesis below.
+    needed. A miss logs a gap via corpus.ask_corpus() (local, synchronous —
+    always the source of truth for AskJeles itself) and best-effort forwards
+    the same gap to willow-mcp's fleet-wide backlog (remote, fire-and-forget
+    — never blocks this call), then falls through to the existing
+    search+LLM synthesis below.
     """
     try:
         asked = corpus.ask_corpus(question)
     except Exception as exc:
         log.warning("corpus ask failed: %s", exc)
         asked = {"found": False}
+    if not asked.get("found"):
+        willow_mcp_client.forward_gap(question)
     if asked.get("found"):
         nugget = asked["nugget"]
         hit = corpus.to_search_hit(nugget, 1)

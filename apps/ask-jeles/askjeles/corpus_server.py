@@ -28,7 +28,7 @@ from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
 
-from askjeles import corpus
+from askjeles import corpus, willow_mcp_client
 
 mcp = FastMCP(
     "askjeles-corpus",
@@ -44,8 +44,13 @@ mcp = FastMCP(
 @mcp.tool()
 def corpus_ask(app_id: str, question: str) -> dict:
     """Answer from the verified corpus if a nugget matches; returns
-    {found: false} and logs a gap otherwise."""
-    return corpus.ask_corpus(question)
+    {found: false} and logs a gap otherwise. The gap also gets a
+    best-effort, non-blocking forward to willow-mcp's fleet-wide gap
+    backlog, so it isn't just a local-to-ask-jeles secret."""
+    result = corpus.ask_corpus(question)
+    if not result.get("found"):
+        willow_mcp_client.forward_gap(question)
+    return result
 
 
 @mcp.tool()
