@@ -7,7 +7,7 @@ import re
 from typing import Any
 from urllib.parse import urlparse
 
-from askjeles import corpus, willow_mcp_client
+from askjeles import corpus, milestones, willow_mcp_client
 from askjeles.classify import QueryClass, classify
 from askjeles.spell import correct_query
 from askjeles.willow_path import bootstrap
@@ -474,13 +474,29 @@ def search_stacks(question: str, limit_per_source: int = 4) -> dict[str, Any]:
 def synthesize_answer(question: str) -> dict[str, Any]:
     """Optional Jeles Q&A from the same drawer as search.
 
-    Checks the verified corpus first (the spec's exact/partial-match step):
-    a confident nugget match answers directly, no search or LLM call
-    needed. A miss logs a gap via corpus.ask_corpus() (local, synchronous —
-    always the source of truth for AskJeles itself) and best-effort forwards
-    the same gap to willow-mcp's fleet-wide backlog (remote, fire-and-forget
-    — never blocks this call), then falls through to the existing
-    search+LLM synthesis below.
+    Wraps _synthesize_answer_inner() to attach a one-time seed_offer in
+    exactly one place, regardless of which of that function's several
+    return paths actually answered the question — see milestones.py.
+    """
+    result = _synthesize_answer_inner(question)
+    try:
+        offer = milestones.record_question_and_maybe_offer_seed()
+    except Exception as exc:
+        log.debug("milestone check failed: %s", exc)
+        offer = None
+    if offer:
+        result["seed_offer"] = offer
+    return result
+
+
+def _synthesize_answer_inner(question: str) -> dict[str, Any]:
+    """Checks the verified corpus first (the spec's exact/partial-match
+    step): a confident nugget match answers directly, no search or LLM
+    call needed. A miss logs a gap via corpus.ask_corpus() (local,
+    synchronous — always the source of truth for AskJeles itself) and
+    best-effort forwards the same gap to willow-mcp's fleet-wide backlog
+    (remote, fire-and-forget — never blocks this call), then falls
+    through to the existing search+LLM synthesis below.
     """
     try:
         asked = corpus.ask_corpus(question)

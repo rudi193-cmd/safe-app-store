@@ -202,6 +202,63 @@ class TriviaModal(ModalScreen[dict[str, Any] | None]):
         self._grade("D")
 
 
+class SeedOfferModal(ModalScreen[bool]):
+    """A rare, one-time consent prompt — see askjeles/milestones.py.
+
+    Scope is always disclosed in the message text passed in (one nugget,
+    written to the corpus the user already owns); only its *content* is a
+    surprise. Dismiss/No/Escape all decline; nothing is written unless the
+    user explicitly confirms."""
+
+    DEFAULT_CSS = """
+    SeedOfferModal {
+        align: center middle;
+    }
+    #seed-box {
+        width: 60;
+        max-width: 80;
+        height: auto;
+        border: solid #9a7b3c;
+        background: #1a1510;
+        padding: 1 2;
+    }
+    #seed-title {
+        color: #c4a456;
+        text-style: bold;
+    }
+    #seed-message {
+        height: auto;
+        margin: 1 0;
+    }
+    #seed-hint {
+        height: 1;
+    }
+    """
+
+    BINDINGS = [
+        Binding("y", "confirm", "Plant it", show=False),
+        Binding("n", "decline", "Not today", show=False),
+        Binding("escape", "decline", "Not today", show=False),
+    ]
+
+    def __init__(self, message: str, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self._message = message
+
+    def compose(self) -> ComposeResult:
+        with Container(id="seed-box"):
+            yield Label("Jeles", id="seed-title")
+            yield Static(self._message, id="seed-message")
+            yield Static("[dim]y[/dim] plant it   [dim]n / Esc[/dim] not today", id="seed-hint")
+        yield Footer()
+
+    def action_confirm(self) -> None:
+        self.dismiss(True)
+
+    def action_decline(self) -> None:
+        self.dismiss(False)
+
+
 class _ServerItem(ListItem):
     def __init__(self, server: dict[str, Any]):
         self.server = server
