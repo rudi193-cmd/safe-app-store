@@ -165,6 +165,34 @@ The same event is also staged through `safe_integration.contribute()` as `jeles_
 
 These events are intended to become pedagogical atoms later, but only from explicit session consent.
 
+## Verified Corpus & Its Own MCP Server
+
+Ask Jeles keeps a small corpus of human-verified nuggets — `{question,
+answer, sources, verified_by, verified_at, tags}` — separate from live KB/web
+search. A nugget answers instantly and skips LLM synthesis entirely; a miss
+is logged as a "gap" for someone to fill in later.
+
+- `askjeles/corpus.py` — SQLite-backed storage and ranked lookup (no MCP
+  dependency). Storage reuses willow-mcp's SOIL `Store` shape
+  (`WILLOW_STORE_ROOT/ask_jeles_corpus/store.db`), so nuggets are also
+  visible to `kb_search.py`'s existing soil scan for free.
+- `askjeles/corpus_server.py` — a standalone FastMCP server exposing the
+  corpus as `corpus_ask`, `corpus_search`, `corpus_get`, `corpus_list`,
+  `corpus_put`, and `corpus_gaps`. Mirrors willow-mcp's shape (stdio,
+  `app_id` on every tool) but isn't willow-specific — any MCP client (Claude
+  Code, Claude Desktop, Cursor, willow-mcp, a bare script) can run
+  `python -m askjeles.corpus_server` and talk to it directly. See
+  `.mcp.json.example` for an external-client config.
+- In the TUI/search path, `search_stacks()` checks the corpus first (top
+  rank, no gap logging — it's one more background source) and
+  `synthesize_answer()` (`a` key) checks it deliberately: an exact/confident
+  match answers immediately from the nugget; a miss logs a gap via
+  `corpus.log_gap()` and falls through to the existing search+LLM flow.
+
+It's discovered automatically in the MCP drawer (`m`) as "AskJeles corpus
+(built-in)" — no `.mcp.json` entry needed for Jeles' own use, since the path
+is computed from `__file__` rather than hardcoded.
+
 ## MCP Adapters
 
 Ask Jeles can discover MCP servers from local `.mcp.json` files without auto-starting them.

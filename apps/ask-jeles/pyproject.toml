@@ -19,6 +19,7 @@ dependencies = [
 
 [project.scripts]
 ask-jeles = "askjeles.crown:main"
+askjeles-corpus-mcp = "askjeles.corpus_server:main"
 
 [tool.setuptools]
 py-modules = ["safe_integration"]
