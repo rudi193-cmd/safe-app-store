@@ -193,6 +193,16 @@ It's discovered automatically in the MCP drawer (`m`) as "AskJeles corpus
 (built-in)" — no `.mcp.json` entry needed for Jeles' own use, since the path
 is computed from `__file__` rather than hardcoded.
 
+The corpus's first nugget is optional and opt-in:
+
+```bash
+python -m askjeles.seed_easter_egg
+```
+
+Seeds nugget id `42`, answering the one question every reference librarian
+should already know. Idempotent — running it again updates the same
+nugget rather than duplicating it.
+
 ### Forwarding gaps to willow-mcp's fleet-wide backlog
 
 `askjeles/willow_mcp_client.py` best-effort forwards every logged gap to

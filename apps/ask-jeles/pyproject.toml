@@ -20,6 +20,7 @@ dependencies = [
 [project.scripts]
 ask-jeles = "askjeles.crown:main"
 askjeles-corpus-mcp = "askjeles.corpus_server:main"
+askjeles-seed-easter-egg = "askjeles.seed_easter_egg:main"
 
 [tool.setuptools]
 py-modules = ["safe_integration"]
