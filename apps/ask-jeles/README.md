@@ -167,6 +167,10 @@ These events are intended to become pedagogical atoms later, but only from expli
 
 ## Verified Corpus & Its Own MCP Server
 
+Design doc: [docs/design/verified-corpus.md](docs/design/verified-corpus.md)
+(problem statement, design principles, and the consent-design correction
+behind the 13th-question seed offer).
+
 Ask Jeles keeps a small corpus of human-verified nuggets — `{question,
 answer, sources, verified_by, verified_at, tags}` — separate from live KB/web
 search. A nugget answers instantly and skips LLM synthesis entirely; a miss
