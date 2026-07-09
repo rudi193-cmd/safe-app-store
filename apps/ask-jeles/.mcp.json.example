@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "askjeles-corpus": {
+      "type": "stdio",
+      "command": "/path/to/venv/bin/python3",
+      "args": ["-m", "askjeles.corpus_server"],
+      "cwd": "/path/to/safe-app-store/apps/ask-jeles",
+      "env": {
+        "WILLOW_STORE_ROOT": "/home/you/.willow/store"
+      }
+    }
+  }
+}

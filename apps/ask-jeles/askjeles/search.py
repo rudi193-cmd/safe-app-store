@@ -7,6 +7,7 @@ import re
 from typing import Any
 from urllib.parse import urlparse
 
+from askjeles import corpus, milestones, willow_mcp_client
 from askjeles.classify import QueryClass, classify
 from askjeles.spell import correct_query
 from askjeles.willow_path import bootstrap
@@ -71,6 +72,7 @@ _ACADEMIC_SOURCES = frozenset({"arxiv", "openalex", "crossref", "semantic_schola
 _LIT_SOURCES = frozenset({"openlibrary", "gutenberg", "isfdb", "internet_archive", "loc", "chronicling_america"})
 _WEB_SOURCES = frozenset({"web", "maps_osm", "maps_google", "web_ddg"})
 _LOCAL_SOURCES = frozenset({"local_kb"})
+_CORPUS_SOURCES = frozenset({"corpus"})
 _MAX_SOURCES = 8
 _MAX_HITS = 25
 _MIN_SCORE = 0.12
@@ -199,6 +201,8 @@ def _rank_hit(
 
     if source_id in _LOCAL_SOURCES:
         score += 0.65
+    if source_id in _CORPUS_SOURCES:
+        score += 0.9  # human-verified nugget outranks everything else
 
     if "images-assets.nasa.gov" in url and tokens and not any(t in blob for t in tokens):
         score -= 0.4
@@ -305,6 +309,18 @@ def _local_kb_hits(question: str) -> list[dict[str, Any]]:
         return []
 
 
+def _corpus_hits(question: str) -> list[dict[str, Any]]:
+    """AskJeles' own verified-nugget corpus — checked first, never logs a
+    gap (that only happens on the deliberate ask_corpus() path in
+    synthesize_answer)."""
+    try:
+        nuggets = corpus.search_nuggets(question, limit=4)
+        return [corpus.to_search_hit(n, idx) for idx, n in enumerate(nuggets, start=1)]
+    except Exception as exc:
+        log.warning("corpus search failed: %s", exc)
+        return []
+
+
 def search_stacks(question: str, limit_per_source: int = 4) -> dict[str, Any]:
     """
     Search institutional stacks (via MCP when available) plus general web for Jeeves-style queries.
@@ -364,9 +380,12 @@ def search_stacks(question: str, limit_per_source: int = 4) -> dict[str, Any]:
     use_mcp = needs_institutional and _MCP_IMPORT and mcp_client.ensure_started(timeout=20)
     backend = "web"
 
+    corpus_hits = _corpus_hits(search_question)
     kb_hits = _local_kb_hits(search_question)
     if kb_hits:
         backend = "kb+web"
+    if corpus_hits:
+        backend = "corpus+" + backend if backend != "web" else "corpus+web"
     institutional: list[dict[str, Any]] = []
     if needs_institutional:
         if use_mcp:
@@ -386,11 +405,13 @@ def search_stacks(question: str, limit_per_source: int = 4) -> dict[str, Any]:
         web_hits = _general_web_hits(search_question, QueryClass.GENERAL)[:4]
 
     # General and navigational searches are open-web first. Research searches keep
-    # Special Collections as a primary drawer. Local KB always comes first.
+    # Special Collections as a primary drawer. The verified corpus and local KB
+    # always come first — corpus_hits carries an even stronger rank boost so a
+    # human-verified nugget wins over everything, including the local KB.
     hit_stream = (
-        kb_hits + web_hits + institutional
+        corpus_hits + kb_hits + web_hits + institutional
         if query_class != QueryClass.RESEARCH
-        else kb_hits + institutional + web_hits
+        else corpus_hits + kb_hits + institutional + web_hits
     )
     for hit in hit_stream:
         url = hit.get("url") or f"{hit.get('source_id')}:{hit.get('title')}"
@@ -404,10 +425,11 @@ def search_stacks(question: str, limit_per_source: int = 4) -> dict[str, Any]:
     strong = [h for h in ranked if h["_score"] >= _MIN_SCORE]
     hits = (strong or ranked)
     if query_class == QueryClass.GENERAL:
+        corpus_ranked = [h for h in hits if (h.get("source_id") or "").lower() in _CORPUS_SOURCES]
         kb_ranked = [h for h in hits if (h.get("source_id") or "").lower() in _LOCAL_SOURCES]
         web_ranked = [h for h in hits if (h.get("source_id") or "").lower() in _WEB_SOURCES or h.get("source_id") == "web"]
-        other_ranked = [h for h in hits if h not in kb_ranked and h not in web_ranked]
-        hits = kb_ranked + web_ranked + other_ranked
+        other_ranked = [h for h in hits if h not in corpus_ranked and h not in kb_ranked and h not in web_ranked]
+        hits = corpus_ranked + kb_ranked + web_ranked + other_ranked
     hits = hits[:_MAX_HITS]
 
     for idx, hit in enumerate(hits, start=1):
@@ -419,11 +441,15 @@ def search_stacks(question: str, limit_per_source: int = 4) -> dict[str, Any]:
         sources_used.insert(0, "open_web")
     if kb_hits:
         sources_used.insert(0, "local_kb")
+    if corpus_hits:
+        sources_used.insert(0, "corpus")
     if query_class == QueryClass.NAVIGATIONAL:
         prefix = ["open_web", "maps"]
         if kb_hits:
             prefix.insert(0, "local_kb")
-        sources_used = prefix + [s for s in sources_used if s not in ("local_kb", "open_web", "maps")]
+        if corpus_hits:
+            prefix.insert(0, "corpus")
+        sources_used = prefix + [s for s in sources_used if s not in ("corpus", "local_kb", "open_web", "maps")]
 
     deduped_sources: list[str] = []
     for source in sources_used:
@@ -446,7 +472,50 @@ def search_stacks(question: str, limit_per_source: int = 4) -> dict[str, Any]:
 
 
 def synthesize_answer(question: str) -> dict[str, Any]:
-    """Optional Jeles Q&A from the same drawer as search."""
+    """Optional Jeles Q&A from the same drawer as search.
+
+    Wraps _synthesize_answer_inner() to attach a one-time seed_offer in
+    exactly one place, regardless of which of that function's several
+    return paths actually answered the question — see milestones.py.
+    """
+    result = _synthesize_answer_inner(question)
+    try:
+        offer = milestones.record_question_and_maybe_offer_seed()
+    except Exception as exc:
+        log.debug("milestone check failed: %s", exc)
+        offer = None
+    if offer:
+        result["seed_offer"] = offer
+    return result
+
+
+def _synthesize_answer_inner(question: str) -> dict[str, Any]:
+    """Checks the verified corpus first (the spec's exact/partial-match
+    step): a confident nugget match answers directly, no search or LLM
+    call needed. A miss logs a gap via corpus.ask_corpus() (local,
+    synchronous — always the source of truth for AskJeles itself) and
+    best-effort forwards the same gap to willow-mcp's fleet-wide backlog
+    (remote, fire-and-forget — never blocks this call), then falls
+    through to the existing search+LLM synthesis below.
+    """
+    try:
+        asked = corpus.ask_corpus(question)
+    except Exception as exc:
+        log.warning("corpus ask failed: %s", exc)
+        asked = {"found": False}
+    if not asked.get("found"):
+        willow_mcp_client.forward_gap(question)
+    if asked.get("found"):
+        nugget = asked["nugget"]
+        hit = corpus.to_search_hit(nugget, 1)
+        return {
+            "answer": nugget.get("answer") or "",
+            "citations": [hit],
+            "sources_used": ["corpus"],
+            "backend": "corpus",
+            "exact": bool(asked.get("exact")),
+        }
+
     query_class = classify(question)
     if query_class == QueryClass.RESEARCH and _MCP_IMPORT and mcp_client.ensure_started(timeout=15):
         try:

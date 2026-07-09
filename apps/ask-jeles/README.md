@@ -165,6 +165,73 @@ The same event is also staged through `safe_integration.contribute()` as `jeles_
 
 These events are intended to become pedagogical atoms later, but only from explicit session consent.
 
+## Verified Corpus & Its Own MCP Server
+
+Design doc: [docs/design/verified-corpus.md](docs/design/verified-corpus.md)
+(problem statement, design principles, and the consent-design correction
+behind the 13th-question seed offer).
+
+Ask Jeles keeps a small corpus of human-verified nuggets — `{question,
+answer, sources, verified_by, verified_at, tags}` — separate from live KB/web
+search. A nugget answers instantly and skips LLM synthesis entirely; a miss
+is logged as a "gap" for someone to fill in later.
+
+- `askjeles/corpus.py` — SQLite-backed storage and ranked lookup (no MCP
+  dependency). Storage reuses willow-mcp's SOIL `Store` shape
+  (`WILLOW_STORE_ROOT/ask_jeles_corpus/store.db`), so nuggets are also
+  visible to `kb_search.py`'s existing soil scan for free.
+- `askjeles/corpus_server.py` — a standalone FastMCP server exposing the
+  corpus as `corpus_ask`, `corpus_search`, `corpus_get`, `corpus_list`,
+  `corpus_put`, and `corpus_gaps`. Mirrors willow-mcp's shape (stdio,
+  `app_id` on every tool) but isn't willow-specific — any MCP client (Claude
+  Code, Claude Desktop, Cursor, willow-mcp, a bare script) can run
+  `python -m askjeles.corpus_server` and talk to it directly. See
+  `.mcp.json.example` for an external-client config.
+- In the TUI/search path, `search_stacks()` checks the corpus first (top
+  rank, no gap logging — it's one more background source) and
+  `synthesize_answer()` (`a` key) checks it deliberately: an exact/confident
+  match answers immediately from the nugget; a miss logs a gap via
+  `corpus.log_gap()` and falls through to the existing search+LLM flow.
+
+It's discovered automatically in the MCP drawer (`m`) as "AskJeles corpus
+(built-in)" — no `.mcp.json` entry needed for Jeles' own use, since the path
+is computed from `__file__` rather than hardcoded.
+
+The corpus's first nugget is optional and opt-in:
+
+```bash
+python -m askjeles.seed_easter_egg
+```
+
+Seeds nugget id `42`, answering the one question every reference librarian
+should already know. Idempotent — running it again updates the same
+nugget rather than duplicating it.
+
+### Forwarding gaps to willow-mcp's fleet-wide backlog
+
+`askjeles/willow_mcp_client.py` best-effort forwards every logged gap to
+[willow-mcp](https://github.com/rudi193-cmd/willow-mcp)'s `gap_log` tool
+(topic `ask-jeles-corpus`), so a question AskJeles can't answer also shows
+up in the wider fleet's shared "what don't we know yet" backlog, not just
+this app's own local one. This is additive only:
+
+- The local gap log (`corpus.log_gap`, called from `corpus.ask_corpus`) is
+  synchronous and is always the source of truth for AskJeles itself —
+  nothing here changes if willow-mcp is absent, unreachable, or this
+  app_id isn't authorized.
+- The willow-mcp forward runs in a daemon thread and never blocks the
+  caller or raises into it. If `willow-mcp` isn't installed, `forward_gap()`
+  resolves that in milliseconds and returns.
+- willow-mcp is located via `WILLOW_MCP_CMD` (explicit override), else a
+  `willow-mcp` console script on `PATH`, else `python -m willow_mcp` against
+  the current interpreter. No hardcoded personal paths.
+- For the forward to actually be authorized, `willow-mcp`'s operator needs
+  a manifest at `$WILLOW_HOME/mcp_apps/ask-jeles/manifest.json` granting at
+  least `gap_write` (see willow-mcp's own README § Authorization) — without
+  one, the call is denied server-side and silently dropped here, same as
+  any other unreachable/misconfigured case.
+- Set `ASK_JELES_USE_WILLOW_MCP=0` to disable the forward entirely.
+
 ## MCP Adapters
 
 Ask Jeles can discover MCP servers from local `.mcp.json` files without auto-starting them.

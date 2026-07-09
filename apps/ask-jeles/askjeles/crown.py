@@ -167,27 +167,32 @@ _DEMO_ANSWER = (
 )
 
 
-def _synthesize(question: str, hits: list[dict[str, Any]]) -> str:
+def _synthesize(question: str, hits: list[dict[str, Any]]) -> tuple[str, str | None]:
+    """Returns (answer, seed_offer). seed_offer is non-None only on the
+    one-time 13th-question milestone (see askjeles/milestones.py) and is
+    None on every other call, including the LLM-fallback paths below,
+    which don't go through synthesize_answer()."""
     if not hits and not question.strip():
-        return "Nothing in the stacks matched that query."
+        return "Nothing in the stacks matched that query.", None
     try:
         payload = synthesize_answer(question)
-        return payload.get("answer") or "(no answer returned)"
+        return payload.get("answer") or "(no answer returned)", payload.get("seed_offer")
     except Exception as exc:
         log.exception("synthesis failed")
         if not hits:
-            return f"(synthesis unavailable: {exc})"
+            return f"(synthesis unavailable: {exc})", None
     if not _LLM_AVAILABLE:
-        return "(LLM unavailable — pick a result and press Enter to open it.)"
+        return "(LLM unavailable — pick a result and press Enter to open it.)", None
     try:
-        return llm_respond(
+        answer = llm_respond(
             _SYSTEM_PROMPT,
             [],
             f"Question: {question}\n\nSources:\n{snippet_block(hits)}",
         )
+        return answer, None
     except Exception as exc:
         log.exception("synthesis fallback failed")
-        return f"(synthesis unavailable: {exc})"
+        return f"(synthesis unavailable: {exc})", None
 
 
 def _build_tui(*, demo: bool = False):
@@ -344,9 +349,28 @@ def _build_tui(*, demo: bool = False):
                 return
             self.call_from_thread(self._set_loading, True)
             question = self.query_one("#query-input", Input).value.strip() or self._last_query
-            answer = _synthesize(question, self._hits)
+            answer, seed_offer = _synthesize(question, self._hits)
             self.call_from_thread(self._show_answer, answer)
+            if seed_offer:
+                self.call_from_thread(self._offer_seed, seed_offer)
             self.call_from_thread(self._set_loading, False)
+
+        def _offer_seed(self, message: str) -> None:
+            from askjeles.overlays import SeedOfferModal
+
+            def _on_result(planted: bool | None) -> None:
+                if not planted:
+                    return
+                from askjeles import milestones
+
+                result = milestones.plant_seed()
+                if "id" in result:
+                    self.notify(
+                        "Planted. Ask around and you might find it.",
+                        severity="information",
+                    )
+
+            self.push_screen(SeedOfferModal(message), _on_result)
 
         def _set_loading(self, state: bool) -> None:
             loader = self.query_one("#loading", LoadingIndicator)

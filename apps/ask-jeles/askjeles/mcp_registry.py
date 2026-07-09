@@ -6,6 +6,7 @@ import hashlib
 import json
 import logging
 import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,8 @@ _APP_ROOT = Path(__file__).resolve().parents[1]
 _REPO_ROOT = _APP_ROOT.parents[1]
 _BUILTIN_WILLOW_ID = "builtin-willow"
 _BUILTIN_WILLOW_PATH = "__builtin__:willow"
+_BUILTIN_CORPUS_ID = "builtin-askjeles-corpus"
+_BUILTIN_CORPUS_PATH = "__builtin__:askjeles-corpus"
 
 
 @dataclass(frozen=True)
@@ -33,7 +36,7 @@ class McpServerSpec:
 
     @property
     def origin_label(self) -> str:
-        if self.config_path == _BUILTIN_WILLOW_PATH:
+        if self.config_path in (_BUILTIN_WILLOW_PATH, _BUILTIN_CORPUS_PATH):
             return "built-in"
         path = Path(self.config_path)
         if path == _APP_ROOT / ".mcp.json":
@@ -50,11 +53,15 @@ class McpServerSpec:
     def display_name(self) -> str:
         if self.config_path == _BUILTIN_WILLOW_PATH:
             return "Willow (built-in)"
+        if self.config_path == _BUILTIN_CORPUS_PATH:
+            return "AskJeles corpus (built-in)"
         return f"{self.name} ({self.origin_label})"
 
     def summary(self) -> str:
         if self.config_path == _BUILTIN_WILLOW_PATH:
             return "Jeles built-in Willow MCP launcher"
+        if self.config_path == _BUILTIN_CORPUS_PATH:
+            return "Jeles built-in verified-nugget corpus server"
         cmd = self.command
         if self.args:
             cmd = f"{cmd} {' '.join(self.args[:2])}"
@@ -139,6 +146,25 @@ def _builtin_willow() -> McpServerSpec | None:
         return None
 
 
+def _builtin_corpus() -> McpServerSpec:
+    """AskJeles' own verified-nugget corpus, run as a standalone MCP server.
+
+    Computed from __file__ rather than read from a config path, so it is
+    discoverable with zero setup regardless of where this repo is cloned —
+    the same trick _builtin_willow() uses.
+    """
+    return McpServerSpec(
+        server_id=_BUILTIN_CORPUS_ID,
+        name="askjeles-corpus",
+        config_path=_BUILTIN_CORPUS_PATH,
+        transport="stdio",
+        command=sys.executable,
+        args=("-m", "askjeles.corpus_server"),
+        cwd=str(_APP_ROOT),
+        env_keys=("PYTHONPATH",),
+    )
+
+
 def _load_config(path: Path) -> dict[str, Any]:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -156,6 +182,9 @@ def discover_servers() -> list[McpServerSpec]:
     if builtin is not None:
         servers.append(builtin)
         seen_ids.add(builtin.server_id)
+    corpus_builtin = _builtin_corpus()
+    servers.append(corpus_builtin)
+    seen_ids.add(corpus_builtin.server_id)
     for config_path in _discovery_paths():
         data = _load_config(config_path)
         block = data.get("mcpServers") or data.get("servers") or {}
@@ -168,7 +197,7 @@ def discover_servers() -> list[McpServerSpec]:
             seen_ids.add(spec.server_id)
             servers.append(spec)
     def sort_key(spec: McpServerSpec) -> tuple[int, str, str]:
-        if spec.config_path == _BUILTIN_WILLOW_PATH:
+        if spec.config_path in (_BUILTIN_WILLOW_PATH, _BUILTIN_CORPUS_PATH):
             return (0, spec.name.lower(), spec.config_path)
         if Path(spec.config_path) == _APP_ROOT / ".mcp.json":
             return (1, spec.name.lower(), spec.config_path)
@@ -195,6 +224,10 @@ def load_server_env(spec: McpServerSpec) -> dict[str, str]:
             return mcp_client._mcp_env()
         except Exception:
             return dict(os.environ)
+    if spec.config_path == _BUILTIN_CORPUS_PATH:
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(_APP_ROOT)
+        return env
     data = _load_config(Path(spec.config_path))
     block = data.get("mcpServers") or data.get("servers") or {}
     raw = block.get(spec.name) if isinstance(block, dict) else None
