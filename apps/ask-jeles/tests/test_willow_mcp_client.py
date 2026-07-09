@@ -10,7 +10,27 @@ from __future__ import annotations
 
 import time
 
+import pytest
+
 from askjeles import willow_mcp_client as wmc
+
+
+@pytest.fixture(autouse=True)
+def _reset_client_state():
+    """ensure_started/forward_gap mutate module-level session state — reset
+    it around every test so retry/cooldown behavior isn't order-dependent."""
+
+    def _clear():
+        wmc._mcp_session = None
+        wmc._mcp_loop = None
+        wmc._mcp_stop_event = None
+        wmc._mcp_ready = False
+        wmc._mcp_error = None
+        wmc._last_attempt_at = None
+
+    _clear()
+    yield
+    _clear()
 
 
 def test_use_willow_mcp_defaults_on(monkeypatch):
@@ -61,3 +81,27 @@ def test_forward_gap_does_not_raise_or_block_when_unavailable(monkeypatch):
     # Fire-and-forget: returns near-instantly regardless of whether the
     # background thread has finished resolving "willow-mcp isn't installed".
     assert elapsed < 0.5
+
+
+def test_ensure_started_retries_after_cooldown(monkeypatch):
+    monkeypatch.delenv("WILLOW_MCP_CMD", raising=False)
+    monkeypatch.setattr(wmc.shutil, "which", lambda name: None)
+    monkeypatch.setattr(wmc, "RETRY_COOLDOWN", 0.05)
+
+    assert wmc.ensure_started(timeout=1) is False
+    first_loop = wmc._mcp_loop
+    assert first_loop is not None
+
+    # A second call inside the cooldown window must NOT spawn a fresh
+    # attempt — a failed connect shouldn't cost a new subprocess/thread on
+    # every single forward_gap() call while willow-mcp is still down.
+    assert wmc.ensure_started(timeout=1) is False
+    assert wmc._mcp_loop is first_loop
+
+    time.sleep(0.1)
+
+    # Past the cooldown, a stale failure must be retried, not cached forever
+    # — this is the actual bug being guarded against: "best effort" must not
+    # silently become "one effort" for the rest of a long-running session.
+    assert wmc.ensure_started(timeout=1) is False
+    assert wmc._mcp_loop is not first_loop

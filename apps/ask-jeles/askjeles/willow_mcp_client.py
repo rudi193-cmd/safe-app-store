@@ -28,16 +28,19 @@ import shlex
 import shutil
 import sys
 import threading
+import time
 from typing import Any
 
 log = logging.getLogger("jeles.willow_mcp")
 
 APP_ID = "ask-jeles"
 DEFAULT_TOPIC = "ask-jeles-corpus"
+RETRY_COOLDOWN = 30.0  # seconds before retrying a failed connection attempt
 
 _mcp_session = None
 _mcp_loop: asyncio.AbstractEventLoop | None = None
 _mcp_stop_event: asyncio.Event | None = None
+_last_attempt_at: float | None = None
 _mcp_ready = False
 _mcp_error: str | None = None
 _start_lock = threading.Lock()
@@ -110,17 +113,32 @@ async def _lifecycle(ready: threading.Event) -> None:
 
 def ensure_started(timeout: float = 5) -> bool:
     """Lazy-start a background willow-mcp session. Short default timeout —
-    this is a best-effort forward, not a feature anything blocks on."""
-    global _mcp_loop
+    this is a best-effort forward, not a feature anything blocks on.
+
+    Retries after RETRY_COOLDOWN if the previous attempt failed. A session
+    that never started (willow-mcp not running yet at AskJeles boot, a
+    transient spawn failure, ...) must not permanently disable forwarding
+    for the rest of a long-running TUI session — that would make "best
+    effort" mean "one effort."
+    """
+    global _mcp_loop, _last_attempt_at
     if not _use_willow_mcp():
         return False
     if _mcp_ready and _mcp_session is not None:
         return True
 
     with _start_lock:
-        if _mcp_loop is None:
+        now = time.monotonic()
+        failed_and_coolable = (
+            _mcp_loop is not None
+            and not _mcp_ready
+            and _last_attempt_at is not None
+            and now - _last_attempt_at >= RETRY_COOLDOWN
+        )
+        if _mcp_loop is None or failed_and_coolable:
             loop = asyncio.new_event_loop()
             _mcp_loop = loop
+            _last_attempt_at = now
             ready = threading.Event()
             threading.Thread(
                 target=lambda: loop.run_until_complete(_lifecycle(ready)),
