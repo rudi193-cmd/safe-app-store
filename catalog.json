@@ -127,8 +127,9 @@
     {
       "id": "bt-controller",
       "name": "BT Controller",
-      "description": "Bluetooth device controller.",
-      "status": "coming_soon",
+      "description": "Direct HCI Bluetooth control — claims the USB adapter beneath the flaky OS stack via WSL, with a self-healing daemon and web UI.",
+      "status": "beta",
+      "version": "0.2.0",
       "path": "apps/bt-controller",
       "tags": ["bluetooth", "hardware"]
     },
