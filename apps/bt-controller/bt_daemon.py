@@ -36,10 +36,8 @@ import asyncio
 import json
 import logging
 import os
-import signal
 import sys
 import tempfile
-from pathlib import Path
 from datetime import datetime
 
 _LOG_PATH = os.environ.get("BT_DAEMON_LOG", os.path.join(tempfile.gettempdir(), "bt-daemon.log"))
@@ -76,7 +74,13 @@ async def check_adapter():
         import usb.core
         dev = usb.core.find(idVendor=ADAPTER_VID, idProduct=ADAPTER_PID)
         if dev:
-            log.info(f"Adapter found: {dev.manufacturer} {dev.product}")
+            # Reading string descriptors needs device access and can raise
+            # (permissions, langid) even when the device is present.
+            try:
+                desc = f"{dev.manufacturer} {dev.product}"
+            except Exception:
+                desc = f"VID:{ADAPTER_VID:04X} PID:{ADAPTER_PID:04X}"
+            log.info(f"Adapter found: {desc}")
             adapter_attached = True
             return True
         else:
@@ -85,6 +89,12 @@ async def check_adapter():
             return False
     except ImportError:
         log.error("pyusb not installed — run: pip install pyusb")
+        adapter_attached = False
+        return False
+    except Exception as e:
+        # e.g. usb.core.NoBackendError when libusb is missing
+        log.error(f"USB check failed: {e}")
+        adapter_attached = False
         return False
 
 
@@ -94,11 +104,21 @@ async def scan_devices(duration=SCAN_DURATION):
     try:
         from bleak import BleakScanner
         log.info(f"Scanning for {duration}s...")
-        devices = await BleakScanner.discover(timeout=duration)
-        scan_results = [
-            {"mac": d.address, "name": d.name or "Unknown", "rssi": d.rssi}
-            for d in devices
-        ]
+        # return_adv=True yields {address: (BLEDevice, AdvertisementData)}.
+        # RSSI lives on AdvertisementData — BLEDevice.rssi was removed in bleak 0.22.
+        found = await BleakScanner.discover(timeout=duration, return_adv=True)
+        scan_results = sorted(
+            (
+                {
+                    "mac": device.address,
+                    "name": device.name or adv.local_name or "Unknown",
+                    "rssi": adv.rssi,
+                }
+                for device, adv in found.values()
+            ),
+            key=lambda d: d["rssi"],
+            reverse=True,
+        )
         log.info(f"Found {len(scan_results)} devices")
         for d in scan_results:
             log.info(f"  {d['mac']} | {d['name']} | RSSI: {d['rssi']}")
@@ -120,8 +140,13 @@ async def connect_device(mac: str):
         await client.connect()
         if client.is_connected:
             log.info(f"Connected to {mac}")
+            # Prefer the advertised name from the last scan; fall back to the MAC.
+            name = next(
+                (r["name"] for r in scan_results if r["mac"].upper() == mac.upper()),
+                mac,
+            )
             connected_devices[mac] = {
-                "name": client.address,
+                "name": name,
                 "connected_at": datetime.now().isoformat(),
                 "client": client,
                 "keepalive": True,
@@ -143,8 +168,16 @@ async def keepalive_loop(mac: str, client):
         await asyncio.sleep(KEEPALIVE_INTERVAL)
         try:
             if client.is_connected:
-                # Read any service to keep connection alive
-                services = client.services
+                # Do real GATT I/O so the link doesn't idle out.
+                # (client.services is a cached property — accessing it is not a ping.)
+                for service in client.services:
+                    for char in service.characteristics:
+                        if "read" in char.properties:
+                            await client.read_gatt_char(char)
+                            break
+                    else:
+                        continue
+                    break
                 attempt = 0  # Reset on success
                 log.debug(f"Keepalive ping to {mac} OK")
             else:
@@ -164,7 +197,12 @@ async def keepalive_loop(mac: str, client):
                 client = BleakClient(mac)
                 await client.connect()
                 if client.is_connected:
-                    connected_devices[mac]["client"] = client
+                    entry = connected_devices.get(mac)
+                    if entry is None:
+                        # Device was removed while we were reconnecting — undo.
+                        await client.disconnect()
+                        break
+                    entry["client"] = client
                     log.info(f"Reconnected to {mac}")
                     attempt = 0
             except Exception as e:
@@ -186,12 +224,8 @@ async def disconnect_device(mac: str):
 
 async def ws_handler(websocket):
     """Handle WebSocket messages from the web UI."""
-    try:
-        import websockets
-    except ImportError:
-        log.error("websockets not installed — run: pip install websockets")
-        return
-
+    remote = getattr(websocket, "remote_address", None)
+    log.info(f"UI client connected: {remote}")
     async for message in websocket:
         try:
             cmd = json.loads(message)
@@ -227,9 +261,19 @@ async def ws_handler(websocket):
                 await websocket.send(json.dumps({"type": "error", "message": f"Unknown action: {action}"}))
 
         except json.JSONDecodeError:
-            await websocket.send(json.dumps({"type": "error", "message": "Invalid JSON"}))
+            await _ws_send_safe(websocket, {"type": "error", "message": "Invalid JSON"})
         except Exception as e:
-            await websocket.send(json.dumps({"type": "error", "message": str(e)}))
+            log.error(f"WS command failed: {e}")
+            await _ws_send_safe(websocket, {"type": "error", "message": str(e)})
+    log.info(f"UI client disconnected: {remote}")
+
+
+async def _ws_send_safe(websocket, payload: dict):
+    """Send a JSON payload, ignoring a connection that closed mid-reply."""
+    try:
+        await websocket.send(json.dumps(payload))
+    except Exception:
+        pass
 
 
 async def start_ws_server():
@@ -244,6 +288,23 @@ async def start_ws_server():
         # Keep running for CLI usage
         while True:
             await asyncio.sleep(3600)
+
+
+async def query_daemon_status(timeout: float = 5.0):
+    """Ask a running daemon for its status over the WebSocket.
+
+    Returns the parsed status dict, or None if no daemon is reachable.
+    """
+    try:
+        import websockets
+        async with websockets.connect(
+            f"ws://localhost:{WS_PORT}", open_timeout=timeout
+        ) as ws:
+            await ws.send(json.dumps({"action": "status"}))
+            reply = await asyncio.wait_for(ws.recv(), timeout=timeout)
+            return json.loads(reply)
+    except Exception:
+        return None
 
 
 # ── CLI ───────────────────────────────────────────────────────────
@@ -262,22 +323,32 @@ async def main():
     if args.scan:
         if not ok:
             sys.exit(1)
-        await scan_devices()
+        results = await scan_devices()
+        print(json.dumps(results, indent=2))
     elif args.pair:
         if not ok:
             sys.exit(1)
-        await connect_device(args.pair)
+        if not await connect_device(args.pair):
+            sys.exit(1)
         # Keep running for keepalive
-        try:
-            while True:
-                await asyncio.sleep(1)
-        except KeyboardInterrupt:
-            pass
+        while args.pair in connected_devices:
+            await asyncio.sleep(1)
+        log.error(f"Lost {args.pair} permanently — exiting")
+        sys.exit(1)
     elif args.status:
-        print(json.dumps({
-            "adapter": adapter_attached,
-            "connected": len(connected_devices),
-        }, indent=2))
+        # Real state lives in the running daemon, not this fresh process —
+        # query it over the WebSocket; fall back to a local adapter check.
+        status = await query_daemon_status()
+        if status is not None:
+            status["daemon_running"] = True
+            print(json.dumps(status, indent=2))
+        else:
+            print(json.dumps({
+                "daemon_running": False,
+                "adapter": adapter_attached,
+                "connected": {},
+                "note": f"No daemon reachable on ws://localhost:{WS_PORT}",
+            }, indent=2))
     else:
         # Default: daemon mode
         log.info("Starting BT Controller Daemon")
@@ -286,5 +357,12 @@ async def main():
         await start_ws_server()
 
 
+def cli_main():
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        log.info("Interrupted — shutting down")
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    cli_main()
