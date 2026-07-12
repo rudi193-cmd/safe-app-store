@@ -138,9 +138,10 @@ def get_connection(schema: str = None):
     try:
         conn.autocommit = False
         pg_conn = _PgConn(pool, conn)
+        from psycopg2 import sql as _sql
         safe = _safe_schema_name(schema or "utety_chat")
         cur  = conn.cursor()
-        cur.execute(f"SET search_path = {safe}, public")
+        cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(safe)))
         cur.close()
         return pg_conn
     except Exception:
@@ -156,8 +157,9 @@ def get_willow_connection(username: str = None):
     try:
         conn.autocommit = False
         pg_conn = _PgConn(pool, conn)
+        from psycopg2 import sql as _sql
         cur = conn.cursor()
-        cur.execute(f"SET search_path = {schema}, public")
+        cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(schema)))
         cur.close()
         return pg_conn
     except Exception:
@@ -171,9 +173,10 @@ def init_schema(schema_name: str = "utety_chat") -> str:
     pool = _get_pg_pool()
     conn = pool.getconn()
     try:
+        from psycopg2 import sql as _sql
         conn.autocommit = True
         cur = conn.cursor()
-        cur.execute(f"CREATE SCHEMA IF NOT EXISTS {safe}")
+        cur.execute(_sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(_sql.Identifier(safe)))
         cur.close()
     finally:
         pool.putconn(conn)
