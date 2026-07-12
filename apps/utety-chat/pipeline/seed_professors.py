@@ -14,7 +14,7 @@ Run:
   python pipeline/seed_professors.py --username Sweet-Pea-Rudi19
 
 Environment variables:
-  WILLOW_DB_URL   postgresql://willow:willow@172.26.176.1:5437/willow  (required)
+  WILLOW_DB_URL   postgresql://<user>:<pass>@<host>:<port>/<db>  (required)
   WILLOW_USERNAME Willow username whose knowledge schema to read        (default: Sweet-Pea-Rudi19)
 
 Confidence weighting (same model as NASA Archive):

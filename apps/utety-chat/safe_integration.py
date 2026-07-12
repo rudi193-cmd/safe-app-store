@@ -9,6 +9,7 @@ Topics: ask, query, contribute, connect, status
 
 import json
 import os as _os
+import re as _re
 import sqlite3 as _sqlite3
 _STORE_ROOT = _os.environ.get(
     "WILLOW_STORE_ROOT",
@@ -235,8 +236,18 @@ class SAFESession:
         save_dir = _APP_DATA / "saved_conversations"
         save_dir.mkdir(parents=True, exist_ok=True)
 
-        filename = f"{professor_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-        filepath = save_dir / filename
+        # C6 fix: professor_name comes from the URL path — sanitize it to
+        # alphanumerics/underscore/hyphen so it cannot traverse directories.
+        safe_name = _re.sub(r'[^a-zA-Z0-9_-]', '', professor_name)
+        if not safe_name:
+            safe_name = "conversation"
+
+        filename = f"{safe_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        filepath = (save_dir / filename).resolve()
+
+        # Defense in depth: the resolved path must stay inside save_dir.
+        if filepath.parent != save_dir.resolve():
+            return {"error": "Invalid conversation name", "status": "denied"}
 
         filepath.write_text(conversation_md, encoding="utf-8")
 

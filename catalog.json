@@ -25,6 +25,7 @@
       "name": "UTETY Chat",
       "description": "Chat with 11 AI faculty members including Gerald (a headless rotisserie chicken) and Copenhagen (an orange). Built on Cloudflare Pages + Workers.",
       "status": "stable",
+      "version": "1.0.1",
       "path": "apps/utety-chat",
       "tags": ["chat", "ai", "utety", "professors"]
     },
@@ -127,8 +128,9 @@
     {
       "id": "bt-controller",
       "name": "BT Controller",
-      "description": "Bluetooth device controller.",
-      "status": "coming_soon",
+      "description": "Direct HCI Bluetooth control — claims the USB adapter beneath the flaky OS stack via WSL, with a self-healing daemon and web UI.",
+      "status": "beta",
+      "version": "0.2.0",
       "path": "apps/bt-controller",
       "tags": ["bluetooth", "hardware"]
     },
