@@ -113,6 +113,40 @@ scoped, and boundary-enforced.
 > **never to be read, cloned, searched, or otherwise accessed** by any agent. It
 > is not the model here; `willow-data-vault` (structured, blueprint-not-data) is.
 
+### D8 — App data routing: one vault root, no hardcoded home paths
+D7 gives the vault a boundary; D8 is the rule that makes apps actually respect
+it. **An app must resolve ALL persistence from a single vault-rooted base.** Any
+`Path.home() / ".willow" / …` (or other fixed home path) baked into app code is a
+**vault leak** — it writes user data *past* the vault to a scattered, unscoped
+location, defeating the "agents can't carry it out" boundary.
+
+The vault box is necessary but not sufficient: it captures only what the app
+chooses to route through the vault root. Nothing yet forces that choice, so apps
+self-select where they write — and today they scatter.
+
+**Worked example — `ask-jeles` (found by running it, 2026-07-12).** Ran with no
+`WILLOW_STORE_ROOT` set; real data (binder intake, log) landed in `~/.willow`,
+not a vault. Its persistence splits:
+
+| Data | Path | Vault-aware? |
+|---|---|---|
+| corpus `store.db` | `WILLOW_STORE_ROOT/<collection>/store.db` | ✅ yes — and uses the SOIL `records` schema (`02_soil_records.sql`) |
+| KB SOIL reads | `WILLOW_STORE_ROOT` | ✅ yes |
+| binder intake (permanent user data) | `APP_DATA` (`~/.willow/apps/ask-jeles`) | ⚠️ env var, wrong root |
+| learning_events (consented, sensitive) | `~/.willow/jeles_learning_events` | ❌ hardcoded — leak |
+| kb_views / saves / log | `~/.willow/jeles_*` | ❌ hardcoded — leak |
+
+The corpus is already vault-shaped (point `WILLOW_STORE_ROOT` at the box and it
+lands in the vault, on the vault's own schema). Everything else — including the
+*sensitive* streams (binder deposits, learning events) — hardcodes home paths and
+leaks. Collection-scoping (`<root>/<collection>/store.db`) is the natural hook for
+per-app `store_scope`: collection-scoped is app-scoped.
+
+**Rule:** installer/compat check should flag any `Path.home()/".willow"` (or
+equivalent fixed-home) write in an app as a vault leak before it earns the
+outward-compatible receipt. An app is vault-clean only when every persistence
+path derives from the vault root.
+
 ## Reused patterns (already in the corpus)
 - **Verify-don't-assert** — sovereignty and outward-compat are both verified/earned, never self-declared.
 - **Path-containment allowlist** at the seam — same check as the utety-chat C6 path-traversal fix and the gate's `store_scope`.
@@ -157,6 +191,10 @@ key + real config + PGP ledger + user/sensitive files.
 ## Open / next
 - **Where the running vault lives on disk** relative to `SAFE/` (the box path),
   and provisioning it end-to-end against a real willow-mcp box.
+- **A vault-leak linter** (D8) — scan an app for `Path.home()/".willow"` and
+  other fixed-home writes; make "vault-clean" a precondition of the
+  outward-compatible receipt. `ask-jeles` is the first fix candidate
+  (learning_events, kb_views, saves, log, intake → vault root).
 - How **apps in `SAFE/apps/`** are granted scoped access to vault collections
   (per-app `store_scope`, so an installed app reaches only its own data).
 - Per-app **install recipe** format (the "how": AppImage/Flatpak/binary) —
