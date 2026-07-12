@@ -22,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 WORKFLOW_UI_VERSION = "today-v1"
 
 import document_store
+import gazelle_paths
 import gazelle_state
 import intelligence
 import tui_routes
@@ -64,7 +65,7 @@ except ImportError:
 
 
 def _sync_and_report(source: Path | None = None) -> dict:
-    return sync_cases(source or Path.home() / "Desktop" / "Nest")
+    return sync_cases(source or gazelle_paths.nest_source())
 
 
 LawGazelleApp = None
@@ -1261,7 +1262,7 @@ def main() -> int:
         action="store_true",
         help="Print workflow UI version and app path, then exit",
     )
-    parser.add_argument("--source", type=Path, default=Path.home() / "Desktop" / "Nest")
+    parser.add_argument("--source", type=Path, default=gazelle_paths.nest_source())
     args = parser.parse_args()
 
     if args.check_ui:

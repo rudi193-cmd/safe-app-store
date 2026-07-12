@@ -1,7 +1,9 @@
 """
 safe_integration.py — User identity + session composite for story-timeline v2.
 
-Reads user UUID from ~/.willow/user_identity.json (provisioned by willow-seed).
+Reads user UUID from <vault_root>/user_identity.json (provisioned by willow-seed).
+Identity is shared willow state, so it lives at the vault root (honors
+WILLOW_STORE_ROOT), not under this app's own data directory.
 Writes a structured session composite atom to Willow on app close.
 Talks to Willow via SoilClient (MCP/stdio) — all calls go through the SAP gate.
 Degrades gracefully if Willow is unavailable.
@@ -14,7 +16,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-_IDENTITY_PATH = Path.home() / ".willow" / "user_identity.json"
+from story_paths import vault_root
+
+_IDENTITY_PATH = vault_root() / "user_identity.json"
 
 _CLIENT = None
 _CLIENT_INIT_FAILED = False

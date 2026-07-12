@@ -14,8 +14,10 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import gazelle_paths
+
 APP_ID = "law-gazelle"
-APP_DATA = Path(os.environ.get("APP_DATA", Path.home() / ".willow" / "apps" / APP_ID))
+APP_DATA = gazelle_paths.app_data()          # vault-rooted (D8), APP_DATA env overrides
 STATE_DB = APP_DATA / "gazelle_state.db"
 
 _SCHEMA = """

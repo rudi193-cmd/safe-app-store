@@ -2,7 +2,8 @@
 timeline_db.py — SQLite backend for story-timeline v2.
 
 Open node graph: any entity type, user-defined fields.
-DB_PATH is overridable via STORY_TIMELINE_DB env var for testing.
+DB_PATH resolves via story_paths.app_data() (honors WILLOW_STORE_ROOT / APP_DATA).
+Still overridable via STORY_TIMELINE_DB env var for testing.
 """
 import json
 import os
@@ -12,10 +13,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-DB_PATH = Path(
-    os.environ.get("STORY_TIMELINE_DB",
-    str(Path.home() / ".willow" / "store" / "story-timeline" / "timeline.db"))
-)
+from story_paths import app_data
+
+_override = os.environ.get("STORY_TIMELINE_DB")
+DB_PATH = Path(_override) if _override else app_data() / "timeline.db"
 
 
 def _init_db() -> None:
