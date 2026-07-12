@@ -218,6 +218,14 @@ structure + schema-adaptation logic.** The box = every populated store + the
 key + real config + PGP ledger + user/sensitive files.
 
 ## Build status
+- **D8 vault-leak linter — BUILT** at `tools/vault_leak_lint.py`. Classifies each
+  fixed/home path per D8.1: data (DB/`.enc`/keys/known data dirs/`~/.willow/apps`/
+  Desktop-Nest) → **leak**; config/cache (XDG, config files) → allowed;
+  willow-core discovery → warn. `--strict` exits 1 for a receipt/CI gate.
+  Fleet result (23 apps): **8 FAIL · 9 WARN · 5 PASS**. Reproduced the hand
+  analysis and found one leak it missed (`nest-seed → ~/Desktop/Nest/seed.db`).
+  Top offenders: law-gazelle (PII), ask-jeles, story-timeline, private-ledger,
+  field-notes, civics-check, dating-wellbeing (encrypted history + key).
 - **D7 blueprint — SCAFFOLDED** at `rudi193-cmd/willow-data-vault` (`main`):
   owned schemas (secrets, SOIL, receipts, Kart SQLite+Postgres) extracted
   verbatim; KB shipped as adaptive reference; `bootstrap/provision.sh` stands up
@@ -227,10 +235,9 @@ key + real config + PGP ledger + user/sensitive files.
 ## Open / next
 - **Where the running vault lives on disk** relative to `SAFE/` (the box path),
   and provisioning it end-to-end against a real willow-mcp box.
-- **A vault-leak linter** (D8) — scan an app for `Path.home()/".willow"` and
-  other fixed-home writes; make "vault-clean" a precondition of the
-  outward-compatible receipt. `ask-jeles` is the first fix candidate
-  (learning_events, kb_views, saves, log, intake → vault root).
+- ~~A vault-leak linter (D8)~~ — **BUILT** (`tools/vault_leak_lint.py`). Next:
+  wire `--strict` into the outward-compatible receipt gate, and fix the top
+  offenders (law-gazelle PII first) so they route through the vault root.
 - How **apps in `SAFE/apps/`** are granted scoped access to vault collections
   (per-app `store_scope`, so an installed app reaches only its own data).
 - Per-app **install recipe** format (the "how": AppImage/Flatpak/binary) —
