@@ -3,11 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' http://localhost:8420 http://localhost:8421; object-src 'none'; base-uri 'self'; frame-ancestors 'self'">
 <title>UTETY — Chat</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&family=Lato:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="static/style.css">
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
 <style>
 html, body { height: 100%; overflow: hidden; }
 
@@ -416,16 +418,22 @@ function loadHistory(name) {
 function clearHistory(name) { localStorage.removeItem(histKey(name)); }
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
+// Render markdown into an element, sanitized with DOMPurify (C4 fix).
+// Falls back to plain text if either library is unavailable — never raw HTML.
+function renderMarkdownSafe(el, text) {
+  if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+    el.innerHTML = DOMPurify.sanitize(marked.parse(text));
+  } else {
+    el.textContent = text;
+  }
+}
+
 function addMsg(role, content) {
   const div = document.createElement('div');
   div.className = 'msg ' + role;
   if (role === 'assistant' && profMeta) {
     div.style.fontFamily = profMeta.font || '';
-    if (typeof marked !== 'undefined') {
-      div.innerHTML = marked.parse(content);
-    } else {
-      div.textContent = content;
-    }
+    renderMarkdownSafe(div, content);
   } else {
     div.textContent = content;
   }
@@ -447,7 +455,6 @@ function newConversation() {
 // ── Scroll-write effect ──────────────────────────────────────────────────────
 async function scrollWrite(el, rawText) {
   const msgs = document.getElementById('messages');
-  const hasMarked = typeof marked !== 'undefined';
   el.classList.add('writing');
 
   let accumulated = '';
@@ -462,7 +469,7 @@ async function scrollWrite(el, rawText) {
 
     // Render markdown periodically or on last char
     if (charIndex % RENDER_EVERY === 0 || charIndex === len) {
-      el.innerHTML = hasMarked ? marked.parse(accumulated) : accumulated;
+      renderMarkdownSafe(el, accumulated);
       msgs.scrollTop = msgs.scrollHeight;
     }
 
@@ -487,7 +494,7 @@ async function scrollWrite(el, rawText) {
   }
 
   // Final clean render
-  el.innerHTML = hasMarked ? marked.parse(rawText) : rawText;
+  renderMarkdownSafe(el, rawText);
   el.classList.remove('writing');
   msgs.scrollTop = msgs.scrollHeight;
 }

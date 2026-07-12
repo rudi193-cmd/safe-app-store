@@ -8,11 +8,25 @@ const RATE_LIMIT = 20;
 const WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const ipMap = new Map(); // { ip: { count, resetAt } }
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+// Known-good origins allowed to call this Worker. Override/extend via the
+// ALLOWED_ORIGIN Worker environment variable (comma-separated) for preview
+// deployments or local dev, without ever falling back to a wildcard.
+const DEFAULT_ALLOWED_ORIGINS = ['https://utety.pages.dev'];
+
+function corsHeaders(request, env) {
+  const allowed = new Set(DEFAULT_ALLOWED_ORIGINS);
+  if (env && env.ALLOWED_ORIGIN) {
+    env.ALLOWED_ORIGIN.split(',').map(o => o.trim()).filter(Boolean).forEach(o => allowed.add(o));
+  }
+  const origin = request.headers.get('Origin');
+  const allowOrigin = origin && allowed.has(origin) ? origin : DEFAULT_ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Vary': 'Origin',
+  };
+}
 const COUNTER_KEY = 'utety:visits';
 const COUNTER_SEED = 1095; // founding year
 
@@ -30,6 +44,7 @@ function rateCheck(ip) {
 
 export default {
   async fetch(request, env) {
+    const CORS = corsHeaders(request, env);
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: CORS });
     }

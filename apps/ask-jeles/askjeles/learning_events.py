@@ -9,6 +9,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
+from askjeles.jeles_paths import app_data as _app_data
 
 SCHEMA = "ask_jeles.learning_event.v1"
 
@@ -22,7 +23,7 @@ def _iso(dt: datetime) -> str:
 
 
 def _event_dir() -> Path:
-    root = Path.home() / ".willow" / "jeles_learning_events"
+    root = _app_data() / "learning_events"
     root.mkdir(parents=True, exist_ok=True)
     return root
 

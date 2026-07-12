@@ -20,6 +20,7 @@ from typing import Any, Optional
 
 from askjeles import trivia as _trivia
 from askjeles.browser import open_url
+from askjeles.jeles_paths import app_data as _app_data
 from askjeles.willow_path import bootstrap as _bootstrap_willow
 
 _willow_root = _bootstrap_willow()
@@ -598,7 +599,7 @@ def _build_tui(*, demo: bool = False):
             for hit in self._hits:
                 lines.append(f"- [{hit['title']}]({hit['url']}) — {hit['source']}\n")
             body = "".join(lines)
-            save_path = Path.home() / ".willow" / "jeles_saves" / f"jeles_{time.strftime('%Y%m%d_%H%M%S')}.md"
+            save_path = _app_data() / "saves" / f"jeles_{time.strftime('%Y%m%d_%H%M%S')}.md"
             save_path.parent.mkdir(parents=True, exist_ok=True)
             save_path.write_text(body)
             binder_note = save_path.name

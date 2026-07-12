@@ -17,13 +17,13 @@ See README.md for the design discussion this came out of.
 from __future__ import annotations
 
 import json
-import os
 import random
 import threading
 from pathlib import Path
 from typing import Any
 
 from askjeles import corpus
+from askjeles.jeles_paths import app_data as _vault_app_data
 
 SEED_QUESTION_COUNT = 13
 SEED_OFFER_MESSAGE = (
@@ -66,7 +66,7 @@ _SEED_POOL: list[dict[str, Any]] = [
 
 
 def _app_data() -> Path:
-    root = Path(os.environ.get("APP_DATA", str(Path.home() / ".willow" / "apps" / "ask-jeles")))
+    root = _vault_app_data()
     root.mkdir(parents=True, exist_ok=True)
     return root
 

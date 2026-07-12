@@ -164,14 +164,14 @@ async def safe_web(
     }
 
 
-def main() -> None:
+def main(argv=None) -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description="AskJeles verification API")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8421)
     parser.add_argument("--willow-url", metavar="URL", default=None)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if args.willow_url:
         os.environ["WILLOW_URL"] = args.willow_url
     uvicorn.run(app, host=args.host, port=args.port)
