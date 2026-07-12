@@ -218,6 +218,15 @@ structure + schema-adaptation logic.** The box = every populated store + the
 key + real config + PGP ledger + user/sensitive files.
 
 ## Build status
+- **Receipt gate — BUILT** at `tools/receipt_gate.py`. Composes the required
+  gates and stamps the outward-compatible receipt only when ALL pass
+  (fail-closed). `vault_clean` is wired via the linter's `--strict`;
+  `install_verified` / `launch_verified` are declared but PENDING. Per-app
+  outcome BLOCKED / PENDING / GRANTED; `--strict` exits 1 on any BLOCKED;
+  `--emit` writes `<app>.receipt.json` for GRANTED. Fleet: **8 BLOCKED · 14
+  PENDING · 0 GRANTED** — a data leak blocks the receipt, and nothing earns it
+  before install+launch are proven. This is D2's "earned, not asserted" made
+  executable.
 - **D8 vault-leak linter — BUILT** at `tools/vault_leak_lint.py`. Classifies each
   fixed/home path per D8.1: data (DB/`.enc`/keys/known data dirs/`~/.willow/apps`/
   Desktop-Nest) → **leak**; config/cache (XDG, config files) → allowed;
@@ -235,9 +244,12 @@ key + real config + PGP ledger + user/sensitive files.
 ## Open / next
 - **Where the running vault lives on disk** relative to `SAFE/` (the box path),
   and provisioning it end-to-end against a real willow-mcp box.
-- ~~A vault-leak linter (D8)~~ — **BUILT** (`tools/vault_leak_lint.py`). Next:
-  wire `--strict` into the outward-compatible receipt gate, and fix the top
-  offenders (law-gazelle PII first) so they route through the vault root.
+- ~~A vault-leak linter (D8)~~ — **BUILT** (`tools/vault_leak_lint.py`).
+- ~~Wire `--strict` into the receipt gate~~ — **BUILT** (`tools/receipt_gate.py`).
+  Next: implement the `install_verified` + `launch_verified` gates (the seam,
+  D3–D5) so an app can actually reach GRANTED; and fix the top offenders
+  (law-gazelle PII first) so they route through the vault root and clear
+  `vault_clean`.
 - How **apps in `SAFE/apps/`** are granted scoped access to vault collections
   (per-app `store_scope`, so an installed app reaches only its own data).
 - Per-app **install recipe** format (the "how": AppImage/Flatpak/binary) —
