@@ -74,12 +74,44 @@ privilege split already exists in the architecture; the seam reuses it.
 Installed apps land in a top-level folder labelled **`SAFE`**:
 
 - **Apps** live under **`SAFE/apps/<app_id>/`**.
-- **Stored data** goes to a **separate folder** (NOT under `apps/`) — location
-  TBD (next piece).
+- **Stored data** goes to a **separate folder** (NOT under `apps/`) — this is the
+  **data vault** (see D7), not a subfolder of the app payload.
 
 Separating app payload from app data keeps installs disposable (uninstall =
 remove/-archive the app dir) without touching user data, and gives the seam a
 clean destination allowlist to enforce.
+
+### D7 — The data vault: persistent, sovereign, agents-can't-carry-out
+The "separate data folder" of D6 is a **data vault** — the persistent, sensitive
+counterpart to the replaceable `SAFE/apps/` payload layer. This yields a
+three-layer separation:
+
+1. **Compute / agents** — ephemeral, replaceable (kart sandbox, MCP server, the agents).
+2. **Apps** — `SAFE/apps/<app_id>/`, replaceable payloads installed via the seam.
+3. **The vault** — persistent and sensitive: schemas, KB, DB, sensitive files,
+   user-specific files. Agents operate against it **in place** but **cannot carry
+   it out**.
+
+**Repo is blueprint, not data.** A `willow-data-vault` repo holds only the
+**schemas + container bootstrap** needed to stand willow up **as its own box**
+(DB/KB schema, migrations, config, structure). A fresh willow instance is
+provisioned *from* the repo, then populated **locally** with KB/DB/PII/user data
+that is **never committed back to git** — matching existing precedent (Law
+Gazelle PII lives in `~/Desktop/Nest/`, never in git). The repo is *how to build
+the box*; the running box is *the populated instance that stays home*.
+
+"Cannot carry out" is already enforceable with existing primitives:
+- **gate `store_scope`** — an agent only sees its own collections.
+- **kart bubblewrap** — a sandboxed task cannot reach host files.
+- **consent.py** — presence/sensitive data never leaves the house.
+
+The vault is simply the **named boundary** those three were implicitly
+protecting. It is the disciplined opposite of an unstructured PII dump: schema'd,
+scoped, and boundary-enforced.
+
+> Off-limits: the operator's existing `sean-data-vault` is a raw PII dump and is
+> **never to be read, cloned, searched, or otherwise accessed** by any agent. It
+> is not the model here; `willow-data-vault` (structured, blueprint-not-data) is.
 
 ## Reused patterns (already in the corpus)
 - **Verify-don't-assert** — sovereignty and outward-compat are both verified/earned, never self-declared.
@@ -87,6 +119,11 @@ clean destination allowlist to enforce.
 - **Consent + PGP ledger** — install is a privileged, host-mutating, hard-to-reverse act; it is consented and ledgered like every other privileged lane.
 
 ## Open / next
-- Location of the separate **data** folder (D6) — operator to specify.
-- Per-app **install recipe** format (the "how": AppImage/Flatpak/binary) — `apps.yaml` currently carries homepages, not install methods.
+- **Vault ↔ box provisioning** — how a fresh willow box is stood up from the
+  `willow-data-vault` blueprint, and where the running vault lives on disk
+  relative to `SAFE/`.
+- How **apps in `SAFE/apps/`** are granted scoped access to vault collections
+  (per-app `store_scope`, so an installed app reaches only its own data).
+- Per-app **install recipe** format (the "how": AppImage/Flatpak/binary) —
+  `apps.yaml` currently carries homepages, not install methods.
 - Destination allowlist specifics and uninstall/archive semantics.
