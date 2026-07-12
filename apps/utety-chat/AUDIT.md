@@ -22,7 +22,11 @@ The UTETY Chat application is a multi-professor conversational interface built o
 
 ## CRITICAL Severity
 
+> **✅ All six CRITICAL findings (C1–C6) resolved in v1.0.1 (commit `0afc95a`).** Fixes grafted from a four-model security review; all 144 tests pass. See per-finding status notes below.
+
 ### C1. SQL Injection via f-string Schema Names
+
+> **✅ RESOLVED (v1.0.1):** all 6 f-string call sites in `core/db.py` and `chat_db.py` now use `psycopg2.sql.SQL(...).format(sql.Identifier(...))`; `_safe_schema_name()` retained as defense-in-depth.
 
 **Files:** `core/db.py:143,160,176` | `chat_db.py:69,107,108`
 **Category:** Security -- SQL Injection
@@ -49,6 +53,8 @@ cur.execute(sql.SQL("SET search_path = {}, public").format(sql.Identifier(safe))
 
 ### C2. Hardcoded Database Credentials in Source
 
+> **✅ RESOLVED (v1.0.1):** example DSN in `pipeline/seed_professors.py` replaced with `postgresql://<user>:<pass>@<host>:<port>/<db>`; credentials and internal IP removed.
+
 **File:** `pipeline/seed_professors.py:17`
 **Category:** Security -- Credential Exposure
 
@@ -70,6 +76,8 @@ This is committed to a public repository. Even as a comment, secret scanners wil
 
 ### C3. Hardcoded Absolute Filesystem Path
 
+> **✅ RESOLVED (already fixed — audit stale):** the cited `sys.path.insert(0, "~/willow-1.5/core")` at `chat_db.py:18` no longer exists; it was scrubbed in a prior commit. Verified by grep that no `willow-1.5`/absolute dev path remains in any source file. No further change required.
+
 **File:** `chat_db.py:18`
 **Category:** Bug / Security -- Path Disclosure
 
@@ -88,6 +96,8 @@ This hardcoded path:
 
 ### C4. XSS via Unsanitized Markdown Rendering
 
+> **✅ RESOLVED (v1.0.1):** `web/chat.html` now wraps all 3 `marked.parse()` render sites in `DOMPurify.sanitize(...)` (pinned DOMPurify, with a `textContent` fallback if the library fails to load) and adds a `Content-Security-Policy` meta tag.
+
 **File:** `web/chat.html` (multiple locations where `marked.parse()` is used with `innerHTML`)
 **Category:** Security -- Cross-Site Scripting
 
@@ -105,6 +115,8 @@ If an LLM returns content containing malicious HTML/JavaScript (via prompt injec
 ---
 
 ### C5. Wildcard CORS (`Access-Control-Allow-Origin: *`)
+
+> **✅ RESOLVED (v1.0.1):** `functions/api/chat.js` and `worker/index.js` now use an origin allowlist (`https://utety.pages.dev`, extensible via an `ALLOWED_ORIGIN` env var) that echoes only matching origins, plus `Vary: Origin`. Preview deployments keep working.
 
 **Files:** `functions/api/chat.js:16` | `worker/index.js:12`
 **Category:** Security -- CORS Misconfiguration
@@ -126,6 +138,8 @@ The wildcard origin allows any website to make cross-origin requests to the chat
 ---
 
 ### C6. Path Traversal in Conversation Save
+
+> **✅ RESOLVED (v1.0.1):** `save_conversation()` in `safe_integration.py` sanitizes `professor_name` (`[^a-zA-Z0-9_-] -> ''`, falling back to `"conversation"`) and adds a defense-in-depth check that the resolved path stays inside the save directory. Verified with a `../../etc/cron.d/evil` payload.
 
 **File:** `safe_integration.py:222-228`
 **Category:** Security -- Path Traversal

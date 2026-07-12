@@ -25,6 +25,7 @@
       "name": "UTETY Chat",
       "description": "Chat with 11 AI faculty members including Gerald (a headless rotisserie chicken) and Copenhagen (an orange). Built on Cloudflare Pages + Workers.",
       "status": "stable",
+      "version": "1.0.1",
       "path": "apps/utety-chat",
       "tags": ["chat", "ai", "utety", "professors"]
     },
