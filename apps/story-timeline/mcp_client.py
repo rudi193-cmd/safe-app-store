@@ -11,6 +11,8 @@ import threading
 from pathlib import Path
 from typing import Any, Callable
 
+from story_paths import app_data
+
 log = logging.getLogger("story-timeline.mcp")
 
 APP_ID = "story-timeline"
@@ -57,7 +59,7 @@ def _mcp_launch() -> tuple[str, list[str]]:
     root = _willow_root()
     if root and (root / "sap" / "unified_mcp.sh").is_file():
         script = root / "sap" / "unified_mcp.sh"
-        err_log = Path.home() / ".willow" / "story-timeline-mcp.log"
+        err_log = app_data() / "story-timeline-mcp.log"
         err_log.parent.mkdir(parents=True, exist_ok=True)
         return "bash", ["-lc", f'exec "{script}" 2>>"{err_log}"']
     return sys.executable, ["-m", "sap.unified_mcp"]

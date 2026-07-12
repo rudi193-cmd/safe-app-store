@@ -17,7 +17,9 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.widgets import DataTable, Footer, Header, Input, Label, Static, TextArea
 
-DB_PATH = Path.home() / ".willow" / "field-notes.db"
+from fieldnotes_paths import db_path
+
+DB_PATH = db_path()
 
 
 def _db() -> sqlite3.Connection:

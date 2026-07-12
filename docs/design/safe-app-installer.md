@@ -218,6 +218,17 @@ structure + schema-adaptation logic.** The box = every populated store + the
 key + real config + PGP ledger + user/sensitive files.
 
 ## Build status
+- **All vault leaks cleared — fleet at 0 BLOCKED.** After `law-gazelle`, the
+  remaining leakers were fixed in one batched pass (6 parallel worktree agents +
+  `nest-seed`), each with the same single-resolver pattern (`<app>_paths.py`
+  deriving from `WILLOW_STORE_ROOT`, env overrides kept for migration):
+  ask-jeles, story-timeline (also fixed its `WILLOW_STORE_ROOT`-override bug),
+  private-ledger, field-notes, civics-check, dating-wellbeing (crypto key +
+  encrypted history), nest-seed. Re-verified centrally: **0 FAIL** across all 22
+  apps; receipt gate **0 BLOCKED · 22 PENDING · 0 GRANTED**. Every app is now
+  `vault_clean`; the only thing between them and GRANTED is the install/launch
+  seam. Migration is not automated — existing data at old paths stays put; env
+  overrides bridge it.
 - **First leak fixed — `law-gazelle` (v1.0.1), the highest-stakes app.** Added a
   single vault-rooted resolver (`gazelle_paths.py`): app data, the Nest legal PII,
   and the client persona now all derive from the vault root (env overrides kept

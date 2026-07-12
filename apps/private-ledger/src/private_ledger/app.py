@@ -1,7 +1,5 @@
 # b17: 67F26  ΔΣ=42
-import os
 from datetime import date
-from pathlib import Path
 
 from textual import on, work
 from textual.app import App, ComposeResult
@@ -19,11 +17,12 @@ from textual.widgets import (
     Static,
 )
 
+from . import pl_paths
 from .db import LedgerDB
 from .llm import DEFAULT_MODEL, parse_transaction, stream_insights
 from .schema import init_ledger
 
-DB_PATH = os.environ.get("LEDGER_DB", str(Path.home() / ".willow" / "private-ledger.db"))
+DB_PATH = str(pl_paths.db_path())
 
 
 # ── Insights modal ────────────────────────────────────────────────────────────

@@ -11,6 +11,8 @@ from hashlib import sha1
 from pathlib import Path
 from typing import Any
 
+from askjeles.jeles_paths import app_data as _app_data
+
 log = logging.getLogger("jeles.kb")
 
 _MAX_SOIL_DBS = 80
@@ -27,7 +29,7 @@ def _store_root() -> Path:
 
 
 def _views_dir() -> Path:
-    path = Path.home() / ".willow" / "jeles_kb_views"
+    path = _app_data() / "kb_views"
     path.mkdir(parents=True, exist_ok=True)
     return path
 

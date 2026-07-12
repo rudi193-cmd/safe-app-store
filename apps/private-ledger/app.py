@@ -19,7 +19,9 @@ from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Button, DataTable, Footer, Header, Input, Label, Select, Static
 
-DB_PATH = Path.home() / ".willow" / "private-ledger.db"
+import pl_paths
+
+DB_PATH = pl_paths.db_path()
 
 CATEGORIES = [
     "income", "housing", "food", "transport", "health",

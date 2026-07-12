@@ -10,13 +10,16 @@ import os
 import sqlite3
 from pathlib import Path
 
+from story_paths import app_data
+
 
 def _get_db_path():
-    """Resolve DB path from env or default. Called at runtime to support test monkeypatching."""
-    return Path(
-        os.environ.get("STORY_TIMELINE_DB",
-        str(Path.home() / ".willow" / "store" / "story-timeline" / "timeline.db"))
-    )
+    """Resolve DB path from env or default. Called at runtime to support test monkeypatching.
+
+    Mirrors timeline_db.py's resolution so both agree on the same path.
+    """
+    override = os.environ.get("STORY_TIMELINE_DB")
+    return Path(override) if override else app_data() / "timeline.db"
 
 
 def needs_migration() -> bool:
