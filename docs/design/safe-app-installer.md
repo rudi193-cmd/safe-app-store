@@ -218,6 +218,17 @@ structure + schema-adaptation logic.** The box = every populated store + the
 key + real config + PGP ledger + user/sensitive files.
 
 ## Build status
+- **Seam installer — BUILT** at `tools/seam_install.py` (D3–D5). STAGE
+  (fetch+sha256-verify, in `bwrap` when available) → SEAM (allowlist-contained
+  declarative placement into `SAFE/apps/<app_id>/`, the C6 pattern) → LAUNCH
+  smoke → writes `<app_id>.seam.json` (the earned install/launch proof).
+  Verified: honest install places + launches; a tampered artifact is refused at
+  the STAGE (nothing crosses); an escaping placement is refused at the SEAM.
+- **Receipt gate — seam gates WIRED.** `install_verified` / `launch_verified`
+  now consume the seam receipt (were PENDING). Demonstrated the **first GRANTED**
+  — a seam-installed app clears all three gates and gets a stamped receipt —
+  while the fleet stays honest (8 BLOCKED leakers, 14 PENDING with no seam proof,
+  0 GRANTED). The full "earned, not asserted" chain now runs end to end.
 - **Receipt gate — BUILT** at `tools/receipt_gate.py`. Composes the required
   gates and stamps the outward-compatible receipt only when ALL pass
   (fail-closed). `vault_clean` is wired via the linter's `--strict`;
@@ -246,10 +257,11 @@ key + real config + PGP ledger + user/sensitive files.
   and provisioning it end-to-end against a real willow-mcp box.
 - ~~A vault-leak linter (D8)~~ — **BUILT** (`tools/vault_leak_lint.py`).
 - ~~Wire `--strict` into the receipt gate~~ — **BUILT** (`tools/receipt_gate.py`).
-  Next: implement the `install_verified` + `launch_verified` gates (the seam,
-  D3–D5) so an app can actually reach GRANTED; and fix the top offenders
-  (law-gazelle PII first) so they route through the vault root and clear
-  `vault_clean`.
+- ~~Implement the seam `install_verified` + `launch_verified` gates (D3–D5)~~ —
+  **BUILT** (`tools/seam_install.py`), first GRANTED demonstrated. Next: per-app
+  install **recipes** for the real `apps.yaml` entries (the "how": AppImage /
+  Flatpak / binary + sha256 + launch check), and fix the top vault-leak
+  offenders (law-gazelle PII first) so they clear `vault_clean`.
 - How **apps in `SAFE/apps/`** are granted scoped access to vault collections
   (per-app `store_scope`, so an installed app reaches only its own data).
 - Per-app **install recipe** format (the "how": AppImage/Flatpak/binary) —

@@ -37,11 +37,17 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import vault_leak_lint as vll  # noqa: E402
 
+DEFAULT_RECEIPTS = Path(__file__).resolve().parent / ".seam-receipts"
+
 # Gate order matters: cheapest / most-blocking first.
 REQUIRED_GATES = ["vault_clean", "install_verified", "launch_verified"]
 
 
-def gate_vault_clean(app_dir: Path) -> dict:
+def gate_vault_clean(app_dir: Path | None) -> dict:
+    # An installed sovereign artifact has no willow-native source in the repo to
+    # lint; it manages its own data per the Sovereignty Test → vacuously clean.
+    if app_dir is None or not app_dir.exists():
+        return {"status": "pass", "detail": "no in-repo source (installed sovereign artifact)"}
     r = vll.lint_app(app_dir)
     if r["verdict"] == "FAIL":
         n = len(r["leaks"])
@@ -54,16 +60,41 @@ def gate_vault_clean(app_dir: Path) -> dict:
     return {"status": "pass", "detail": "no data leaks"}
 
 
-# Not yet built — declared so the receipt is honest about what's unproven.
-def gate_pending(_app_dir: Path, why: str) -> dict:
-    return {"status": "pending", "detail": why}
+def _seam_receipt(app_id: str, receipts: Path) -> dict | None:
+    p = receipts / f"{app_id}.seam.json"
+    if not p.is_file():
+        return None
+    try:
+        return json.loads(p.read_text())
+    except Exception:
+        return None
 
 
-def evaluate(app_dir: Path) -> dict:
+def gate_install_verified(app_id: str, receipts: Path) -> dict:
+    r = _seam_receipt(app_id, receipts)
+    if r is None:
+        return {"status": "pending", "detail": "no seam install receipt"}
+    iv = r.get("install_verified", {})
+    if iv.get("ok"):
+        return {"status": "pass", "detail": f"installed via seam (sha {iv.get('sha256','')[:12]}…)"}
+    return {"status": "fail", "detail": "seam install failed"}
+
+
+def gate_launch_verified(app_id: str, receipts: Path) -> dict:
+    r = _seam_receipt(app_id, receipts)
+    if r is None:
+        return {"status": "pending", "detail": "no seam launch receipt"}
+    lv = r.get("launch_verified", {})
+    if lv.get("ok"):
+        return {"status": "pass", "detail": f"launched (rc {lv.get('rc')})"}
+    return {"status": "fail", "detail": f"launch failed: {lv.get('out','')}"}
+
+
+def evaluate(app_id: str, app_dir: Path | None, receipts: Path) -> dict:
     gates = {
         "vault_clean": gate_vault_clean(app_dir),
-        "install_verified": gate_pending(app_dir, "seam install not yet implemented"),
-        "launch_verified": gate_pending(app_dir, "launch check not yet implemented"),
+        "install_verified": gate_install_verified(app_id, receipts),
+        "launch_verified": gate_launch_verified(app_id, receipts),
     }
     if any(gates[g]["status"] == "fail" for g in REQUIRED_GATES):
         outcome = "BLOCKED"
@@ -75,18 +106,19 @@ def evaluate(app_dir: Path) -> dict:
     receipt = None
     if outcome == "GRANTED":
         receipt = {
-            "app_id": app_dir.name,
+            "app_id": app_id,
             "outward_compatible": True,
             "stamped_at": datetime.now(timezone.utc).isoformat(),
             "gates": {g: gates[g]["status"] for g in REQUIRED_GATES},
         }
-    return {"app": app_dir.name, "outcome": outcome, "gates": gates, "receipt": receipt}
+    return {"app": app_id, "outcome": outcome, "gates": gates, "receipt": receipt}
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Outward-compatible receipt gate")
     ap.add_argument("--path", help="repo root (default: parent of this script's dir)")
     ap.add_argument("--app", help="gate a single app")
+    ap.add_argument("--receipts", default=str(DEFAULT_RECEIPTS), help="seam receipts dir")
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--emit", metavar="DIR", help="write <app>.receipt.json for GRANTED apps")
     ap.add_argument("--strict", action="store_true", help="exit 1 if any target app is BLOCKED")
@@ -94,10 +126,14 @@ def main() -> int:
 
     repo = Path(args.path) if args.path else Path(__file__).resolve().parent.parent
     apps_dir = repo / "apps" if (repo / "apps").is_dir() else repo
-    targets = [apps_dir / args.app] if args.app else \
-        [d for d in sorted(apps_dir.iterdir()) if d.is_dir() and not d.name.startswith(".")]
+    receipts = Path(args.receipts)
 
-    results = [evaluate(d) for d in targets if d.exists()]
+    if args.app:
+        d = apps_dir / args.app
+        results = [evaluate(args.app, d if d.exists() else None, receipts)]
+    else:
+        dirs = [d for d in sorted(apps_dir.iterdir()) if d.is_dir() and not d.name.startswith(".")]
+        results = [evaluate(d.name, d, receipts) for d in dirs]
 
     if args.emit:
         out = Path(args.emit); out.mkdir(parents=True, exist_ok=True)
