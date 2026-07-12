@@ -746,7 +746,9 @@ def main() -> None:
     if args.serve:
         from askjeles.serve import main as serve_main
 
-        serve_main()
+        # Pass an explicit (empty) argv so serve does not re-parse crown's
+        # already-consumed sys.argv (which still holds --serve).
+        serve_main([])
         return
 
     if args.batch and not _PRISM_AVAILABLE:
