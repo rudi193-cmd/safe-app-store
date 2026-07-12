@@ -147,10 +147,16 @@ cryptographic rather than merely policy-enforced.
 structure + schema-adaptation logic.** The box = every populated store + the
 key + real config + PGP ledger + user/sensitive files.
 
+## Build status
+- **D7 blueprint — SCAFFOLDED** at `rudi193-cmd/willow-data-vault` (`main`):
+  owned schemas (secrets, SOIL, receipts, Kart SQLite+Postgres) extracted
+  verbatim; KB shipped as adaptive reference; `bootstrap/provision.sh` stands up
+  an empty box (CLI-optional). `.gitignore` hard-guarantees blueprint-not-data;
+  verified schemas apply and no key/DB can be committed.
+
 ## Open / next
-- **Vault ↔ box provisioning** — how a fresh willow box is stood up from the
-  `willow-data-vault` blueprint, and where the running vault lives on disk
-  relative to `SAFE/`.
+- **Where the running vault lives on disk** relative to `SAFE/` (the box path),
+  and provisioning it end-to-end against a real willow-mcp box.
 - How **apps in `SAFE/apps/`** are granted scoped access to vault collections
   (per-app `store_scope`, so an installed app reaches only its own data).
 - Per-app **install recipe** format (the "how": AppImage/Flatpak/binary) —
