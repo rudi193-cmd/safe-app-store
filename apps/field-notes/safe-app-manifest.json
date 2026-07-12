@@ -1,7 +1,7 @@
 {
   "app_id": "field-notes",
   "name": "field-notes",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "safe_version": ">=2.0.0",
   "b17": "H9EL2",
   "agent_type": "tool",

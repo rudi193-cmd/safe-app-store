@@ -1,7 +1,7 @@
 {
   "app_id": "nest-seed",
   "name": "nest-seed",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "safe_version": ">=2.0.0",
   "b17": "N5EED",
   "agent_type": "tool",

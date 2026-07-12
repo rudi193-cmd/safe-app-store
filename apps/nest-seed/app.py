@@ -12,8 +12,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
+
+# Default output DB derives from the vault root (installer design D8);
+# NEST_SEED_DB overrides, and --db still overrides per-invocation.
+_DEFAULT_DB = os.environ.get("NEST_SEED_DB") or str(Path(os.environ.get("WILLOW_STORE_ROOT", str(Path.home() / ".willow" / "store"))).expanduser() / "nest-seed" / "seed.db")
 
 try:  # works both as a package (apps.nest_seed) and as a plain script dir
     from .ingest import run
@@ -31,8 +36,8 @@ def main() -> None:
     )
     parser.add_argument("--folder", help="Path to the dump folder "
                         "(omit with --digest to just report on an existing --db)")
-    parser.add_argument("--db", default="~/Desktop/Nest/seed.db",
-                        help="Output Nest SQLite DB (default: ~/Desktop/Nest/seed.db)")
+    parser.add_argument("--db", default=_DEFAULT_DB,
+                        help="Output Nest SQLite DB (default: $WILLOW_STORE_ROOT/nest-seed/seed.db)")
     parser.add_argument("--owner", default="", help="Your name — stored in nest_meta")
     parser.add_argument("--dry-run", action="store_true",
                         help="Print fragments only, do not write DB")

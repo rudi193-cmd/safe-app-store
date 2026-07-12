@@ -18,6 +18,7 @@ story-timeline = "app:main"
 [tool.setuptools]
 py-modules = [
     "app",
+    "story_paths",
     "timeline_db",
     "willow_edges",
     "safe_integration",

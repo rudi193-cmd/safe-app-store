@@ -6,14 +6,15 @@ import sqlite3
 from pathlib import Path
 
 from civics.paths import app_root
+from civics_paths import app_data
 
 
 def _db_path() -> Path:
-    """Scores DB beside app in dev; under ~/.willow when installed as a package."""
+    """Scores DB beside app in dev; vault-rooted (D8) when installed as a package."""
     root = app_root()
     if (root / "safe-app-manifest.json").exists() or (root / "scripts").is_dir():
         return root / "civics_check.db"
-    store = Path.home() / ".willow" / "apps" / "civics-check"
+    store = app_data()
     store.mkdir(parents=True, exist_ok=True)
     return store / "civics_check.db"
 

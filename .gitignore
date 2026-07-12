@@ -18,3 +18,7 @@ apps/utety-chat/data/exports/
 # Willow runtime — agent identity + ephemeral git worktrees
 .willow/active-agent
 worktrees/
+tools/.seam-receipts/
+/SAFE/
+*.seam.json
+*.receipt.json

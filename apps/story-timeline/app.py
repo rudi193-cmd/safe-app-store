@@ -327,7 +327,7 @@ class ImportScreen(ModalScreen):
         yield Vertical(
             Label("Stock the shelves from CSV", id="modal-title"),
             Label("Path to Goodreads / StoryGraph / LibraryThing export:"),
-            Input(placeholder="~/Downloads/goodreads_library_export.csv", id="path-input"),
+            Input(placeholder="/full/path/to/goodreads_library_export.csv", id="path-input"),
             Label("Source — leave blank to auto-detect:"),
             Input(placeholder="goodreads / storygraph / librarything", id="source-input"),
             Horizontal(

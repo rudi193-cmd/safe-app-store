@@ -8,7 +8,10 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-NEST = Path(os.environ.get("NEST_SOURCE", Path.home() / "Desktop" / "Nest"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import gazelle_paths
+
+NEST = gazelle_paths.nest_source()   # vault-rooted (D8); NEST_SOURCE overrides
 OUT = NEST / "workers_comp.db"
 
 _SCHEMA = """

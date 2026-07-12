@@ -18,11 +18,12 @@ from pathlib import Path
 from typing import Optional
 
 import gazelle_state
+import gazelle_paths
 
 APP_ID = "law-gazelle"
-APP_DATA = Path(os.environ.get("APP_DATA", Path.home() / ".willow" / "apps" / APP_ID))
+APP_DATA = gazelle_paths.app_data()          # vault-rooted (D8)
 CASES_DIR = APP_DATA / "cases"
-DEFAULT_SOURCE = Path(os.environ.get("NEST_SOURCE", Path.home() / "Desktop" / "Nest"))
+DEFAULT_SOURCE = gazelle_paths.nest_source()  # vault-rooted; NEST_SOURCE overrides
 
 CASE_DBS = {
     "coparent": "coparent.db",
