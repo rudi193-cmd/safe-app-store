@@ -147,6 +147,42 @@ equivalent fixed-home) write in an app as a vault leak before it earns the
 outward-compatible receipt. An app is vault-clean only when every persistence
 path derives from the vault root.
 
+#### D8.1 — Fleet scan + the data-vs-config refinement
+Scanned all 23 apps (2026-07-12). Two refinements fell out of reading the
+*actual* paths (raw grep counts over-report):
+
+**The leak that matters is user DATA, not config/cache.** A DB of user data in a
+fixed home path is a leak; a config file (`~/.squirrel/config.json`) or an XDG
+cache (`~/.cache/nest-seed`) is fine. The linter MUST classify — otherwise it
+cries wolf on `the-squirrel` (config only; store is vault-routed) and `nest-seed`
+(cache only). Leak = data (DBs, case files, deposits) at a fixed path; allowed =
+config/cache in home/XDG.
+
+**Fleet alignment:**
+
+| Verdict | Apps |
+|---|---|
+| ✅ vault-aware (data routed) | utety-chat, the-binder, public-ledger, nasa-archive, the-squirrel, llmphysics-bot, UTETY-Reddit-Bots |
+| ✅ config/cache in home (fine) | nest-seed (`~/.cache`), the-squirrel (`~/.squirrel`) |
+| ⚠️ MIXED — vault-aware layer but leaks data | **law-gazelle**, ask-jeles, private-ledger, field-notes |
+| ❌ data leak, no vault routing | story-timeline, civics-check, semantic-translator, ratatosk |
+| — no local persistence | bt-controller, llmphysics, vision-board |
+
+**Priority leak — `law-gazelle` (highest stakes in the fleet).** Its
+`safe_integration.py` uses `WILLOW_STORE_ROOT`, but the legal **case files and
+client PII** are hardcoded: `case_store.py` → `~/.willow/apps/law-gazelle/cases/`
+**and** `~/Desktop/Nest/`; `client_profile.py` → `~/persona.md`. The most
+sensitive data in the fleet sits in two ad-hoc home locations, honoring neither a
+single root nor the vault. "Not in git" (`fleet_paths`) is not the same as "in
+the vault" — it is still outside the boundary. Consolidating this into the
+never-git vault box is the single strongest argument for D7.
+
+**Subtle case — `story-timeline`.** Writes `timeline.db` to a *hardcoded*
+`~/.willow/store/story-timeline/` — lands near the default vault path but ignores
+a `WILLOW_STORE_ROOT` override. "Near the vault by luck" ≠ "honors the vault
+root." The linter must catch hardcoded-default paths, not just non-`.willow`
+ones.
+
 ## Reused patterns (already in the corpus)
 - **Verify-don't-assert** — sovereignty and outward-compat are both verified/earned, never self-declared.
 - **Path-containment allowlist** at the seam — same check as the utety-chat C6 path-traversal fix and the gate's `store_scope`.
