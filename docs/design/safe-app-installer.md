@@ -118,6 +118,35 @@ scoped, and boundary-enforced.
 - **Path-containment allowlist** at the seam — same check as the utety-chat C6 path-traversal fix and the gate's `store_scope`.
 - **Consent + PGP ledger** — install is a privileged, host-mutating, hard-to-reverse act; it is consented and ledgered like every other privileged lane.
 
+## Appendix A — willow's persistence surface (extracted from willow-mcp)
+
+D7 starting artifact. The blueprint is built from what willow **actually**
+persists today (per `willow-mcp` @ `dcb87d2`), not invented. willow already
+ships a Fernet secrets vault (`vault.py`) and a bootstrap (`willow-mcp-init`) —
+so `willow-data-vault` is **extraction + separation**, not greenfield.
+
+| Store | Module | Schema → **blueprint (repo)** | Data → **box (local, never git)** | Sensitivity |
+|---|---|---|---|---|
+| Secrets vault | `vault.py` | `secrets(name, value BLOB)` DDL | `vault.db` **+ `vault.key` (Fernet, 0600)** | **CRITICAL** |
+| SOIL KV store | `db.py` | `records(id, data, created_at, updated_at, deviation, action, deleted)` DDL | record rows | user data |
+| Receipts ledger | `receipts.py` | `receipts(id, ts, app_id, tool, outcome, detail)` DDL | tool-call audit trail | activity |
+| Kart task queue | `task_queue.py` | `kart.db` DDL / `docs/schema/tasks.postgres.sql` | task rows | ops |
+| KB (Postgres) | `schema_profile.py` | adapts to existing `tasks`/KB table (`schema-adaptation.md`) | KB rows | user knowledge |
+
+Plus the `WILLOW_HOME` layout `willow-mcp-init` lays down — `config/`
+(consent, roster, specialists), `mcp_apps/<app_id>/manifest.json` (the ACL),
+`ledgers/` (PGP gate ledger), `personas/`, `skills/`, `seeds/`, `templates/`,
+`hooks/`. The **structure** is blueprint; the **populated instance** is box.
+
+**Linchpin:** the Fernet `vault.key` (0600) is the crypto root. It **never**
+touches git. Copy the box's `vault.db` without the key and every secret in it is
+meaningless — which is precisely the "agents can't carry it out" property, made
+cryptographic rather than merely policy-enforced.
+
+**So the blueprint = DDL (5 schemas above) + the `willow-mcp-init` bootstrap
+structure + schema-adaptation logic.** The box = every populated store + the
+key + real config + PGP ledger + user/sensitive files.
+
 ## Open / next
 - **Vault ↔ box provisioning** — how a fresh willow box is stood up from the
   `willow-data-vault` blueprint, and where the running vault lives on disk
