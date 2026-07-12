@@ -218,6 +218,13 @@ structure + schema-adaptation logic.** The box = every populated store + the
 key + real config + PGP ledger + user/sensitive files.
 
 ## Build status
+- **First leak fixed — `law-gazelle` (v1.0.1), the highest-stakes app.** Added a
+  single vault-rooted resolver (`gazelle_paths.py`): app data, the Nest legal PII,
+  and the client persona now all derive from the vault root (env overrides kept
+  for migration). Removed every hardcoded `~/.willow/apps`, `~/Desktop/Nest`, and
+  `~/persona.md`. Linter: FAIL → **PASS**; receipt gate: **BLOCKED → PENDING**;
+  70 tests pass. Fleet: 8 → **7 BLOCKED**. (Lesson: the linter is line-based —
+  keep a vault-root env and its fallback on one line.)
 - **Seam installer — BUILT** at `tools/seam_install.py` (D3–D5). STAGE
   (fetch+sha256-verify, in `bwrap` when available) → SEAM (allowlist-contained
   declarative placement into `SAFE/apps/<app_id>/`, the C6 pattern) → LAUNCH
