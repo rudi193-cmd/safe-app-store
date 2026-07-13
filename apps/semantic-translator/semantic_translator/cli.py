@@ -7,7 +7,7 @@ import sys
 
 def cmd_scrape(args: argparse.Namespace) -> None:
     from .scraper import scrape
-    scrape(output_path=args.output)
+    scrape(output_path=args.output, local_dir=args.local)
 
 
 def cmd_ingest(args: argparse.Namespace) -> None:
@@ -217,6 +217,8 @@ def main() -> None:
 
     p = sub.add_parser("scrape", help="Pull lessons from GitHub → corpus JSONL")
     p.add_argument("--output", default="data/corpus.jsonl", metavar="PATH")
+    p.add_argument("--local", default="", metavar="DIR",
+                   help="Read lessons from a local clone instead of GitHub")
     p.set_defaults(func=cmd_scrape)
 
     p = sub.add_parser("ingest", help="Ingest corpus segments into Jeles")
