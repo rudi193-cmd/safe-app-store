@@ -262,6 +262,22 @@ Willow-specific MCP (`mem_jeles_*`, `kb_search`) remains in the existing built-i
 - Learning capture is explicit session consent via `Ctrl+L`.
 - MCP/Willow integration uses local dev-fallback auth in development.
 
+## The Catalog (map surface)
+
+The web front-end includes **The Catalog** (`web/atlas/`) — an interactive
+prerequisite map of human knowledge. Each node is a subject; edges are
+prerequisites; nodes are laid out by topological depth and colored by your
+completion status (kept locally in your browser). Reach it from the header
+link **The Catalog** or the hero button **Map the Stacks** at `/atlas/`.
+
+The Catalog is a reskinned, vendored copy of
+[Atlas of Knowledge](https://github.com/EthanVieira/atlas-of-knowledge) by
+Ethan Vieira (code MIT, course data CC BY-SA 4.0). Provenance, the exact
+upstream commit, and the short list of changes we made live in
+[`web/atlas/VENDORED.md`](web/atlas/VENDORED.md). Completion is currently
+local/manual, as upstream; wiring it to Jeles' own `learning_events` /
+`milestones` is a possible later phase.
+
 ## Web/API Surface
 
 The local FastAPI mode exposes verification and safe web endpoints from `askjeles.serve`.

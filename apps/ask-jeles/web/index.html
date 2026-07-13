@@ -191,6 +191,11 @@ body {
   border-color: var(--parchment);
   color: var(--parchment);
 }
+a.hero-cta-secondary {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
 .hero-drawers {
   display: flex;
   flex-wrap: wrap;
@@ -590,6 +595,7 @@ body {
     <p>The Stacks &mdash; UTETY</p>
   </div>
   <div class="header-links">
+    <a href="atlas/index.html">The Catalog</a>
     <a href="https://utety.pages.dev" target="_blank">UTETY</a>
     <a href="https://github.com/rudi193-cmd/safe-app-ask-jeles" target="_blank">GitHub</a>
   </div>
@@ -611,6 +617,7 @@ body {
       <div class="hero-actions">
         <button type="button" class="hero-cta" onclick="focusSearch()">Ask the Librarian</button>
         <button type="button" class="hero-cta-secondary" onclick="scrollToChat()">Go to the desk</button>
+        <a class="hero-cta-secondary" href="atlas/index.html">Map the Stacks</a>
       </div>
       <div class="hero-drawers" aria-label="Search drawers">
         <span class="hero-drawer"><strong>Your KB</strong> &mdash; Willow &amp; Binder</span>
