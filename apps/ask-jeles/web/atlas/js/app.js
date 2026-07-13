@@ -252,5 +252,25 @@
   // Initial paint.
   graph.scheduleRender();
 
+  // ── Jeles bridge (additive; safe if unused) ────────────────────────────
+  // Lets the optional companion js/jeles-progress.js seed completion from the
+  // user's local Ask Jeles learning history. Ships no data on its own; the
+  // upstream engine is otherwise untouched.
+  window.KnowledgeMap = {
+    getCompleted: () => [...completed],
+    hasCourse: (id) => model.byId.has(id),
+    // Union known ids into the completed set (prerequisite closure is done by
+    // the generator). Unknown ids are ignored. Returns the count newly added.
+    applyCompleted(ids) {
+      let added = 0;
+      for (const id of ids || []) {
+        if (model.byId.has(id) && !completed.has(id)) { completed.add(id); added++; }
+      }
+      if (added) { save(); updateProgress(); graph.scheduleRender(); }
+      return added;
+    },
+    toast: (msg) => toast(msg),
+  };
+
   console.log(`[knowledge-map] ${COURSES.length} courses across ${model.levels.length} levels loaded.`);
 })();
