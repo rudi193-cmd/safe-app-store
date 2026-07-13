@@ -28,7 +28,6 @@ from textual.widgets import (
     ListItem,
     ListView,
     RichLog,
-    Select,
     Static,
     TabbedContent,
     TabPane,
@@ -98,7 +97,8 @@ REVIEW_CSS = """
 #correction-input.visible { display: block; }
 #review-status { height: 1; color: $text-muted; padding: 0 1; }
 #learner-row { height: 3; padding: 0 0 1 0; }
-#learner-select { width: 40; }
+#learner-input { width: 40; }
+#learner-current { padding: 0 2; color: $success; text-style: bold; }
 """
 
 LEARN_CSS = """
@@ -124,7 +124,7 @@ LEARN_CSS = """
 
 
 class TranslatorApp(App):
-    TITLE = "Semantic Translator — Emerging Rule"
+    TITLE = "Semantic Translator"
     CSS = SEARCH_CSS + REVIEW_CSS + LEARN_CSS
     BINDINGS = [
         Binding("ctrl+q", "quit", "Quit"),
@@ -167,7 +167,9 @@ class TranslatorApp(App):
                 with Vertical(id="review-container"):
                     with Horizontal(id="learner-row"):
                         yield Label("Reviewer: ", classes="")
-                        yield Select([], id="learner-select", prompt="Select learner…")
+                        yield Input(placeholder="Your name — add language if native, e.g. 'Maria es' — Enter",
+                                    id="learner-input")
+                        yield Label("", id="learner-current")
                     yield Label("", id="review-header")
                     with Horizontal(id="segments-panel"):
                         with Vertical(id="source-box"):
@@ -256,14 +258,57 @@ class TranslatorApp(App):
             from . import db
             db.init_db()
             learners = db.list_learners()
-            sel = self.query_one("#learner-select", Select)
-            options = [(l["name"], l["id"]) for l in learners]
-            sel.set_options(options)
             if learners:
                 self._current_learner_id = learners[0]["id"]
-                sel.value = learners[0]["id"]
+                self.query_one("#learner-current", Label).update(
+                    f"✓ {learners[0]['name']}"
+                )
         except Exception as exc:
             _log.error("_load_learners: %s\n%s", exc, traceback.format_exc())
+
+    def _set_reviewer(self, raw: str) -> None:
+        """Resolve a reviewer by name — create on the spot if new — and ledger it.
+        A trailing language code marks a native speaker: 'Maria es'."""
+        from . import db
+        from .nestor.langid import SUPPORTED
+        db.init_db()
+
+        parts = raw.split()
+        native = ""
+        if len(parts) > 1 and parts[-1].lower() in SUPPORTED:
+            native = parts[-1].lower()
+            parts = parts[:-1]
+        name = " ".join(parts)
+
+        learner = next(
+            (l for l in db.list_learners() if l["name"].lower() == name.lower()), None
+        )
+        created = learner is None
+        if created:
+            learner = db.create_learner(name=name, native_lang=native or "en")
+        elif native and learner["native_lang"] != native:
+            with db.get_db() as conn:
+                conn.execute("UPDATE learners SET native_lang=? WHERE id=?",
+                             (native, learner["id"]))
+            learner = db.get_learner(learner["id"])
+        self._current_learner_id = learner["id"]
+        self.query_one("#learner-current", Label).update(
+            f"✓ {learner['name']} (native {learner['native_lang']})"
+        )
+        self.query_one("#review-status", Label).update(
+            f"Reviewing as [bold]{learner['name']}[/bold], native "
+            f"[bold]{learner['native_lang']}[/bold]"
+            f"{' — new reviewer registered' if created else ''}. "
+            f"[dim]Native approvals seal fully; add your language after your name "
+            f"(e.g. 'Maria es') if this is wrong.[/dim]"
+        )
+        try:
+            from .nestor.cascade import _ledger_append
+            _ledger_append({"kind": "reviewer", "name": learner["name"],
+                            "learner_id": learner["id"], "created": created})
+        except Exception as exc:
+            _log.error("_set_reviewer ledger: %s\n%s", exc, traceback.format_exc())
+        self._load_study_queue()
 
     def _load_queue(self) -> None:
         try:
@@ -274,6 +319,51 @@ class TranslatorApp(App):
         except Exception as exc:
             _log.error("_load_queue: %s\n%s", exc, traceback.format_exc())
 
+    def _completion_summary(self) -> str:
+        """What the review session produced and where it lives."""
+        try:
+            from . import db
+            from .nestor import memory
+            lines = ["Here is where your work went:\n"]
+            docs = db.list_documents()
+            shown = 0
+            total_needs_native = 0
+            for d in docs:
+                segs = db.get_segments(d["id"])
+                if not segs:
+                    continue
+                verified = sum(1 for s in segs if s["status"] == "verified")
+                needs_native = sum(1 for s in segs if s["status"] == "needs_native")
+                total_needs_native += needs_native
+                if verified == 0 and needs_native == 0:
+                    continue
+                extra = f"  ·  [yellow]{needs_native} await a native speaker[/yellow]" \
+                    if needs_native else ""
+                lines.append(
+                    f"  [bold]{d['id'][:8]}[/bold]  {d['title'][:44]!r}\n"
+                    f"           {verified}/{len(segs)} verified & sealed{extra}"
+                )
+                shown += 1
+                if shown >= 8:
+                    lines.append(f"  … and {len(docs) - shown} more (semantic-translator stats)")
+                    break
+            s = memory.stats()
+            lines.append(
+                f"\nTranslation memory: [bold]{s['sealed']}[/bold] sealed pairs — "
+                "every one serves instantly, forever, next time it appears."
+            )
+            if total_needs_native:
+                lines.append(
+                    f"\n[yellow]{total_needs_native} approved segment(s) still need a "
+                    "native speaker's confirmation to seal.[/yellow]\n"
+                    "Register as one — type your name + language in the Reviewer box "
+                    "(e.g. 'Maria es') — and review again."
+                )
+            return "\n".join(lines)
+        except Exception as exc:
+            _log.error("_completion_summary: %s\n%s", exc, traceback.format_exc())
+            return "Verdicts saved to data/translator.db."
+
     def _show_current_segment(self) -> None:
         header = self.query_one("#review-header", Label)
         source = self.query_one("#source-text", Static)
@@ -282,19 +372,20 @@ class TranslatorApp(App):
         rev_status = self.query_one("#review-status", Label)
 
         if not self._queue:
-            header.update("[bold]Review queue is empty[/bold]")
-            source.update(
-                "No documents queued for review.\n\n"
-                "To add content:\n"
-                "  1. Write a .txt file with the text to translate\n"
-                "  2. Run:  semantic-translator translate <file.txt>\n"
-                "  3. Come back here — segments will appear for approval\n\n"
-                "The ingest is still building the Jeles corpus in the background.\n"
-                "Once it has more atoms, translation candidates will improve."
+            header.update("[bold green]Review queue is empty — everything is saved.[/bold green]")
+            source.update(self._completion_summary())
+            candidate.update(
+                "[bold]Get your translated document out:[/bold]\n\n"
+                "  semantic-translator export <doc-id> --output my-lesson.es.md\n\n"
+                "(doc-ids on the left — the first 8 characters are enough)\n\n"
+                "[bold]Add more work:[/bold]\n\n"
+                "  semantic-translator nestor say <file.md> --to es --engine claude"
             )
-            candidate.update("")
             score_bar.update("")
-            rev_status.update("[dim]Ingest running — check: tail -f data/ingest_log.jsonl[/dim]")
+            rev_status.update(
+                "[dim]Verdicts: data/translator.db · sealed pairs serve instantly next "
+                "time · trail: data/ledger.jsonl[/dim]"
+            )
             return
 
         pos = self._queue_pos
@@ -322,6 +413,13 @@ class TranslatorApp(App):
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id == "correction-input":
             await self._submit_correction(event.value.strip())
+            return
+
+        if event.input.id == "learner-input":
+            name = event.value.strip()
+            if name:
+                self._set_reviewer(name)
+                event.input.blur()
             return
 
         if event.input.id != "query-input":
@@ -395,11 +493,6 @@ class TranslatorApp(App):
 
     # ── review tab events ────────────────────────────────────────────────────
 
-    def on_select_changed(self, event: Select.Changed) -> None:
-        if event.select.id == "learner-select" and event.value:
-            self._current_learner_id = str(event.value)
-            self._load_study_queue()
-
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         btn_id = event.button.id
         # Learn tab ratings
@@ -461,7 +554,7 @@ class TranslatorApp(App):
     async def _submit_verdict(self, verdict: str, correction: str = "") -> None:
         if not self._current_learner_id:
             self.query_one("#review-status", Label).update(
-                "[red]Select a learner first[/red]"
+                "[red]Type your name in the Reviewer box first (Enter to register)[/red]"
             )
             return
         if not self._queue or self._queue_pos >= len(self._queue):
@@ -469,12 +562,24 @@ class TranslatorApp(App):
 
         seg = self._queue[self._queue_pos]
         status = self.query_one("#review-status", Label)
+
+        if verdict == "approved" and not (seg.get("candidate") or "").strip():
+            status.update(
+                "[yellow]Nothing to approve — this segment has no translation yet. "
+                "Press C and type one (it becomes the sealed pair), or R to reject.[/yellow]"
+            )
+            return
+
         status.update(f"Submitting {verdict}…")
 
         try:
+            from . import db
             from .review import submit_verification
+            learner = db.get_learner(self._current_learner_id) or {}
+            is_native = learner.get("native_lang") == seg.get("target_lang")
             await asyncio.to_thread(
-                submit_verification, seg["id"], self._current_learner_id, verdict, correction
+                submit_verification, seg["id"], self._current_learner_id, verdict,
+                correction, is_native
             )
             self._queue_pos += 1
             if self._queue_pos >= len(self._queue):

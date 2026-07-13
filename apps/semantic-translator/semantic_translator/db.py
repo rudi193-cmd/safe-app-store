@@ -184,7 +184,7 @@ def get_pending_segments(limit: int = 20) -> list[dict]:
         return [dict(r) for r in conn.execute(
             """SELECT s.*, d.title AS doc_title, d.source_lang, d.target_lang
                FROM segments s JOIN documents d ON s.document_id = d.id
-               WHERE s.status IN ('pending', 'in_review')
+               WHERE s.status IN ('pending', 'in_review', 'needs_native')
                ORDER BY s.jeles_score ASC
                LIMIT ?""",
             (limit,),

@@ -1,4 +1,4 @@
-"""Pull Emerging Rule lessons from GitHub and normalize to segment JSONL."""
+"""Pull lessons from GitHub (or a local clone) and normalize to segment JSONL."""
 from __future__ import annotations
 
 import json
@@ -8,7 +8,7 @@ import re
 import subprocess
 from typing import Iterator
 
-REPO = "Emerging-Rule/community"
+REPO = "rudi193-cmd/DispatchesFromReality"
 LESSONS_DIR = "lessons"
 
 # Spanish function words as a cheap language detector (EN/ES corpus only)
@@ -91,18 +91,30 @@ def _gh_file_content(path: str) -> str:
     return base64.b64decode(result.stdout.strip()).decode("utf-8")
 
 
-def scrape(output_path: str = "data/corpus.jsonl") -> list[dict]:
+def scrape(output_path: str = "data/corpus.jsonl", local_dir: str = "") -> list[dict]:
+    """Scrape lessons into segment JSONL — from GitHub via gh, or a local clone
+    via local_dir (a repo root or lessons/ directory; no network needed)."""
     pathlib.Path(output_path).parent.mkdir(parents=True, exist_ok=True)
 
-    print(f"Fetching file list from {REPO}...")
-    files = _gh_file_list()
-    print(f"Found {len(files)} lesson files\n")
+    if local_dir:
+        root = pathlib.Path(local_dir)
+        if (root / LESSONS_DIR).is_dir():
+            root = root / LESSONS_DIR
+        files = sorted(str(p) for p in root.glob("*.md"))
+        print(f"Reading {len(files)} lesson files from {root}\n")
+    else:
+        print(f"Fetching file list from {REPO}...")
+        files = _gh_file_list()
+        print(f"Found {len(files)} lesson files\n")
 
     all_segments: list[dict] = []
     for path in files:
         lesson_id = pathlib.Path(path).stem
         try:
-            content = _gh_file_content(path)
+            if local_dir:
+                content = pathlib.Path(path).read_text(encoding="utf-8")
+            else:
+                content = _gh_file_content(path)
             meta = _extract_meta(content.splitlines())
             segments = list(_segments_from_content(content, lesson_id, meta))
             all_segments.extend(segments)

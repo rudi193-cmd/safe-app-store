@@ -103,6 +103,9 @@ def submit_verification(
     new_status = _check_threshold(segment_id)
     if new_status:
         db.update_segment(segment_id, status=new_status)
+        if new_status == "verified":
+            from .nestor.cascade import graduate_segment
+            graduate_segment(segment_id, verifier=learner["name"], weight=weight)
 
     seg = db.get_segment(segment_id) or {}
     _fire_srs(learner_id, seg.get("atom_id", ""), verdict)
