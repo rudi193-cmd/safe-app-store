@@ -262,6 +262,44 @@ Willow-specific MCP (`mem_jeles_*`, `kb_search`) remains in the existing built-i
 - Learning capture is explicit session consent via `Ctrl+L`.
 - MCP/Willow integration uses local dev-fallback auth in development.
 
+## The Catalog (map surface)
+
+The web front-end includes **The Catalog** (`web/atlas/`) — an interactive
+prerequisite map of human knowledge. Each node is a subject; edges are
+prerequisites; nodes are laid out by topological depth and colored by your
+completion status (kept locally in your browser). Reach it from the header
+link **The Catalog** or the hero button **Map the Stacks** at `/atlas/`.
+
+The Catalog is a reskinned, vendored copy of
+[Atlas of Knowledge](https://github.com/EthanVieira/atlas-of-knowledge) by
+Ethan Vieira (code MIT, course data CC BY-SA 4.0). Provenance, the exact
+upstream commit, and the short list of changes we made live in
+[`web/atlas/VENDORED.md`](web/atlas/VENDORED.md).
+
+### Seeding completion from your learning history
+
+Node completion can be seeded from your **local** Ask Jeles history. The bridge
+reads `learning_events/*.jsonl` (and `milestones.json` for context), maps the
+subjects you have clearly named onto course ids, adds their prerequisite
+chains, and writes `web/atlas/data/jeles-progress.json`:
+
+```bash
+python -m askjeles.atlas_progress            # writes the progress seed
+python -m askjeles.atlas_progress --dry-run  # summarize only, write nothing
+```
+
+The Catalog loads that file at runtime (`js/jeles-progress.js`) and unions the
+courses into completion; a click adds a node and **Reset** clears everything.
+The mapping is deliberately conservative — it only counts a subject you named
+by title, never a shared topic — so it under-claims rather than painting the
+atlas gold on a stray query.
+
+Privacy: the progress file is derived from your machine's history, is
+**gitignored**, and is never part of the committed or hosted site. A hosted or
+fresh Catalog simply never sees it and behaves exactly as upstream. Course-id
+matching uses `web/atlas/data/courses.json`, a machine-readable index
+regenerated with `node web/atlas/scripts/export-courses.js`.
+
 ## Web/API Surface
 
 The local FastAPI mode exposes verification and safe web endpoints from `askjeles.serve`.

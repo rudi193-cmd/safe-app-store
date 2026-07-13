@@ -1,0 +1,471 @@
+/* ============================================================================
+ *  KNOWLEDGE MAP — celestial atlas / library theme
+ * ==========================================================================*/
+
+:root {
+  /* Parchment & ink */
+  --parchment:      #ece0c6;
+  --parchment-deep: #e3d3ad;
+  --parchment-edge: #cbb583;
+  --ink:            #3a2f21;
+  --ink-soft:       #6a5b43;
+  --ink-faint:      #8a7a5c;
+
+  /* Illuminated gold (completed) */
+  --gold:           #c9a83f;
+  --gold-bright:    #e7c86a;
+  --gold-glow:      rgba(214, 178, 94, 0.55);
+
+  /* Night sky */
+  --sky-0:          #14151f;
+  --sky-1:          #1b1c28;
+  --sky-2:          #23243250;
+
+  --font-serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua",
+                Palatino, "Georgia", "Times New Roman", serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; height: 100%;
+  font-family: var(--font-serif);
+  color: var(--ink);
+  background: var(--sky-0);
+  overflow: hidden;
+}
+
+/* --- Starfield background --------------------------------------------------
+   Layered radial-gradient "stars" + a faint nebula wash. Fixed, cheap. */
+#stage {
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(1px 1px at 20% 30%,  rgba(255,246,224,.9), transparent),
+    radial-gradient(1px 1px at 70% 20%,  rgba(255,246,224,.7), transparent),
+    radial-gradient(1.5px 1.5px at 40% 70%, rgba(255,246,224,.8), transparent),
+    radial-gradient(1px 1px at 85% 65%,  rgba(255,246,224,.6), transparent),
+    radial-gradient(1px 1px at 15% 85%,  rgba(255,246,224,.7), transparent),
+    radial-gradient(1.5px 1.5px at 55% 45%, rgba(255,246,224,.5), transparent),
+    radial-gradient(1px 1px at 90% 40%,  rgba(255,246,224,.6), transparent),
+    radial-gradient(1px 1px at 33% 12%,  rgba(255,246,224,.5), transparent),
+    radial-gradient(circle at 30% 20%, rgba(60,70,110,.35), transparent 55%),
+    radial-gradient(circle at 75% 75%, rgba(90,70,110,.28), transparent 55%),
+    linear-gradient(160deg, #14151f 0%, #1a1b27 50%, #121019 100%);
+  background-repeat: repeat;
+  background-size: 320px 320px, 300px 300px, 360px 360px, 280px 280px,
+                   340px 340px, 300px 300px, 320px 320px, 300px 300px,
+                   100% 100%, 100% 100%, 100% 100%;
+}
+
+/* --- Viewport / world ------------------------------------------------------ */
+.km-viewport {
+  position: fixed; inset: 0;
+  cursor: grab;
+  overflow: hidden;
+  touch-action: none;
+}
+.km-viewport.km-grabbing { cursor: grabbing; }
+
+.km-edges {
+  position: absolute; inset: 0;
+  pointer-events: none;
+}
+
+.km-world {
+  position: absolute; top: 0; left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* --- Nodes ----------------------------------------------------------------- */
+.km-node {
+  position: absolute;
+  min-height: 60px;
+  border-radius: 9px;
+  background:
+    linear-gradient(180deg, var(--parchment) 0%, var(--parchment-deep) 100%);
+  /* The field is signalled by a bold colored frame, kept in every state. */
+  border: 2.5px solid hsl(var(--field-hue, 44) 55% 46%);
+  box-shadow: 0 2px 10px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.22);
+  color: var(--ink);
+  cursor: pointer;
+  overflow: hidden;
+  transition: box-shadow .18s ease, transform .12s ease, border-color .2s, filter .2s;
+  user-select: none;
+}
+/* thicker colored plate along the top edge for extra field emphasis */
+.km-node::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 5px;
+  background: hsl(var(--field-hue, 44) 60% 50%);
+  box-shadow: inset 0 -1px 2px rgba(0,0,0,.18);
+}
+.km-node:hover { box-shadow: 0 6px 20px rgba(0,0,0,.6), 0 0 0 2px var(--gold-glow); }
+
+.km-node-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 11px 10px;
+}
+.km-title {
+  flex: 1 1 auto;
+  font-size: 15px; font-weight: 600; line-height: 1.22;
+  letter-spacing: .1px;
+}
+/* Field badge — a solid colored pill with the field's short code. */
+.km-ribbon {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  font-size: 9px; font-weight: 700; letter-spacing: .6px;
+  color: #fff;
+  background: hsl(var(--field-hue, 44) 48% 42%);
+  border: 1px solid hsl(var(--field-hue, 44) 50% 34%);
+  border-radius: 9px; padding: 2px 7px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25);
+  text-shadow: 0 1px 1px rgba(0,0,0,.35);
+}
+
+/* Full field label at the top of an expanded card. */
+.km-field-full {
+  display: flex; align-items: center; gap: 7px;
+  margin: 8px 0 2px;
+  font-size: 11px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase;
+  color: hsl(var(--field-hue, 44) 40% 32%);
+}
+.km-field-full .km-field-swatch {
+  width: 12px; height: 12px; border-radius: 3px;
+  background: hsl(var(--field-hue, 44) 55% 46%);
+  border: 1px solid hsl(var(--field-hue, 44) 50% 34%);
+}
+
+/* Completion checkbox — a small star medallion */
+.km-check {
+  flex: 0 0 auto;
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 1.5px solid var(--ink-faint);
+  background: transparent;
+  cursor: pointer; position: relative;
+  transition: all .18s;
+}
+.km-check::after {
+  content: "★";
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: transparent;
+  transition: color .18s;
+}
+
+/* --- Status colors ---------------------------------------------------------
+   Three clearly separated states:
+     locked    → dim, desaturated, dark parchment (not yet reachable)
+     available → clean cool parchment (reachable, not done)
+     complete  → bright ILLUMINATED GOLD with a strong halo (done)          */
+
+.km-node[data-status="locked"] {
+  background: linear-gradient(180deg, #b9ad93 0%, #a89b7e 100%);
+  filter: grayscale(.5) brightness(.66);
+  opacity: .7;
+}
+.km-node[data-status="locked"] .km-title { color: #2c2416; }
+/* Locked cards can't be completed yet — show the star as disabled. */
+.km-node[data-status="locked"] .km-check {
+  cursor: not-allowed;
+  border-style: dashed;
+  opacity: .6;
+}
+.km-node[data-status="locked"] .km-check::after { content: "🔒"; font-size: 8px; color: #4a3f28; }
+
+/* Refusal feedback when clicking a locked card's star. */
+.km-node.km-deny { animation: km-shake .34s ease; }
+@keyframes km-shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+.km-node[data-status="available"] {
+  background: linear-gradient(180deg, #f3ead2 0%, #e6d8b4 100%);
+}
+
+.km-node[data-status="complete"] {
+  background:
+    radial-gradient(135% 130% at 50% -12%, #fff2bf 0%, #f3d179 42%, #dcac3f 100%);
+  border-color: hsl(var(--field-hue, 44) 62% 44%);
+  box-shadow:
+    0 0 0 2px rgba(233,200,106,.75),      /* gold ring */
+    0 0 34px 6px var(--gold-glow),        /* halo */
+    0 4px 16px rgba(0,0,0,.5),
+    inset 0 1px 0 rgba(255,252,232,.85);
+  filter: none;
+  opacity: 1;
+}
+.km-node[data-status="complete"]::before {
+  /* the illuminated top plate */
+  background: linear-gradient(90deg, var(--gold-bright), #fff1c2, var(--gold-bright));
+  box-shadow: 0 0 8px var(--gold-glow);
+}
+.km-node[data-status="complete"] .km-title {
+  color: #4a3506; font-weight: 700;
+  text-shadow: 0 1px 0 rgba(255,250,230,.6);
+}
+.km-node[data-status="complete"] .km-check {
+  border-color: #b9902a;
+  background: radial-gradient(circle at 35% 30%, #fff2c4, var(--gold-bright) 55%, var(--gold));
+  box-shadow: 0 0 10px var(--gold-glow);
+  transform: scale(1.05);
+}
+.km-node[data-status="complete"] .km-check::after { color: #5a4410; }
+
+/* --- Highlight (prereq chain) --------------------------------------------- */
+.km-node.km-dim { opacity: .28; filter: saturate(.4) brightness(.8); }
+.km-node.km-hl  { box-shadow: 0 0 0 1px var(--gold-glow), 0 4px 20px rgba(0,0,0,.5); }
+
+/* --- Expanded card --------------------------------------------------------- */
+.km-node.km-expanded {
+  width: 340px !important;
+  z-index: 50;
+  cursor: default;
+  box-shadow: 0 12px 44px rgba(0,0,0,.6), 0 0 0 1px var(--gold-glow);
+}
+.km-node-body {
+  display: none;
+  padding: 4px 14px 14px;
+  border-top: 1px dashed var(--parchment-edge);
+  animation: km-unfold .18s ease;
+}
+.km-node.km-expanded .km-node-body { display: block; }
+@keyframes km-unfold { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; } }
+
+.km-desc { margin: 10px 0 12px; font-size: 13px; line-height: 1.5; color: var(--ink-soft); }
+
+.km-section { margin: 12px 0; }
+.km-section h4 {
+  margin: 0 0 6px; font-size: 11px; text-transform: uppercase;
+  letter-spacing: .8px; color: var(--ink-faint);
+  border-bottom: 1px solid rgba(120,104,74,.25); padding-bottom: 3px;
+}
+.km-res-h.free::before  { content: "✦ "; color: #5a7d4a; }
+.km-res-h.paid::before  { content: "❖ "; color: #8a6a3a; }
+
+.km-none { margin: 2px 0; font-size: 12px; color: var(--ink-faint); font-style: italic; }
+
+.km-reqs, .km-resources, .km-topics { margin: 4px 0; padding-left: 16px; }
+.km-reqs li, .km-resources li, .km-topics li { font-size: 12.5px; line-height: 1.55; }
+.km-req { color: #6d5320; text-decoration: none; border-bottom: 1px dotted #a98b4e; }
+.km-req:hover { color: #4a3810; border-bottom-style: solid; }
+.km-resources a { color: #5a4a2a; text-decoration: none; border-bottom: 1px dotted #b09760; }
+.km-resources a:hover { color: #33260f; }
+.km-by { color: var(--ink-faint); font-style: italic; }
+
+details summary {
+  cursor: pointer; font-size: 12px; color: var(--ink-soft);
+  padding: 4px 0; list-style: none; user-select: none;
+}
+details summary::-webkit-details-marker { display: none; }
+details summary::before { content: "▸ "; color: var(--gold); transition: transform .15s; }
+details[open] summary::before { content: "▾ "; }
+.km-count {
+  display: inline-block; background: rgba(120,104,74,.2); color: var(--ink-soft);
+  border-radius: 8px; padding: 0 6px; font-size: 10px; margin-left: 4px;
+}
+
+/* --- Header / toolbar ------------------------------------------------------ */
+#topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; gap: 18px;
+  padding: 10px 18px;
+  background: linear-gradient(180deg, rgba(20,21,31,.92), rgba(20,21,31,.66) 70%, transparent);
+  color: #ecdfbf;
+}
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand h1 {
+  margin: 0; font-size: 19px; font-weight: 600; letter-spacing: .5px;
+  color: #f0e2bd;
+}
+.brand .sub {
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: #b6a67f; opacity: .8;
+}
+
+/* Search */
+/* Field filter dropdown (matches the search field styling). */
+.km-filter { position: relative; }
+#field-filter {
+  font-family: var(--font-serif); font-size: 13px; color: #f0e6cf;
+  padding: 7px 30px 7px 12px; border-radius: 18px; outline: none; cursor: pointer;
+  background: rgba(40,40,54,.7); border: 1px solid rgba(200,180,120,.3);
+  -webkit-appearance: none; appearance: none; max-width: 190px;
+  /* gold chevron */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%23c9a83f' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+#field-filter:focus { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-glow); }
+#field-filter:hover { border-color: rgba(200,180,120,.55); }
+/* highlight when a filter is active (not "All fields") */
+#field-filter.km-active { border-color: var(--gold); color: #fff2cf;
+  box-shadow: 0 0 8px var(--gold-glow); }
+#field-filter option, #field-filter optgroup {
+  background: #26273a; color: #e6dcc0;
+}
+#field-filter optgroup { font-style: normal; font-weight: 700; color: #c2a865; }
+
+.km-search { position: relative; margin-left: 6px; }
+#search {
+  width: 230px; padding: 7px 12px; font-family: var(--font-serif);
+  font-size: 13px; color: #f0e6cf;
+  background: rgba(40,40,54,.7); border: 1px solid rgba(200,180,120,.3);
+  border-radius: 18px; outline: none;
+}
+#search::placeholder { color: #8f8262; }
+#search:focus { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-glow); }
+#search-results {
+  position: absolute; top: 40px; left: 0; right: 0; margin: 0; padding: 6px;
+  list-style: none; background: #26273a; border: 1px solid rgba(200,180,120,.25);
+  border-radius: 10px; box-shadow: 0 12px 30px rgba(0,0,0,.6); z-index: 200;
+  max-height: 320px; overflow-y: auto;
+}
+#search-results li {
+  display: flex; align-items: center; gap: 8px; padding: 7px 10px;
+  border-radius: 7px; cursor: pointer; color: #e6dcc0; font-size: 13px;
+}
+#search-results li:hover, #search-results li.active { background: rgba(214,178,94,.16); }
+#search-results .dot { width: 8px; height: 8px; border-radius: 50%;
+  background: hsl(var(--field-hue,44) 55% 55%); flex: 0 0 auto; }
+#search-results .r-title { flex: 1; }
+#search-results .r-field { font-size: 10px; color: #9b8c68; text-transform: uppercase; letter-spacing: .5px; }
+
+/* Progress */
+.progress { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+#progress-text { font-size: 12px; color: #cdbd94; white-space: nowrap; }
+.progress-track {
+  width: 130px; height: 6px; border-radius: 3px;
+  background: rgba(120,104,74,.3); overflow: hidden;
+}
+#progress-bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+  box-shadow: 0 0 8px var(--gold-glow); transition: width .3s ease;
+}
+
+/* Toolbar buttons */
+.tools { display: flex; gap: 6px; }
+.tools button, #reset-progress {
+  font-family: var(--font-serif);
+  background: rgba(40,40,54,.7); color: #ecdfbf;
+  border: 1px solid rgba(200,180,120,.28); border-radius: 8px;
+  width: 34px; height: 34px; font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+#reset-progress { width: auto; padding: 0 12px; font-size: 12px; }
+.tools button:hover, #reset-progress:hover {
+  border-color: var(--gold); color: #fff2cf; background: rgba(60,58,78,.8);
+}
+.btn-discover {
+  width: auto !important; padding: 0 14px; font-size: 12.5px; letter-spacing: .3px;
+  color: #2a2010 !important;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold)) !important;
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 10px var(--gold-glow);
+}
+.btn-discover:hover {
+  color: #1c1408 !important;
+  background: linear-gradient(180deg, #f6e2a0, var(--gold-bright)) !important;
+  box-shadow: 0 0 16px var(--gold-glow);
+}
+
+/* --- Toast ----------------------------------------------------------------- */
+#toast {
+  position: fixed; top: 62px; left: 50%; transform: translateX(-50%) translateY(-8px);
+  z-index: 300; padding: 8px 18px; border-radius: 18px;
+  background: rgba(30,28,42,.95); color: #f0e2bd;
+  border: 1px solid var(--gold); box-shadow: 0 6px 24px rgba(0,0,0,.5), 0 0 14px var(--gold-glow);
+  font-size: 13px; opacity: 0; pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* --- Legend ---------------------------------------------------------------- */
+#legend {
+  position: fixed; left: 16px; bottom: 16px; z-index: 90;
+  background: rgba(22,23,33,.84); border: 1px solid rgba(200,180,120,.2);
+  border-radius: 10px; padding: 10px 14px 12px; color: #d8caa4;
+  font-size: 11.5px; width: 244px; max-height: 82vh;
+  display: flex; flex-direction: column;
+  backdrop-filter: blur(4px);
+}
+/* Collapsible header */
+#legend-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 2px 0 4px; margin: 0; flex: 0 0 auto;
+  background: none; border: none; cursor: pointer;
+  color: #9b8c68; font-family: var(--font-serif);
+}
+#legend-toggle:hover { color: #cbb87e; }
+#legend-toggle .chev { font-size: 11px; transition: transform .2s ease; }
+#legend.collapsed #legend-toggle .chev { transform: rotate(-90deg); }
+#legend.collapsed #legend-body { display: none; }
+#legend.collapsed { padding-bottom: 8px; }
+
+#legend-body {
+  display: flex; flex-direction: column; min-height: 0;
+  margin-top: 8px; overflow: hidden;
+}
+#legend .legend-title {
+  font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: #9b8c68; margin: 0; flex: 0 0 auto;
+}
+.legend-fields-title { margin-bottom: 8px !important; }
+.status-key { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; flex: 0 0 auto; }
+.status-key span { display: flex; align-items: center; gap: 5px; }
+.status-key .chip { width: 12px; height: 12px; border-radius: 3px; border: 1px solid; }
+.chip.locked    { background: #6a5f47; border-color: #857a5f; }
+.chip.available { background: var(--parchment); border-color: var(--parchment-edge); }
+.chip.complete  { background: var(--gold-bright); border-color: var(--gold);
+                  box-shadow: 0 0 6px var(--gold-glow); }
+
+/* Field key, grouped into family sections. */
+#field-legend { display: block; overflow-y: auto; padding-right: 4px; }
+#field-legend::-webkit-scrollbar { width: 7px; }
+#field-legend::-webkit-scrollbar-thumb { background: rgba(200,180,120,.25); border-radius: 4px; }
+.km-legend-group { margin-bottom: 9px; }
+.km-legend-group:last-child { margin-bottom: 0; }
+.km-legend-group-title {
+  font-size: 9px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700;
+  color: #c2a865; margin: 4px 0 5px; padding-bottom: 3px;
+  border-bottom: 1px solid rgba(200,180,120,.22);
+}
+.km-legend-items { display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.km-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; }
+.km-legend-item .swatch {
+  width: 11px; height: 11px; border-radius: 2px; flex: 0 0 auto;
+  background: hsl(var(--field-hue,44) 52% 50%);
+  border: 1px solid hsl(var(--field-hue,44) 45% 38%);
+}
+
+/* --- Minimap --------------------------------------------------------------- */
+#minimap-wrap {
+  position: fixed; right: 16px; bottom: 16px; z-index: 90;
+  background: rgba(22,23,33,.82); border: 1px solid rgba(200,180,120,.2);
+  border-radius: 10px; padding: 6px; backdrop-filter: blur(4px);
+}
+#minimap { display: block; width: 220px; height: 150px; cursor: pointer; border-radius: 5px; }
+#minimap-wrap .mm-label {
+  font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: #9b8c68; text-align: center; padding: 2px 0 4px;
+}
+
+/* --- Hint ------------------------------------------------------------------ */
+#hint {
+  position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%);
+  z-index: 80; font-size: 11px; color: #8f8262;
+  background: rgba(22,23,33,.55); padding: 5px 14px; border-radius: 14px;
+  pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  #minimap-wrap, #legend { display: none; }
+  #search { width: 130px; }
+  #field-filter { max-width: 130px; }
+  .brand .sub { display: none; }
+}

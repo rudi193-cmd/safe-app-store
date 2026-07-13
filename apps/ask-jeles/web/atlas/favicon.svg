@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Atlas of Knowledge">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="46%" r="55%">
+      <stop offset="0%" stop-color="#e7c86a" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#e7c86a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- night-sky tile -->
+  <rect width="64" height="64" rx="14" fill="#171826"/>
+  <!-- faint stars -->
+  <circle cx="14" cy="15" r="1.4" fill="#f0e2bd" opacity="0.85"/>
+  <circle cx="50" cy="47" r="1.2" fill="#f0e2bd" opacity="0.7"/>
+  <circle cx="49" cy="17" r="1"   fill="#f0e2bd" opacity="0.6"/>
+  <circle cx="16" cy="48" r="1"   fill="#f0e2bd" opacity="0.6"/>
+  <!-- glow behind the main star -->
+  <circle cx="32" cy="31" r="24" fill="url(#glow)"/>
+  <!-- illuminated four-point star -->
+  <path d="M32 9 L36 27 L54 31 L36 35 L32 55 L28 35 L10 31 L28 27 Z"
+        fill="#e7c86a" stroke="#b9902a" stroke-width="0.6"/>
+  <circle cx="32" cy="31" r="3.2" fill="#fff4cf"/>
+</svg>

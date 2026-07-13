@@ -1,0 +1,72 @@
+/* ============================================================================
+ *  THE CATALOG — Jeles skin over the Atlas of Knowledge engine
+ * ----------------------------------------------------------------------------
+ *  Loaded AFTER styles.css. We do not fork the upstream Atlas theme; we only
+ *  nudge its CSS custom properties to Ask Jeles' exact desk palette so the map
+ *  feels continuous with the rest of the app. The celestial starfield in
+ *  #stage is left untouched on purpose — constellations of the Catalog.
+ *
+ *  Upstream engine + data: Atlas of Knowledge by Ethan Vieira.
+ *  See LICENSE (MIT, code) and LICENSE-DATA.md (CC BY-SA 4.0, course data).
+ * ==========================================================================*/
+
+:root {
+  /* Parchment & ink — Jeles' cream, warmer than the upstream buff */
+  --parchment:      #f5f0e8;
+  --parchment-deep: #ebe4d6;
+  --parchment-edge: #d4c9b8;
+  --ink:            #1a1510;
+  --ink-soft:       #3d352a;
+  --ink-faint:      #6b5e4f;
+
+  /* Illuminated gold (completed) — Jeles' desk gold */
+  --gold:           #9a7b3c;
+  --gold-bright:    #c4a456;
+  --gold-glow:      rgba(196, 164, 86, 0.55);
+
+  /* Serif to match the desk (falls back to the upstream stack). */
+  --font-serif: "EB Garamond", "Iowan Old Style", "Palatino Linotype",
+                "Book Antiqua", Palatino, "Georgia", "Times New Roman", serif;
+}
+
+/* Brand type — Playfair for the title, to echo the desk header. */
+#topbar .brand h1 {
+  font-family: "Playfair Display", var(--font-serif);
+  letter-spacing: 0.02em;
+}
+#topbar .brand .sub {
+  font-family: "Inconsolata", ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* A quiet way back to the desk, and a standing credit to the atlas' author. */
+#jeles-deskbar {
+  position: fixed;
+  left: 12px;
+  top: 66px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid rgba(196, 164, 86, 0.35);
+  border-radius: 6px;
+  background: rgba(26, 21, 16, 0.72);
+  backdrop-filter: blur(2px);
+  font-family: "Inconsolata", ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+}
+#jeles-deskbar a {
+  color: var(--gold-bright);
+  text-decoration: none;
+}
+#jeles-deskbar a:hover { color: var(--parchment); }
+#jeles-deskbar .sep { color: rgba(196, 164, 86, 0.4); }
+#jeles-deskbar .credit { color: rgba(245, 240, 232, 0.55); text-transform: none; }
+#jeles-deskbar .credit a { color: rgba(245, 240, 232, 0.8); }
+
+@media (max-width: 600px) {
+  #jeles-deskbar { font-size: 0.6rem; padding: 0.3rem 0.55rem; gap: 0.5rem; }
+}

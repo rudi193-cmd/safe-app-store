@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Catalog — Ask Jeles maps the Stacks</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=EB+Garamond:wght@400;500;600&family=Inconsolata:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <!-- Jeles desk palette over the upstream Atlas engine (see css/jeles-skin.css). -->
+  <link rel="stylesheet" href="css/jeles-skin.css" />
+</head>
+<body>
+  <!-- Night-sky backdrop -->
+  <div id="stage"></div>
+
+  <!-- The pan/zoom graph viewport (renderer injects canvas + world layer) -->
+  <div id="viewport"></div>
+
+  <!-- Top bar -->
+  <header id="topbar">
+    <div class="brand">
+      <h1>✦ The Catalog</h1>
+      <span class="sub">The Stacks, made visible</span>
+    </div>
+
+    <div class="km-search">
+      <input id="search" type="text" placeholder="Search subjects…  ( / )" autocomplete="off" />
+      <ul id="search-results" hidden></ul>
+    </div>
+
+    <div class="km-filter">
+      <select id="field-filter" title="Show only one field and its prerequisites">
+        <option value="">✦ All fields</option>
+      </select>
+    </div>
+
+    <div class="progress">
+      <span id="progress-text">0 / 0 completed</span>
+      <div class="progress-track"><div id="progress-bar"></div></div>
+    </div>
+
+    <div class="tools">
+      <button id="random-course" class="btn-discover" title="Jump to a random course you're ready to take">✦ Discover</button>
+      <button id="zoom-out" title="Zoom out ( − )">−</button>
+      <button id="zoom-in"  title="Zoom in ( + )">+</button>
+      <button id="zoom-fit" title="Fit whole atlas ( 0 )">⤢</button>
+      <button id="reset-progress" title="Clear completion progress">Reset</button>
+    </div>
+  </header>
+
+  <!-- Transient status toast -->
+  <div id="toast"></div>
+
+  <!-- Legend -->
+  <aside id="legend">
+    <button id="legend-toggle" aria-expanded="true" aria-controls="legend-body" title="Collapse legend">
+      <span class="legend-title">Legend</span>
+      <span class="chev" aria-hidden="true">▾</span>
+    </button>
+    <div id="legend-body">
+      <div class="status-key">
+        <span><span class="chip locked"></span>Locked</span>
+        <span><span class="chip available"></span>Available</span>
+        <span><span class="chip complete"></span>Completed</span>
+      </div>
+      <div class="legend-title legend-fields-title">Fields</div>
+      <div id="field-legend"></div>
+    </div>
+  </aside>
+
+  <!-- Minimap -->
+  <aside id="minimap-wrap">
+    <div class="mm-label">Overview</div>
+    <canvas id="minimap" width="220" height="150"></canvas>
+  </aside>
+
+  <div id="hint">Drag to pan · scroll to zoom · click a star to open it · click a prerequisite to trace its lineage</div>
+
+  <!-- Jeles deskbar: a way back, and a standing credit to the Atlas' author. -->
+  <div id="jeles-deskbar">
+    <a href="../index.html" title="Return to the desk">← Back to the desk</a>
+    <span class="sep">·</span>
+    <span class="credit">Catalog engine &amp; course data:
+      <a href="https://github.com/EthanVieira/atlas-of-knowledge" target="_blank" rel="noopener">Atlas of Knowledge</a>
+      by Ethan Vieira (MIT / CC BY-SA 4.0)</span>
+  </div>
+
+  <!-- Data: shared config first, then one file per field (add fields here). -->
+  <script src="js/data/_config.js"></script>
+  <!-- Natural & formal sciences -->
+  <script src="js/data/mathematics.js"></script>
+  <script src="js/data/physics.js"></script>
+  <script src="js/data/chemistry.js"></script>
+  <script src="js/data/biology.js"></script>
+  <script src="js/data/cs.js"></script>
+  <!-- Engineering -->
+  <script src="js/data/materials-engineering.js"></script>
+  <script src="js/data/mechanical.js"></script>
+  <script src="js/data/electrical.js"></script>
+  <script src="js/data/civil.js"></script>
+  <script src="js/data/chemical-eng.js"></script>
+  <script src="js/data/aerospace.js"></script>
+  <script src="js/data/biomedical.js"></script>
+  <!-- Social sciences -->
+  <script src="js/data/economics.js"></script>
+  <script src="js/data/psychology.js"></script>
+  <script src="js/data/sociology.js"></script>
+  <script src="js/data/political-science.js"></script>
+  <script src="js/data/anthropology.js"></script>
+  <script src="js/data/linguistics.js"></script>
+  <!-- Humanities -->
+  <script src="js/data/philosophy.js"></script>
+  <script src="js/data/history.js"></script>
+  <script src="js/data/literary-studies.js"></script>
+  <script src="js/data/theology.js"></script>
+  <script src="js/data/law.js"></script>
+  <script src="js/data/performing-arts.js"></script>
+  <script src="js/data/visual-arts.js"></script>
+
+  <!-- Engine (plain scripts — no build step needed). -->
+  <script src="js/layout.js"></script>
+  <script src="js/graph.js"></script>
+  <script src="js/app.js"></script>
+  <!-- Ask Jeles bridge: seeds completion from local learning history (no-op if absent). -->
+  <script src="js/jeles-progress.js"></script>
+</body>
+</html>
