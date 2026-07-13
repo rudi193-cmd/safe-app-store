@@ -25,6 +25,9 @@ py-modules = ["safe_integration"]
 dev = [
     "pytest>=8.0",
 ]
+cloud = [
+    "anthropic>=0.60",
+]
 
 [tool.setuptools.packages.find]
 include = ["semantic_translator*"]

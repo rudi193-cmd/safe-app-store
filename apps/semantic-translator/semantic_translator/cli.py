@@ -140,6 +140,72 @@ def cmd_learner(args: argparse.Namespace) -> None:
             )
 
 
+# ── nestor (meaning infrastructure prototype) ───────────────────────────────
+
+def cmd_nestor(args: argparse.Namespace) -> None:
+    from .nestor import glossary, langid, memory
+    from .nestor.cascade import translate_text
+
+    if args.nestor_cmd == "seed":
+        n = memory.seed_from_corpus(corpus_path=args.corpus)
+        print(f"Sealed {n} pairs from corpus into the memory.")
+        s = memory.stats()
+        print(f"Memory: {s['total']} pairs ({s['sealed']} sealed, {s['draft']} draft)")
+
+    elif args.nestor_cmd == "say":
+        import pathlib
+        text = args.text
+        if text == "-":
+            text = sys.stdin.read()
+        elif pathlib.Path(text).is_file():
+            text = pathlib.Path(text).read_text(encoding="utf-8")
+        src = args.source or langid.detect(text)
+        try:
+            doc, passages = translate_text(text, target_lang=args.to, source_lang=src,
+                                           engine_name=args.engine)
+        except RuntimeError as exc:
+            print(f"Error: {exc}", file=sys.stderr)
+            sys.exit(1)
+        tier_names = {1: "memory", 2: "draft", 0: "none"}
+        for p in passages:
+            print(f"[{p.mark}] ({tier_names[p.tier]}"
+                  f"{' · ' + p.engine if p.tier == 2 else ''}"
+                  f"{f' · {p.confidence:.2f}' if p.confidence else ''})")
+            print(f"    {src}: {p.source}")
+            print(f"    {args.to}: {p.target or '(no candidate — needs a human)'}")
+        pending = sum(1 for p in passages if p.tier != 1)
+        if pending:
+            print(f"\n{pending} segment(s) queued for review (doc {doc['id'][:8]}).")
+            print("Seal them:  semantic-translator review")
+        else:
+            print("\nAll segments served sealed from memory. In medio, fides.")
+
+    elif args.nestor_cmd == "status":
+        s = memory.stats()
+        print(f"Memory: {s['total']} pairs · {s['sealed']} sealed · {s['draft']} draft")
+        for src, tgt, n in s["lang_pairs"]:
+            print(f"  {src} -> {tgt}: {n}")
+        import pathlib
+        ledger = pathlib.Path("data/ledger.jsonl")
+        if ledger.exists():
+            entries = sum(1 for _ in ledger.open())
+            print(f"Ledger: {entries} entries ({ledger})")
+        g = glossary.load()
+        if g:
+            print("Glossary locks:")
+            for key, terms in sorted(g.items()):
+                print(f"  {key}: {len(terms)} term(s)")
+
+    elif args.nestor_cmd == "glossary":
+        if "=" not in args.entry:
+            print("Format: term=translation", file=sys.stderr)
+            sys.exit(1)
+        term, translation = args.entry.split("=", 1)
+        glossary.add_term(term.strip(), translation.strip(), args.source or "en", args.to)
+        print(f'Locked: "{term.strip()}" -> "{translation.strip()}" '
+              f"({args.source or 'en'} -> {args.to})")
+
+
 # ── main ─────────────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -202,6 +268,22 @@ def main() -> None:
 
     p = sub.add_parser("stats", help="Show corpus + document statistics")
     p.set_defaults(func=cmd_stats)
+
+    p = sub.add_parser("nestor", help="Nestor cascade — memory → draft → seal")
+    nsub = p.add_subparsers(dest="nestor_cmd", required=True)
+    np_ = nsub.add_parser("seed", help="Seal corpus bilingual pairs into the memory")
+    np_.add_argument("--corpus", default="data/corpus.jsonl", metavar="PATH")
+    np_ = nsub.add_parser("say", help="Translate text/file through the cascade")
+    np_.add_argument("text", help="Text, a file path, or - for stdin")
+    np_.add_argument("--to", default="es", metavar="LANG")
+    np_.add_argument("--source", default="", metavar="LANG", help="Default: auto-detect")
+    np_.add_argument("--engine", default="auto", choices=["auto", "claude", "offline"])
+    np_ = nsub.add_parser("status", help="Memory, ledger, and glossary state")
+    np_ = nsub.add_parser("glossary", help="Lock a term: 'term=translation'")
+    np_.add_argument("entry")
+    np_.add_argument("--to", default="es", metavar="LANG")
+    np_.add_argument("--source", default="", metavar="LANG")
+    p.set_defaults(func=cmd_nestor)
 
     p = sub.add_parser("learner", help="Manage learners")
     lsub = p.add_subparsers(dest="learner_cmd", required=True)
