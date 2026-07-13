@@ -211,7 +211,7 @@ def cmd_nestor(args: argparse.Namespace) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="semantic-translator",
-        description="Semantic translation memory for Emerging Rule curriculum",
+        description="Semantic translation memory for lesson curricula",
     )
     sub = parser.add_subparsers(dest="cmd", required=True)
 

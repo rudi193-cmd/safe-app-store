@@ -1,4 +1,4 @@
-"""Pull Emerging Rule lessons from GitHub and normalize to segment JSONL."""
+"""Pull lessons from GitHub (or a local clone) and normalize to segment JSONL."""
 from __future__ import annotations
 
 import json
@@ -8,7 +8,7 @@ import re
 import subprocess
 from typing import Iterator
 
-REPO = "Emerging-Rule/community"
+REPO = "rudi193-cmd/DispatchesFromReality"
 LESSONS_DIR = "lessons"
 
 # Spanish function words as a cheap language detector (EN/ES corpus only)

@@ -124,7 +124,7 @@ LEARN_CSS = """
 
 
 class TranslatorApp(App):
-    TITLE = "Semantic Translator — Emerging Rule"
+    TITLE = "Semantic Translator"
     CSS = SEARCH_CSS + REVIEW_CSS + LEARN_CSS
     BINDINGS = [
         Binding("ctrl+q", "quit", "Quit"),

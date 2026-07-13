@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "safe-app-semantic-translator"
 version = "0.1.0"
-description = "Semantic translation memory for Emerging Rule AI literacy curriculum."
+description = "Semantic translation memory for lesson curricula."
 requires-python = ">=3.10"
 dependencies = [
     "requests>=2.28.0",

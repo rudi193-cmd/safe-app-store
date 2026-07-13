@@ -1,1 +1,1 @@
-"""Semantic translation memory — Emerging Rule curriculum."""
+"""Semantic translation memory for lesson curricula."""
