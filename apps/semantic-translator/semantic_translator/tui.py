@@ -28,7 +28,6 @@ from textual.widgets import (
     ListItem,
     ListView,
     RichLog,
-    Select,
     Static,
     TabbedContent,
     TabPane,
@@ -98,7 +97,8 @@ REVIEW_CSS = """
 #correction-input.visible { display: block; }
 #review-status { height: 1; color: $text-muted; padding: 0 1; }
 #learner-row { height: 3; padding: 0 0 1 0; }
-#learner-select { width: 40; }
+#learner-input { width: 40; }
+#learner-current { padding: 0 2; color: $success; text-style: bold; }
 """
 
 LEARN_CSS = """
@@ -167,7 +167,9 @@ class TranslatorApp(App):
                 with Vertical(id="review-container"):
                     with Horizontal(id="learner-row"):
                         yield Label("Reviewer: ", classes="")
-                        yield Select([], id="learner-select", prompt="Select learner…")
+                        yield Input(placeholder="Type your name and press Enter…",
+                                    id="learner-input")
+                        yield Label("", id="learner-current")
                     yield Label("", id="review-header")
                     with Horizontal(id="segments-panel"):
                         with Vertical(id="source-box"):
@@ -256,14 +258,37 @@ class TranslatorApp(App):
             from . import db
             db.init_db()
             learners = db.list_learners()
-            sel = self.query_one("#learner-select", Select)
-            options = [(l["name"], l["id"]) for l in learners]
-            sel.set_options(options)
             if learners:
                 self._current_learner_id = learners[0]["id"]
-                sel.value = learners[0]["id"]
+                self.query_one("#learner-current", Label).update(
+                    f"✓ {learners[0]['name']}"
+                )
         except Exception as exc:
             _log.error("_load_learners: %s\n%s", exc, traceback.format_exc())
+
+    def _set_reviewer(self, name: str) -> None:
+        """Resolve a reviewer by name — create on the spot if new — and ledger it."""
+        from . import db
+        db.init_db()
+        learner = next(
+            (l for l in db.list_learners() if l["name"].lower() == name.lower()), None
+        )
+        created = learner is None
+        if created:
+            learner = db.create_learner(name=name)
+        self._current_learner_id = learner["id"]
+        self.query_one("#learner-current", Label).update(f"✓ {learner['name']}")
+        self.query_one("#review-status", Label).update(
+            f"Reviewing as [bold]{learner['name']}[/bold]"
+            f"{' (new reviewer registered)' if created else ''}"
+        )
+        try:
+            from .nestor.cascade import _ledger_append
+            _ledger_append({"kind": "reviewer", "name": learner["name"],
+                            "learner_id": learner["id"], "created": created})
+        except Exception as exc:
+            _log.error("_set_reviewer ledger: %s\n%s", exc, traceback.format_exc())
+        self._load_study_queue()
 
     def _load_queue(self) -> None:
         try:
@@ -322,6 +347,13 @@ class TranslatorApp(App):
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id == "correction-input":
             await self._submit_correction(event.value.strip())
+            return
+
+        if event.input.id == "learner-input":
+            name = event.value.strip()
+            if name:
+                self._set_reviewer(name)
+                event.input.blur()
             return
 
         if event.input.id != "query-input":
@@ -395,11 +427,6 @@ class TranslatorApp(App):
 
     # ── review tab events ────────────────────────────────────────────────────
 
-    def on_select_changed(self, event: Select.Changed) -> None:
-        if event.select.id == "learner-select" and event.value:
-            self._current_learner_id = str(event.value)
-            self._load_study_queue()
-
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         btn_id = event.button.id
         # Learn tab ratings
@@ -461,7 +488,7 @@ class TranslatorApp(App):
     async def _submit_verdict(self, verdict: str, correction: str = "") -> None:
         if not self._current_learner_id:
             self.query_one("#review-status", Label).update(
-                "[red]Select a learner first[/red]"
+                "[red]Type your name in the Reviewer box first (Enter to register)[/red]"
             )
             return
         if not self._queue or self._queue_pos >= len(self._queue):
