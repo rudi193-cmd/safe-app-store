@@ -4,6 +4,8 @@
 # Usage:
 #   ./dev.sh              # Textual TUI (default)
 #   ./dev.sh scrape       # pull lessons from GitHub → data/corpus.jsonl
+#   ./dev.sh demo         # seed built-in bilingual demo corpus (offline)
+#   ./dev.sh play         # ¿Cómo se dice? — bilingual match quiz game
 #   ./dev.sh ingest       # ingest corpus into Jeles
 #   ./dev.sh query "text" # semantic search
 #   ./dev.sh serve        # FastAPI web server at http://127.0.0.1:8432

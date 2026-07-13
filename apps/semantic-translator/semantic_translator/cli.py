@@ -15,6 +15,21 @@ def cmd_ingest(args: argparse.Namespace) -> None:
     ingest(corpus_path=args.corpus, log_path=args.log, delay=args.delay)
 
 
+def cmd_demo(args: argparse.Namespace) -> None:
+    from .demo import seed_demo
+    try:
+        seed_demo(output_path=args.output, force=args.force)
+    except FileExistsError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+
+def cmd_play(args: argparse.Namespace) -> None:
+    from .quiz import play
+    play(rounds=args.rounds, reverse=args.reverse,
+         learner_name=args.learner, seed=args.seed)
+
+
 def cmd_query(args: argparse.Namespace) -> None:
     from .search import search, format_result
     print(f"Searching: {args.text!r}\n")
@@ -143,6 +158,19 @@ def main() -> None:
     p.add_argument("--log", default="data/ingest_log.jsonl", metavar="PATH")
     p.add_argument("--delay", type=float, default=0.15, metavar="SECS")
     p.set_defaults(func=cmd_ingest)
+
+    p = sub.add_parser("demo", help="Seed a built-in bilingual demo corpus (no network needed)")
+    p.add_argument("--output", default="data/corpus.jsonl", metavar="PATH")
+    p.add_argument("--force", action="store_true", help="Overwrite an existing corpus")
+    p.set_defaults(func=cmd_demo)
+
+    p = sub.add_parser("play", help="¿Cómo se dice? — bilingual match quiz game")
+    p.add_argument("--rounds", type=int, default=10, metavar="N")
+    p.add_argument("--reverse", action="store_true", help="Quiz ES → EN instead of EN → ES")
+    p.add_argument("--learner", default="", metavar="NAME",
+                   help="Record answers to this learner's SRS deck")
+    p.add_argument("--seed", type=int, default=None, help="RNG seed (reproducible game)")
+    p.set_defaults(func=cmd_play)
 
     p = sub.add_parser("query", help="Semantic search over ingested corpus")
     p.add_argument("text", help="Text to find semantic matches for")
