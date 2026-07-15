@@ -75,12 +75,21 @@ def cmd_status(conn, state: AppState) -> str:
         source_note = "connected"
     except Exception:
         source_note = "unavailable"
+    try:
+        from sap.core import vault
+        if (vault.squirrel_home() / "vault.db").exists():
+            vault_note = f"{len(vault.default_vault().list_keys())} secrets"
+        else:
+            vault_note = "not provisioned"
+    except Exception as e:
+        vault_note = f"unavailable ({e.__class__.__name__})"
     lines = [
         f"mode:    `{state.mode.value}`",
         f"skin:    `{state.skin}`",
         f"persons: {person_count}",
         f"stash:   {frag_count} unsynced fragments",
         f"sources: {source_note}",
+        f"vault:   {vault_note}",
         f"port:    8425",
     ]
     return result_block("status", "\n".join(lines))

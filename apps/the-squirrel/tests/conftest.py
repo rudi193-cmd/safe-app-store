@@ -28,6 +28,7 @@ def gate_journal_actor(tmp_path, monkeypatch):
     Tests that exercise gate policy itself (tests/test_gate.py) override the
     actor inside the test body.
     """
+    monkeypatch.setenv("SQUIRREL_HOME", str(tmp_path / "box"))
     monkeypatch.setenv("SQUIRREL_GATE_DIR", str(tmp_path / "willowgate"))
     monkeypatch.setenv("SQUIRREL_RECEIPT_DB", str(tmp_path / "receipts.db"))
     import sap.core.gate as gate

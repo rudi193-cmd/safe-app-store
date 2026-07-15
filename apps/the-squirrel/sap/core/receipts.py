@@ -43,9 +43,9 @@ class ReceiptLog:
     """Append-only SQLite log of every tool call."""
 
     def __init__(self, db_path=None):
+        from sap.core.vault import squirrel_home
         self.path = Path(db_path or os.environ.get(
-            "SQUIRREL_RECEIPT_DB",
-            Path.home() / ".squirrel" / "receipts.db"))
+            "SQUIRREL_RECEIPT_DB", squirrel_home() / "receipts.db"))
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._conn = sqlite3.connect(str(self.path), check_same_thread=False)

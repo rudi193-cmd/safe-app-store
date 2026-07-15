@@ -654,6 +654,8 @@ def run(port: int = PORT):
     from squirrel_watcher import start_watcher
     from squirrel_responder import make_responder
     from responder.state import AppState
+    from sap.core.vault import provision
+    provision()  # stand up the box: 0700, gate dir, vault.db + vault.key
     ensure_squirrel_md()
     _app_state = AppState(squirrel_md=SQUIRREL_MD)
     _app_state.load_config()

@@ -88,8 +88,19 @@ _FIELD_NAMES = sorted({
 
 
 def _gate_dir() -> Path:
+    from sap.core.vault import squirrel_home
     return Path(os.environ.get(
-        "SQUIRREL_GATE_DIR", str(Path.home() / ".squirrel" / "willowgate")))
+        "SQUIRREL_GATE_DIR", str(squirrel_home() / "willowgate")))
+
+
+def _operator_key_fpr() -> str:
+    """Operator PGP fingerprint for ledger encryption: env first, then the
+    vault (secret 'willowgate_key_fpr'). Empty string = plaintext ledger."""
+    fpr = os.environ.get("WILLOWGATE_KEY_FPR", "")
+    if fpr:
+        return fpr
+    from sap.core import vault as _vault
+    return _vault.read_secret("willowgate_key_fpr") or ""
 
 
 def _signed_header(role: str, secret: bytes, *, nonce: str = None,
@@ -129,7 +140,7 @@ def _build_backend() -> dict:
     base.mkdir(parents=True, exist_ok=True)
     os.chmod(base, 0o700)
 
-    key_fpr = os.environ.get("WILLOWGATE_KEY_FPR", "")
+    key_fpr = _operator_key_fpr()
     gate = WillowGate(operator_key_fpr=key_fpr or None,
                       base_dir=base, require_pgp=bool(key_fpr))
 

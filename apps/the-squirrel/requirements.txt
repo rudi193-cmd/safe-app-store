@@ -4,3 +4,6 @@ markdown>=3.6
 pytest>=7
 # PII gate backend — sap/core/gate.py fails closed without it.
 willow-gate @ git+https://github.com/rudi193-cmd/willow-gate@main
+# Vault (Fernet secret store) — sap/core/vault.py; box stands without it,
+# vault init defers until it is installed.
+cryptography>=42
