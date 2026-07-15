@@ -32,6 +32,35 @@ def cmd_skin(state: AppState, args: list) -> str:
     return result_block("Skin", f"Skin → `{skin}` — reload the page to apply.")
 
 
+def cmd_receipts(args: list) -> str:
+    """Self-audit: the local tool-call trail, newest first.
+
+    `@squirrel: receipts [N] [actor]` — N rows (default 20); optional actor
+    filter (journal | jeles | bypass | unattributed).
+    """
+    from sap.core import receipts as receipts_log
+    limit = 20
+    actor = None
+    aliases = {"journal": "squirrel-journal", "jeles": "squirrel-jeles",
+               "bypass": "operator-bypass", "unattributed": "unattributed"}
+    for a in args:
+        if a.isdigit():
+            limit = int(a)
+        elif a.lower() in aliases:
+            actor = aliases[a.lower()]
+    rows = receipts_log.tail(app_id=actor, limit=limit)
+    if not rows:
+        return result_block("receipts", "_No receipts yet._")
+    lines = ["| when (UTC) | who | tool | outcome | detail |",
+             "|---|---|---|---|---|"]
+    for r in rows:
+        when = r["ts"][:19].replace("T", " ")
+        detail = (r["detail"] or "").replace("|", "\\|")[:60]
+        lines.append(f"| {when} | {r['app_id']} | {r['tool']} | "
+                     f"{r['outcome']} | {detail} |")
+    return result_block("receipts", "\n".join(lines))
+
+
 def cmd_status(conn, state: AppState) -> str:
     try:
         person_count = len(persons_db.search_persons(conn, ""))

@@ -29,10 +29,14 @@ def gate_journal_actor(tmp_path, monkeypatch):
     actor inside the test body.
     """
     monkeypatch.setenv("SQUIRREL_GATE_DIR", str(tmp_path / "willowgate"))
+    monkeypatch.setenv("SQUIRREL_RECEIPT_DB", str(tmp_path / "receipts.db"))
     import sap.core.gate as gate
-    gate.close()  # drop any backend built against a previous tmp dir
+    import sap.core.receipts as receipts
+    gate.close()      # drop any backend built against a previous tmp dir
+    receipts.reset()  # re-point the receipt log at this test's tmp db
     try:
         with gate.actor("journal"):
             yield
     finally:
         gate.close()
+        receipts.reset()

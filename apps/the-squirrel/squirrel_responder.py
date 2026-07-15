@@ -8,6 +8,8 @@ from responder.commands import person, relationship, tree, fragment, source, sea
 
 
 def make_responder(state: AppState):
+    from sap.core import receipts as _receipts
+
     def handle(line: str):
         cmd = parse_command(line)
         if cmd is None:
@@ -18,7 +20,11 @@ def make_responder(state: AppState):
             return
         try:
             result = _dispatch(cmd, state)
+            _receipts.record("squirrel-journal", f"cmd:{cmd.name}", "ok",
+                             cmd.raw[:80])
         except Exception as e:
+            _receipts.record("squirrel-journal", f"cmd:{cmd.name}", "error",
+                             f"{cmd.raw[:60]} — {e}"[:200])
             result = result_block("Error", f"```\n{e}\n```")
         if result:
             state.append(result)
@@ -26,6 +32,7 @@ def make_responder(state: AppState):
 
 
 def _llm_chat(state, line):
+    from sap.core import receipts as _receipts
     try:
         from responder.llm.chat import respond
         from db import get_connection, release_connection
@@ -35,15 +42,18 @@ def _llm_chat(state, line):
             # The LLM acts as jeles: Rookie trust — read-only, loud, no export.
             with _gate.actor("jeles"):
                 r = respond(conn, line)
+            _receipts.record("squirrel-jeles", "llm:chat", "ok")
             if r:
                 state.append(r)
         finally:
             release_connection(conn)
     except Exception as e:
+        _receipts.record("squirrel-jeles", "llm:chat", "error", str(e)[:200])
         state.append(result_block("Jeles (error)", str(e)))
 
 
 def _llm_hint(state, line):
+    from sap.core import receipts as _receipts
     try:
         from responder.llm.listener import maybe_hint
         from db import get_connection, release_connection
@@ -52,12 +62,13 @@ def _llm_hint(state, line):
         try:
             with _gate.actor("jeles"):
                 hint = maybe_hint(conn, line)
+            _receipts.record("squirrel-jeles", "llm:hint", "ok")
             if hint:
                 state.append(hint)
         finally:
             release_connection(conn)
-    except Exception:
-        pass
+    except Exception as e:
+        _receipts.record("squirrel-jeles", "llm:hint", "error", str(e)[:200])
 
 
 def _dispatch(cmd, state: AppState) -> str:
@@ -68,6 +79,8 @@ def _dispatch(cmd, state: AppState) -> str:
         return control.cmd_skin(state, cmd.args)
     if name == "search":
         return search.cmd_search(cmd.args)
+    if name == "receipts":
+        return control.cmd_receipts(cmd.args)
     if name == "unknown":
         return result_block("Unknown command", f"No handler for: `{cmd.raw}`")
 

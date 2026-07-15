@@ -53,6 +53,8 @@ from contextlib import contextmanager
 from pathlib import Path
 from threading import Lock, local
 
+from sap.core import receipts as _receipts
+
 _state = local()
 _lock = Lock()
 _backend = None  # {"gate": WillowGate, "secrets": {role: bytes}, "sessions": {role: dict}}
@@ -188,9 +190,12 @@ def authorized(operation: str = "write", scope: str = "family_history") -> None:
         scope:     Data scope label — used in the error message only.
     """
     if getattr(_state, "bypass_active", False):
+        _receipts.record("operator-bypass", f"pii:{operation}", "bypass",
+                         f"{scope} — {getattr(_state, 'bypass_reason', '')}")
         return
     role = getattr(_state, "actor_role", None)
     if role is None:
+        _receipts.record("unattributed", f"pii:{operation}", "denied", scope)
         raise PermissionDenied(
             f"SAP gate: PII {operation} on '{scope}' has no actor. Wrap the "
             f"entry point in `with sap.core.gate.actor(\"journal\"):` (user) or "
@@ -199,9 +204,12 @@ def authorized(operation: str = "write", scope: str = "family_history") -> None:
     tool, export = _OPERATIONS.get(operation, (operation, False))
     gate, session = _session_for(role)
     ok, why = gate.authorize_tool(session, tool, export=export)
+    agent_id = ROLES[role]["agent_id"]
     if not ok:
+        _receipts.record(agent_id, f"pii:{operation}", "denied", f"{scope} — {why}")
         raise PermissionDenied(
             f"SAP gate: PII {operation} on '{scope}' denied for actor '{role}' — {why}")
+    _receipts.record(agent_id, f"pii:{operation}", "ok", scope)
 
 
 @contextmanager
@@ -215,10 +223,12 @@ def bypass(reason: str):
     if not reason or not reason.strip():
         raise ValueError("sap.core.gate.bypass() requires a non-empty reason.")
     _state.bypass_active = True
+    _state.bypass_reason = reason.strip()
     try:
         yield
     finally:
         _state.bypass_active = False
+        _state.bypass_reason = ""
 
 
 def close() -> None:

@@ -53,6 +53,7 @@ WELCOME_BLOCK = """# The Squirrel
 - `@squirrel: find sources Iowa 1880s`
 - `@squirrel: mode listening` — invite the LLM in
 - `@squirrel: status`
+- `@squirrel: receipts` — the tool-call trail (who touched what)
 - `@squirrel: skin 80s`
 
 ---
@@ -495,8 +496,12 @@ def _handle_stories_chat(handler, body: dict):
             headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=30) as resp:
             reply = json.loads(resp.read())["message"]["content"].strip()
+        from sap.core import receipts as _receipts
+        _receipts.record("squirrel-jeles", "llm:stories", "ok")
     except Exception:
         reply = "I'm having trouble connecting right now. Please try again."
+        from sap.core import receipts as _receipts
+        _receipts.record("squirrel-jeles", "llm:stories", "error")
 
     with _stories_lock:
         session["turns"].append({"role": "assistant", "content": reply})
@@ -529,7 +534,13 @@ def _handle_stories_save(handler, body: dict):
                             saved += 1
             finally:
                 release_connection(conn)
+            from sap.core import receipts as _receipts
+            _receipts.record("squirrel-journal", "cmd:stories.save", "ok",
+                             f"{saved} fragments")
         except Exception as _e:
+            from sap.core import receipts as _receipts
+            _receipts.record("squirrel-journal", "cmd:stories.save", "error",
+                             str(_e)[:200])
             handler._send_json({"saved": saved, "error": str(_e)})
             return
     handler._send_json({"saved": saved})
