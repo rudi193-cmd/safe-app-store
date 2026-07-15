@@ -205,9 +205,21 @@ def seed(dest: Path) -> None:
     conn.commit()
     conn.close()
 
+    # ── workers_comp.db ──────────────────────────────────────────────────────
+    conn = sqlite3.connect(dest / "workers_comp.db")
+    conn.executescript("""
+        CREATE TABLE context_events (id INTEGER PRIMARY KEY, event_type TEXT, description TEXT, effective_date TEXT);
+    """)
+    conn.execute(
+        "INSERT INTO context_events (event_type, description, effective_date) VALUES (?,?,?)",
+        ("claim_filed", "Demo claim filed (WCA 00-00000)", _iso(-90)),
+    )
+    conn.commit()
+    conn.close()
+
     print(f"Synthetic demo Nest seeded at {dest}")
     print("  coparent.db (4 atoms, 3 evidence, 1 order), bankruptcy.db (2 flags),")
-    print(f"  deadlines: schedule {_iso(6)}, all_other {_iso(30)}")
+    print(f"  workers_comp.db, deadlines: schedule {_iso(6)}, all_other {_iso(30)}")
 
 
 if __name__ == "__main__":
