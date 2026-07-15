@@ -41,7 +41,7 @@ def cmd_show_kin(conn, args: list) -> str:
         return result_block("show kin", "Usage: `@squirrel: show kin Name`")
     matches = persons_db.search_persons(conn, " ".join(args))
     if not matches:
-        return result_block("show kin", f"No person found matching `{" ".join(args)}`")
+        return result_block("show kin", f"No person found matching `{' '.join(args)}`")
     person = matches[0]
     tree = persons_db.get_family_tree(conn, person["id"])
     rels = tree["relationships"]

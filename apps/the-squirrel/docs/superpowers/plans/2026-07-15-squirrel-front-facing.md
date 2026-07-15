@@ -134,16 +134,21 @@ honest product.
 - [ ] 60-second walkthrough doc: cold start → add person → link → tree →
       stash → bind → export GEDCOM.
 
-### Phase 4 — Security/safety seams (define only — USER's pieces plug in here)
+### Phase 4 — Security/safety seams (USER's pieces plug in here)
 
-Explicitly **not building** auth, gate policy, encryption, or consent flows.
-This phase only guarantees the sockets exist and are clean:
+> **Update 2026-07-15:** the gate-policy seam is FILLED — willow-gate is wired
+> in as the backend of `sap/core/gate.py`. Two actors: `journal` (user; Steady —
+> read/write/export) and `jeles` (LLM; Rookie — read-only, loud, export denied
+> by the trust table). `SAP_AUTHORIZED=1` no longer grants anything; no actor
+> context → denied. GEDCOM export gates on the export flag. Ledger at
+> `~/.squirrel/willowgate/` (PGP-encrypted when `WILLOWGATE_KEY_FPR` is set).
+> Policy pinned by `tests/test_gate.py`.
 
-- [ ] **The self-authorization handoff.** After Phase 1 removes the shim,
-      `SAP_AUTHORIZED=1` must no longer be defaulted anywhere in app code.
-      Decision needed from USER's security layer: what grants authorization on
-      a front-facing install? Until then the SQLite path ships with the gate in
-      its default-deny posture plus a documented dev override.
+- [x] **The self-authorization handoff.** `SAP_AUTHORIZED=1` is dead as an
+      authorization path — removed from `squirrel_app.py` and `tests/conftest.py`;
+      the env var now grants nothing. Authorization = a willow-gate check-in
+      with an HMAC-bound identity, capped at a registered trust ceiling.
+      `bypass(reason)` remains the explicit operator escape hatch for scripts.
 - [ ] **Single PII chokepoint, verified.** One grep-provable invariant:
       no module outside `db/persons.py` and `db/fragments.py` touches PII
       tables. Add a test that enforces it so the invariant survives future work.

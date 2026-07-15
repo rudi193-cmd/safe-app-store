@@ -2,3 +2,5 @@ psycopg2-binary==2.9.9
 watchdog>=4.0.0
 markdown>=3.6
 pytest>=7
+# PII gate backend — sap/core/gate.py fails closed without it.
+willow-gate @ git+https://github.com/rudi193-cmd/willow-gate@main

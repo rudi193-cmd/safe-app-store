@@ -59,7 +59,7 @@ def cmd_tree(conn, args: list) -> str:
         return result_block("tree", "Usage: `@squirrel: tree Name`")
     matches = persons_db.search_persons(conn, " ".join(args))
     if not matches:
-        return result_block("tree", f"No person found matching `{" ".join(args)}`")
+        return result_block("tree", f"No person found matching `{' '.join(args)}`")
     person = matches[0]
     ancestors = build_ancestors_dict(conn, person["id"], depth=3)
     chart = render_pedigree(person["full_name"], ancestors)

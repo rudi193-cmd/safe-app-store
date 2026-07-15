@@ -28,7 +28,6 @@ if not _os.environ.get("WILLOW_CORE"):
         "DEPTH_MIN=1;DEPTH_MAX=23;LATTICE_SIZE=23\n"
     )
     _os.environ["WILLOW_CORE"] = str(_fake)
-_os.environ.setdefault("SAP_AUTHORIZED", "1")
 
 import html as _html
 import json
@@ -176,9 +175,12 @@ def _html_page(title: str, current_route: str, body_html: str,
 
 def _with_db(fn, *args, current_route="/", **kwargs) -> str:
     from db import get_connection, release_connection
+    import sap.core.gate as _gate
     conn = get_connection()
     try:
-        return fn(conn, *args, **kwargs)
+        # Web views are the user browsing their own tree — the journal actor.
+        with _gate.actor("journal"):
+            return fn(conn, *args, **kwargs)
     except Exception as e:
         return _html_page("Error", current_route,
                           f'<p class="error">Database error: {e}</p>')
@@ -511,17 +513,20 @@ def _handle_stories_save(handler, body: dict):
         try:
             from db import get_connection, release_connection
             import db.fragments as fragments_db
+            import sap.core.gate as _gate
             conn = get_connection()
             try:
-                for turn in session["turns"]:
-                    if turn["role"] == "user" and turn["content"].strip():
-                        fragments_db.add_fragment(
-                            conn, person_name=subject,
-                            fragment_type="oral_history",
-                            story_text=turn["content"],
-                            source="stories_room",
-                            confidence="uncertain")
-                        saved += 1
+                # Saving is the user's explicit click — journal, not jeles.
+                with _gate.actor("journal"):
+                    for turn in session["turns"]:
+                        if turn["role"] == "user" and turn["content"].strip():
+                            fragments_db.add_fragment(
+                                conn, person_name=subject,
+                                fragment_type="oral_history",
+                                story_text=turn["content"],
+                                source="stories_room",
+                                confidence="uncertain")
+                            saved += 1
             finally:
                 release_connection(conn)
         except Exception as _e:
@@ -650,6 +655,8 @@ def run(port: int = PORT):
     finally:
         watcher.stop()
         watcher.join()
+        import sap.core.gate as _gate
+        _gate.close()
 
 
 if __name__ == "__main__":

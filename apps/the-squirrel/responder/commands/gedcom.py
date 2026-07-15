@@ -3,8 +3,12 @@ from datetime import datetime
 from responder.formatter import result_block
 from gedcom.exporter import export
 from gedcom.importer import import_ged
+import sap.core.gate as _gate
 
 def cmd_export_gedcom(conn, args: list) -> str:
+    # PII leaves the box here — gate on export, not just read. The trust
+    # table denies this outright to the jeles (LLM) actor.
+    _gate.authorized("export")
     date_str = datetime.now().strftime("%Y%m%d")
     desktop = Path.home() / "Desktop"
     desktop.mkdir(exist_ok=True)
