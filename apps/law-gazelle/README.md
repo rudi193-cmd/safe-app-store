@@ -8,6 +8,10 @@ Law Gazelle reads operator-provided case databases from Nest and surfaces an urg
 
 This public repository contains app code, tests, and synthetic examples only. Real case databases, exports, drafts, correspondence, and generated manifests must stay outside git.
 
+**Try it in five minutes, zero config:** `make demo` from the repo root (or `./demo.sh` here) — launches the TUI on fictional case data under `.demo/`, touching nothing else. See [MISSION.md](MISSION.md) for who this is for and where it's going.
+
+![Law Gazelle Today workflow on synthetic demo data](docs/img/demo_today.svg)
+
 ### Privacy Gate
 
 Keep private matter data in local-only locations:
