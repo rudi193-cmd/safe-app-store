@@ -33,10 +33,15 @@ sys.path.insert(0, str(_HERE))
 import case_store
 import commit_package
 import document_store
+import gazelle_gate
 import gazelle_state
 import intelligence
 import llm_client
 import workflow
+
+# WillowGate enforcement (GAZELLE_GATE=1). Constructed at import so a
+# misconfigured gate stops the server before it serves anything: fail closed.
+_KEEPER = gazelle_gate.GateKeeper()
 
 # ── Tool definitions ──────────────────────────────────────────────────────────
 
@@ -541,12 +546,38 @@ def _handle(req: dict) -> dict | None:
         }
 
     if method == "tools/list":
-        return {"jsonrpc": "2.0", "id": rid, "result": {"tools": _TOOLS}}
+        tools = _TOOLS + (gazelle_gate.GATE_TOOLS if _KEEPER.enabled else [])
+        return {"jsonrpc": "2.0", "id": rid, "result": {"tools": tools}}
 
     if method == "tools/call":
         params = req.get("params", {})
         tool_name = params.get("name", "")
         tool_args = params.get("arguments") or {}
+        if tool_name in ("gazelle_gate_checkin", "gazelle_gate_checkout"):
+            if not _KEEPER.enabled:
+                result = {"ok": False, "error": "Gate is not enabled (GAZELLE_GATE=1)."}
+            elif tool_name == "gazelle_gate_checkin":
+                result = _KEEPER.checkin(tool_args.get("header") or {})
+            else:
+                result = _KEEPER.checkout(tool_args.get("header") or {})
+            return {
+                "jsonrpc": "2.0",
+                "id": rid,
+                "result": {
+                    "content": [{"type": "text", "text": json.dumps(result, default=str, indent=2)}],
+                    **({} if result.get("ok") else {"isError": True}),
+                },
+            }
+        allowed, why = _KEEPER.authorize(tool_name)
+        if not allowed:
+            return {
+                "jsonrpc": "2.0",
+                "id": rid,
+                "result": {
+                    "content": [{"type": "text", "text": why}],
+                    "isError": True,
+                },
+            }
         try:
             result = _dispatch(tool_name, tool_args)
             content = json.dumps(result, default=str, indent=2)

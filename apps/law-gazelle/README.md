@@ -104,6 +104,25 @@ gazelle_note("coparent", "atom", "ATM-001", "Confirmed deadline against source d
 
 Agent write path: sidecar only. Nest remains canonical.
 
+### WillowGate enforcement (optional)
+
+With `GAZELLE_GATE=1` the server routes every `tools/call` through
+[willow-gate](https://github.com/rudi193-cmd/willow-gate) before dispatch — a
+denied call never runs. Clients must check in with a signed 13-field header via
+`gazelle_gate_checkin` and check out via `gazelle_gate_checkout`. Read tools need
+trust ≥ Rookie, sidecar writes ≥ Steady, local-AI tools ≥ Veteran (`query`), and
+`gazelle_save` / `gazelle_commit` count as exports (denied below Steady).
+
+```bash
+pip install -e /path/to/willow-gate            # operator installs the gate
+python3 gazelle_gate.py register <agent_id> <max_trust>   # out-of-band; secret shown once
+GAZELLE_GATE=1 WILLOWGATE_KEY_FPR=<fpr> python3 gazelle_mcp.py
+```
+
+State (registry, nonces, PGP-encrypted ledger) lives in `WILLOWGATE_DIR`
+(default `<app_data>/willowgate`). If the gate is enabled but misconfigured the
+server refuses to start. `WILLOWGATE_REQUIRE_PGP=0` is dev-only (plaintext ledger).
+
 ---
 
 ## Deadlines
