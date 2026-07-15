@@ -7,7 +7,15 @@ VENV   := $(CURDIR)/.venv-dev
 PYTHON := $(VENV)/bin/python3
 PIP    := $(VENV)/bin/pip
 
-.PHONY: run install venv list
+.PHONY: run install venv list demo
+
+# Zero-config demo on synthetic data. Defaults to law-gazelle (the only app
+# with a demo.sh so far); other apps opt in by adding their own demo.sh.
+DEMO_APP := $(if $(app),$(app),law-gazelle)
+
+demo:
+	@test -x apps/$(DEMO_APP)/demo.sh || { echo "apps/$(DEMO_APP) has no demo.sh"; exit 1; }
+	cd apps/$(DEMO_APP) && ./demo.sh
 
 venv:
 	@test -d $(VENV) || python3 -m venv $(VENV)
