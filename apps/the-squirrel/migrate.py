@@ -20,10 +20,10 @@ def main():
     try:
         print("Creating schema: the_squirrel")
         persons_db.init_schema(conn)
-        print("  ✓ persons, relationships, person_lattice_cells, person_sources")
+        print("  ✓ persons, relationships, person_sources")
 
         fragments_db.init_schema(conn)
-        print("  ✓ fragments, tree_branches, fragment_lattice_cells")
+        print("  ✓ fragments, tree_branches")
 
         sources_db.init_schema(conn)
         print("  ✓ source_registry (FTS index)")

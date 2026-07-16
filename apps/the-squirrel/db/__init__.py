@@ -3,8 +3,8 @@ db — The Squirrel database package.
 b17: NNA92
 ΔΣ=42
 
-PII layer    — db.persons   (persons, relationships, person_lattice_cells, person_sources)
-             — db.fragments (fragments, tree_branches, fragment_lattice_cells)
+PII layer    — db.persons   (persons, relationships, person_sources)
+             — db.fragments (fragments, tree_branches)
 System layer — db.sources   (source_registry — no PII, user-agnostic, no gate required)
 
 SAP gate must be checked by callers before any PII read/write.
@@ -19,30 +19,17 @@ Backends (Phase 1, 2026-07-16 — the flagship bar: zero Willow, zero Postgres):
            WILLOW_DB_URL. Same module code — the SQL is written once in
            the Postgres dialect; the SQLite connection translates.
 
-Lattice constants come from Willow's user_lattice when WILLOW_CORE is set,
-else from the vendored db.lattice_constants. Willow is an upgrade, never
-a requirement.
+(2026-07-16 cleanup: the 23-cube lattice — DOMAINS/TEMPORAL_STATES/depth,
+the `*_lattice_cells` tables, `WILLOW_CORE`/`user_lattice`, and
+place_in_lattice — was excised. willow-2.0 retired that model for
+canonical lanes; nothing live in the app wrote or read the cells. "Zero
+Willow" is now literal, not "zero except a defunct import.")
 """
 
 import json as _json
 import os
 import re
-import sys
 import threading
-
-# ---------------------------------------------------------------------------
-# Lattice constants — Willow if present, vendored otherwise
-# ---------------------------------------------------------------------------
-
-_willow_core = os.environ.get("WILLOW_CORE")
-if _willow_core:
-    sys.path.insert(0, _willow_core)
-    try:
-        from user_lattice import DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE  # noqa: F401
-    except ImportError:
-        from db.lattice_constants import DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE  # noqa: F401
-else:
-    from db.lattice_constants import DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE  # noqa: F401
 
 SCHEMA = "the_squirrel"
 
@@ -226,7 +213,7 @@ def release_connection(conn):
 
 
 # ---------------------------------------------------------------------------
-# Shared lattice validation
+# Shared text sanitation
 # ---------------------------------------------------------------------------
 
 _CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")
@@ -242,12 +229,3 @@ def sanitize(value):
 def clean_params(params):
     """Sanitize the string fields of a SQL params tuple."""
     return tuple(sanitize(p) for p in params)
-
-
-def _validate_lattice(domain: str, depth: int, temporal: str):
-    if domain not in DOMAINS:
-        raise ValueError(f"Invalid domain '{domain}'. Must be one of: {DOMAINS}")
-    if not (DEPTH_MIN <= depth <= DEPTH_MAX):
-        raise ValueError(f"Invalid depth {depth}. Must be {DEPTH_MIN}-{DEPTH_MAX}")
-    if temporal not in TEMPORAL_STATES:
-        raise ValueError(f"Invalid temporal '{temporal}'. Must be one of: {TEMPORAL_STATES}")

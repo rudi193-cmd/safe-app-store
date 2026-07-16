@@ -1,9 +1,9 @@
 """
 Test env: every test runs against its own throwaway box — SQLite db, gate
 ledger, receipt log, vault, settings all under tmp_path. No Willow, no
-Postgres, no fakes: the vendored lattice constants and the SQLite backend
-are the product's own zero-dependency path. (Postgres-specific behavior is
-exercised by setting SQUIRREL_BACKEND=postgres against a real server.)
+Postgres, no fakes: the SQLite backend is the product's own zero-dependency
+path. (Postgres-specific behavior is exercised by setting
+SQUIRREL_BACKEND=postgres against a real server.)
 """
 import pytest
 
