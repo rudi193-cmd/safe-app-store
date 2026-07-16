@@ -1,5 +1,5 @@
 """
-db.fragments — PII layer: fragments, tree_branches, fragment_lattice_cells.
+db.fragments — PII layer: fragments, tree_branches.
 Schema: the_squirrel
 
 Fragments are raw genealogical observations — names, dates, stories, photos, documents.
@@ -12,7 +12,7 @@ init_schema() is DDL — no PII, no gate.
 """
 
 from typing import Dict, Any, List
-from db import _validate_lattice, SCHEMA, clean_params
+from db import SCHEMA, clean_params
 import sap.core.gate as _gate
 
 VALID_FRAGMENT_TYPES = frozenset({"name", "date", "story", "photo", "document", "oral_history"})
@@ -20,7 +20,7 @@ VALID_CONFIDENCE_LEVELS = frozenset({"confirmed", "likely", "uncertain", "specul
 
 
 def init_schema(conn):
-    """Create fragments, tree_branches, fragment_lattice_cells. Idempotent."""
+    """Create fragments, tree_branches. Idempotent."""
     cur = conn.cursor()
     cur.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}")
     cur.execute(f"SET search_path = {SCHEMA}, public")
@@ -71,28 +71,10 @@ def init_schema(conn):
         )
     """)
 
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS fragment_lattice_cells (
-            id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            fragment_id  BIGINT NOT NULL REFERENCES fragments(id),
-            domain       TEXT NOT NULL,
-            depth        INTEGER NOT NULL CHECK (depth >= 1 AND depth <= 23),
-            temporal     TEXT NOT NULL,
-            content      TEXT NOT NULL,
-            source       TEXT,
-            created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            is_sensitive BOOLEAN DEFAULT FALSE,
-            UNIQUE(fragment_id, domain, depth, temporal)
-        )
-    """)
-
     cur.execute("CREATE INDEX IF NOT EXISTS idx_fragments_person ON fragments (person_name)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_fragments_type ON fragments (fragment_type)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_fragments_confidence ON fragments (confidence)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_branches_ancestor ON tree_branches (root_ancestor)")
-    cur.execute("CREATE INDEX IF NOT EXISTS idx_flc_fragment ON fragment_lattice_cells (fragment_id)")
-    cur.execute("CREATE INDEX IF NOT EXISTS idx_flc_domain ON fragment_lattice_cells (domain)")
-    cur.execute("CREATE INDEX IF NOT EXISTS idx_flc_temporal ON fragment_lattice_cells (temporal)")
 
     conn.commit()
 
@@ -132,28 +114,6 @@ def add_branch(conn, *, root_ancestor: str, generation_depth: int,
         RETURNING id, root_ancestor, generation_depth, confirmed_count, fragment_ids,
                   created_at, updated_at
     """, (root_ancestor, generation_depth, confirmed_count, fragment_ids or []))
-    row = cur.fetchone()
-    cols = [d[0] for d in cur.description]
-    conn.commit()
-    return dict(zip(cols, row))
-
-
-def place_in_lattice(conn, fragment_id: int, domain: str, depth: int, temporal: str,
-                     content: str, source: str = None, is_sensitive: bool = False) -> Dict[str, Any]:
-    """Map a fragment to a lattice cell. Upserts on (fragment_id, domain, depth, temporal)."""
-    _gate.authorized("write")
-    _validate_lattice(domain, depth, temporal)
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO fragment_lattice_cells
-            (fragment_id, domain, depth, temporal, content, source, is_sensitive)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (fragment_id, domain, depth, temporal)
-        DO UPDATE SET content = EXCLUDED.content,
-                      source = EXCLUDED.source,
-                      is_sensitive = EXCLUDED.is_sensitive
-        RETURNING id, fragment_id, domain, depth, temporal, content, source, created_at, is_sensitive
-    """, (fragment_id, domain, depth, temporal, content, source, is_sensitive))
     row = cur.fetchone()
     cols = [d[0] for d in cur.description]
     conn.commit()

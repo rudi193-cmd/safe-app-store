@@ -2,6 +2,6 @@ fastapi>=0.100.0
 uvicorn>=0.23.0
 requests>=2.31.0
 textual>=0.47.0
-pyspellchecker>=0.8.1
+pyspellchecker>=0.9.0
 rapidfuzz>=3.0.0
 mcp>=1.28.1,<2.0.0

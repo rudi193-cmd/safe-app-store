@@ -2,8 +2,7 @@
 The chokepoint invariant, enforced.
 
 Two grep-provable properties of the live app (gatefirst/ is a sealed
-prototype with its own store; squirrel_db.py is the deprecated pre-L2
-module kept for reference; tests may do surgical cleanup):
+prototype with its own store; tests may do surgical cleanup):
 
   1. No module outside db/ runs SQL against a PII table. Everything
      routes through the gated functions — which is what makes the SAP
@@ -18,12 +17,12 @@ APP = Path(__file__).resolve().parent.parent
 
 _EXCLUDED = {"tests", "gatefirst", "docs", ".pytest_cache", "__pycache__"}
 _DB_DIR = APP / "db"
-_DEPRECATED = {APP / "squirrel_db.py", APP / "backfill_oscar_mann.py"}
+_DEPRECATED = {APP / "backfill_oscar_mann.py"}
 
 _PII_SQL = re.compile(
     r"\b(FROM|INTO|UPDATE|JOIN|DELETE\s+FROM)\s+(the_squirrel\.)?"
-    r"(persons|fragments|relationships|person_lattice_cells|person_sources|"
-    r"fragment_lattice_cells|tree_branches|events|media)\b",
+    r"(persons|fragments|relationships|person_sources|"
+    r"tree_branches|events|media)\b",
     re.IGNORECASE)
 
 

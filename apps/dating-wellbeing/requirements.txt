@@ -5,5 +5,5 @@ streamlit>=1.38
 pillow>=10.4
 pytesseract>=0.3.10
 cryptography>=43.0
-pyyaml>=6.0
+pyyaml>=6.0.3
 rich>=13.8
