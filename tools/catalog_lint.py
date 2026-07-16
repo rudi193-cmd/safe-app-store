@@ -93,7 +93,7 @@ def lint() -> tuple[list[str], list[str]]:
                         )
             elif status in ("beta", "stable"):
                 errors.append(f"{app_id}: {status} app without safe-app-manifest.json")
-            else:
+            elif status == "coming_soon":
                 warnings.append(f"{app_id}: no safe-app-manifest.json yet ({status})")
 
     cataloged_dirs = {
