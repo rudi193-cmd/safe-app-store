@@ -4,6 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "safe-app-the-squirrel"
-version = "1.0.0"
+version = "2.1.0-dev"
 description = "Genealogy companion with a sense of humor. Helps you find, collect, and reconnect the branches of your family tree — even the ones everyone forgot about on purpose."
 requires-python = ">=3.10"
+dependencies = [
+    "markdown>=3.6",
+    "watchdog>=4.0.0",
+    "cryptography>=42",
+    "willow-gate @ git+https://github.com/rudi193-cmd/willow-gate@main",
+]
+
+[project.optional-dependencies]
+postgres = ["psycopg2-binary==2.9.9"]
+dev = ["pytest>=7"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

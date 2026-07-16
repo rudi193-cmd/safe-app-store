@@ -10,7 +10,12 @@
       "author": "Professor Oakenscroll",
       "status": "beta",
       "path": "apps/story-timeline",
-      "tags": ["writing", "fiction", "timeline", "characters"]
+      "tags": [
+        "writing",
+        "fiction",
+        "timeline",
+        "characters"
+      ]
     },
     {
       "id": "vision-board",
@@ -18,7 +23,11 @@
       "description": "AI-powered goal visualization. 96% client-side. First Willow app.",
       "status": "stable",
       "path": "apps/vision-board",
-      "tags": ["productivity", "goals", "ai"]
+      "tags": [
+        "productivity",
+        "goals",
+        "ai"
+      ]
     },
     {
       "id": "utety-chat",
@@ -27,7 +36,12 @@
       "status": "stable",
       "version": "1.0.1",
       "path": "apps/utety-chat",
-      "tags": ["chat", "ai", "utety", "professors"]
+      "tags": [
+        "chat",
+        "ai",
+        "utety",
+        "professors"
+      ]
     },
     {
       "id": "nasa-archive",
@@ -35,7 +49,10 @@
       "description": "Browse and preserve memories archived from scoot.net.",
       "status": "stable",
       "path": "apps/nasa-archive",
-      "tags": ["archive", "memories"]
+      "tags": [
+        "archive",
+        "memories"
+      ]
     },
     {
       "id": "field-notes",
@@ -43,7 +60,10 @@
       "description": "Local-first field notes and observations. Plain text. Yours forever.",
       "status": "beta",
       "path": "apps/field-notes",
-      "tags": ["notes", "local"]
+      "tags": [
+        "notes",
+        "local"
+      ]
     },
     {
       "id": "private-ledger",
@@ -51,7 +71,11 @@
       "description": "Local-first private financial ledger. No cloud. No subscriptions.",
       "status": "beta",
       "path": "apps/private-ledger",
-      "tags": ["ledger", "finance", "private"]
+      "tags": [
+        "ledger",
+        "finance",
+        "private"
+      ]
     },
     {
       "id": "the-binder",
@@ -59,7 +83,11 @@
       "description": "Local-first knowledge browser. Jeles at the desk. The Binder files everything.",
       "status": "beta",
       "path": "apps/the-binder",
-      "tags": ["knowledge", "search", "local"]
+      "tags": [
+        "knowledge",
+        "search",
+        "local"
+      ]
     },
     {
       "id": "ask-jeles",
@@ -67,7 +95,11 @@
       "description": "SAFE search engine. Local stacks first. Verified sources when you need the world.",
       "status": "coming_soon",
       "path": "apps/ask-jeles",
-      "tags": ["search", "jeles", "local"]
+      "tags": [
+        "search",
+        "jeles",
+        "local"
+      ]
     },
     {
       "id": "law-gazelle",
@@ -75,15 +107,23 @@
       "description": "Legal case management and document analysis.",
       "status": "coming_soon",
       "path": "apps/law-gazelle",
-      "tags": ["legal", "documents"]
+      "tags": [
+        "legal",
+        "documents"
+      ]
     },
     {
       "id": "the-squirrel",
       "name": "The Squirrel",
-      "description": "Local-first data hoarding and organization.",
+      "description": "Genealogy companion with a sense of humor. Collect fragments, build the tree, reunite the branches everyone forgot about on purpose. Local-first: your tree stays in your tree.",
       "status": "coming_soon",
       "path": "apps/the-squirrel",
-      "tags": ["data", "local", "storage"]
+      "tags": [
+        "family",
+        "history",
+        "genealogy",
+        "local"
+      ]
     },
     {
       "id": "llmphysics",
@@ -91,7 +131,11 @@
       "description": "r/LLMPhysics Journal Ambitions Contest paper evaluator.",
       "status": "coming_soon",
       "path": "apps/llmphysics",
-      "tags": ["physics", "reddit", "evaluation"]
+      "tags": [
+        "physics",
+        "reddit",
+        "evaluation"
+      ]
     },
     {
       "id": "llmphysics-bot",
@@ -99,7 +143,11 @@
       "description": "Reddit bot for r/LLMPhysics community.",
       "status": "coming_soon",
       "path": "apps/llmphysics-bot",
-      "tags": ["reddit", "bot", "physics"]
+      "tags": [
+        "reddit",
+        "bot",
+        "physics"
+      ]
     },
     {
       "id": "UTETY-Reddit-Bots",
@@ -107,7 +155,11 @@
       "description": "Reddit bots for the UTETY University faculty.",
       "status": "coming_soon",
       "path": "apps/UTETY-Reddit-Bots",
-      "tags": ["reddit", "bot", "utety"]
+      "tags": [
+        "reddit",
+        "bot",
+        "utety"
+      ]
     },
     {
       "id": "game",
@@ -115,7 +167,9 @@
       "description": "SAFE framework game app.",
       "status": "coming_soon",
       "path": "apps/game",
-      "tags": ["game"]
+      "tags": [
+        "game"
+      ]
     },
     {
       "id": "dating-wellbeing",
@@ -123,16 +177,23 @@
       "description": "Privacy-first dating profile analysis for SAFE framework.",
       "status": "coming_soon",
       "path": "apps/dating-wellbeing",
-      "tags": ["privacy", "dating", "wellbeing"]
+      "tags": [
+        "privacy",
+        "dating",
+        "wellbeing"
+      ]
     },
     {
       "id": "bt-controller",
       "name": "BT Controller",
-      "description": "Direct HCI Bluetooth control — claims the USB adapter beneath the flaky OS stack via WSL, with a self-healing daemon and web UI.",
+      "description": "Direct HCI Bluetooth control \u2014 claims the USB adapter beneath the flaky OS stack via WSL, with a self-healing daemon and web UI.",
       "status": "beta",
       "version": "0.2.0",
       "path": "apps/bt-controller",
-      "tags": ["bluetooth", "hardware"]
+      "tags": [
+        "bluetooth",
+        "hardware"
+      ]
     },
     {
       "id": "source-trail",
@@ -140,7 +201,11 @@
       "description": "Track and audit data sources.",
       "status": "coming_soon",
       "path": "apps/source-trail",
-      "tags": ["audit", "data", "sources"]
+      "tags": [
+        "audit",
+        "data",
+        "sources"
+      ]
     },
     {
       "id": "public-ledger",
@@ -148,7 +213,10 @@
       "description": "Transparent public transaction ledger.",
       "status": "coming_soon",
       "path": "apps/public-ledger",
-      "tags": ["ledger", "transparency"]
+      "tags": [
+        "ledger",
+        "transparency"
+      ]
     },
     {
       "id": "ratatosk",
@@ -158,32 +226,54 @@
       "status": "beta",
       "path": "apps/ratatosk",
       "repository": "https://github.com/rudi193-cmd/safe-app-store",
-      "tags": ["agent", "cli", "llm", "mcp", "sovereign"]
+      "tags": [
+        "agent",
+        "cli",
+        "llm",
+        "mcp",
+        "sovereign"
+      ]
     },
     {
       "id": "grove",
       "name": "Grove",
-      "description": "Sovereign p2p messaging. Chat directly with USER and other users over an encrypted peer-to-peer connection (u2u). Each user runs their own local node — no central server.",
+      "description": "Sovereign p2p messaging. Chat directly with USER and other users over an encrypted peer-to-peer connection (u2u). Each user runs their own local node \u2014 no central server.",
       "author": "USER",
       "status": "beta",
       "repository": "https://github.com/rudi193-cmd/safe-app-grove",
-      "tags": ["messaging", "p2p", "chat", "u2u", "encrypted"]
+      "tags": [
+        "messaging",
+        "p2p",
+        "chat",
+        "u2u",
+        "encrypted"
+      ]
     },
     {
       "id": "civics-check",
       "name": "Civics Check",
-      "description": "America's 250th civics quiz — naturalization test, state matchups, timeline sort, quote matching, and more. Pure Python, offline, no dependencies.",
+      "description": "America's 250th civics quiz \u2014 naturalization test, state matchups, timeline sort, quote matching, and more. Pure Python, offline, no dependencies.",
       "author": "USER",
       "status": "beta",
       "path": "apps/civics-check",
-      "tags": ["civics", "history", "quiz", "americas250", "offline"]
+      "tags": [
+        "civics",
+        "history",
+        "quiz",
+        "americas250",
+        "offline"
+      ]
     },
     {
       "id": "genealogy",
       "name": "Genealogy",
       "description": "Local-first family tree and genealogy research. Merged into the-squirrel.",
       "status": "archived",
-      "tags": ["family", "history", "local"]
+      "tags": [
+        "family",
+        "history",
+        "local"
+      ]
     }
   ],
   "discovery_sources": [
@@ -195,11 +285,23 @@
       "description": "Curated directory of free, no-login, browser-based tools (image/graphics, transcription, text-diff, encrypted notes, converters, code playgrounds). Mine for catalog ideas, gap-spotting, and 'does a free tool for X already exist' lookups.",
       "added": "2026-06-19",
       "added_by": "vishwakarma",
-      "caveats": "Not a SAFE app — third-party hosted tools the store does not control. Do NOT route sensitive/PII/evidentiary data through listed tools (esp. Mailinator, whose inboxes are public). 403-blocks automated fetch (Cloudflare); enumerate via web search or manual browse.",
+      "caveats": "Not a SAFE app \u2014 third-party hosted tools the store does not control. Do NOT route sensitive/PII/evidentiary data through listed tools (esp. Mailinator, whose inboxes are public). 403-blocks automated fetch (Cloudflare); enumerate via web search or manual browse.",
       "highlighted_tools": [
-        { "name": "OTranscribe", "url": "https://public.tools/tool/otranscribe", "use": "manual audio/video transcription" },
-        { "name": "DiffNow", "url": "https://public.tools/tool/diffnow", "use": "text/file comparison" },
-        { "name": "ProtectedText", "url": "https://public.tools/tool/protectedtext", "use": "browser-encrypted notepad" }
+        {
+          "name": "OTranscribe",
+          "url": "https://public.tools/tool/otranscribe",
+          "use": "manual audio/video transcription"
+        },
+        {
+          "name": "DiffNow",
+          "url": "https://public.tools/tool/diffnow",
+          "use": "text/file comparison"
+        },
+        {
+          "name": "ProtectedText",
+          "url": "https://public.tools/tool/protectedtext",
+          "use": "browser-encrypted notepad"
+        }
       ]
     },
     {
@@ -208,13 +310,18 @@
       "url": "https://manavarya09.github.io/public-apis-live/",
       "data_url": "https://raw.githubusercontent.com/Manavarya09/public-apis-live/main/data/apis.json",
       "type": "external-directory",
-      "description": "Live-verified directory of 4,281 public APIs across 126 categories, deduped from existing public-API lists and auto-checked daily for reachability (status up/down/unknown, httpCode, responseMs, uptimePct, lastChecked). Structured JSON dataset — Jeles/retrieval can filter to reachable + no-auth endpoints. Categories incl. Open_data (290), Government (110), Geocoding (117), Finance (82), Science & Math, Health, Weather.",
+      "description": "Live-verified directory of 4,281 public APIs across 126 categories, deduped from existing public-API lists and auto-checked daily for reachability (status up/down/unknown, httpCode, responseMs, uptimePct, lastChecked). Structured JSON dataset \u2014 Jeles/retrieval can filter to reachable + no-auth endpoints. Categories incl. Open_data (290), Government (110), Geocoding (117), Finance (82), Science & Math, Health, Weather.",
       "added": "2026-06-19",
       "added_by": "vishwakarma",
-      "consumers": ["jeles"],
-      "caveats": "Reachability only — does NOT functionally test endpoints; ~1,032 entries have unknown status. Third-party listings; verify auth/terms before use. Also available as npm 'public-apis-live' and a Claude plugin.",
+      "consumers": [
+        "jeles"
+      ],
+      "caveats": "Reachability only \u2014 does NOT functionally test endpoints; ~1,032 entries have unknown status. Third-party listings; verify auth/terms before use. Also available as npm 'public-apis-live' and a Claude plugin.",
       "local_mirror": "~/Desktop/Nest/jeles/sources/public-apis-live/ (apis.json, apis.jsonl, SUMMARY.json)",
-      "willow_refs": { "jeles_atom": "701AD460", "kb_atom": "0F649830" }
+      "willow_refs": {
+        "jeles_atom": "701AD460",
+        "kb_atom": "0F649830"
+      }
     }
   ]
 }
