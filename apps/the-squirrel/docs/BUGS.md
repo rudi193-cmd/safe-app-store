@@ -15,25 +15,28 @@ P1 fix sketches was refined by that pass. See commit history.
 
 ## Open
 
-### B-004 · `stash` person-name heuristic is naive — P2
-`cmd_stash` takes the first two words of the fragment text as `person_name`.
-"Lieserl Einstein b. Jan 1902…" works; "The quilt is hers" files under person
-"The quilt". Misleads the binder, which matches on person_name.
-**Fix sketch:** accept an explicit `--person "Name"` flag; fall back to the
-heuristic only when it's absent.
-**Status:** open.
-
-### B-010 · Import of a non-file path shows a raw errno — P3
-`cmd_import_gedcom` guards `path.exists()` but not `path.is_file()`, so
-importing a directory surfaces `[Errno 21] Is a directory` in an Error block.
-Caught by the responder (app survives); a raw errno is not an answer.
-**Fix sketch:** check `is_file()` in the command; keep `import_ged` raising for
-callers.
-**Status:** open.
+_None. Every bug the driving turned up is fixed below — last call was
+B-004 and B-010._
 
 ---
 
 ## Fixed
+
+### B-004 · `stash` person-name heuristic is naive — P2 — FIXED
+**Found:** Einstein drive. **Fixed:** `stash` now takes an explicit
+`--person "Name"` flag (multi-word aware — the dispatcher space-splits, so the
+parser consumes tokens until the next `--flag`); the first-two-words heuristic
+is only the fallback when no `--person` is given. "The quilt is hers
+`--person "Fern Nutkin"`" files under Fern, not "The quilt".
+**Regression:** `tests/test_last_call.py` (flag-wins, multiword/quoted,
+heuristic-fallback, no-leak-into-story).
+
+### B-010 · Import of a non-file path shows a raw errno — P3 — FIXED
+**Found:** TRLR-arm drive. **Fixed:** `cmd_import_gedcom` now checks
+`is_file()` after `exists()`, so a directory returns "Not a readable file
+(is it a directory?)" instead of surfacing a raw `[Errno 21]`.
+**Regression:** `tests/test_last_call.py` (directory → friendly message,
+missing → still "File not found").
 
 ### B-011 / B-012 · Cross-parentage: no linkage subtype; pedigree truncated silently — P2/P3 — FIXED
 **Found:** cross-parentage drive (Roman adoptive emperors, Steve Jobs, Moses).

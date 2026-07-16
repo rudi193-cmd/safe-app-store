@@ -6,14 +6,25 @@ def parse_stash_args(args: list) -> dict:
     result = {"confidence": "uncertain", "fragment_type": "story"}
     text_parts = []
     i = 0
+
+    def take_value(j):
+        # --person / --source may be multi-word (the dispatcher space-splits,
+        # so quotes arrive as separate tokens); consume until the next --flag.
+        vals = []
+        while j < len(args) and not args[j].startswith("--"):
+            vals.append(args[j]); j += 1
+        return " ".join(vals).strip('"').strip("'"), j
+
     while i < len(args):
         a = args[i]
         if a == "--confidence" and i + 1 < len(args):
             result["confidence"] = args[i + 1]; i += 2
-        elif a == "--source" and i + 1 < len(args):
-            result["source"] = args[i + 1]; i += 2
         elif a == "--type" and i + 1 < len(args):
             result["fragment_type"] = args[i + 1]; i += 2
+        elif a == "--source":
+            result["source"], i = take_value(i + 1)
+        elif a == "--person":
+            result["person_name"], i = take_value(i + 1)
         else:
             text_parts.append(a); i += 1
     result["story_text"] = " ".join(text_parts).strip('"')
@@ -22,14 +33,20 @@ def parse_stash_args(args: list) -> dict:
 
 def cmd_stash(conn, args: list) -> str:
     if not args:
-        return result_block("stash", "Usage: `@squirrel: stash \"text\" --confidence likely`")
+        return result_block("stash", "Usage: `@squirrel: stash \"text\" "
+                            "[--person \"Name\"] [--confidence likely]`")
     kwargs = parse_stash_args(args)
     story = kwargs.pop("story_text", "")
-    words = story.split()
-    person_name = " ".join(words[:2]) if len(words) >= 2 else story
+    # B-004: an explicit --person wins; the first-two-words heuristic is only a
+    # fallback for when the fragment text happens to lead with the name.
+    person_name = kwargs.pop("person_name", "") or ""
+    if not person_name:
+        words = story.split()
+        person_name = " ".join(words[:2]) if len(words) >= 2 else story
     frag = fragments_db.add_fragment(conn, person_name=person_name, story_text=story, **kwargs)
     return result_block("stash",
-        f"✓ Fragment {frag['id']} stashed\n  `{story[:80]}`\n  confidence: `{frag['confidence']}`")
+        f"✓ Fragment {frag['id']} stashed for **{person_name}**\n"
+        f"  `{story[:80]}`\n  confidence: `{frag['confidence']}`")
 
 
 def cmd_show_stash(conn, args: list) -> str:
