@@ -274,6 +274,35 @@
         "history",
         "local"
       ]
+    },
+    {
+      "id": "nest-seed",
+      "name": "Nest Seed",
+      "description": "Portable Nest bootstrap. Walks a folder of personal files, extracts text (OCR/PDF/docx), classifies fragments (regex or local AI via Ollama), and writes a canonical SQLite Nest DB.",
+      "author": "USER",
+      "status": "beta",
+      "path": "apps/nest-seed",
+      "tags": [
+        "nest",
+        "extraction",
+        "ocr",
+        "local-ai",
+        "sqlite"
+      ]
+    },
+    {
+      "id": "semantic-translator",
+      "name": "Semantic Translator",
+      "description": "Semantic translation memory for lesson curricula. Scrapes lessons from GitHub or a local clone, ingests into Jeles, and surfaces meaning-matched prior translations across languages.",
+      "author": "USER",
+      "status": "coming_soon",
+      "path": "apps/semantic-translator",
+      "tags": [
+        "translation",
+        "semantic-search",
+        "curriculum",
+        "jeles"
+      ]
     }
   ],
   "discovery_sources": [
