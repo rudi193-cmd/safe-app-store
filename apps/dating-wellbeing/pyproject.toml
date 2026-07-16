@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Privacy-first dating profile analyzer for SAFE framework"
 authors = [{name = "USER"}]
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = {text = "Apache-2.0"}
 readme = "README.md"
 dependencies = [
     "pydantic>=2.0.0",
