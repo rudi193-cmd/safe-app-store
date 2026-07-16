@@ -11,6 +11,45 @@ would trust · **P2** rough edge, wrong-but-harmless · **P3** cosmetic.
 
 ## Open
 
+### B-006 · Watcher silently drops commands under burst/concurrent writes — P1
+**Found:** 2026-07-16, concurrency drive.
+Fire 20 `add person` commands at `/write` in parallel: all 20 lines land in
+`Squirrel.md` (the file lock holds), but only **8 persons** are created.
+Twelve commands are silently dropped — no error in the journal, no error in
+the server log. The file (the app's declared ground truth) says the command
+happened; the app never ran it.
+**Mechanism:** `squirrel_watcher._Handler.on_modified` reads new bytes from
+`_last_size` to the current size and processes them — but then does
+`self._last_size = self._path.stat().st_size` to skip past the bot responses
+it wrote. Any concurrent `/write` that appended *during* processing sits
+between the batch just read and that new size, so the reset leaps over it and
+it is never processed. watchdog event coalescing compounds it (N appends can
+collapse into one `on_modified`, and only the bytes visible at read time are
+seen).
+**Why it matters:** silent loss of user intent. Single-user hunt-and-peck
+never triggers it (the web UI navigates away and waits between commands), but
+any burst source does — a paste of multiple lines, a programmatic driver, an
+MCP integration writing the journal, or Jeles appending in a future mode.
+"The file is the interface / the file is ground truth" is violated exactly
+when the file and the DB disagree.
+**Repro:**
+```
+for i in $(seq 1 20); do
+  curl -s -X POST localhost:8425/write -H 'Content-Type: application/json' \
+    --data-raw "{\"text\":\"@squirrel: add person Race$i\"}" &
+done; wait
+# journal: 20 'add person' lines · DB: ~8 persons
+```
+**Fix sketch:** the watcher must not conflate "bytes I processed" with "bytes
+present now." Track a processed-offset that only advances past lines actually
+handled; after processing, re-stat and if the file grew, loop and process the
+new tail instead of skipping it. Distinguish bot-written responses from user
+lines by marker/sentinel rather than by "everything up to current size."
+Better: decouple ingestion from the file — POST `/write` could enqueue the
+command directly to the responder and treat the file as a render log, so
+correctness never depends on winning a stat race.
+**Status:** open. Design-level — the single meatiest find so far.
+
 ### B-002 · No ancestor cycle detection — P1
 **Found:** 2026-07-16, absurd-census drive.
 A person may be their own ancestor. `link Ratatosk → parent → Ratatosk`
