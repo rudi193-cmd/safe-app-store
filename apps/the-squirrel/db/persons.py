@@ -1,5 +1,5 @@
 """
-db.persons — PII layer: persons, relationships, person_lattice_cells, person_sources.
+db.persons — PII layer: persons, relationships, person_sources.
 Schema: the_squirrel
 
 Persons are fully-resolved individuals in the family tree.
@@ -11,7 +11,7 @@ init_schema() is DDL — no PII, no gate.
 """
 
 from typing import Dict, Any, List
-from db import _validate_lattice, SCHEMA, clean_params, sanitize
+from db import SCHEMA, clean_params, sanitize
 import sap.core.gate as _gate
 
 VALID_RELATIONSHIP_TYPES = frozenset({"parent", "child", "spouse", "sibling"})
@@ -26,7 +26,7 @@ PARENT_KIND_PRIORITY = {"birth": 0, None: 1, "adopted": 2, "foster": 3, "step": 
 
 
 def init_schema(conn):
-    """Create persons, relationships, person_lattice_cells, person_sources. Idempotent."""
+    """Create persons, relationships, person_sources. Idempotent."""
     cur = conn.cursor()
     cur.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}")
     cur.execute(f"SET search_path = {SCHEMA}, public")
@@ -77,21 +77,6 @@ def init_schema(conn):
         conn.commit()
 
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS person_lattice_cells (
-            id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            person_id    BIGINT NOT NULL REFERENCES persons(id),
-            domain       TEXT NOT NULL,
-            depth        INTEGER NOT NULL CHECK (depth >= 1 AND depth <= 23),
-            temporal     TEXT NOT NULL,
-            content      TEXT NOT NULL,
-            source       TEXT,
-            created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            is_sensitive BOOLEAN DEFAULT FALSE,
-            UNIQUE(person_id, domain, depth, temporal)
-        )
-    """)
-
-    cur.execute("""
         CREATE TABLE IF NOT EXISTS person_sources (
             id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
             person_id    BIGINT NOT NULL REFERENCES persons(id),
@@ -107,9 +92,6 @@ def init_schema(conn):
     cur.execute("CREATE INDEX IF NOT EXISTS idx_persons_name ON persons (full_name)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_rel_person ON relationships (person_id)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_rel_related ON relationships (related_person_id)")
-    cur.execute("CREATE INDEX IF NOT EXISTS idx_plc_person ON person_lattice_cells (person_id)")
-    cur.execute("CREATE INDEX IF NOT EXISTS idx_plc_domain ON person_lattice_cells (domain)")
-    cur.execute("CREATE INDEX IF NOT EXISTS idx_plc_temporal ON person_lattice_cells (temporal)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_psrc_person ON person_sources (person_id)")
 
     conn.commit()
@@ -230,28 +212,6 @@ def add_source(conn, person_id: int, source_type: str, url: str = None,
     return dict(zip(cols, row))
 
 
-def place_in_lattice(conn, person_id: int, domain: str, depth: int, temporal: str,
-                     content: str, source: str = None, is_sensitive: bool = False) -> Dict[str, Any]:
-    """Map a person to a lattice cell. Upserts on (person_id, domain, depth, temporal)."""
-    _gate.authorized("write")
-    _validate_lattice(domain, depth, temporal)
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO person_lattice_cells
-            (person_id, domain, depth, temporal, content, source, is_sensitive)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (person_id, domain, depth, temporal)
-        DO UPDATE SET content = EXCLUDED.content,
-                      source = EXCLUDED.source,
-                      is_sensitive = EXCLUDED.is_sensitive
-        RETURNING id, person_id, domain, depth, temporal, content, source, created_at, is_sensitive
-    """, (person_id, domain, depth, temporal, content, source, is_sensitive))
-    row = cur.fetchone()
-    cols = [d[0] for d in cur.description]
-    conn.commit()
-    return dict(zip(cols, row))
-
-
 def get_family_tree(conn, person_id: int) -> Dict[str, Any]:
     """Return the person record plus all relationships. Immutable result."""
     _gate.authorized("read")
@@ -320,9 +280,9 @@ def all_relationships(conn) -> List[Dict[str, Any]]:
 
 def delete_marked_persons(conn, memorial_mark: str) -> int:
     """Hard-delete persons whose memorial_id equals the mark, plus their
-    relationships, lattice cells, and sources. Exists for demo teardown —
-    the one sanctioned hard delete (archive-don't-delete applies to real
-    data; fictional seed rows are not data). Returns persons removed."""
+    relationships and sources. Exists for demo teardown — the one sanctioned
+    hard delete (archive-don't-delete applies to real data; fictional seed
+    rows are not data). Returns persons removed."""
     _gate.authorized("write")
     cur = conn.cursor()
     cur.execute("SELECT id FROM persons WHERE memorial_id = %s", (memorial_mark,))
@@ -332,7 +292,6 @@ def delete_marked_persons(conn, memorial_mark: str) -> int:
     marks = ", ".join(["%s"] * len(ids))
     cur.execute(f"DELETE FROM relationships WHERE person_id IN ({marks}) "
                 f"OR related_person_id IN ({marks})", ids + ids)
-    cur.execute(f"DELETE FROM person_lattice_cells WHERE person_id IN ({marks})", ids)
     cur.execute(f"DELETE FROM person_sources WHERE person_id IN ({marks})", ids)
     cur.execute(f"DELETE FROM persons WHERE id IN ({marks})", ids)
     conn.commit()

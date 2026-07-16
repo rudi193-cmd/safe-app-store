@@ -1,7 +1,7 @@
 """
 backfill_oscar_mann.py -- Insert the Oscar Mann family into the squirrel database.
 
-Uses db.persons to populate persons, relationships, lattice cells, and sources.
+Uses db.persons to populate persons, relationships, and sources.
 Idempotent: checks for existing persons by name before inserting.
 """
 
@@ -113,55 +113,6 @@ def main():
                 persons_db.add_relationship(conn, child["id"], oscar["id"], "child")
                 persons_db.add_relationship(conn, grace["id"], child["id"], "parent")
                 persons_db.add_relationship(conn, child["id"], grace["id"], "child")
-
-            # ------------------------------------------------------------------
-            # Lattice cells
-            # ------------------------------------------------------------------
-
-            src = "FindAGrave memorial 273702757"
-
-            persons_db.place_in_lattice(conn, oscar["id"], "identity", 1, "permanent",
-                                        "Oscar William Mann", src)
-            persons_db.place_in_lattice(conn, oscar["id"], "history", 1, "permanent",
-                                        "Born 1929-01-11, Willmar MN. Died 2024-09-09, Albuquerque NM.", src)
-            persons_db.place_in_lattice(conn, oscar["id"], "location", 1, "permanent",
-                                        "Willmar, Minnesota (birthplace)", src)
-            persons_db.place_in_lattice(conn, oscar["id"], "location", 2, "established",
-                                        "Albuquerque, New Mexico (since 1973)", src)
-            persons_db.place_in_lattice(conn, oscar["id"], "relationships", 1, "permanent",
-                                        "Husband, father of 4, son, brother (8 siblings)", src)
-            persons_db.place_in_lattice(conn, oscar["id"], "celebrations", 1, "permanent",
-                                        "Married Grace for 69 years", src)
-            persons_db.place_in_lattice(conn, oscar["id"], "history", 2, "archived",
-                                        "Traveled all 50 US states and 34 countries", src)
-            persons_db.place_in_lattice(conn, oscar["id"], "history", 3, "archived",
-                                        "Surname Mau changed to Mann at Ellis Island", src)
-
-            persons_db.place_in_lattice(conn, grace["id"], "identity", 1, "permanent", "Grace Mann")
-            persons_db.place_in_lattice(conn, grace["id"], "relationships", 1, "permanent",
-                                        "Wife of Oscar William Mann, mother of 4")
-            persons_db.place_in_lattice(conn, grace["id"], "celebrations", 1, "permanent",
-                                        "Married Oscar for 69 years")
-
-            persons_db.place_in_lattice(conn, william["id"], "identity", 1, "permanent", "William M. Mann")
-            persons_db.place_in_lattice(conn, william["id"], "relationships", 1, "permanent",
-                                        "Father of Oscar William Mann")
-            persons_db.place_in_lattice(conn, william["id"], "history", 1, "archived",
-                                        "Surname originally Mau, changed to Mann at Ellis Island")
-
-            persons_db.place_in_lattice(conn, meta["id"], "identity", 1, "permanent", "Meta D. Johnson")
-            persons_db.place_in_lattice(conn, meta["id"], "relationships", 1, "permanent",
-                                        "Mother of Oscar William Mann")
-
-            for child in children:
-                persons_db.place_in_lattice(conn, child["id"], "identity", 1, "permanent", child["full_name"])
-                persons_db.place_in_lattice(conn, child["id"], "relationships", 1, "permanent",
-                                            "Child of Oscar William Mann and Grace Mann")
-
-            for sib in siblings:
-                persons_db.place_in_lattice(conn, sib["id"], "identity", 1, "permanent", sib["full_name"])
-                persons_db.place_in_lattice(conn, sib["id"], "relationships", 1, "permanent",
-                                            "Sibling of Oscar William Mann")
 
             # ------------------------------------------------------------------
             # Sources
