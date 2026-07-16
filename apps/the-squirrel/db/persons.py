@@ -17,6 +17,13 @@ import sap.core.gate as _gate
 VALID_RELATIONSHIP_TYPES = frozenset({"parent", "child", "spouse", "sibling"})
 VALID_SOURCE_TYPES = frozenset({"findagrave", "familysearch", "census", "document", "oral"})
 
+# Parentage linkage subtype (B-012): "fathered by one, raised by another".
+# None = unspecified. Priority orders which parents fill the two pedigree
+# slots — biological lineage first, by genealogical convention, but the
+# others are shown, never dropped silently (B-011).
+VALID_PARENT_KINDS = frozenset({"birth", "adopted", "foster", "step"})
+PARENT_KIND_PRIORITY = {"birth": 0, None: 1, "adopted": 2, "foster": 3, "step": 4}
+
 
 def init_schema(conn):
     """Create persons, relationships, person_lattice_cells, person_sources. Idempotent."""
@@ -49,9 +56,25 @@ def init_schema(conn):
             related_person_id BIGINT NOT NULL REFERENCES persons(id),
             relationship_type TEXT NOT NULL
                 CHECK (relationship_type IN ('parent','child','spouse','sibling')),
+            parent_kind       TEXT,
             created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    # B-012: linkage subtype for tables created before parent_kind existed.
+    # Idempotent — probe the column, add it only if absent.
+    try:
+        cur.execute("SELECT parent_kind FROM relationships LIMIT 1")
+        cur.fetchall()
+    except Exception:
+        conn.rollback()
+        cur = conn.cursor()
+        # Postgres rolls back the session SET search_path along with the failed
+        # probe (a plain SET is transactional), so restore it before the ALTER
+        # or the table resolves to the wrong schema. SQLite translates this to
+        # a no-op.
+        cur.execute(f"SET search_path = {SCHEMA}, public")
+        cur.execute("ALTER TABLE relationships ADD COLUMN parent_kind TEXT")
+        conn.commit()
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS person_lattice_cells (
@@ -145,18 +168,28 @@ def is_ancestor(conn, ancestor_id: int, of_id: int) -> bool:
     return False
 
 
-def add_relationship(conn, person_id: int, related_id: int, rel_type: str) -> Dict[str, Any]:
+def add_relationship(conn, person_id: int, related_id: int, rel_type: str,
+                     parent_kind: str = None) -> Dict[str, Any]:
     """Link two persons. Returns the new relationship row as a dict.
 
     Refuses self-links (a person is not their own parent/child/spouse/sibling)
     and refuses a parent/child link that would close an ancestor loop —
     direction-agnostic, so `A → child → B` is checked the same as
-    `B → parent → A`."""
+    `B → parent → A`.
+
+    parent_kind (birth/adopted/foster/step, or None) records HOW someone is a
+    parent — "fathered by one, raised by another". Only meaningful for
+    parent/child links; ignored otherwise."""
     _gate.authorized("write")
     if rel_type not in VALID_RELATIONSHIP_TYPES:
         raise ValueError(f"Invalid relationship_type '{rel_type}'. Must be one of: {VALID_RELATIONSHIP_TYPES}")
     if person_id == related_id:
         raise ValueError("A person cannot be their own " + rel_type + ".")
+    if parent_kind is not None:
+        if parent_kind not in VALID_PARENT_KINDS:
+            raise ValueError(f"Invalid parent kind '{parent_kind}'. Must be one of: {sorted(VALID_PARENT_KINDS)}")
+        if rel_type not in ("parent", "child"):
+            raise ValueError(f"A '{parent_kind}' kind only applies to a parent or child link.")
     if rel_type in ("parent", "child"):
         # Normalize to (child, parent): "A parent B" => B is A's parent;
         # "A child B" => A is B's parent.
@@ -169,10 +202,10 @@ def add_relationship(conn, person_id: int, related_id: int, rel_type: str) -> Di
                 "already an ancestor of the parent.")
     cur = conn.cursor()
     cur.execute("""
-        INSERT INTO relationships (person_id, related_person_id, relationship_type)
-        VALUES (%s, %s, %s)
-        RETURNING id, person_id, related_person_id, relationship_type, created_at
-    """, (person_id, related_id, rel_type))
+        INSERT INTO relationships (person_id, related_person_id, relationship_type, parent_kind)
+        VALUES (%s, %s, %s, %s)
+        RETURNING id, person_id, related_person_id, relationship_type, parent_kind, created_at
+    """, (person_id, related_id, rel_type, parent_kind))
     row = cur.fetchone()
     cols = [d[0] for d in cur.description]
     conn.commit()
@@ -238,6 +271,7 @@ def get_family_tree(conn, person_id: int) -> Dict[str, Any]:
         SELECT r.*, p.full_name AS related_name
         FROM relationships r JOIN persons p ON p.id = r.person_id
         WHERE r.related_person_id = %s
+        ORDER BY id
     """, (person_id, person_id))
     rows = cur.fetchall()
     rcols = [d[0] for d in cur.description]

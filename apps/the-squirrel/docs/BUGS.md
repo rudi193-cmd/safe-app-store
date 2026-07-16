@@ -60,6 +60,31 @@ callers.
 
 ## Fixed
 
+### B-011 / B-012 · Cross-parentage: no linkage subtype; pedigree truncated silently — P2/P3 — FIXED
+**Found:** cross-parentage drive (Roman adoptive emperors, Steve Jobs, Moses).
+**Fixed:** `parent_kind` linkage feature. The relationship model now carries a
+subtype — `birth` / `adopted` / `foster` / `step` (None = unspecified) — added
+to the schema and migrated onto existing tables. Entered via the link grammar
+(`link Steve Jobs → adopted parent → Paul Jobs`), shown in `show kin` and the
+person page, and exported to GEDCOM as `FAMC` + `PEDI` (the exporter emits real
+`FAM` records now — it ignored relationships entirely before). B-011's silent
+truncation is closed: the pedigree fills its two slots birth-first (by kind
+priority, not insertion order) and `tree` NAMES any further parents with their
+kind instead of dropping them. Live: Steve Jobs shows Jandali/Schieble in the
+slots, "Paul Jobs (adopted), Clara Jobs (adopted)" noted below, and exports two
+FAM records with `PEDI birth` / `PEDI adopted`.
+**Regression:** `tests/test_parent_kind.py` (16 tests: storage/validation,
+grammar, kin, pedigree-birth-preferred-and-names-rest, GEDCOM PEDI).
+**Hardened after an independent Sonnet review** caught four bugs in the first
+cut (all fixed before merge, each with a test): a Postgres upgrade-migration
+crash (rollback reverted the session `SET search_path`; now re-issued —
+verified live on Postgres 16), the pedigree still silently dropping parents
+linked via the reverse `child` grammar, and two GEDCOM export faults (mixed
+kind-tagging splitting one couple into two single-parent `FAM`s; a 3rd
+same-kind parent dropped from the `FAM`). The same `SET search_path` fix was
+applied to the B-008 `bound_person_id` migration, which had the identical
+latent bug.
+
 ### B-008 · `bind fragment all` silently processed only the first 200 — P1 — FIXED
 **Found:** 1000-person bulk-import drive. **Fixed:** binder rework + schema
 migration. **Verifier caught:** a deeper defect than the cap — *no column
@@ -128,5 +153,8 @@ reverse rows explicitly. **Regression:** `tests/test_kin_direction.py`.
   stores nothing; the watcher survives directory/missing paths.
 - **Parser** — `@SQUIRREL:` + runs of spaces parses; nested `@squirrel:
   @squirrel:` refuses; `skin ../../etc/passwd`, `mode banana` whitelist-rejected.
+- **Cross-parentage kin** — `show kin` correctly lists ALL parent links for a
+  person with multiple parents (bio + adoptive); the flat list is honest. Only
+  the pedigree truncates (B-011); the underlying data holds every link.
 
 ΔΣ=42
