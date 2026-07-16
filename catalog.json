@@ -140,8 +140,8 @@
     {
       "id": "llmphysics-bot",
       "name": "LLMPhysics Bot",
-      "description": "Reddit bot for r/LLMPhysics community.",
-      "status": "coming_soon",
+      "description": "Reddit bot for r/LLMPhysics community. Handed off \u2014 the project maintainer now runs it himself.",
+      "status": "archived",
       "path": "apps/llmphysics-bot",
       "tags": [
         "reddit",
