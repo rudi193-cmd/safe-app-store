@@ -20,6 +20,9 @@ on:
     - cron: "47 6 * * *"
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+
 jobs:
   gates:
     runs-on: ubuntu-latest
