@@ -11,7 +11,7 @@
   "data_streams": [
     {
       "id": "pii_family_history",
-      "purpose": "Personal genealogy data — persons, relationships, fragments, lattice cells",
+      "purpose": "Personal genealogy data — persons, relationships, fragments",
       "privacy_tier": "client_only",
       "retention": "permanent",
       "description": "PII layer. SAP gate (willow-gate backend) required; every touch receipted. Local SQLite in $SQUIRREL_HOME by default — client_only is literal, not aspirational. Optional Willow Postgres backend."
