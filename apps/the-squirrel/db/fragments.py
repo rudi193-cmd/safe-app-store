@@ -183,6 +183,19 @@ def get_unsynced_fragments(conn, limit: int = 100) -> List[Dict[str, Any]]:
     return [dict(zip(cols, r)) for r in rows]
 
 
+def mark_synced(conn, fragment_id: int) -> bool:
+    """Stamp binder_synced_at on a live fragment. False if not found."""
+    _gate.authorized("write")
+    cur = conn.cursor()
+    cur.execute("UPDATE fragments SET binder_synced_at = CURRENT_TIMESTAMP "
+                "WHERE id = %s AND is_deleted = 0", (fragment_id,))
+    if cur.rowcount == 0:
+        conn.rollback()
+        return False
+    conn.commit()
+    return True
+
+
 def delete_by_source(conn, source: str) -> int:
     """Hard-delete fragments from one source. Exists for demo teardown
     (source='demo'); real fragments are archived, never deleted."""

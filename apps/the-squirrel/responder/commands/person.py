@@ -74,14 +74,8 @@ def cmd_edit_person(conn, args: list) -> str:
         return result_block("edit person", f"Expected numeric ID, got `{args[0]}`")
     field = args[1].lower()
     value = " ".join(args[2:])
-    allowed = {"birth_date","death_date","birth_place","death_place","burial_place","bio"}
-    if field not in allowed:
+    if field not in persons_db.EDITABLE_FIELDS:
         return result_block("edit person", f"Unknown field `{field}`.")
-    cur = conn.cursor()
-    cur.execute(f"UPDATE the_squirrel.persons SET {field} = %s, updated_at = now() WHERE id = %s",
-                (value, person_id))
-    if cur.rowcount == 0:
-        conn.rollback()
+    if not persons_db.update_person_field(conn, person_id, field, value):
         return result_block("edit person", f"No person with id={person_id}")
-    conn.commit()
     return result_block("edit person", f"✓ person {person_id} → `{field}` = `{value}`")

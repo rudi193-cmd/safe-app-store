@@ -194,6 +194,46 @@ def get_family_tree(conn, person_id: int) -> Dict[str, Any]:
     return {"person": person, "relationships": [dict(zip(rcols, r)) for r in rows]}
 
 
+EDITABLE_FIELDS = frozenset({"birth_date", "death_date", "birth_place",
+                             "death_place", "burial_place", "bio"})
+
+
+def update_person_field(conn, person_id: int, field: str, value: str) -> bool:
+    """Update one editable field. Returns False if no such person."""
+    _gate.authorized("write")
+    if field not in EDITABLE_FIELDS:
+        raise ValueError(f"Field '{field}' is not editable. Allowed: {sorted(EDITABLE_FIELDS)}")
+    cur = conn.cursor()
+    # field is whitelist-checked above; values are parameterized.
+    cur.execute(f"UPDATE persons SET {field} = %s, updated_at = CURRENT_TIMESTAMP "
+                f"WHERE id = %s AND is_deleted = FALSE", (value, person_id))
+    if cur.rowcount == 0:
+        conn.rollback()
+        return False
+    conn.commit()
+    return True
+
+
+def all_persons(conn) -> List[Dict[str, Any]]:
+    """Every live person — the GEDCOM export walk."""
+    _gate.authorized("read")
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM persons WHERE is_deleted = FALSE ORDER BY id")
+    rows = cur.fetchall()
+    cols = [d[0] for d in cur.description]
+    return [dict(zip(cols, r)) for r in rows]
+
+
+def all_relationships(conn) -> List[Dict[str, Any]]:
+    """Every relationship — the GEDCOM export walk."""
+    _gate.authorized("read")
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM relationships ORDER BY id")
+    rows = cur.fetchall()
+    cols = [d[0] for d in cur.description]
+    return [dict(zip(cols, r)) for r in rows]
+
+
 def delete_marked_persons(conn, memorial_mark: str) -> int:
     """Hard-delete persons whose memorial_id equals the mark, plus their
     relationships, lattice cells, and sources. Exists for demo teardown —

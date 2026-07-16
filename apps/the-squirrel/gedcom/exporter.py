@@ -30,15 +30,9 @@ def build_gedcom_lines(persons: List[Dict], relationships: List[Dict]) -> List[s
     return lines
 
 def export(conn, output_path: Path) -> int:
-    import sap.core.gate as _gate
-    _gate.authorized("read")
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM the_squirrel.persons WHERE is_deleted = FALSE")
-    rows = cur.fetchall(); cols = [d[0] for d in cur.description]
-    persons = [dict(zip(cols, r)) for r in rows]
-    cur.execute("SELECT * FROM the_squirrel.relationships")
-    rows = cur.fetchall(); cols = [d[0] for d in cur.description]
-    rels = [dict(zip(cols, r)) for r in rows]
+    import db.persons as persons_db
+    persons = persons_db.all_persons(conn)
+    rels = persons_db.all_relationships(conn)
     lines = build_gedcom_lines(persons, rels)
     output_path.write_text("\n".join(lines), encoding="utf-8")
     return len(persons)

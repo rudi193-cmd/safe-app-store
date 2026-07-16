@@ -15,16 +15,8 @@ class Binder:
         self.conn = conn
 
     def bind(self, fragment_id: int, person_id: int) -> Dict[str, Any]:
-        cur = self.conn.cursor()
-        cur.execute("""
-            UPDATE the_squirrel.fragments
-            SET binder_synced_at = %s
-            WHERE id = %s AND is_deleted = 0
-        """, (datetime.utcnow(), fragment_id))
-        if cur.rowcount == 0:
-            self.conn.rollback()
+        if not fragments_db.mark_synced(self.conn, fragment_id):
             raise ValueError(f"Fragment {fragment_id} not found or already deleted")
-        self.conn.commit()
         return {"fragment_id": fragment_id, "person_id": person_id,
                 "synced_at": datetime.utcnow().isoformat()}
 
