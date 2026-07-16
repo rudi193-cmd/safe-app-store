@@ -81,6 +81,8 @@ def _dispatch(cmd, state: AppState) -> str:
         return search.cmd_search(cmd.args)
     if name == "receipts":
         return control.cmd_receipts(cmd.args)
+    if name == "gaps":
+        return control.cmd_gaps(cmd.args)
     if name == "unknown":
         return result_block("Unknown command", f"No handler for: `{cmd.raw}`")
 

@@ -41,11 +41,14 @@ def cmd_link(conn, args: list) -> str:
     name_a, rel, kind, name_b = parsed
     if rel not in VALID_RELATIONSHIP_TYPES:
         return result_block("link", f"Invalid relationship `{rel}`. Use: {', '.join(sorted(VALID_RELATIONSHIP_TYPES))}")
+    from sap.core import gaps
     pa = persons_db.search_persons(conn, name_a)
     pb = persons_db.search_persons(conn, name_b)
     if not pa:
+        gaps.log("unknown_person", name_a, detail=f"referenced in link → {name_b}")
         return result_block("link", f"Person not found: `{name_a}`")
     if not pb:
+        gaps.log("unknown_person", name_b, detail=f"referenced in link {name_a} →")
         return result_block("link", f"Person not found: `{name_b}`")
     try:
         add_relationship(conn, pa[0]["id"], pb[0]["id"], rel, parent_kind=kind)
@@ -60,6 +63,8 @@ def cmd_show_kin(conn, args: list) -> str:
         return result_block("show kin", "Usage: `@squirrel: show kin Name`")
     matches = persons_db.search_persons(conn, " ".join(args))
     if not matches:
+        from sap.core import gaps
+        gaps.log("unknown_person", " ".join(args), detail="asked in show kin")
         return result_block("show kin", f"No person found matching `{' '.join(args)}`")
     person = matches[0]
     tree = persons_db.get_family_tree(conn, person["id"])

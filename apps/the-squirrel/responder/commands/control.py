@@ -32,6 +32,41 @@ def cmd_skin(state: AppState, args: list) -> str:
     return result_block("Skin", f"Skin → `{skin}` — reload the page to apply.")
 
 
+def _gap_count():
+    try:
+        from sap.core import gaps
+        return gaps.count_open()
+    except Exception:
+        return "?"
+
+
+def cmd_gaps(args: list) -> str:
+    """The acknowledged-unknowns ledger — what the tree is still missing.
+
+    `@squirrel: gaps [N]` — open gaps, most-asked first.
+    `@squirrel: gaps resolve <id>` — mark one settled.
+    """
+    from sap.core import gaps as gaps_log
+    if args and args[0].lower() == "resolve":
+        if len(args) < 2:
+            return result_block("gaps", "Usage: `@squirrel: gaps resolve <id>`")
+        ok = gaps_log.resolve(args[1])
+        return result_block("gaps", f"✓ Gap `{args[1]}` resolved." if ok
+                            else f"No open gap with id `{args[1]}`.")
+    limit = int(args[0]) if args and args[0].isdigit() else 25
+    rows = gaps_log.list_open(limit=limit)
+    if not rows:
+        return result_block("gaps", "_No open gaps — the tree knows what it knows._")
+    _label = {"unknown_person": "unknown person", "ambiguous_bind": "ambiguous bind"}
+    lines = ["| id | kind | what's missing | asked |", "|---|---|---|---|"]
+    for g in rows:
+        subj = (g["subject"] or "").replace("|", "\\|")[:50]
+        lines.append(f"| `{g['id']}` | {_label.get(g['kind'], g['kind'])} | "
+                     f"{subj} | {g['asked_count']}× |")
+    lines.append(f"\n_{len(rows)} open · resolve with `@squirrel: gaps resolve <id>`_")
+    return result_block("gaps", "\n".join(lines))
+
+
 def cmd_receipts(args: list) -> str:
     """Self-audit: the local tool-call trail, newest first.
 
@@ -97,6 +132,7 @@ def cmd_status(conn, state: AppState) -> str:
         f"sources: {source_note}",
         f"vault:   {vault_note}",
         f"jeles:   {jeles_note}",
+        f"gaps:    {_gap_count()} open (`@squirrel: gaps`)",
         f"port:    8425",
     ]
     return result_block("status", "\n".join(lines))

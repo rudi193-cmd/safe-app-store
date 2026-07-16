@@ -34,6 +34,10 @@ def cmd_add_person(conn, args: list) -> str:
         lines.append(f"  b. {person['birth_date']}")
     if person.get("birth_place"):
         lines.append(f"  {person['birth_place']}")
+    # Loop-closer: adding the person resolves any open gap that named them.
+    from sap.core import gaps
+    if gaps.resolve_subject("unknown_person", person["full_name"]):
+        lines.append(f"  ↳ resolved an open gap that was looking for them.")
     return result_block("add person", "\n".join(lines))
 
 

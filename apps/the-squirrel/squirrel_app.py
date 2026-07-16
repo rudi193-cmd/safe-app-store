@@ -41,6 +41,7 @@ WELCOME_BLOCK = """# The Squirrel
 - `@squirrel: find sources Iowa 1880s`
 - `@squirrel: mode listening` — invite the LLM in
 - `@squirrel: status`
+- `@squirrel: gaps` — the branches you haven't reconnected yet
 - `@squirrel: receipts` — the tool-call trail (who touched what)
 - `@squirrel: skin 80s`
 
