@@ -10,6 +10,9 @@ on:
       - "apps/ask-jeles/**"
       - ".github/workflows/ask-jeles.yml"
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}

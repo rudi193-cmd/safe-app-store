@@ -10,6 +10,9 @@ on:
       - "apps/private-ledger/**"
       - ".github/workflows/private-ledger.yml"
 
+permissions:
+  contents: read
+
 jobs:
   smoke:
     runs-on: ${{ matrix.os }}

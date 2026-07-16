@@ -10,6 +10,9 @@ on:
       - "apps/source-trail/**"
       - ".github/workflows/source-trail.yml"
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}

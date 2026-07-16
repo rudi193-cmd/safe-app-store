@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # Every app's requirements.txt / pyproject.toml — the pip-audit sweep that
+  # found the starlette/pillow CVEs, automated.
+  - package-ecosystem: "pip"
+    directories: ["/apps/*"]
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
