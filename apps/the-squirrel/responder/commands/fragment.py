@@ -54,12 +54,17 @@ def cmd_bind_fragment(conn, args: list) -> str:
             return result_block("bind fragment", f"Expected numeric fragment ID before `{sep}`")
         person_query = parts[1].strip()
         import db.persons as persons_db
-        matches = persons_db.search_persons(conn, person_query)
-        if not matches:
+        status, payload = persons_db.resolve_person(conn, person_query)
+        if status == "none":
             return result_block("bind fragment", f"No person found: `{person_query}`")
+        if status == "ambiguous":
+            from responder.formatter import did_you_mean
+            return result_block("bind fragment", did_you_mean(person_query, payload)
+                                + "\n\n_Then bind by the exact name._")
+        person = payload
         from binder import Binder
-        Binder(conn).bind(frag_id, matches[0]["id"])
-        return result_block("bind fragment", f"✓ Fragment {frag_id} bound to **{matches[0]['full_name']}**")
+        Binder(conn).bind(frag_id, person["id"])
+        return result_block("bind fragment", f"✓ Fragment {frag_id} bound to **{person['full_name']}**")
     elif args and args[0] == "all":
         from binder import Binder
         r = Binder(conn).auto_bind()

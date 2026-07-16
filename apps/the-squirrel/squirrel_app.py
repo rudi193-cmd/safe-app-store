@@ -296,13 +296,22 @@ def _render_tree(conn, name: str = "") -> str:
                 '<div class="empty-state"><p>Enter a name to view their ancestors.</p></div>')
         return _html_page("Tree", "/tree", body)
 
-    matches = persons_db.search_persons(conn, name)
-    if not matches:
+    status, payload = persons_db.resolve_person(conn, name)
+    if status == "none":
         body = (f'<h2 class="page-title">Pedigree Tree</h2>' + search_form +
                 f'<div class="empty-state"><p>No person found matching "{_html.escape(name)}".</p></div>')
         return _html_page("Tree", "/tree", body)
+    if status == "ambiguous":
+        opts = "".join(
+            f'<li><a href="/person/{p["id"]}">{_html.escape(p["full_name"])}</a>'
+            f' <span class="dag-dates">{_html.escape(_fmt_dates(p))}</span></li>'
+            for p in payload[:20])
+        body = (f'<h2 class="page-title">Pedigree Tree</h2>' + search_form +
+                f'<div class="empty-state"><p>"{_html.escape(name)}" matches several '
+                f'people — pick one:</p><ul>{opts}</ul></div>')
+        return _html_page("Tree", "/tree", body)
 
-    subject = matches[0]
+    subject = payload
     ancestors = build_ancestors_dict(conn, subject["id"], depth=3)
 
     def _dag(n: int) -> str:

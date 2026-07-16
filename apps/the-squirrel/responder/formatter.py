@@ -8,6 +8,22 @@ def acorn_card(source: str, title: str, body: str, url: str = None) -> str:
     link = f"\n→ [{url}]({url})" if url else ""
     return f"**[{source.upper()}]** {title}\n{body}{link}\n"
 
+
+def did_you_mean(query: str, candidates: list) -> str:
+    """The ambiguity block (B-005): several people match, so name the one you
+    mean by id instead of the app guessing."""
+    lines = [f"`{query}` matches several people — say which by id:"]
+    for p in candidates[:10]:
+        dates = []
+        if p.get("birth_date"):  dates.append(f"b.{p['birth_date']}")
+        if p.get("death_date"):  dates.append(f"d.{p['death_date']}")
+        tail = f" ({', '.join(dates)})" if dates else ""
+        place = f" — {p['birth_place']}" if p.get("birth_place") else ""
+        lines.append(f"- **{p['full_name']}** (id={p['id']}){tail}{place}")
+    if len(candidates) > 10:
+        lines.append(f"…and {len(candidates) - 10} more.")
+    return "\n".join(lines)
+
 def pedigree_chart(subject_name: str, ancestors: dict) -> str:
     def fmt(n):
         p = ancestors.get(n)

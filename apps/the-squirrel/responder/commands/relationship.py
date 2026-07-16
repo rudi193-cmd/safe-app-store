@@ -42,31 +42,40 @@ def cmd_link(conn, args: list) -> str:
     if rel not in VALID_RELATIONSHIP_TYPES:
         return result_block("link", f"Invalid relationship `{rel}`. Use: {', '.join(sorted(VALID_RELATIONSHIP_TYPES))}")
     from sap.core import gaps
-    pa = persons_db.search_persons(conn, name_a)
-    pb = persons_db.search_persons(conn, name_b)
-    if not pa:
-        gaps.log("unknown_person", name_a, detail=f"referenced in link → {name_b}")
-        return result_block("link", f"Person not found: `{name_a}`")
-    if not pb:
-        gaps.log("unknown_person", name_b, detail=f"referenced in link {name_a} →")
-        return result_block("link", f"Person not found: `{name_b}`")
+    from responder.formatter import did_you_mean
+    resolved = {}
+    for who, tail in ((name_a, f"referenced in link → {name_b}"),
+                      (name_b, f"referenced in link {name_a} →")):
+        status, payload = persons_db.resolve_person(conn, who)
+        if status == "none":
+            gaps.log("unknown_person", who, detail=tail)
+            return result_block("link", f"Person not found: `{who}`")
+        if status == "ambiguous":
+            return result_block("link", did_you_mean(who, payload)
+                                + "\n\n_Then link by the exact name._")
+        resolved[who] = payload
+    a, b = resolved[name_a], resolved[name_b]
     try:
-        add_relationship(conn, pa[0]["id"], pb[0]["id"], rel, parent_kind=kind)
+        add_relationship(conn, a["id"], b["id"], rel, parent_kind=kind)
     except ValueError as e:
         return result_block("link", f"✗ {e}")
     label = f"{kind} {rel}" if kind else rel
-    return result_block("link", f"✓ **{pa[0]['full_name']}** → `{label}` → **{pb[0]['full_name']}**")
+    return result_block("link", f"✓ **{a['full_name']}** → `{label}` → **{b['full_name']}**")
 
 
 def cmd_show_kin(conn, args: list) -> str:
     if not args:
         return result_block("show kin", "Usage: `@squirrel: show kin Name`")
-    matches = persons_db.search_persons(conn, " ".join(args))
-    if not matches:
+    query = " ".join(args)
+    status, payload = persons_db.resolve_person(conn, query)
+    if status == "none":
         from sap.core import gaps
-        gaps.log("unknown_person", " ".join(args), detail="asked in show kin")
-        return result_block("show kin", f"No person found matching `{' '.join(args)}`")
-    person = matches[0]
+        gaps.log("unknown_person", query, detail="asked in show kin")
+        return result_block("show kin", f"No person found matching `{query}`")
+    if status == "ambiguous":
+        from responder.formatter import did_you_mean
+        return result_block("show kin", did_you_mean(query, payload))
+    person = payload
     tree = persons_db.get_family_tree(conn, person["id"])
     rels = tree["relationships"]
     if not rels:

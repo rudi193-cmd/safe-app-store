@@ -89,12 +89,16 @@ def render_pedigree(subject_name: str, ancestors: Dict) -> str:
 def cmd_tree(conn, args: list) -> str:
     if not args:
         return result_block("tree", "Usage: `@squirrel: tree Name`")
-    matches = persons_db.search_persons(conn, " ".join(args))
-    if not matches:
+    query = " ".join(args)
+    status, payload = persons_db.resolve_person(conn, query)
+    if status == "none":
         from sap.core import gaps
-        gaps.log("unknown_person", " ".join(args), detail="asked in tree")
-        return result_block("tree", f"No person found matching `{' '.join(args)}`")
-    person = matches[0]
+        gaps.log("unknown_person", query, detail="asked in tree")
+        return result_block("tree", f"No person found matching `{query}`")
+    if status == "ambiguous":
+        from responder.formatter import did_you_mean
+        return result_block("tree", did_you_mean(query, payload))
+    person = payload
     ancestors = build_ancestors_dict(conn, person["id"], depth=3)
     chart = render_pedigree(person["full_name"], ancestors)
     gen_count = max((k.bit_length() - 1 for k in ancestors), default=0)

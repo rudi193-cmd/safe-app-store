@@ -45,10 +45,15 @@ def cmd_show_person(conn, args: list) -> str:
     if not args:
         return result_block("show person", "Usage: `@squirrel: show person Name`")
     query = " ".join(args)
-    matches = persons_db.search_persons(conn, query)
-    if not matches:
+    status, payload = persons_db.resolve_person(conn, query)
+    if status == "none":
+        from sap.core import gaps
+        gaps.log("unknown_person", query, detail="asked in show person")
         return result_block("show person", f"No person found matching `{query}`")
-    p = matches[0]
+    if status == "ambiguous":
+        from responder.formatter import did_you_mean
+        return result_block("show person", did_you_mean(query, payload))
+    p = payload
     lines = [f"**{p['full_name']}** (id={p['id']})"]
     if p.get("birth_date"):  lines.append(f"  Born:   {p['birth_date']}")
     if p.get("birth_place"): lines.append(f"  Place:  {p['birth_place']}")

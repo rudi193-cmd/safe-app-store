@@ -23,15 +23,6 @@ P1 fix sketches was refined by that pass. See commit history.
 heuristic only when it's absent.
 **Status:** open.
 
-### B-005 · Name search is prefix-fragile — P2
-`search_persons` is a substring `LIKE`, so "Albert Einstein" also matches
-"Hans Albert Einstein". Commands acting on `matches[0]` (link, tree, show kin)
-disambiguate only by alphabetical order — correct by luck, not by rule.
-**Fix sketch:** prefer an exact (case-insensitive) full_name match before the
-substring fallback; on >1 exact match, surface the ambiguity.
-**Status:** open. (The B-008 fix added the same margin-of-confidence idea to
-the binder; the same principle applies here.)
-
 ### B-007 · Stash page renders 100 of N with no indication — P2
 `_render_stash` does `all_frags[:100]` but the subtitle prints the full count:
 the page reads "1000 fragments" and shows 100 rows, no "showing 100 of 1000."
@@ -127,6 +118,24 @@ every relationship type (kills B-003's double-count), and
 `build_ancestors_dict` guarded path-locally.
 **Regression:** `tests/test_cycles.py` (self, parent-side, child-side, mixed,
 grandparent, pedigree-collapse-preserved, survives-preexisting-cycle).
+
+### B-005 · Name search is prefix-fragile — P2 — FIXED
+**Found:** Einstein drive. **Fixed:** `resolve_person` confidence floor.
+`search_persons` is a substring `LIKE`, so "Albert Einstein" also matched
+"Hans Albert Einstein", and every command acting on `matches[0]` (link, tree,
+show kin, show person, bind, the web tree) picked by alphabetical luck.
+**Fix:** `db.persons.resolve_person(conn, query)` returns
+`("found", person)` / `("ambiguous", [persons])` / `("none", None)` —
+borrowing ask-jeles's MIN_ASK_SCORE idea. An exact (case-insensitive)
+full_name match beats a substring match, so "Albert Einstein" resolves
+cleanly; a lone substring match is confident; multiple equally-good matches
+surface a "did you mean" list (`formatter.did_you_mean`) instead of a guess,
+and identical names (father/son "Oscar Mann") are ambiguous, never picked by
+sort order. All six call sites converted; the web tree renders the
+disambiguation too.
+**Regression:** `tests/test_resolve.py` (exact-beats-substring, lone-substring
+confident, multi-substring ambiguous, identical-names ambiguous, tree draws on
+exact / refuses on ambiguous, link refuses an ambiguous endpoint).
 
 ### B-001 · Reverse relationship rows not inverted — P1 — FIXED
 **Found:** Einstein drive. **Fixed:** commit e4f59ca. A row `(child, parent,

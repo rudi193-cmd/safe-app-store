@@ -351,3 +351,33 @@ def search_persons(conn, name_query: str) -> List[Dict[str, Any]]:
     rows = cur.fetchall()
     cols = [d[0] for d in cur.description]
     return [dict(zip(cols, r)) for r in rows]
+
+
+def resolve_person(conn, query: str):
+    """Resolve a name to a single person, or refuse to guess (B-005).
+
+    The confidence floor, borrowed from ask-jeles's MIN_ASK_SCORE: a command
+    that needs ONE person may only act on a confident resolution, never on the
+    first of several equally-good substring hits picked by alphabetical luck.
+
+    Returns one of:
+      ("found", person)          exactly one confident match
+      ("ambiguous", [persons])   several equally-good matches — caller surfaces
+      ("none", None)             nothing matched
+
+    Precedence: an exact (case-insensitive) full_name match beats a substring
+    match, so "Albert Einstein" resolves to the person named exactly that even
+    when "Hans Albert Einstein" also contains it. A lone substring match is
+    confident; multiple substring matches with no exact are ambiguous."""
+    matches = search_persons(conn, query)
+    if not matches:
+        return ("none", None)
+    q = " ".join(query.split()).strip().lower()
+    exact = [p for p in matches if " ".join(p["full_name"].split()).lower() == q]
+    if len(exact) == 1:
+        return ("found", exact[0])
+    if len(exact) > 1:
+        return ("ambiguous", exact)
+    if len(matches) == 1:
+        return ("found", matches[0])
+    return ("ambiguous", matches)
