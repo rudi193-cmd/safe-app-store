@@ -7,8 +7,11 @@ def build_ancestors_dict(conn, person_id: int, depth: int = 3) -> Dict[int, Dict
     """Build Ahnentafel-numbered ancestor dict. 1=subject, 2=father, 3=mother, 4-7=grandparents."""
     result = {}
 
-    def _recurse(pid, ahnentafel, gen):
-        if gen > depth or ahnentafel > 127:
+    def _recurse(pid, ahnentafel, gen, path):
+        # path is PATH-LOCAL, not global: a person legitimately appears in two
+        # slots (same grandfather on both sides), so we only refuse to revisit
+        # an id already on the CURRENT ancestry chain — that's a cycle.
+        if gen > depth or ahnentafel > 127 or pid in path:
             return
         tree = persons_db.get_family_tree(conn, pid)
         if tree["person"] is None:
@@ -20,9 +23,9 @@ def build_ancestors_dict(conn, person_id: int, depth: int = 3) -> Dict[int, Dict
         parents = [r for r in tree["relationships"]
                    if r["relationship_type"] == "parent" and r["person_id"] == pid]
         for i, rel in enumerate(parents[:2]):
-            _recurse(rel["related_person_id"], ahnentafel * 2 + i, gen + 1)
+            _recurse(rel["related_person_id"], ahnentafel * 2 + i, gen + 1, path | {pid})
 
-    _recurse(person_id, 1, 1)
+    _recurse(person_id, 1, 1, frozenset())
     return result
 
 
