@@ -50,6 +50,34 @@ command directly to the responder and treat the file as a render log, so
 correctness never depends on winning a stat race.
 **Status:** open. Design-level — the single meatiest find so far.
 
+### B-008 · `bind fragment all` silently processes only the first 200 — P1
+**Found:** 2026-07-16, 1000-person bulk-import drive.
+`Binder.auto_bind` reads `get_unsynced_fragments(limit=200)` and calls itself
+"bind **all**." With 1000 unsynced fragments it examines 200 and never looks
+at the other 800 — and reports `✓ Auto-bound N fragment(s)` with no hint that
+800 were skipped. Observed: 3 fragments named "Oak Acorn" existed; only the
+1 within the first 200 got bound, the other 2 were invisible to the run.
+**Why it matters:** the user reads "Auto-bound 1" and believes the stash is
+reconciled; 800 fragments silently sit unexamined. Re-running doesn't
+obviously help — same first-200 window unless earlier ones got synced out.
+Also O(batch × persons) with no index, but the cap hides the perf cost rather
+than fixing it.
+**Repro:** import 1000 fragments, add one matching person, `bind fragment all`
+→ "Auto-bound 1", 999 still unsynced.
+**Fix sketch:** page through ALL unsynced fragments (loop until the query is
+dry), or state the bound explicitly: "examined 200 of 1000 — run again for
+the next batch." Never call a bounded pass "all" silently.
+**Status:** open.
+
+### B-007 · Stash page renders 100 of N with no indication — P2
+**Found:** 2026-07-16, bulk-import drive.
+`_render_stash` does `all_frags[:100]` but the subtitle prints the full count:
+the page reads "1000 fragments" and shows 100 rows, no "showing 100 of 1000."
+**Why it matters:** a user scrolls, sees 100, assumes that's everything.
+Same silent-truncation class as B-008, cosmetic tier.
+**Fix sketch:** show "100 of 1000 — refine with a filter" or paginate.
+**Status:** open.
+
 ### B-002 · No ancestor cycle detection — P1
 **Found:** 2026-07-16, absurd-census drive.
 A person may be their own ancestor. `link Ratatosk → parent → Ratatosk`
@@ -129,5 +157,14 @@ order can't mask it).
   with "Person not found", creates no phantom row.
 - **Gate scope (willow-mcp drive)** — out-of-scope store write and
   unpermitted `session_enter` both denied and receipted.
+- **1000-person GEDCOM import** — 1000 individuals parsed and stored as
+  fragments in ~6s, no error, DB intact. Import scales fine; it's the
+  binder and stash *rendering* of that volume that cap silently (B-007/008).
+- **Parser: case + whitespace** — `@SQUIRREL:` with runs of spaces parses;
+  nested `@squirrel: @squirrel:` refuses rather than birthing a person.
+- **Control-command injection** — `skin ../../etc/passwd`, `skin '; DROP…`,
+  `mode banana` all whitelist-rejected; no config written.
+- **GEDCOM round-trip** — re-importing the hostile export brings the
+  `DROP TABLE` / `<script>` names back as fragments, not persons; DB intact.
 
 ΔΣ=42
