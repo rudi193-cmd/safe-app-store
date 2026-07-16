@@ -247,12 +247,17 @@ def _render_person(conn, person_id: int) -> str:
     if p.get("bio"):
         fields += f"<dt>Bio</dt><dd>{_html.escape(p['bio'])}</dd>"
     kin_items = ""
+    _INVERT = {"parent": "child", "child": "parent"}
     for r in tree["relationships"]:
         rid = r.get("related_person_id") or r.get("person_id")
-        if rid == person_id:
-            rid = r.get("person_id")
-        rname = r.get("related_name", "Unknown")
         rtype = r.get("relationship_type", "")
+        if rid == person_id:
+            # Reverse row: the OTHER person points at the subject, so the
+            # label inverts — (Hans → parent → Albert) shows on Albert's
+            # page as "child: Hans", not "parent: Hans".
+            rid = r.get("person_id")
+            rtype = _INVERT.get(rtype, rtype)
+        rname = r.get("related_name", "Unknown")
         kin_items += (f'<div class="person-kin-item">'
                       f'<div class="person-kin-rel">{_html.escape(rtype)}</div>'
                       f'<div class="person-kin-name"><a href="/person/{rid}">{_html.escape(rname)}</a></div>'

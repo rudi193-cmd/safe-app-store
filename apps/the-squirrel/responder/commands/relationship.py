@@ -48,6 +48,10 @@ def cmd_show_kin(conn, args: list) -> str:
     if not rels:
         return result_block("kin", f"**{person['full_name']}** — no relationships on record.")
     lines = [f"**{person['full_name']}** relationships:"]
+    _invert = {"parent": "child", "child": "parent"}
     for r in rels:
-        lines.append(f"  {r['relationship_type']}: {r['related_name']}")
+        rtype = r["relationship_type"]
+        if r.get("related_person_id") == person["id"]:
+            rtype = _invert.get(rtype, rtype)  # reverse row: label inverts
+        lines.append(f"  {rtype}: {r['related_name']}")
     return result_block("kin", "\n".join(lines))
