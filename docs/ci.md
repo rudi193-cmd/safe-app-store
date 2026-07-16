@@ -5,9 +5,11 @@ their own ceilings on top.
 
 ## Tier 1 — the store floor (`.github/workflows/store-ci.yml`)
 
-Runs on every push to `master` and every pull request, no path filters.
-Single OS (ubuntu), single Python (3.12) — the floor is about repo integrity,
-not portability.
+Runs on every push to `master` and every pull request, no path filters —
+plus a daily scheduled run (and `workflow_dispatch`) to catch drift no push
+would surface: dependency point releases, runner-image changes, apps that go
+quiet for weeks. Single OS (ubuntu), single Python (3.12) — the floor is
+about repo integrity, not portability.
 
 | Gate | Tool | What it proves |
 |------|------|----------------|
