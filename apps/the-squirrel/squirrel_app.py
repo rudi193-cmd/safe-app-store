@@ -257,6 +257,9 @@ def _render_person(conn, person_id: int) -> str:
             # page as "child: Hans", not "parent: Hans".
             rid = r.get("person_id")
             rtype = _INVERT.get(rtype, rtype)
+        kind = r.get("parent_kind")
+        if kind and rtype in ("parent", "child"):
+            rtype = f"{kind} {rtype}"
         rname = r.get("related_name", "Unknown")
         kin_items += (f'<div class="person-kin-item">'
                       f'<div class="person-kin-rel">{_html.escape(rtype)}</div>'

@@ -3,15 +3,16 @@ from responder.commands.relationship import parse_link_args
 def test_parse_arrow_unicode():
     result = parse_link_args(["Oscar", "Mann", "→", "parent", "→", "Carl", "Mann"])
     assert result is not None
-    a, rel, b = result
+    a, rel, kind, b = result
     assert a == "Oscar Mann"
     assert rel == "parent"
+    assert kind is None
     assert b == "Carl Mann"
 
 def test_parse_arrow_ascii():
     result = parse_link_args(["Oscar", "Mann", "->", "spouse", "->", "Mabel", "Jones"])
     assert result is not None
-    a, rel, b = result
+    a, rel, kind, b = result
     assert rel == "spouse"
     assert b == "Mabel Jones"
 

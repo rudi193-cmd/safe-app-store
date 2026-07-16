@@ -15,43 +15,6 @@ P1 fix sketches was refined by that pass. See commit history.
 
 ## Open
 
-### B-011 · Pedigree silently truncates to 2 parents — P2
-**Found:** 2026-07-16, cross-parentage drive (biological vs. raising parent).
-A person with more than two `parent` links renders only the first two in the
-pedigree, with no indication the others exist. Steve Jobs has four parent
-links (bio: Jandali + Schieble; adoptive: Paul + Clara Jobs) — the tree shows
-only Jandali + Schieble and drops the parents who *raised* him. Augustus loses
-Julius Caesar (the adoptive father who made him emperor); Nero loses Claudius.
-**Why it matters:** `build_ancestors_dict` takes `parents[:2]` because an
-Ahnentafel pedigree structurally has exactly two parent slots. But insertion
-order decides which two survive, and the raising/adoptive parents are almost
-always linked *after* the biological ones — so the default silently favors
-blood over the socially-real family, in an app whose whole pitch is reuniting
-the branches everyone forgot. `show kin` correctly lists all four; only the
-pedigree lies. The dropped parents aren't even in the tree's person count.
-**Repro:** give one person 3–4 `parent` links, `tree <name>` → only 2 shown,
-no "2 of 4" note.
-**Fix sketch:** at minimum, annotate ("+2 more parents — see kin"); better,
-let the pedigree show alternate parent sets or pick by an explicit primary
-flag rather than insertion order. Depends on B-012.
-**Status:** open.
-
-### B-012 · No biological vs. adoptive/foster parentage distinction — P3 (design)
-**Found:** 2026-07-16, cross-parentage drive.
-The relationship model has one flat `parent` type. "Fathered by one, raised by
-another" — adoption, foster, step, illegitimacy — can only be expressed as
-multiple undifferentiated `parent` links. GEDCOM's `FAMC`/`PEDI` linkage
-(`birth` | `adopted` | `foster`) has no representation, so import can't capture
-it and export can't emit it.
-**Why it matters:** for a genealogy app that markets itself on the branches
-"everyone forgot about on purpose," adoptive and illegitimate parentage is the
-core case, not an edge. It's also the root of B-011 — with a linkage subtype
-the pedigree could show the primary line and mark the rest.
-**Fix sketch:** add a nullable `parent_kind` (`birth`/`adopted`/`foster`/
-`step`) to the parent relationship; thread it through link parsing, kin
-display, the pedigree, and GEDCOM import/export `PEDI`.
-**Status:** open — design change, not a defect.
-
 ### B-004 · `stash` person-name heuristic is naive — P2
 `cmd_stash` takes the first two words of the fragment text as `person_name`.
 "Lieserl Einstein b. Jan 1902…" works; "The quilt is hers" files under person
@@ -96,6 +59,22 @@ callers.
 ---
 
 ## Fixed
+
+### B-011 / B-012 · Cross-parentage: no linkage subtype; pedigree truncated silently — P2/P3 — FIXED
+**Found:** cross-parentage drive (Roman adoptive emperors, Steve Jobs, Moses).
+**Fixed:** `parent_kind` linkage feature. The relationship model now carries a
+subtype — `birth` / `adopted` / `foster` / `step` (None = unspecified) — added
+to the schema and migrated onto existing tables. Entered via the link grammar
+(`link Steve Jobs → adopted parent → Paul Jobs`), shown in `show kin` and the
+person page, and exported to GEDCOM as `FAMC` + `PEDI` (the exporter emits real
+`FAM` records now — it ignored relationships entirely before). B-011's silent
+truncation is closed: the pedigree fills its two slots birth-first (by kind
+priority, not insertion order) and `tree` NAMES any further parents with their
+kind instead of dropping them. Live: Steve Jobs shows Jandali/Schieble in the
+slots, "Paul Jobs (adopted), Clara Jobs (adopted)" noted below, and exports two
+FAM records with `PEDI birth` / `PEDI adopted`.
+**Regression:** `tests/test_parent_kind.py` (10 tests: storage/validation,
+grammar, kin, pedigree-birth-preferred-and-names-rest, GEDCOM PEDI).
 
 ### B-008 · `bind fragment all` silently processed only the first 200 — P1 — FIXED
 **Found:** 1000-person bulk-import drive. **Fixed:** binder rework + schema
