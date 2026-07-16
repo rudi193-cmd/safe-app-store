@@ -40,6 +40,12 @@ jobs:
       fail-fast: false
       matrix:
         app: [civics-check, law-gazelle, the-squirrel, utety-chat]
+        include:
+          # utety-chat's TUI tests boot the real Textual app; textual is an
+          # optional runtime dep (the server runs without it), so it lives
+          # here, not in the app's requirements.txt.
+          - app: utety-chat
+            test-deps: textual
 
     steps:
       - uses: actions/checkout@v4
@@ -53,7 +59,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r apps/${{ matrix.app }}/requirements.txt
-          pip install pytest
+          pip install pytest ${{ matrix.test-deps }}
 
       - name: Run tests
         working-directory: apps/${{ matrix.app }}

@@ -26,7 +26,11 @@ changes.
 ## Where a new app's tests go
 
 - Tests exist, plain `requirements.txt`, no OS-specific surface → add the app
-  to the `app-tests` matrix in `store-ci.yml`.
+  to the `app-tests` matrix in `store-ci.yml`. If the tests need a dep the app
+  itself treats as optional (utety-chat's TUI tests need `textual`), declare it
+  as `test-deps` in a matrix `include` — don't add it to the app's
+  requirements. And verify the suite in a *clean* venv first: a shared local
+  venv can mask a missing dependency that a fresh CI runner will catch.
 - App needs an OS matrix, editable installs, or heavier setup → give it its
   own path-filtered workflow (copy `story-timeline.yml` as the template).
 - No tests yet → the app is still covered by the catalog, vault-clean, and
