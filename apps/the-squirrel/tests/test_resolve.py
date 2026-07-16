@@ -63,6 +63,14 @@ def test_no_match_is_none(conn):
     assert status == "none" and payload is None
 
 
+def test_empty_query_resolves_to_none_not_everyone(conn):
+    # The review gap: an empty query must not ILIKE '%%' the whole roster.
+    _add(conn, "Someone")
+    _add(conn, "Another")
+    assert persons_db.resolve_person(conn, "") == ("none", None)
+    assert persons_db.resolve_person(conn, "   ") == ("none", None)
+
+
 def test_tree_surfaces_ambiguity_not_a_guess(conn):
     _add(conn, "Albert Einstein")
     _add(conn, "Hans Albert Einstein")

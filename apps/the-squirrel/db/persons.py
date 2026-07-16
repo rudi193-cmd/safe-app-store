@@ -369,6 +369,8 @@ def resolve_person(conn, query: str):
     match, so "Albert Einstein" resolves to the person named exactly that even
     when "Hans Albert Einstein" also contains it. A lone substring match is
     confident; multiple substring matches with no exact are ambiguous."""
+    if not (query or "").strip():
+        return ("none", None)          # an empty query matches everyone — resolve to no-one
     matches = search_persons(conn, query)
     if not matches:
         return ("none", None)

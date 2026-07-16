@@ -8,11 +8,22 @@ def parse_stash_args(args: list) -> dict:
     i = 0
 
     def take_value(j):
-        # --person / --source may be multi-word (the dispatcher space-splits,
-        # so quotes arrive as separate tokens); consume until the next --flag.
+        # A flag value is ONE token unless quoted. The dispatcher space-splits,
+        # so a quoted multi-word value arrives as several tokens — consume until
+        # the token that closes the quote. Unquoted stays a single token, so a
+        # flag can never greedily swallow the story text that follows it
+        # (e.g. `--person Oscar Mann kept letters` → person "Oscar", not the
+        # whole sentence). Quote multi-word values: `--person "Oscar Mann"`.
+        if j >= len(args):
+            return "", j
+        if args[j][:1] not in ('"', "'"):
+            return args[j], j + 1
+        q = args[j][0]
         vals = []
-        while j < len(args) and not args[j].startswith("--"):
+        while j < len(args):
             vals.append(args[j]); j += 1
+            if vals[-1].endswith(q) and (len(vals) > 1 or len(vals[-1]) > 1):
+                break
         return " ".join(vals).strip('"').strip("'"), j
 
     while i < len(args):

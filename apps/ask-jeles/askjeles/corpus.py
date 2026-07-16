@@ -76,8 +76,8 @@ def _clean(obj: Any) -> Any:
         return _CONTROL_CHARS.sub("", obj)
     if isinstance(obj, dict):
         return {k: _clean(v) for k, v in obj.items()}
-    if isinstance(obj, list):
-        return [_clean(v) for v in obj]
+    if isinstance(obj, (list, tuple)):
+        return [_clean(v) for v in obj]      # tuples json-serialize as lists anyway
     return obj
 
 
