@@ -38,11 +38,23 @@ def init_schema(conn):
             confidence       TEXT NOT NULL DEFAULT 'uncertain'
                 CHECK (confidence IN ('confirmed','likely','uncertain','speculative')),
             binder_synced_at TIMESTAMP,
+            bound_person_id  BIGINT,
             created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             is_deleted       INTEGER DEFAULT 0
         )
     """)
+    # B-008: provenance for tables created before bound_person_id existed.
+    # A fragment bound to a person must record WHICH person, not just a
+    # timestamp. Idempotent: probe the column, add it only if absent.
+    try:
+        cur.execute("SELECT bound_person_id FROM fragments LIMIT 1")
+        cur.fetchall()
+    except Exception:
+        conn.rollback()
+        cur = conn.cursor()
+        cur.execute("ALTER TABLE fragments ADD COLUMN bound_person_id BIGINT")
+        conn.commit()
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS tree_branches (
@@ -183,12 +195,14 @@ def get_unsynced_fragments(conn, limit: int = 100) -> List[Dict[str, Any]]:
     return [dict(zip(cols, r)) for r in rows]
 
 
-def mark_synced(conn, fragment_id: int) -> bool:
-    """Stamp binder_synced_at on a live fragment. False if not found."""
+def mark_bound(conn, fragment_id: int, person_id: int) -> bool:
+    """Bind a fragment to a person — records WHICH person (B-008 provenance),
+    not just the timestamp. False if the fragment isn't found."""
     _gate.authorized("write")
     cur = conn.cursor()
-    cur.execute("UPDATE fragments SET binder_synced_at = CURRENT_TIMESTAMP "
-                "WHERE id = %s AND is_deleted = 0", (fragment_id,))
+    cur.execute("UPDATE fragments SET binder_synced_at = CURRENT_TIMESTAMP, "
+                "bound_person_id = %s WHERE id = %s AND is_deleted = 0",
+                (person_id, fragment_id))
     if cur.rowcount == 0:
         conn.rollback()
         return False
