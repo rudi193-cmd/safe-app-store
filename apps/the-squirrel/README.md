@@ -18,9 +18,21 @@ Part of the Willow ecosystem. Lives in the tree. Knows where things are buried.
 
 *We help you put fruit back on the family tree.*
 
-## Install
+## Run
 
-    pip install safe-app-the-squirrel
+From the store root:
+
+    make run app=the-squirrel
+
+Or directly:
+
+    cd apps/the-squirrel
+    pip install -r requirements.txt
+    python3 squirrel_app.py        # opens at http://localhost:8425
+
+Local SQLite out of the box — no database server, no accounts, no cloud.
+Optional: a Willow Postgres backend (`SQUIRREL_BACKEND=postgres`), and a
+local Ollama for the Jeles chat modes.
 
 ---
 

@@ -16,20 +16,6 @@ Routes:
   POST /api/stories/chat   AJAX: {session_id?, message} -> {session_id, reply}
   POST /api/stories/save   AJAX: {session_id, subject} -> {saved: int}
 """
-# Bootstrap WILLOW_CORE before any db.* import fires.
-import os as _os, sys as _sys
-if not _os.environ.get("WILLOW_CORE"):
-    from pathlib import Path as _P
-    _fake = _P.home() / ".squirrel" / "willow_core"
-    _fake.mkdir(parents=True, exist_ok=True)
-    (_fake / "user_lattice.py").write_text(
-        "DOMAINS=frozenset({'biography','geography','genealogy','culture','migration'})\n"
-        "TEMPORAL_STATES=frozenset({'past','present','future','unknown'})\n"
-        "DEPTH_MIN=1;DEPTH_MAX=23;LATTICE_SIZE=23\n"
-    )
-    _os.environ["WILLOW_CORE"] = str(_fake)
-_os.environ.setdefault("SAP_AUTHORIZED", "1")
-
 import html as _html
 import json
 import threading
@@ -48,12 +34,14 @@ WELCOME_BLOCK = """# The Squirrel
 *genealogy research terminal — the file is the interface*
 
 **Commands:**
-- `@squirrel: add person Oscar Mann b.1882 d.1951 p.Iowa`
-- `@squirrel: tree Oscar Mann`
+- `@squirrel: demo load` — meet the fictional Acorn family
+- `@squirrel: add person Hazel Acorn b.1902 p.Cedar_Grove`
+- `@squirrel: tree Hazel Acorn`
 - `@squirrel: show people`
 - `@squirrel: find sources Iowa 1880s`
 - `@squirrel: mode listening` — invite the LLM in
 - `@squirrel: status`
+- `@squirrel: receipts` — the tool-call trail (who touched what)
 - `@squirrel: skin 80s`
 
 ---
@@ -104,7 +92,8 @@ def _get_model() -> str:
 
 def _nav_html(current_route: str, skin: str) -> str:
     links = [("/", "Journal"), ("/people", "People"), ("/tree", "Tree"),
-             ("/stash", "Stash"), ("/sources", "Sources"), ("/stories", "Stories")]
+             ("/stash", "Stash"), ("/sources", "Sources"), ("/stories", "Stories"),
+             ("/privacy", "Privacy")]
     items = "".join(
         f'<a href="{href}" class="nav-link{"  nav-link--active" if current_route == href else ""}">'
         f"{label}</a>"
@@ -176,9 +165,12 @@ def _html_page(title: str, current_route: str, body_html: str,
 
 def _with_db(fn, *args, current_route="/", **kwargs) -> str:
     from db import get_connection, release_connection
+    import sap.core.gate as _gate
     conn = get_connection()
     try:
-        return fn(conn, *args, **kwargs)
+        # Web views are the user browsing their own tree — the journal actor.
+        with _gate.actor("journal"):
+            return fn(conn, *args, **kwargs)
     except Exception as e:
         return _html_page("Error", current_route,
                           f'<p class="error">Database error: {e}</p>')
@@ -220,7 +212,8 @@ def _render_people(conn) -> str:
     if not people:
         body = ('<h2 class="page-title">People</h2>'
                 '<div class="empty-state"><p>No persons in the tree yet.</p>'
-                '<p>Add one: <code>@squirrel: add person Oscar Mann b.1882 d.1951 p.Iowa</code></p></div>')
+                '<p>Add one: <code>@squirrel: add person Hazel Acorn b.1902 p.Cedar_Grove</code></p>'
+                '<p>Or meet a sample family: <code>@squirrel: demo load</code></p></div>')
     else:
         cards = "".join(
             f'<a class="person-card" href="/person/{p["id"]}">'
@@ -254,12 +247,17 @@ def _render_person(conn, person_id: int) -> str:
     if p.get("bio"):
         fields += f"<dt>Bio</dt><dd>{_html.escape(p['bio'])}</dd>"
     kin_items = ""
+    _INVERT = {"parent": "child", "child": "parent"}
     for r in tree["relationships"]:
         rid = r.get("related_person_id") or r.get("person_id")
-        if rid == person_id:
-            rid = r.get("person_id")
-        rname = r.get("related_name", "Unknown")
         rtype = r.get("relationship_type", "")
+        if rid == person_id:
+            # Reverse row: the OTHER person points at the subject, so the
+            # label inverts — (Hans → parent → Albert) shows on Albert's
+            # page as "child: Hans", not "parent: Hans".
+            rid = r.get("person_id")
+            rtype = _INVERT.get(rtype, rtype)
+        rname = r.get("related_name", "Unknown")
         kin_items += (f'<div class="person-kin-item">'
                       f'<div class="person-kin-rel">{_html.escape(rtype)}</div>'
                       f'<div class="person-kin-name"><a href="/person/{rid}">{_html.escape(rname)}</a></div>'
@@ -362,17 +360,22 @@ def _render_sources(conn, q: str = "") -> str:
         f'<button type="submit">Search</button></form>'
     )
     results = sources_db.lookup_sources(conn, query=q, limit=25)
+    from sap.core import consent as _consent
+    link_ok = _consent.online()
     if not results:
         cards = '<div class="empty-state"><p>No sources found.</p></div>'
     else:
         cards = "".join(
-            f'<div class="source-card">'
-            f'<a href="{r["url"]}" target="_blank" rel="noopener">{r["name"]}</a>'
-            f'<div class="source-card-meta">'
-            f'{r.get("state","") or ""} · {r.get("provider","")}</div></div>'
+            (f'<div class="source-card">'
+             + (f'<a href="{r["url"]}" target="_blank" rel="noopener">{_html.escape(r["name"])}</a>'
+                if link_ok else f'<span>{_html.escape(r["name"])}</span>')
+             + f'<div class="source-card-meta">'
+               f'{r.get("state","") or ""} · {r.get("provider","")}</div></div>')
             for r in results
         )
     note = f"{len(results)} results" if q.strip() else "779 archives · search above"
+    if not link_ok:
+        note += ' · links hidden — <a href="/privacy">ONLINE is off</a>'
     body = (f'<h2 class="page-title">Sources</h2>'
             f'<p class="page-subtitle">{note}</p>{search_form}{cards}')
     return _html_page("Sources", "/sources", body)
@@ -448,6 +451,129 @@ def _render_stories() -> str:
     return _html_page("Stories", "/stories", body, extra_js=_STORIES_JS)
 
 
+# ── Privacy page — the passenger view ─────────────────────────────────────────
+# Four controls, per the divider: ONLINE, the AI slider, THE TRAIL, GO QUIET.
+# A view over enforcement that already exists (consent, gate, receipts) —
+# it adds no new authority, and it shows no switch that doesn't truly switch.
+
+_TRAIL_WHO = {"squirrel-journal": "You", "squirrel-jeles": "Jeles",
+              "operator-bypass": "A trusted script", "unattributed": "Something unidentified"}
+_TRAIL_WHAT = {"pii:read": "looked at the tree", "pii:write": "changed the tree",
+               "pii:export": "carried the tree out (export)",
+               "llm:chat": "spoke in chat", "llm:hint": "listened and offered a note",
+               "llm:stories": "asked a story question"}
+
+
+def _trail_sentence(r: dict) -> str:
+    who = _TRAIL_WHO.get(r["app_id"], r["app_id"])
+    tool = r["tool"]
+    if tool.startswith("cmd:"):
+        what = f"ran <code>{_html.escape(tool[4:])}</code>"
+    else:
+        what = _TRAIL_WHAT.get(tool, _html.escape(tool))
+    tail = {"denied": " — <strong>blocked</strong>",
+            "bypass": " (with a written reason)",
+            "error": " — failed"}.get(r["outcome"], "")
+    when = _html.escape(r["ts"][:16].replace("T", " ")) + " UTC"
+    return f"<li><span class=\"trail-when\">{when}</span> — {who} {what}{tail}</li>"
+
+
+def _render_privacy() -> str:
+    from sap.core import consent, receipts
+    online = consent.online()
+    wound = consent.damaged()
+    mode = _app_state.mode.value if _app_state else "journal"
+
+    online_label = "ON — links to outside archives show" if online else \
+                   "OFF — nothing points off this machine"
+    online_note = ("The Squirrel never sends your tree anywhere. Search results are "
+                   "links; nothing leaves unless <em>you</em> click one. This switch "
+                   "controls whether those links appear at all.")
+    if wound:
+        online_note = ("<strong>Settings file is damaged</strong> — everything is off "
+                       "until it's repaired. Flipping the switch writes a fresh one. ") \
+                      + online_note
+
+    mode_notes = {
+        "journal": "Jeles is out of the room. Commands only.",
+        "listening": "Jeles reads new entries and may offer a note. Read-only — the gate keeps it that way.",
+        "chat": "Jeles converses. Still read-only, still cannot export. Runs on this machine (Ollama).",
+    }
+    trail_items = "".join(_trail_sentence(r) for r in receipts.tail(limit=15)) or \
+                  "<li>Nothing yet.</li>"
+
+    body = f"""<h2 class="page-title">Privacy</h2>
+<p class="page-subtitle">Everything lives at <code>~/.squirrel</code>. Yours to keep, yours to delete.</p>
+
+<div class="privacy-row">
+  <h3>ONLINE</h3>
+  <button id="online-btn" class="privacy-toggle{' privacy-toggle--on' if online else ''}"
+          onclick="flipOnline({str(online).lower()})">{online_label}</button>
+  <p>{online_note}</p>
+</div>
+
+<div class="privacy-row">
+  <h3>THE AI</h3>
+  <p>Mode: <strong>{mode}</strong> — use the slider in the header to change it.</p>
+  <p>{mode_notes.get(mode, "")}</p>
+</div>
+
+<div class="privacy-row">
+  <h3>THE TRAIL</h3>
+  <p>What has been touched, newest first. The full ledger: <code>@squirrel: receipts</code></p>
+  <ul class="trail">{trail_items}</ul>
+</div>
+
+<div class="privacy-row">
+  <h3>GO QUIET</h3>
+  <button class="privacy-quiet" onclick="goQuiet()">Go quiet</button>
+  <p>One motion: Jeles leaves the room and ONLINE turns off. Nothing is deleted.</p>
+</div>
+
+<script>
+async function flipOnline(cur){{
+  await fetch("/api/privacy",{{method:"POST",headers:{{"Content-Type":"application/json"}},
+    body:JSON.stringify({{online:!cur}})}});
+  location.reload();
+}}
+async function goQuiet(){{
+  await fetch("/api/quiet",{{method:"POST",headers:{{"Content-Type":"application/json"}},body:"{{}}"}});
+  location.reload();
+}}
+</script>
+<style>
+.privacy-row{{margin:1.2rem 0;}}
+.privacy-toggle,.privacy-quiet{{padding:0.6rem 1rem;cursor:pointer;
+  border:2px solid var(--color-accent,#b5432a);background:transparent;
+  color:var(--color-text,inherit);font:inherit;}}
+.privacy-toggle--on{{background:var(--color-accent,#b5432a);color:var(--color-bg,#fff);}}
+.trail{{list-style:none;padding:0;}}
+.trail li{{margin:0.25rem 0;}}
+.trail-when{{opacity:0.6;font-size:0.85em;}}
+</style>"""
+    return _html_page("Privacy", "/privacy", body)
+
+
+def _handle_privacy(handler, body: dict):
+    from sap.core import consent, receipts
+    value = bool(body.get("online"))
+    consent.set_online(value)
+    receipts.record("squirrel-journal", "cmd:privacy.online",
+                    "ok", "on" if value else "off")
+    handler._send_json({"online": value})
+
+
+def _handle_quiet(handler, body: dict):
+    from sap.core import consent, receipts
+    from responder.state import Mode
+    consent.set_online(False)
+    if _app_state is not None:
+        _app_state.mode = Mode.JOURNAL
+    receipts.record("squirrel-journal", "cmd:quiet", "ok",
+                    "mode->journal, online->off")
+    handler._send_json({"quiet": True})
+
+
 # ── Stories API ────────────────────────────────────────────────────────────────
 
 _JELES_STORIES_SYSTEM = """You are Jeles, conducting an oral history interview.
@@ -493,8 +619,12 @@ def _handle_stories_chat(handler, body: dict):
             headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=30) as resp:
             reply = json.loads(resp.read())["message"]["content"].strip()
+        from sap.core import receipts as _receipts
+        _receipts.record("squirrel-jeles", "llm:stories", "ok")
     except Exception:
         reply = "I'm having trouble connecting right now. Please try again."
+        from sap.core import receipts as _receipts
+        _receipts.record("squirrel-jeles", "llm:stories", "error")
 
     with _stories_lock:
         session["turns"].append({"role": "assistant", "content": reply})
@@ -511,20 +641,29 @@ def _handle_stories_save(handler, body: dict):
         try:
             from db import get_connection, release_connection
             import db.fragments as fragments_db
+            import sap.core.gate as _gate
             conn = get_connection()
             try:
-                for turn in session["turns"]:
-                    if turn["role"] == "user" and turn["content"].strip():
-                        fragments_db.add_fragment(
-                            conn, person_name=subject,
-                            fragment_type="oral_history",
-                            story_text=turn["content"],
-                            source="stories_room",
-                            confidence="uncertain")
-                        saved += 1
+                # Saving is the user's explicit click — journal, not jeles.
+                with _gate.actor("journal"):
+                    for turn in session["turns"]:
+                        if turn["role"] == "user" and turn["content"].strip():
+                            fragments_db.add_fragment(
+                                conn, person_name=subject,
+                                fragment_type="oral_history",
+                                story_text=turn["content"],
+                                source="stories_room",
+                                confidence="uncertain")
+                            saved += 1
             finally:
                 release_connection(conn)
+            from sap.core import receipts as _receipts
+            _receipts.record("squirrel-journal", "cmd:stories.save", "ok",
+                             f"{saved} fragments")
         except Exception as _e:
+            from sap.core import receipts as _receipts
+            _receipts.record("squirrel-journal", "cmd:stories.save", "error",
+                             str(_e)[:200])
             handler._send_json({"saved": saved, "error": str(_e)})
             return
     handler._send_json({"saved": saved})
@@ -583,6 +722,8 @@ class SquirrelHandler(BaseHTTPRequestHandler):
             self._send_html(_with_db(_render_sources, q, current_route="/sources"))
         elif path == "/stories":
             self._send_html(_render_stories())
+        elif path == "/privacy":
+            self._send_html(_render_privacy())
         elif path == "/mtime":
             mtime = SQUIRREL_MD.stat().st_mtime if SQUIRREL_MD.exists() else 0
             self._send_json({"mtime": mtime})
@@ -627,6 +768,10 @@ class SquirrelHandler(BaseHTTPRequestHandler):
             _handle_stories_chat(self, body)
         elif self.path == "/api/stories/save":
             _handle_stories_save(self, body)
+        elif self.path == "/api/privacy":
+            _handle_privacy(self, body)
+        elif self.path == "/api/quiet":
+            _handle_quiet(self, body)
         else:
             self.send_response(404); self.end_headers()
 
@@ -638,6 +783,8 @@ def run(port: int = PORT):
     from squirrel_watcher import start_watcher
     from squirrel_responder import make_responder
     from responder.state import AppState
+    from sap.core.vault import provision
+    provision()  # stand up the box: 0700, gate dir, vault.db + vault.key
     ensure_squirrel_md()
     _app_state = AppState(squirrel_md=SQUIRREL_MD)
     _app_state.load_config()
@@ -650,6 +797,8 @@ def run(port: int = PORT):
     finally:
         watcher.stop()
         watcher.join()
+        import sap.core.gate as _gate
+        _gate.close()
 
 
 if __name__ == "__main__":

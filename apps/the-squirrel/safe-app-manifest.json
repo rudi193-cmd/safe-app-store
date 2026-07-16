@@ -1,7 +1,7 @@
 {
   "app_id": "the-squirrel",
   "name": "the-squirrel",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "safe_version": ">=2.0.0",
   "b17": "NNA92",
   "legacy_b17": "EC768",
@@ -14,7 +14,7 @@
       "purpose": "Personal genealogy data — persons, relationships, fragments, lattice cells",
       "privacy_tier": "client_only",
       "retention": "permanent",
-      "description": "PII layer. SAP gate required. Stored in db.persons and db.fragments."
+      "description": "PII layer. SAP gate (willow-gate backend) required; every touch receipted. Local SQLite in $SQUIRREL_HOME by default — client_only is literal, not aspirational. Optional Willow Postgres backend."
     },
     {
       "id": "source_registry",
@@ -25,21 +25,20 @@
     },
     {
       "id": "network_requests",
-      "purpose": "Outbound lookups — FamilySearch, FindAGrave, community archive links",
+      "purpose": "Outbound deep links — FamilySearch, FindAGrave, community archives",
       "privacy_tier": "session",
       "retention": "session",
-      "description": "Transient. Deep links and API calls to external genealogy services."
+      "description": "Links only, rendered behind the consent.online switch. The app makes zero network calls of its own (localhost Ollama excepted); the user's click is the egress and the consent. Enforced by tests/test_chokepoint.py."
     }
   ],
   "permissions": [
     "family_history:read",
     "family_history:write",
     "knowledge:read",
-    "network_fetch",
     "file_write"
   ],
   "privacy_tier": "mixed",
-  "local_processing": 0.93,
+  "local_processing": 1.0,
   "port": 8425,
   "entry_point": "safe_integration:status",
   "license": "MIT",

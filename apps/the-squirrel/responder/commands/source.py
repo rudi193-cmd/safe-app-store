@@ -1,5 +1,6 @@
 import db.sources as sources_db
 from responder.formatter import result_block, acorn_card
+from sap.core import consent
 
 def cmd_find_sources(conn, args: list) -> str:
     if not args:
@@ -17,8 +18,14 @@ def cmd_find_sources(conn, args: list) -> str:
                                          state=state, provider=provider, limit=8)
     if not results:
         return result_block("find sources", "No sources found.")
+    # ONLINE off: the archives still show (names are shared, non-PII data);
+    # the paths off the machine don't.
+    link_ok = consent.online()
     cards = "\n".join(
-        acorn_card(r["provider"], r["name"], f"State: {r['state'] or '—'}", url=r["url"])
+        acorn_card(r["provider"], r["name"], f"State: {r['state'] or '—'}",
+                   url=r["url"] if link_ok else None)
         for r in results
     )
+    if not link_ok:
+        cards += "\n_Links hidden — ONLINE is off (Privacy page)._"
     return result_block(f"sources ({len(results)} found)", cards)

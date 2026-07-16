@@ -14,7 +14,11 @@ def build_ancestors_dict(conn, person_id: int, depth: int = 3) -> Dict[int, Dict
         if tree["person"] is None:
             return
         result[ahnentafel] = tree["person"]
-        parents = [r for r in tree["relationships"] if r["relationship_type"] == "parent"]
+        # Only forward rows: (pid, X, 'parent') means X is pid's parent.
+        # Reverse rows (child, pid, 'parent') land in the same list from the
+        # UNION and must not be walked — they'd recurse into pid itself.
+        parents = [r for r in tree["relationships"]
+                   if r["relationship_type"] == "parent" and r["person_id"] == pid]
         for i, rel in enumerate(parents[:2]):
             _recurse(rel["related_person_id"], ahnentafel * 2 + i, gen + 1)
 
@@ -59,7 +63,7 @@ def cmd_tree(conn, args: list) -> str:
         return result_block("tree", "Usage: `@squirrel: tree Name`")
     matches = persons_db.search_persons(conn, " ".join(args))
     if not matches:
-        return result_block("tree", f"No person found matching `{" ".join(args)}`")
+        return result_block("tree", f"No person found matching `{' '.join(args)}`")
     person = matches[0]
     ancestors = build_ancestors_dict(conn, person["id"], depth=3)
     chart = render_pedigree(person["full_name"], ancestors)
