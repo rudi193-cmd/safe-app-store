@@ -16,19 +16,6 @@ Routes:
   POST /api/stories/chat   AJAX: {session_id?, message} -> {session_id, reply}
   POST /api/stories/save   AJAX: {session_id, subject} -> {saved: int}
 """
-# Bootstrap WILLOW_CORE before any db.* import fires.
-import os as _os, sys as _sys
-if not _os.environ.get("WILLOW_CORE"):
-    from pathlib import Path as _P
-    _fake = _P.home() / ".squirrel" / "willow_core"
-    _fake.mkdir(parents=True, exist_ok=True)
-    (_fake / "user_lattice.py").write_text(
-        "DOMAINS=frozenset({'biography','geography','genealogy','culture','migration'})\n"
-        "TEMPORAL_STATES=frozenset({'past','present','future','unknown'})\n"
-        "DEPTH_MIN=1;DEPTH_MAX=23;LATTICE_SIZE=23\n"
-    )
-    _os.environ["WILLOW_CORE"] = str(_fake)
-
 import html as _html
 import json
 import threading

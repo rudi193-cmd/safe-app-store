@@ -1,36 +1,27 @@
 """
-Inject a fake user_lattice module before any db.* import fires.
-db/__init__.py does sys.path.insert(0, WILLOW_CORE) + from user_lattice import ...
-We pre-populate sys.modules so it never hits the filesystem.
+Test env: every test runs against its own throwaway box — SQLite db, gate
+ledger, receipt log, vault, settings all under tmp_path. No Willow, no
+Postgres, no fakes: the vendored lattice constants and the SQLite backend
+are the product's own zero-dependency path. (Postgres-specific behavior is
+exercised by setting SQUIRREL_BACKEND=postgres against a real server.)
 """
-import sys
-import os
-from types import ModuleType
-
-_fake = ModuleType("user_lattice")
-_fake.DOMAINS = frozenset({"biography", "geography", "genealogy", "culture", "migration"})
-_fake.TEMPORAL_STATES = frozenset({"past", "present", "future", "unknown"})
-_fake.DEPTH_MIN = 1
-_fake.DEPTH_MAX = 23
-_fake.LATTICE_SIZE = 23
-sys.modules["user_lattice"] = _fake
-
-os.environ.setdefault("WILLOW_CORE", "/tmp/fake_willow_core")
-os.environ.setdefault("WILLOW_PG_DB", "willow")
-
 import pytest
 
 
 @pytest.fixture(autouse=True)
-def gate_journal_actor(tmp_path, monkeypatch):
-    """Every test runs as the journal actor against a throwaway gate ledger.
+def squirrel_box(tmp_path, monkeypatch):
+    """Every test runs as the journal actor against a throwaway box.
 
     Tests that exercise gate policy itself (tests/test_gate.py) override the
     actor inside the test body.
     """
     monkeypatch.setenv("SQUIRREL_HOME", str(tmp_path / "box"))
+    monkeypatch.setenv("SQUIRREL_DB", str(tmp_path / "box" / "squirrel.db"))
     monkeypatch.setenv("SQUIRREL_GATE_DIR", str(tmp_path / "willowgate"))
     monkeypatch.setenv("SQUIRREL_RECEIPT_DB", str(tmp_path / "receipts.db"))
+    monkeypatch.setenv("SQUIRREL_SKIP_SEED", "1")  # 779 rows only where a test asks
+    monkeypatch.delenv("SQUIRREL_BACKEND", raising=False)
+    monkeypatch.delenv("WILLOW_DB_URL", raising=False)
     import sap.core.gate as gate
     import sap.core.receipts as receipts
     gate.close()      # drop any backend built against a previous tmp dir

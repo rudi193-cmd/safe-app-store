@@ -32,8 +32,28 @@ VALID_PROVIDERS = frozenset({
 
 
 def init_schema(conn):
-    """Create source_registry table with GIN FTS index. Idempotent."""
+    """Create source_registry. Postgres gets the tsvector/GIN FTS; SQLite gets
+    the same table without the generated column (lookup_sources carries the
+    matching fork — multi-keyword LIKE is plenty for 779 rows)."""
+    from db import BACKEND
     cur = conn.cursor()
+    if BACKEND == "sqlite":
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS source_registry (
+                id         TEXT PRIMARY KEY,
+                name       TEXT NOT NULL,
+                state      TEXT,
+                url        TEXT NOT NULL,
+                provider   TEXT NOT NULL DEFAULT 'community_history_archives',
+                coverage   TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                ratified   BOOLEAN DEFAULT FALSE
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_source_registry_state ON source_registry (state)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_source_registry_provider ON source_registry (provider)")
+        conn.commit()
+        return
     cur.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}")
     cur.execute(f"SET search_path = {SCHEMA}, public")
 
@@ -119,13 +139,21 @@ def lookup_sources(conn, query: str = "", state: str = None,
 
     Returns list of dicts: {id, name, state, url, provider, ratified}
     """
+    from db import BACKEND
     cur = conn.cursor()
     conditions = []
     params = []
 
     if query.strip():
-        conditions.append("search_vector @@ plainto_tsquery('english', %s)")
-        params.append(query)
+        if BACKEND == "sqlite":
+            # The SQLite fork: every keyword must hit name or state. Rank
+            # order differs from ts_rank — membership is the contract.
+            for word in query.split():
+                conditions.append("(name LIKE %s OR state LIKE %s)")
+                params.extend([f"%{word}%", f"%{word}%"])
+        else:
+            conditions.append("search_vector @@ plainto_tsquery('english', %s)")
+            params.append(query)
 
     if state:
         conditions.append("state ILIKE %s")
@@ -137,7 +165,7 @@ def lookup_sources(conn, query: str = "", state: str = None,
 
     where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
 
-    if query.strip():
+    if query.strip() and BACKEND != "sqlite":
         order = "ORDER BY ts_rank(search_vector, plainto_tsquery('english', %s)) DESC"
         params.append(query)
     else:
