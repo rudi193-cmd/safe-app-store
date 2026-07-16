@@ -4,7 +4,7 @@ Squirrel Responder — wires state, dispatcher, command handlers, and file write
 from responder.state import AppState, Mode
 from responder.dispatcher import parse_command
 from responder.formatter import result_block
-from responder.commands import person, relationship, tree, fragment, source, search, gedcom, control
+from responder.commands import person, relationship, tree, fragment, source, search, gedcom, control, demo
 
 
 def make_responder(state: AppState):
@@ -111,4 +111,5 @@ def _dispatch_db(cmd, state, conn) -> str:
     if name == "export gedcom":    return gedcom.cmd_export_gedcom(conn, cmd.args)
     if name == "import gedcom":    return gedcom.cmd_import_gedcom(conn, cmd.args)
     if name == "status":           return control.cmd_status(conn, state)
+    if name == "demo":             return demo.cmd_demo(conn, cmd.args)
     return result_block("Unknown", f"No handler for `{name}`")

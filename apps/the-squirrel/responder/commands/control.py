@@ -83,6 +83,12 @@ def cmd_status(conn, state: AppState) -> str:
             vault_note = "not provisioned"
     except Exception as e:
         vault_note = f"unavailable ({e.__class__.__name__})"
+    try:
+        from responder.llm.chat import _ollama_available
+        jeles_note = "ready (Ollama local)" if _ollama_available() else \
+                     "offline — journal mode only (install Ollama to invite Jeles in)"
+    except Exception:
+        jeles_note = "offline — journal mode only"
     lines = [
         f"mode:    `{state.mode.value}`",
         f"skin:    `{state.skin}`",
@@ -90,6 +96,7 @@ def cmd_status(conn, state: AppState) -> str:
         f"stash:   {frag_count} unsynced fragments",
         f"sources: {source_note}",
         f"vault:   {vault_note}",
+        f"jeles:   {jeles_note}",
         f"port:    8425",
     ]
     return result_block("status", "\n".join(lines))

@@ -194,6 +194,27 @@ def get_family_tree(conn, person_id: int) -> Dict[str, Any]:
     return {"person": person, "relationships": [dict(zip(rcols, r)) for r in rows]}
 
 
+def delete_marked_persons(conn, memorial_mark: str) -> int:
+    """Hard-delete persons whose memorial_id equals the mark, plus their
+    relationships, lattice cells, and sources. Exists for demo teardown —
+    the one sanctioned hard delete (archive-don't-delete applies to real
+    data; fictional seed rows are not data). Returns persons removed."""
+    _gate.authorized("write")
+    cur = conn.cursor()
+    cur.execute("SELECT id FROM persons WHERE memorial_id = %s", (memorial_mark,))
+    ids = [r[0] for r in cur.fetchall()]
+    if not ids:
+        return 0
+    marks = ", ".join(["%s"] * len(ids))
+    cur.execute(f"DELETE FROM relationships WHERE person_id IN ({marks}) "
+                f"OR related_person_id IN ({marks})", ids + ids)
+    cur.execute(f"DELETE FROM person_lattice_cells WHERE person_id IN ({marks})", ids)
+    cur.execute(f"DELETE FROM person_sources WHERE person_id IN ({marks})", ids)
+    cur.execute(f"DELETE FROM persons WHERE id IN ({marks})", ids)
+    conn.commit()
+    return len(ids)
+
+
 def search_persons(conn, name_query: str) -> List[Dict[str, Any]]:
     """Search persons by name (case-insensitive ILIKE). Returns list of dicts."""
     _gate.authorized("read")

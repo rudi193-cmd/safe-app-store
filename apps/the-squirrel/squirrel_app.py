@@ -34,8 +34,9 @@ WELCOME_BLOCK = """# The Squirrel
 *genealogy research terminal — the file is the interface*
 
 **Commands:**
-- `@squirrel: add person Oscar Mann b.1882 d.1951 p.Iowa`
-- `@squirrel: tree Oscar Mann`
+- `@squirrel: demo load` — meet the fictional Acorn family
+- `@squirrel: add person Hazel Acorn b.1902 p.Cedar_Grove`
+- `@squirrel: tree Hazel Acorn`
 - `@squirrel: show people`
 - `@squirrel: find sources Iowa 1880s`
 - `@squirrel: mode listening` — invite the LLM in
@@ -211,7 +212,8 @@ def _render_people(conn) -> str:
     if not people:
         body = ('<h2 class="page-title">People</h2>'
                 '<div class="empty-state"><p>No persons in the tree yet.</p>'
-                '<p>Add one: <code>@squirrel: add person Oscar Mann b.1882 d.1951 p.Iowa</code></p></div>')
+                '<p>Add one: <code>@squirrel: add person Hazel Acorn b.1902 p.Cedar_Grove</code></p>'
+                '<p>Or meet a sample family: <code>@squirrel: demo load</code></p></div>')
     else:
         cards = "".join(
             f'<a class="person-card" href="/person/{p["id"]}">'

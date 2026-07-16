@@ -183,6 +183,16 @@ def get_unsynced_fragments(conn, limit: int = 100) -> List[Dict[str, Any]]:
     return [dict(zip(cols, r)) for r in rows]
 
 
+def delete_by_source(conn, source: str) -> int:
+    """Hard-delete fragments from one source. Exists for demo teardown
+    (source='demo'); real fragments are archived, never deleted."""
+    _gate.authorized("write")
+    cur = conn.cursor()
+    cur.execute("DELETE FROM fragments WHERE source = %s", (source,))
+    conn.commit()
+    return cur.rowcount
+
+
 def get_branch_tree(conn, root_ancestor: str) -> List[Dict[str, Any]]:
     """Return all branches for a given root ancestor."""
     _gate.authorized("read")
