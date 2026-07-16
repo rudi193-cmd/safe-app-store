@@ -22,6 +22,11 @@ def cmd_import_gedcom(conn, args: list) -> str:
     path = Path(" ".join(args)).expanduser()
     if not path.exists():
         return result_block("import gedcom", f"File not found: `{path}`")
+    if not path.is_file():
+        # B-010: a directory passes exists(); say so instead of surfacing a raw
+        # [Errno 21] from import_ged.
+        return result_block("import gedcom", f"Not a readable file: `{path}` "
+                            "(a directory or special file, not a .ged)")
     count = import_ged(conn, path)
     return result_block("import gedcom",
         f"✓ {count} persons imported as fragments\nRun `@squirrel: bind fragment all` to promote matches.")

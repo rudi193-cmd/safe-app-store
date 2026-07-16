@@ -15,50 +15,28 @@ P1 fix sketches was refined by that pass. See commit history.
 
 ## Open
 
-### B-004 · `stash` person-name heuristic is naive — P2
-`cmd_stash` takes the first two words of the fragment text as `person_name`.
-"Lieserl Einstein b. Jan 1902…" works; "The quilt is hers" files under person
-"The quilt". Misleads the binder, which matches on person_name.
-**Fix sketch:** accept an explicit `--person "Name"` flag; fall back to the
-heuristic only when it's absent.
-**Status:** open.
-
-### B-005 · Name search is prefix-fragile — P2
-`search_persons` is a substring `LIKE`, so "Albert Einstein" also matches
-"Hans Albert Einstein". Commands acting on `matches[0]` (link, tree, show kin)
-disambiguate only by alphabetical order — correct by luck, not by rule.
-**Fix sketch:** prefer an exact (case-insensitive) full_name match before the
-substring fallback; on >1 exact match, surface the ambiguity.
-**Status:** open. (The B-008 fix added the same margin-of-confidence idea to
-the binder; the same principle applies here.)
-
-### B-007 · Stash page renders 100 of N with no indication — P2
-`_render_stash` does `all_frags[:100]` but the subtitle prints the full count:
-the page reads "1000 fragments" and shows 100 rows, no "showing 100 of 1000."
-Same silent-truncation class as B-008 (now fixed), cosmetic tier.
-**Fix sketch:** "100 of 1000 — refine with a filter" or paginate.
-**Status:** open.
-
-### B-009 · Control characters pass through into stored names — P3
-A GEDCOM `1 NAME Null\x00Byte Person` imports as-is — raw NUL/BEL/other C0
-chars land in `person_name` and `story_text`. Not injection (HTML escapes
-`<>&`), but dirty data: a name nobody can retype, a NUL that truncates strings
-in downstream C tooling.
-**Fix sketch:** strip/replace C0 control chars (except tab/newline) at the db
-write layer so every path is covered.
-**Status:** open.
-
-### B-010 · Import of a non-file path shows a raw errno — P3
-`cmd_import_gedcom` guards `path.exists()` but not `path.is_file()`, so
-importing a directory surfaces `[Errno 21] Is a directory` in an Error block.
-Caught by the responder (app survives); a raw errno is not an answer.
-**Fix sketch:** check `is_file()` in the command; keep `import_ged` raising for
-callers.
-**Status:** open.
+_None. Every bug the driving turned up is fixed below — last call was
+B-004 and B-010._
 
 ---
 
 ## Fixed
+
+### B-004 · `stash` person-name heuristic is naive — P2 — FIXED
+**Found:** Einstein drive. **Fixed:** `stash` now takes an explicit
+`--person "Name"` flag (multi-word aware — the dispatcher space-splits, so the
+parser consumes tokens until the next `--flag`); the first-two-words heuristic
+is only the fallback when no `--person` is given. "The quilt is hers
+`--person "Fern Nutkin"`" files under Fern, not "The quilt".
+**Regression:** `tests/test_last_call.py` (flag-wins, multiword/quoted,
+heuristic-fallback, no-leak-into-story).
+
+### B-010 · Import of a non-file path shows a raw errno — P3 — FIXED
+**Found:** TRLR-arm drive. **Fixed:** `cmd_import_gedcom` now checks
+`is_file()` after `exists()`, so a directory returns "Not a readable file
+(is it a directory?)" instead of surfacing a raw `[Errno 21]`.
+**Regression:** `tests/test_last_call.py` (directory → friendly message,
+missing → still "File not found").
 
 ### B-011 / B-012 · Cross-parentage: no linkage subtype; pedigree truncated silently — P2/P3 — FIXED
 **Found:** cross-parentage drive (Roman adoptive emperors, Steve Jobs, Moses).
@@ -127,6 +105,45 @@ every relationship type (kills B-003's double-count), and
 `build_ancestors_dict` guarded path-locally.
 **Regression:** `tests/test_cycles.py` (self, parent-side, child-side, mixed,
 grandparent, pedigree-collapse-preserved, survives-preexisting-cycle).
+
+### B-009 · Control chars pass into stored text — P3 — FIXED (cross-app)
+**Found:** malformed-GEDCOM drive. **Fixed:** a sanitizer at each app's single
+write boundary — the one bug that translated cleanly across both Knowledge OS
+apps. C0 control chars (NUL, BEL, …), which have no place in a name nobody can
+retype or a NUL that truncates downstream C-string tooling, are stripped on
+write; tab/newline survive. **the-squirrel:** `db.sanitize` / `clean_params`,
+applied at `add_person`, `add_fragment`, and `update_person_field`.
+**ask-jeles:** `corpus._clean` at the `_put` chokepoint — one place covers
+nuggets and gaps. **Regression:** `tests/test_sanitize.py` (Squirrel),
+`tests/test_corpus.py::test_control_chars_stripped_at_write_boundary` and
+`::test_logged_gap_is_sanitized` (Jeles).
+
+### B-007 · Stash page renders 100 of N with no indication — P2 — FIXED (Squirrel-only)
+**Found:** bulk-import drive. **Fixed:** `_render_stash` now says "showing 100
+of N fragments" when truncated, "N fragments" otherwise — no truncated list
+reads as complete. *Not* a cross-app bug: ask-jeles's list surfaces
+(`corpus_list`/`corpus_gaps`) take an explicit caller-chosen `limit` and never
+inflate a total they don't show, so there was nothing to fix there — audited,
+confirmed honest. **Regression:** `tests/test_sanitize.py`
+(`test_stash_render_is_honest_about_truncation`).
+
+### B-005 · Name search is prefix-fragile — P2 — FIXED
+**Found:** Einstein drive. **Fixed:** `resolve_person` confidence floor.
+`search_persons` is a substring `LIKE`, so "Albert Einstein" also matched
+"Hans Albert Einstein", and every command acting on `matches[0]` (link, tree,
+show kin, show person, bind, the web tree) picked by alphabetical luck.
+**Fix:** `db.persons.resolve_person(conn, query)` returns
+`("found", person)` / `("ambiguous", [persons])` / `("none", None)` —
+borrowing ask-jeles's MIN_ASK_SCORE idea. An exact (case-insensitive)
+full_name match beats a substring match, so "Albert Einstein" resolves
+cleanly; a lone substring match is confident; multiple equally-good matches
+surface a "did you mean" list (`formatter.did_you_mean`) instead of a guess,
+and identical names (father/son "Oscar Mann") are ambiguous, never picked by
+sort order. All six call sites converted; the web tree renders the
+disambiguation too.
+**Regression:** `tests/test_resolve.py` (exact-beats-substring, lone-substring
+confident, multi-substring ambiguous, identical-names ambiguous, tree draws on
+exact / refuses on ambiguous, link refuses an ambiguous endpoint).
 
 ### B-001 · Reverse relationship rows not inverted — P1 — FIXED
 **Found:** Einstein drive. **Fixed:** commit e4f59ca. A row `(child, parent,

@@ -229,6 +229,21 @@ def release_connection(conn):
 # Shared lattice validation
 # ---------------------------------------------------------------------------
 
+_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")
+
+
+def sanitize(value):
+    """Strip C0 control chars (keep tab/newline) from stored text — B-009.
+    A NUL that truncates C-string tooling, or a BEL nobody can retype, has no
+    place in the tree. Non-strings pass through untouched."""
+    return _CONTROL_CHARS.sub("", value) if isinstance(value, str) else value
+
+
+def clean_params(params):
+    """Sanitize the string fields of a SQL params tuple."""
+    return tuple(sanitize(p) for p in params)
+
+
 def _validate_lattice(domain: str, depth: int, temporal: str):
     if domain not in DOMAINS:
         raise ValueError(f"Invalid domain '{domain}'. Must be one of: {DOMAINS}")

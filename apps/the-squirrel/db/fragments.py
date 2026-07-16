@@ -12,7 +12,7 @@ init_schema() is DDL — no PII, no gate.
 """
 
 from typing import Dict, Any, List
-from db import _validate_lattice, SCHEMA
+from db import _validate_lattice, SCHEMA, clean_params
 import sap.core.gate as _gate
 
 VALID_FRAGMENT_TYPES = frozenset({"name", "date", "story", "photo", "document", "oral_history"})
@@ -113,7 +113,8 @@ def add_fragment(conn, *, person_name: str, fragment_type: str, confidence: str 
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         RETURNING id, person_name, date_ref, story_text, photo_ref, source,
                   fragment_type, confidence, binder_synced_at, created_at, updated_at, is_deleted
-    """, (person_name, date_ref, story_text, photo_ref, source, fragment_type, confidence))
+    """, clean_params((person_name, date_ref, story_text, photo_ref, source,
+                       fragment_type, confidence)))
     row = cur.fetchone()
     cols = [d[0] for d in cur.description]
     conn.commit()

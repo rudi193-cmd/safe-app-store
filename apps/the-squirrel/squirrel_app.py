@@ -296,13 +296,22 @@ def _render_tree(conn, name: str = "") -> str:
                 '<div class="empty-state"><p>Enter a name to view their ancestors.</p></div>')
         return _html_page("Tree", "/tree", body)
 
-    matches = persons_db.search_persons(conn, name)
-    if not matches:
+    status, payload = persons_db.resolve_person(conn, name)
+    if status == "none":
         body = (f'<h2 class="page-title">Pedigree Tree</h2>' + search_form +
                 f'<div class="empty-state"><p>No person found matching "{_html.escape(name)}".</p></div>')
         return _html_page("Tree", "/tree", body)
+    if status == "ambiguous":
+        opts = "".join(
+            f'<li><a href="/person/{p["id"]}">{_html.escape(p["full_name"])}</a>'
+            f' <span class="dag-dates">{_html.escape(_fmt_dates(p))}</span></li>'
+            for p in payload[:20])
+        body = (f'<h2 class="page-title">Pedigree Tree</h2>' + search_form +
+                f'<div class="empty-state"><p>"{_html.escape(name)}" matches several '
+                f'people — pick one:</p><ul>{opts}</ul></div>')
+        return _html_page("Tree", "/tree", body)
 
-    subject = matches[0]
+    subject = payload
     ancestors = build_ancestors_dict(conn, subject["id"], depth=3)
 
     def _dag(n: int) -> str:
@@ -347,8 +356,12 @@ def _render_stash(conn) -> str:
                      f'<div class="stash-text">{_html.escape(text)}</div>'
                      f'<div class="stash-meta">{_html.escape(meta)}</div></div>')
         n = len(all_frags)
+        shown = min(n, 100)
+        # B-007: never let a truncated list read as complete. Say "100 of N".
+        count = (f"showing {shown} of {n} fragments" if n > shown
+                 else f"{n} fragments")
         body = (f'<h2 class="page-title">Stash</h2>'
-                f'<p class="page-subtitle">{n} fragments · '
+                f'<p class="page-subtitle">{count} · '
                 f'<code>@squirrel: bind all → auto</code> to promote</p>'
                 f'<div class="stash-list">{rows}</div>')
     return _html_page("Stash", "/stash", body)

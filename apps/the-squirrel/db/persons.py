@@ -11,7 +11,7 @@ init_schema() is DDL — no PII, no gate.
 """
 
 from typing import Dict, Any, List
-from db import _validate_lattice, SCHEMA
+from db import _validate_lattice, SCHEMA, clean_params, sanitize
 import sap.core.gate as _gate
 
 VALID_RELATIONSHIP_TYPES = frozenset({"parent", "child", "spouse", "sibling"})
@@ -127,8 +127,8 @@ def add_person(conn, *, full_name: str, birth_date: str = None, birth_place: str
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id, full_name, birth_date, birth_place, death_date, death_place,
                   burial_place, memorial_id, memorial_url, bio, created_at, updated_at, is_deleted
-    """, (full_name, birth_date, birth_place, death_date, death_place,
-          burial_place, memorial_id, memorial_url, bio))
+    """, clean_params((full_name, birth_date, birth_place, death_date, death_place,
+                       burial_place, memorial_id, memorial_url, bio)))
     row = cur.fetchone()
     cols = [d[0] for d in cur.description]
     conn.commit()
@@ -290,7 +290,7 @@ def update_person_field(conn, person_id: int, field: str, value: str) -> bool:
     cur = conn.cursor()
     # field is whitelist-checked above; values are parameterized.
     cur.execute(f"UPDATE persons SET {field} = %s, updated_at = CURRENT_TIMESTAMP "
-                f"WHERE id = %s AND is_deleted = FALSE", (value, person_id))
+                f"WHERE id = %s AND is_deleted = FALSE", (sanitize(value), person_id))
     if cur.rowcount == 0:
         conn.rollback()
         return False
@@ -351,3 +351,35 @@ def search_persons(conn, name_query: str) -> List[Dict[str, Any]]:
     rows = cur.fetchall()
     cols = [d[0] for d in cur.description]
     return [dict(zip(cols, r)) for r in rows]
+
+
+def resolve_person(conn, query: str):
+    """Resolve a name to a single person, or refuse to guess (B-005).
+
+    The confidence floor, borrowed from ask-jeles's MIN_ASK_SCORE: a command
+    that needs ONE person may only act on a confident resolution, never on the
+    first of several equally-good substring hits picked by alphabetical luck.
+
+    Returns one of:
+      ("found", person)          exactly one confident match
+      ("ambiguous", [persons])   several equally-good matches — caller surfaces
+      ("none", None)             nothing matched
+
+    Precedence: an exact (case-insensitive) full_name match beats a substring
+    match, so "Albert Einstein" resolves to the person named exactly that even
+    when "Hans Albert Einstein" also contains it. A lone substring match is
+    confident; multiple substring matches with no exact are ambiguous."""
+    if not (query or "").strip():
+        return ("none", None)          # an empty query matches everyone — resolve to no-one
+    matches = search_persons(conn, query)
+    if not matches:
+        return ("none", None)
+    q = " ".join(query.split()).strip().lower()
+    exact = [p for p in matches if " ".join(p["full_name"].split()).lower() == q]
+    if len(exact) == 1:
+        return ("found", exact[0])
+    if len(exact) > 1:
+        return ("ambiguous", exact)
+    if len(matches) == 1:
+        return ("found", matches[0])
+    return ("ambiguous", matches)
