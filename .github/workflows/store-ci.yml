@@ -1,0 +1,66 @@
+name: store
+
+# Store-wide CI — the gates every push earns, regardless of which app changed.
+# Per-app workflows (ask-jeles, private-ledger, source-trail, story-timeline)
+# stay path-filtered and OS-matrixed; this workflow is the whole-store floor:
+#
+#   catalog     — catalog.json and apps/ agree (tools/catalog_lint.py --strict)
+#   vault-clean — no app leaks user data to fixed paths (tools/vault_leak_lint.py --strict)
+#   compile     — every .py in the repo byte-compiles
+#   app-tests   — test suites with no dedicated workflow, one matrix leg per app
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Catalog gate
+        run: python tools/catalog_lint.py --strict
+
+      - name: Vault-clean gate
+        run: python tools/vault_leak_lint.py --strict
+
+      - name: Compile sweep
+        run: python -m compileall -q apps tools scripts tui.py store_mcp.py _shot.py
+
+  app-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [civics-check, law-gazelle, the-squirrel, utety-chat]
+        include:
+          # utety-chat's TUI tests boot the real Textual app; textual is an
+          # optional runtime dep (the server runs without it), so it lives
+          # here, not in the app's requirements.txt.
+          - app: utety-chat
+            test-deps: textual
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r apps/${{ matrix.app }}/requirements.txt
+          pip install pytest ${{ matrix.test-deps }}
+
+      - name: Run tests
+        working-directory: apps/${{ matrix.app }}
+        run: python -m pytest tests/ -q
