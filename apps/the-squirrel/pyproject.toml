@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "safe-app-the-squirrel"
-version = "2.1.0-dev"
+version = "2.1.0"
 description = "Genealogy companion with a sense of humor. Helps you find, collect, and reconnect the branches of your family tree — even the ones everyone forgot about on purpose."
 requires-python = ">=3.10"
 dependencies = [

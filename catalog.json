@@ -116,7 +116,7 @@
       "id": "the-squirrel",
       "name": "The Squirrel",
       "description": "Genealogy companion with a sense of humor. Collect fragments, build the tree, reunite the branches everyone forgot about on purpose. Local-first: your tree stays in your tree.",
-      "status": "coming_soon",
+      "status": "beta",
       "path": "apps/the-squirrel",
       "tags": [
         "family",

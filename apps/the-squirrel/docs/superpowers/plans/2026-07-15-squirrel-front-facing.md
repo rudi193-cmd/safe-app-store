@@ -1,6 +1,9 @@
 # The Squirrel — Front-Facing Promotion Plan
 **Date:** 2026-07-15
-**Status:** Proposed
+**Status:** EXECUTED 2026-07-16 — all phases landed; app at 2.1.0, catalog `beta`.
+Security stack (gate/receipts/vault/consent/divider) was wired ahead of the
+storage rewrite, so Phase 1 ran with every invariant already pinned by tests.
+See CHANGELOG.md for the release summary.
 **Scope note:** Security/safety hardening is deliberately OUT of scope. USER has
 existing pieces for that layer and will introduce them after this plan is agreed.
 This plan defines the *seams* those pieces plug into (Phase 4) and nothing more.
