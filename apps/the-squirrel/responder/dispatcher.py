@@ -14,7 +14,7 @@ _PREFIXES = sorted([
     "add person", "show person", "show people", "show kin",
     "edit person", "show stash", "bind fragment", "find sources",
     "export gedcom", "import gedcom",
-    "tree", "link", "stash", "search", "mode", "skin", "status", "receipts", "demo",
+    "tree", "link", "stash", "search", "mode", "skin", "status", "receipts", "demo", "gaps",
 ], key=len, reverse=True)
 
 def parse_command(line: str) -> Optional[Command]:

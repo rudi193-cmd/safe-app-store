@@ -64,6 +64,9 @@ class Binder:
                 continue
             if best_score - runner_up < margin:
                 ambiguous += 1          # confident but tied — needs a human
+                from sap.core import gaps
+                gaps.log("ambiguous_bind", f"fragment {frag['id']}: {frag['person_name']}",
+                         detail=f"matches multiple people (top {round(best_score, 2)})")
                 continue
             try:
                 self.bind(frag["id"], best_person["id"])

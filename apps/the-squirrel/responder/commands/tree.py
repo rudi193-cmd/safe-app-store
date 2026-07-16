@@ -91,6 +91,8 @@ def cmd_tree(conn, args: list) -> str:
         return result_block("tree", "Usage: `@squirrel: tree Name`")
     matches = persons_db.search_persons(conn, " ".join(args))
     if not matches:
+        from sap.core import gaps
+        gaps.log("unknown_person", " ".join(args), detail="asked in tree")
         return result_block("tree", f"No person found matching `{' '.join(args)}`")
     person = matches[0]
     ancestors = build_ancestors_dict(conn, person["id"], depth=3)
