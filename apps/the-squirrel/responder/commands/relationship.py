@@ -32,7 +32,10 @@ def cmd_link(conn, args: list) -> str:
         return result_block("link", f"Person not found: `{name_a}`")
     if not pb:
         return result_block("link", f"Person not found: `{name_b}`")
-    add_relationship(conn, pa[0]["id"], pb[0]["id"], rel)
+    try:
+        add_relationship(conn, pa[0]["id"], pb[0]["id"], rel)
+    except ValueError as e:
+        return result_block("link", f"✗ {e}")
     return result_block("link", f"✓ **{pa[0]['full_name']}** → `{rel}` → **{pb[0]['full_name']}**")
 
 

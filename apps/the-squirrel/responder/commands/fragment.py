@@ -62,8 +62,17 @@ def cmd_bind_fragment(conn, args: list) -> str:
         return result_block("bind fragment", f"✓ Fragment {frag_id} bound to **{matches[0]['full_name']}**")
     elif args and args[0] == "all":
         from binder import Binder
-        results = Binder(conn).auto_bind()
-        return result_block("bind all", f"✓ Auto-bound {len(results)} fragment(s)")
+        r = Binder(conn).auto_bind()
+        if r.get("note"):
+            return result_block("bind all", f"Nothing to bind — {r['note']}.")
+        lines = [f"✓ Bound {len(r['bound'])} of {r['examined']} examined fragment(s)."]
+        if r["ambiguous"]:
+            lines.append(f"⚠ {r['ambiguous']} skipped as ambiguous (a tie between "
+                         "similarly-named people — bind those by ID).")
+        if r["remaining"]:
+            lines.append(f"… {r['remaining']} not yet examined (work budget) — "
+                         "run `bind fragment all` again to continue.")
+        return result_block("bind all", "\n".join(lines))
     else:
         return result_block("bind fragment",
             "Usage: `@squirrel: bind fragment ID → Person Name`\nOr: `@squirrel: bind fragment all`")

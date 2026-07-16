@@ -112,11 +112,61 @@ def add_person(conn, *, full_name: str, birth_date: str = None, birth_place: str
     return dict(zip(cols, row))
 
 
+def _parent_ids(conn, child_id: int) -> List[int]:
+    """The parent person_ids of child_id, from BOTH row directions:
+    forward `(child, X, 'parent')` and reverse `(X, child, 'child')`.
+    Read-only helper for the cycle check — gated by its callers."""
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT related_person_id FROM relationships "
+        "WHERE person_id = %s AND relationship_type = 'parent' "
+        "UNION "
+        "SELECT person_id FROM relationships "
+        "WHERE related_person_id = %s AND relationship_type = 'child'",
+        (child_id, child_id))
+    return [r[0] for r in cur.fetchall()]
+
+
+def is_ancestor(conn, ancestor_id: int, of_id: int) -> bool:
+    """True if ancestor_id is already an ancestor of of_id. Walks up via
+    _parent_ids with a visited-set, so it terminates even if the existing
+    graph already contains a cycle (every install could — nothing prevented
+    them before this)."""
+    seen = set()
+    stack = list(_parent_ids(conn, of_id))
+    while stack:
+        pid = stack.pop()
+        if pid == ancestor_id:
+            return True
+        if pid in seen:
+            continue
+        seen.add(pid)
+        stack.extend(_parent_ids(conn, pid))
+    return False
+
+
 def add_relationship(conn, person_id: int, related_id: int, rel_type: str) -> Dict[str, Any]:
-    """Link two persons. Returns the new relationship row as a dict."""
+    """Link two persons. Returns the new relationship row as a dict.
+
+    Refuses self-links (a person is not their own parent/child/spouse/sibling)
+    and refuses a parent/child link that would close an ancestor loop —
+    direction-agnostic, so `A → child → B` is checked the same as
+    `B → parent → A`."""
     _gate.authorized("write")
     if rel_type not in VALID_RELATIONSHIP_TYPES:
         raise ValueError(f"Invalid relationship_type '{rel_type}'. Must be one of: {VALID_RELATIONSHIP_TYPES}")
+    if person_id == related_id:
+        raise ValueError("A person cannot be their own " + rel_type + ".")
+    if rel_type in ("parent", "child"):
+        # Normalize to (child, parent): "A parent B" => B is A's parent;
+        # "A child B" => A is B's parent.
+        child_id, parent_id = (person_id, related_id) if rel_type == "parent" else (related_id, person_id)
+        # Adding "parent_id is parent of child_id" loops iff child_id is
+        # already an ancestor of parent_id.
+        if is_ancestor(conn, child_id, parent_id):
+            raise ValueError(
+                "That link would create an ancestor loop — the descendant is "
+                "already an ancestor of the parent.")
     cur = conn.cursor()
     cur.execute("""
         INSERT INTO relationships (person_id, related_person_id, relationship_type)
