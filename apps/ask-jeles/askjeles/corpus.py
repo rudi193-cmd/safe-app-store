@@ -64,9 +64,27 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+# Strip C0 control chars (keep tab/newline) from stored text. A NUL that
+# truncates downstream C-string tooling, or a BEL nobody can retype, has no
+# place in a nugget or a logged question. (Mirrors the-squirrel's db.sanitize —
+# the same input-hygiene rule at each app's single write boundary.)
+_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")
+
+
+def _clean(obj: Any) -> Any:
+    if isinstance(obj, str):
+        return _CONTROL_CHARS.sub("", obj)
+    if isinstance(obj, dict):
+        return {k: _clean(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_clean(v) for v in obj]
+    return obj
+
+
 def _put(collection: str, record: dict[str, Any], record_id: str | None = None) -> str:
     rid = record_id or uuid.uuid4().hex[:8]
     now = _now()
+    record = _clean(record)   # one chokepoint — covers nuggets and gaps alike
     with _lock:
         conn = _conn(collection)
         existing = conn.execute("SELECT created_at FROM records WHERE id = ?", (rid,)).fetchone()

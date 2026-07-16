@@ -117,3 +117,26 @@ def test_list_nuggets_most_recent_first(corpus):
     nuggets = corpus.list_nuggets()
     assert nuggets[0]["_id"] == second["id"]
     assert nuggets[1]["_id"] == first["id"]
+
+
+def test_control_chars_stripped_at_write_boundary(corpus):
+    # B-009 (shared with the-squirrel): C0 control chars have no place in a
+    # stored nugget — a NUL that truncates C-string tooling, a BEL nobody can
+    # retype. Tab/newline survive.
+    nid = corpus.put_nugget(
+        question="What is\x00 a Vespa?",
+        answer="A scooter.\x07 Made by Piaggio.\nItalian design.",
+        sources=["ex\x1fample.com"],
+        verified_by="ed\x08itor",
+    )
+    n = corpus.get_nugget(nid["id"])
+    assert "\x00" not in n["question"] and n["question"] == "What is a Vespa?"
+    assert "\x07" not in n["answer"] and "\x08" not in n["verified_by"]
+    assert "\nItalian design." in n["answer"]     # newline preserved
+    assert n["sources"] == ["example.com"]         # cleaned inside the list too
+
+
+def test_logged_gap_is_sanitized(corpus):
+    corpus.log_gap("who is\x00 nobody?")
+    g = corpus.list_gaps()[0]
+    assert "\x00" not in g["question"]

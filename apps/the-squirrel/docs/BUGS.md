@@ -23,22 +23,6 @@ P1 fix sketches was refined by that pass. See commit history.
 heuristic only when it's absent.
 **Status:** open.
 
-### B-007 · Stash page renders 100 of N with no indication — P2
-`_render_stash` does `all_frags[:100]` but the subtitle prints the full count:
-the page reads "1000 fragments" and shows 100 rows, no "showing 100 of 1000."
-Same silent-truncation class as B-008 (now fixed), cosmetic tier.
-**Fix sketch:** "100 of 1000 — refine with a filter" or paginate.
-**Status:** open.
-
-### B-009 · Control characters pass through into stored names — P3
-A GEDCOM `1 NAME Null\x00Byte Person` imports as-is — raw NUL/BEL/other C0
-chars land in `person_name` and `story_text`. Not injection (HTML escapes
-`<>&`), but dirty data: a name nobody can retype, a NUL that truncates strings
-in downstream C tooling.
-**Fix sketch:** strip/replace C0 control chars (except tab/newline) at the db
-write layer so every path is covered.
-**Status:** open.
-
 ### B-010 · Import of a non-file path shows a raw errno — P3
 `cmd_import_gedcom` guards `path.exists()` but not `path.is_file()`, so
 importing a directory surfaces `[Errno 21] Is a directory` in an Error block.
@@ -118,6 +102,27 @@ every relationship type (kills B-003's double-count), and
 `build_ancestors_dict` guarded path-locally.
 **Regression:** `tests/test_cycles.py` (self, parent-side, child-side, mixed,
 grandparent, pedigree-collapse-preserved, survives-preexisting-cycle).
+
+### B-009 · Control chars pass into stored text — P3 — FIXED (cross-app)
+**Found:** malformed-GEDCOM drive. **Fixed:** a sanitizer at each app's single
+write boundary — the one bug that translated cleanly across both Knowledge OS
+apps. C0 control chars (NUL, BEL, …), which have no place in a name nobody can
+retype or a NUL that truncates downstream C-string tooling, are stripped on
+write; tab/newline survive. **the-squirrel:** `db.sanitize` / `clean_params`,
+applied at `add_person`, `add_fragment`, and `update_person_field`.
+**ask-jeles:** `corpus._clean` at the `_put` chokepoint — one place covers
+nuggets and gaps. **Regression:** `tests/test_sanitize.py` (Squirrel),
+`tests/test_corpus.py::test_control_chars_stripped_at_write_boundary` and
+`::test_logged_gap_is_sanitized` (Jeles).
+
+### B-007 · Stash page renders 100 of N with no indication — P2 — FIXED (Squirrel-only)
+**Found:** bulk-import drive. **Fixed:** `_render_stash` now says "showing 100
+of N fragments" when truncated, "N fragments" otherwise — no truncated list
+reads as complete. *Not* a cross-app bug: ask-jeles's list surfaces
+(`corpus_list`/`corpus_gaps`) take an explicit caller-chosen `limit` and never
+inflate a total they don't show, so there was nothing to fix there — audited,
+confirmed honest. **Regression:** `tests/test_sanitize.py`
+(`test_stash_render_is_honest_about_truncation`).
 
 ### B-005 · Name search is prefix-fragile — P2 — FIXED
 **Found:** Einstein drive. **Fixed:** `resolve_person` confidence floor.

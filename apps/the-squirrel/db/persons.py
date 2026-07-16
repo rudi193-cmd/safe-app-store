@@ -11,7 +11,7 @@ init_schema() is DDL — no PII, no gate.
 """
 
 from typing import Dict, Any, List
-from db import _validate_lattice, SCHEMA
+from db import _validate_lattice, SCHEMA, clean_params, sanitize
 import sap.core.gate as _gate
 
 VALID_RELATIONSHIP_TYPES = frozenset({"parent", "child", "spouse", "sibling"})
@@ -127,8 +127,8 @@ def add_person(conn, *, full_name: str, birth_date: str = None, birth_place: str
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id, full_name, birth_date, birth_place, death_date, death_place,
                   burial_place, memorial_id, memorial_url, bio, created_at, updated_at, is_deleted
-    """, (full_name, birth_date, birth_place, death_date, death_place,
-          burial_place, memorial_id, memorial_url, bio))
+    """, clean_params((full_name, birth_date, birth_place, death_date, death_place,
+                       burial_place, memorial_id, memorial_url, bio)))
     row = cur.fetchone()
     cols = [d[0] for d in cur.description]
     conn.commit()
@@ -290,7 +290,7 @@ def update_person_field(conn, person_id: int, field: str, value: str) -> bool:
     cur = conn.cursor()
     # field is whitelist-checked above; values are parameterized.
     cur.execute(f"UPDATE persons SET {field} = %s, updated_at = CURRENT_TIMESTAMP "
-                f"WHERE id = %s AND is_deleted = FALSE", (value, person_id))
+                f"WHERE id = %s AND is_deleted = FALSE", (sanitize(value), person_id))
     if cur.rowcount == 0:
         conn.rollback()
         return False

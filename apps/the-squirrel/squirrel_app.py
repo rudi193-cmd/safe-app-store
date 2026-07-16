@@ -356,8 +356,12 @@ def _render_stash(conn) -> str:
                      f'<div class="stash-text">{_html.escape(text)}</div>'
                      f'<div class="stash-meta">{_html.escape(meta)}</div></div>')
         n = len(all_frags)
+        shown = min(n, 100)
+        # B-007: never let a truncated list read as complete. Say "100 of N".
+        count = (f"showing {shown} of {n} fragments" if n > shown
+                 else f"{n} fragments")
         body = (f'<h2 class="page-title">Stash</h2>'
-                f'<p class="page-subtitle">{n} fragments · '
+                f'<p class="page-subtitle">{count} · '
                 f'<code>@squirrel: bind all → auto</code> to promote</p>'
                 f'<div class="stash-list">{rows}</div>')
     return _html_page("Stash", "/stash", body)
