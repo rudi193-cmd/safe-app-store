@@ -53,6 +53,9 @@ def init_schema(conn):
     except Exception:
         conn.rollback()
         cur = conn.cursor()
+        # Restore search_path after the rollback (Postgres reverts the session
+        # SET with the transaction); no-op on SQLite.
+        cur.execute(f"SET search_path = {SCHEMA}, public")
         cur.execute("ALTER TABLE fragments ADD COLUMN bound_person_id BIGINT")
         conn.commit()
 

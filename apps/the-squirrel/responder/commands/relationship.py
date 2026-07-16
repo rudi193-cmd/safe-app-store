@@ -22,12 +22,15 @@ def parse_link_args(args: list) -> Optional[Tuple[str, str, Optional[str], str]]
     name_b = " ".join(args[i2 + 1:]).strip()
     if not name_a or not middle or not name_b:
         return None
-    kind = None
-    if len(middle) >= 2 and middle[0] in VALID_PARENT_KINDS:
-        kind = middle[0]
-        rel = middle[1]
-    else:
-        rel = middle[0]
+    # A kind may appear on either side of the base type ("adopted parent" or
+    # "parent adopted"). Split kinds from non-kinds so word order doesn't
+    # silently swallow the kind; a lone kind with no base type (e.g. "birth")
+    # falls through as an invalid rel, which cmd_link reports rather than
+    # accepting silently.
+    kinds = [w for w in middle if w in VALID_PARENT_KINDS]
+    rest = [w for w in middle if w not in VALID_PARENT_KINDS]
+    kind = kinds[0] if kinds else None
+    rel = rest[0] if rest else middle[0]
     return name_a, rel, kind, name_b
 
 

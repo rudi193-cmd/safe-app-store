@@ -5,13 +5,26 @@ from responder.formatter import result_block
 
 
 def _subject_parents(tree, subject_id):
-    """The subject's parents (forward `parent` rows), sorted by kind priority —
-    birth first, so the two pedigree slots are chosen meaningfully, not by
-    insertion order."""
-    rows = [r for r in tree["relationships"]
-            if r["relationship_type"] == "parent" and r["person_id"] == subject_id]
-    rows.sort(key=lambda r: PARENT_KIND_PRIORITY.get(r.get("parent_kind"), 1))
-    return rows
+    """The subject's parents, from BOTH grammars: forward `parent` rows
+    (subject, X, 'parent') and reverse `child` rows (X, subject, 'child') —
+    both mean X is the subject's parent. Returns normalized dicts
+    {id, name, kind}, sorted by kind priority so the two pedigree slots go
+    to birth parents first, not by insertion order.
+
+    A reverse `parent` row (X, subject, 'parent') means the subject is X's
+    parent and is correctly excluded — that's the B-001 distinction."""
+    out = []
+    for r in tree["relationships"]:
+        t = r["relationship_type"]
+        if t == "parent" and r["person_id"] == subject_id:
+            out.append({"id": r["related_person_id"], "name": r.get("related_name"),
+                        "kind": r.get("parent_kind")})
+        elif t == "child" and r.get("related_person_id") == subject_id:
+            # reverse: person_id is the parent; related_name is its name
+            out.append({"id": r["person_id"], "name": r.get("related_name"),
+                        "kind": r.get("parent_kind")})
+    out.sort(key=lambda p: PARENT_KIND_PRIORITY.get(p["kind"], 1))
+    return out
 
 
 def build_ancestors_dict(conn, person_id: int, depth: int = 3) -> Dict[int, Dict]:
@@ -34,8 +47,8 @@ def build_ancestors_dict(conn, person_id: int, depth: int = 3) -> Dict[int, Dict
         # Sorted by kind so the two Ahnentafel slots go to birth parents first
         # (B-011): which two show is a rule now, not insertion luck.
         parents = _subject_parents(tree, pid)
-        for i, rel in enumerate(parents[:2]):
-            _recurse(rel["related_person_id"], ahnentafel * 2 + i, gen + 1, path | {pid})
+        for i, par in enumerate(parents[:2]):
+            _recurse(par["id"], ahnentafel * 2 + i, gen + 1, path | {pid})
 
     _recurse(person_id, 1, 1, frozenset())
     return result
@@ -92,9 +105,9 @@ def cmd_tree(conn, args: list) -> str:
     note = ""
     if len(parents) > 2:
         extra = []
-        for r in parents[2:]:
-            k = r.get("parent_kind")
-            extra.append(f"{r['related_name']} ({k})" if k else r["related_name"])
+        for par in parents[2:]:
+            k = par.get("kind")
+            extra.append(f"{par['name']} ({k} parent)" if k else par["name"])
         note = ("\n\n_Also parent(s), not shown in the two-slot pedigree: "
                 + ", ".join(extra) + " — see `show kin`._")
 

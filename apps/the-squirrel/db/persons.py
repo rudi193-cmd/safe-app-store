@@ -68,6 +68,11 @@ def init_schema(conn):
     except Exception:
         conn.rollback()
         cur = conn.cursor()
+        # Postgres rolls back the session SET search_path along with the failed
+        # probe (a plain SET is transactional), so restore it before the ALTER
+        # or the table resolves to the wrong schema. SQLite translates this to
+        # a no-op.
+        cur.execute(f"SET search_path = {SCHEMA}, public")
         cur.execute("ALTER TABLE relationships ADD COLUMN parent_kind TEXT")
         conn.commit()
 
@@ -266,6 +271,7 @@ def get_family_tree(conn, person_id: int) -> Dict[str, Any]:
         SELECT r.*, p.full_name AS related_name
         FROM relationships r JOIN persons p ON p.id = r.person_id
         WHERE r.related_person_id = %s
+        ORDER BY id
     """, (person_id, person_id))
     rows = cur.fetchall()
     rcols = [d[0] for d in cur.description]

@@ -8,10 +8,19 @@ from typing import List, Dict
 _PEDI = {"birth": "birth", "adopted": "adopted", "foster": "foster"}
 
 
+def _bucket(kind):
+    """Which family a parent-link belongs to. birth and untagged (None) share
+    the 'birth' bucket, so a couple where only one link is tagged still exports
+    as ONE family, not two single-parent ones; adopted/foster/step each get
+    their own bucket."""
+    return kind if kind in ("adopted", "foster", "step") else "birth"
+
+
 def _families(relationships):
-    """Group parent/child edges into families keyed by (child, kind), so a
+    """Group parent/child edges into families keyed by (child, bucket), so a
     person born into one family and adopted into another gets two FAMC links
-    with distinct PEDI. Returns (fam_ordered, fam_ids, child_to_famc)."""
+    with distinct PEDI. Returns (fam, fam_ids, child_to_famc) where each famc
+    entry is (fam_id, pedi_or_None, note_or_None)."""
     edges = []
     for r in relationships:
         t = r.get("relationship_type")
@@ -21,14 +30,25 @@ def _families(relationships):
             edges.append((r["related_person_id"], r["person_id"], r.get("parent_kind")))
     fam = OrderedDict()
     for child_id, parent_id, kind in edges:
-        key = (child_id, kind)
-        fam.setdefault(key, {"child": child_id, "kind": kind, "parents": []})
-        if parent_id not in fam[key]["parents"]:
-            fam[key]["parents"].append(parent_id)
+        key = (child_id, _bucket(kind))
+        info = fam.setdefault(key, {"child": child_id, "bucket": key[1],
+                                    "parents": [], "kinds": set()})
+        if parent_id not in info["parents"]:
+            info["parents"].append(parent_id)
+        info["kinds"].add(kind)
     fam_ids = {key: i for i, key in enumerate(fam, start=1)}
     child_to_famc = {}
-    for (child_id, kind), fid in fam_ids.items():
-        child_to_famc.setdefault(child_id, []).append((fid, kind))
+    for key, fid in fam_ids.items():
+        bucket = fam[key]["bucket"]
+        kinds = fam[key]["kinds"]
+        if bucket in ("adopted", "foster"):
+            pedi, note = bucket, None
+        elif bucket == "step":
+            pedi, note = None, "step-parent linkage"
+        else:  # birth bucket — assert PEDI birth only if explicitly tagged
+            pedi = "birth" if "birth" in kinds else None
+            note = None
+        child_to_famc.setdefault(key[0], []).append((fid, pedi, note))
     return fam, fam_ids, child_to_famc
 
 
@@ -40,6 +60,7 @@ def build_gedcom_lines(persons: List[Dict], relationships: List[Dict]) -> List[s
         "1 GEDC", "2 VERS 5.5.1", "1 CHAR UTF-8",
     ]
     fam, fam_ids, child_to_famc = _families(relationships or [])
+    name_of = {p["id"]: p["full_name"] for p in persons}
     for p in persons:
         pid = p["id"]
         lines.append(f"0 @I{pid}@ INDI")
@@ -58,17 +79,23 @@ def build_gedcom_lines(persons: List[Dict], relationships: List[Dict]) -> List[s
         if p.get("burial_place"):
             lines += ["1 BURI", f"2 PLAC {p['burial_place']}"]
         # FAMC — how this person is a child of each family they belong to.
-        for fid, kind in child_to_famc.get(pid, []):
+        for fid, pedi, note in child_to_famc.get(pid, []):
             lines.append(f"1 FAMC @F{fid}@")
-            if kind in _PEDI:
-                lines.append(f"2 PEDI {_PEDI[kind]}")
-            elif kind:
-                lines.append(f"2 NOTE {kind}-parent linkage")
-    for (child_id, kind), fid in fam_ids.items():
-        parents = fam[(child_id, kind)]["parents"]
+            if pedi:
+                lines.append(f"2 PEDI {pedi}")
+            elif note:
+                lines.append(f"2 NOTE {note}")
+    for key, fid in fam_ids.items():
+        child_id = key[0]
+        parents = fam[key]["parents"]
         lines.append(f"0 @F{fid}@ FAM")
         if len(parents) >= 1: lines.append(f"1 HUSB @I{parents[0]}@")
         if len(parents) >= 2: lines.append(f"1 WIFE @I{parents[1]}@")
+        # A FAM holds one couple; parents beyond two can't be HUSB/WIFE, so
+        # name them in NOTEs rather than dropping the relationship silently.
+        for extra in parents[2:]:
+            nm = name_of.get(extra, "")
+            lines.append(f"1 NOTE additional parent: @I{extra}@{(' ' + nm) if nm else ''}")
         lines.append(f"1 CHIL @I{child_id}@")
     lines.append("0 TRLR")
     return lines

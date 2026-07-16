@@ -73,8 +73,17 @@ priority, not insertion order) and `tree` NAMES any further parents with their
 kind instead of dropping them. Live: Steve Jobs shows Jandali/Schieble in the
 slots, "Paul Jobs (adopted), Clara Jobs (adopted)" noted below, and exports two
 FAM records with `PEDI birth` / `PEDI adopted`.
-**Regression:** `tests/test_parent_kind.py` (10 tests: storage/validation,
+**Regression:** `tests/test_parent_kind.py` (16 tests: storage/validation,
 grammar, kin, pedigree-birth-preferred-and-names-rest, GEDCOM PEDI).
+**Hardened after an independent Sonnet review** caught four bugs in the first
+cut (all fixed before merge, each with a test): a Postgres upgrade-migration
+crash (rollback reverted the session `SET search_path`; now re-issued —
+verified live on Postgres 16), the pedigree still silently dropping parents
+linked via the reverse `child` grammar, and two GEDCOM export faults (mixed
+kind-tagging splitting one couple into two single-parent `FAM`s; a 3rd
+same-kind parent dropped from the `FAM`). The same `SET search_path` fix was
+applied to the B-008 `bound_person_id` migration, which had the identical
+latent bug.
 
 ### B-008 · `bind fragment all` silently processed only the first 200 — P1 — FIXED
 **Found:** 1000-person bulk-import drive. **Fixed:** binder rework + schema
