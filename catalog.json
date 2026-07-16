@@ -128,8 +128,8 @@
     {
       "id": "llmphysics",
       "name": "LLMPhysics JAC Judge",
-      "description": "r/LLMPhysics Journal Ambitions Contest paper evaluator.",
-      "status": "coming_soon",
+      "description": "r/LLMPhysics Journal Ambitions Contest records and judge prompts. Content archive, not an app.",
+      "status": "archived",
       "path": "apps/llmphysics",
       "tags": [
         "physics",
