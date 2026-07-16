@@ -16,6 +16,7 @@ class AppState:
     mode: Mode = Mode.JOURNAL
     skin: str = "mcm"
     squirrel_md: Path = field(default_factory=lambda: Path("Squirrel.md"))
+    journal: object = field(default=None, repr=False, compare=False)
     _lock: threading.RLock = field(default_factory=threading.RLock, repr=False, compare=False)
 
     def load_config(self):
@@ -31,6 +32,12 @@ class AppState:
         CONFIG_PATH.write_text(json.dumps({"skin": self.skin}, indent=2))
 
     def append(self, text: str):
+        # Bot output goes through the shared Journal so the watcher's offset
+        # accounting stays correct (B-006). Fall back to a direct write only
+        # when no journal is wired (unit tests that construct AppState alone).
+        if self.journal is not None:
+            self.journal.append_bot(text)
+            return
         with self._lock:
             with open(self.squirrel_md, "a", encoding="utf-8") as f:
                 f.write("\n" + text + "\n")

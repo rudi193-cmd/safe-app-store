@@ -47,8 +47,8 @@ WELCOME_BLOCK = """# The Squirrel
 ---
 """
 
-_file_lock = threading.RLock()
 _app_state = None  # set in run()
+_journal = None    # shared Squirrel.md writer/reader; set in run()
 
 # Stories sessions: session_id -> {"turns": [{"role": str, "content": str}]}
 _stories_sessions: dict = {}
@@ -759,10 +759,8 @@ class SquirrelHandler(BaseHTTPRequestHandler):
 
         if self.path == "/write":
             text = body.get("text", "").strip()
-            if text:
-                with _file_lock:
-                    with open(SQUIRREL_MD, "a", encoding="utf-8") as f:
-                        f.write("\n" + text + "\n")
+            if text and _journal is not None:
+                _journal.append_user(text)
             self.send_response(200); self.end_headers()
         elif self.path == "/api/stories/chat":
             _handle_stories_chat(self, body)
@@ -784,12 +782,15 @@ def run(port: int = PORT):
     from squirrel_responder import make_responder
     from responder.state import AppState
     from sap.core.vault import provision
+    from journal import Journal
+    global _journal
     provision()  # stand up the box: 0700, gate dir, vault.db + vault.key
     ensure_squirrel_md()
-    _app_state = AppState(squirrel_md=SQUIRREL_MD)
+    _journal = Journal(SQUIRREL_MD)  # created AFTER the welcome block exists
+    _app_state = AppState(squirrel_md=SQUIRREL_MD, journal=_journal)
     _app_state.load_config()
     responder_cb = make_responder(_app_state)
-    watcher = start_watcher(SQUIRREL_MD, responder_cb, lambda: _app_state.mode.value)
+    watcher = start_watcher(_journal, responder_cb, lambda: _app_state.mode.value)
     try:
         server = HTTPServer(("127.0.0.1", port), SquirrelHandler)
         print(f"The Squirrel is open at http://localhost:{port}")
