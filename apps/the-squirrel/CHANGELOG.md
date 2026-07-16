@@ -9,8 +9,12 @@ The flagship bar, cleared: zero Willow, zero Postgres, zero network.
   `~/.squirrel`), auto-migrated on first connection, 779-archive source
   registry seeded from the repo. Postgres is now the opt-in Willow mode
   (`SQUIRREL_BACKEND=postgres` / `WILLOW_DB_URL`).
-- Lattice constants vendored; `WILLOW_CORE` is an upgrade, not a
-  requirement. The boot-time fake-module shim is gone.
+- The 23-cube lattice was excised — `DOMAINS`/`TEMPORAL_STATES`/depth,
+  the `*_lattice_cells` tables, `place_in_lattice`/`_validate_lattice`,
+  and the `WILLOW_CORE`/`user_lattice` import machinery (including the
+  boot-time fake-module shim). willow-2.0 retired that model for
+  canonical lanes; nothing live in the app wrote or read the cells, so
+  "zero Willow" is now literal rather than "zero except a defunct import."
 
 ### Security (the stack, in the order it was wired)
 - **Gate** — `sap/core/gate.py` backed by willow-gate: HMAC-bound actors
