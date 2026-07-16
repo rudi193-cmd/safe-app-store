@@ -78,6 +78,28 @@ Same silent-truncation class as B-008, cosmetic tier.
 **Fix sketch:** show "100 of 1000 — refine with a filter" or paginate.
 **Status:** open.
 
+### B-009 · Control characters pass through into stored names — P3
+**Found:** 2026-07-16, malformed-GEDCOM (TRLR) drive.
+A GEDCOM `1 NAME Null\x00Byte Person` or `Bell\x07Char Name` imports as-is —
+the raw NUL / BEL / other C0 control chars land in `person_name` and
+`story_text`. Not an injection (HTML rendering escapes `<>&`, and browsers
+ignore most control chars), but dirty data: a name nobody can retype, a NUL
+that can truncate the string in C-based tooling downstream.
+**Fix sketch:** strip/replace C0 control chars (except tab/newline) on
+fragment and person write, at the db layer so every path is covered.
+**Status:** open.
+
+### B-010 · Import of a non-file path shows a raw errno, not a message — P3
+**Found:** 2026-07-16, TRLR drive.
+`cmd_import_gedcom` guards `path.exists()` but not `path.is_file()`, so
+`import gedcom <a directory>` passes the guard, `import_ged` raises
+`IsADirectoryError`, and the user sees an **Error** block reading
+``[Errno 21] Is a directory: …``. The responder catches it (watcher
+survives, app stays up) — it's cosmetic, but a raw errno is not an answer.
+**Fix sketch:** in the command, check `is_file()` and return
+"`<path>` is not a readable file"; keep `import_ged` raising for callers.
+**Status:** open.
+
 ### B-002 · No ancestor cycle detection — P1
 **Found:** 2026-07-16, absurd-census drive.
 A person may be their own ancestor. `link Ratatosk → parent → Ratatosk`
@@ -166,5 +188,13 @@ order can't mask it).
   `mode banana` all whitelist-rejected; no config written.
 - **GEDCOM round-trip** — re-importing the hostile export brings the
   `DROP TABLE` / `<script>` names back as fragments, not persons; DB intact.
+- **Malformed GEDCOM (the whole TRLR arm)** — the importer is the sturdiest
+  component driven so far. Missing `TRLR` still flushes the last person;
+  empty / TRLR-only / 2KB of `/dev/urandom` yield 0 fragments, no crash; a
+  single INDI with 50,000 `NAME` lines resolves last-write-wins in ~74ms with
+  no memory blowup; a 21-digit level number doesn't overflow (Python bigint);
+  reading a binary sqlite file or `/etc/passwd` as GEDCOM stores nothing.
+  A directory or missing path is caught by the responder — the watcher thread
+  survives every case (see B-010 for the cosmetic errno).
 
 ΔΣ=42
