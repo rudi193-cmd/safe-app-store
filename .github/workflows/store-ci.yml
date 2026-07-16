@@ -13,6 +13,12 @@ on:
   push:
     branches: [master]
   pull_request:
+  schedule:
+    # Daily drift catcher, off the :00/:30 peak-load minutes — willow-mcp's
+    # pattern. Most of the 22 apps go untouched for weeks; a dependency point
+    # release or runner-image change should not wait for the next push.
+    - cron: "47 6 * * *"
+  workflow_dispatch: {}
 
 jobs:
   gates:
