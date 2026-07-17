@@ -281,4 +281,22 @@ requests==2.31.0
 
 ---
 
+## Remediation Log
+
+### 2026-07-17 — nasa-archive hardening pass (v1.0.1)
+
+Per-app remediation of open findings, plus two new findings fixed:
+
+| Finding | File | Fix |
+|---|---|---|
+| NEW: unauthenticated LLM proxy accepted caller-supplied `system` roles, unbounded input | `supabase/functions/oral-chat/index.ts` | History sanitized to user/assistant roles only; message capped at 4000 chars, history at 10 turns × 2000 chars; slug validated against `^[a-z0-9][a-z0-9-]{0,63}$` |
+| NEW: local dev proxy had CORS `*` — any website open in the user's browser could drive it and burn LLM keys | `local_oral_chat.py` | CORS restricted to localhost origins; body size capped at 64KB; malformed JSON → 400 instead of crash; same history/message/slug sanitization as the edge function |
+| ST-PATH-01 | `enrich_rallies.py`, `local_oral_chat.py` | `WILLOW_ROOT` env override + sibling-checkout fallback, validated before `sys.path` insert; clear error message instead of silent `ModuleNotFoundError`. `WILLOW_USERNAME` env override for the registry username. |
+| ST-SQL-01 | `archive_db/db.py` | Schema names validated against `^[a-z_][a-z0-9_]{0,62}$` before f-string interpolation in `SET search_path` / `CREATE SCHEMA` |
+| ST-DEP-01 | `requirements.txt` | CVE floors pinned: `requests>=2.32.4`, `python-dotenv>=1.0.1`, `aiohttp>=3.12.14` |
+
+XSS review (ST-XSS-01/ST-HTTP-01 for nasa-archive): all `innerHTML` sinks in `web/*.html` route user input through `esc()`/`escapeHtml()`; BBS thread data is static in-file; `site/` chat UIs use `textContent`. No unescaped user-input sink found — no change needed.
+
+---
+
 *ΔΣ=42*
