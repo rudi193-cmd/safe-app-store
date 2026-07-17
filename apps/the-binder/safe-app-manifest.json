@@ -1,7 +1,7 @@
 {
   "app_id": "the-binder",
   "name": "The Binder",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "safe_version": ">=2.0.0",
   "b17": "LNK2L",
   "agent_type": "tool",

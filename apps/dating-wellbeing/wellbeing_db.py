@@ -11,13 +11,17 @@ DB connection follows Willow's core/db.py pattern (psycopg2, pooled).
 """
 
 import os
+import re
 import sys
 import threading
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
-# Import 23-cubed lattice constants from Willow
-sys.path.insert(0, os.environ.get("WILLOW_CORE", os.path.expanduser("~/github/Willow/core")))
+# Import 23-cubed lattice constants from Willow — only trust WILLOW_CORE if it
+# actually holds user_lattice.py, so a stale path never lands on sys.path (ST-PATH-01).
+_WILLOW_CORE = os.environ.get("WILLOW_CORE", os.path.expanduser("~/github/Willow/core"))
+if os.path.isfile(os.path.join(_WILLOW_CORE, "user_lattice.py")):
+    sys.path.insert(0, _WILLOW_CORE)
 try:
     from user_lattice import DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE
 except ImportError:
@@ -33,6 +37,11 @@ _pool = None
 _pool_lock = threading.Lock()
 
 SCHEMA = "dating_wellbeing"
+# Schema names can't be parameterized — refuse anything but a plain lowercase
+# identifier before it reaches the f-string SQL sites (ST-SQL-01).
+if not re.fullmatch(r"[a-z_][a-z0-9_]*", SCHEMA):
+    raise ValueError(f"Invalid schema name: {SCHEMA!r}")
+
 
 
 def _resolve_host() -> str:

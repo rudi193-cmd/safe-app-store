@@ -1,8 +1,8 @@
 {
   "app_id": "story-timeline",
   "name": "story-timeline",
-  "version": "2.2.1",
-  "description": "Writer tool and story protocol — reading shelf, commonplace notes, writing projects, named timelines, intelligence suggestions, and Willow graph edges.",
+  "version": "2.2.2",
+  "description": "Writer tool and story protocol \u2014 reading shelf, commonplace notes, writing projects, named timelines, intelligence suggestions, and Willow graph edges.",
   "author": "Professor Oakenscroll / Vishwakarma",
   "entry_point": "app.py",
   "permissions": [
@@ -69,13 +69,13 @@
       "path": "user-{uuid}/story-timeline/atoms/",
       "access": "read",
       "requires_user_approval": true,
-      "description": "Session composite atoms — writing activity summary"
+      "description": "Session composite atoms \u2014 writing activity summary"
     },
     "commonplace": {
       "path": "user-{uuid}/story-timeline/commonplace/",
       "access": "read",
       "requires_user_approval": true,
-      "description": "Commonplace captures — ideas, quotes, research notes"
+      "description": "Commonplace captures \u2014 ideas, quotes, research notes"
     },
     "timelines": {
       "path": "user-{uuid}/story-timeline/timelines/",
@@ -129,12 +129,16 @@
     }
   },
   "local": true,
-  "surfaces": ["tui", "web", "cli"],
+  "surfaces": [
+    "tui",
+    "web",
+    "cli"
+  ],
   "dependencies": {
-    "user_identity_json": "required — provisioned by willow-seed",
-    "willow_mcp": "optional — Jeles, KB search, and infer_7b suggestions",
-    "norn_pass_scope": "optional — needed for reflection/insight passes",
-    "cross_app_sap_spec": "optional — needed for cross-app atom reads"
+    "user_identity_json": "required \u2014 provisioned by willow-seed",
+    "willow_mcp": "optional \u2014 Jeles, KB search, and infer_7b suggestions",
+    "norn_pass_scope": "optional \u2014 needed for reflection/insight passes",
+    "cross_app_sap_spec": "optional \u2014 needed for cross-app atom reads"
   },
   "b17": "STLN2"
 }

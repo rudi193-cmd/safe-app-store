@@ -183,8 +183,19 @@ class _PgConn:
         self._pool.putconn(self._conn)
 
 
+# Schema names can't be parameterized, so validate before interpolating (ST-SQL-01).
+_SCHEMA_IDENT_RE = _re.compile(r"^[a-z_][a-z0-9_]{0,62}$")
+
+
+def _validate_schema(schema):
+    if not _SCHEMA_IDENT_RE.match(schema or ""):
+        raise ValueError(f"Invalid schema name: {schema!r}")
+    return schema
+
+
 def get_connection(schema=SCHEMA):
     """Return a pooled Postgres connection with search_path set to schema."""
+    _validate_schema(schema)
     pool = _get_pg_pool()
     conn = pool.getconn()
     try:
@@ -211,7 +222,7 @@ def init_schema():
     try:
         conn.autocommit = True
         cur = conn.cursor()
-        cur.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}")
+        cur.execute(f"CREATE SCHEMA IF NOT EXISTS {_validate_schema(SCHEMA)}")
         cur.close()
     finally:
         pool.putconn(conn)

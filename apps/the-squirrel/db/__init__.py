@@ -32,6 +32,11 @@ import re
 import threading
 
 SCHEMA = "the_squirrel"
+# Schema names can't be parameterized — refuse anything but a plain lowercase
+# identifier before it reaches the f-string SQL sites (ST-SQL-01).
+if not re.fullmatch(r"[a-z_][a-z0-9_]*", SCHEMA):
+    raise ValueError(f"Invalid schema name: {SCHEMA!r}")
+
 
 
 def _backend() -> str:

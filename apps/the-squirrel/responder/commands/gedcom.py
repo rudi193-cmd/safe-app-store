@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from datetime import datetime
 from responder.formatter import result_block
@@ -10,9 +11,9 @@ def cmd_export_gedcom(conn, args: list) -> str:
     # table denies this outright to the jeles (LLM) actor.
     _gate.authorized("export")
     date_str = datetime.now().strftime("%Y%m%d")
-    desktop = Path.home() / "Desktop"
-    desktop.mkdir(exist_ok=True)
-    out_path = desktop / f"squirrel_export_{date_str}.ged"
+    export_dir = Path(os.environ.get("SQUIRREL_EXPORT_DIR", Path.home() / "Desktop"))
+    export_dir.mkdir(parents=True, exist_ok=True)
+    out_path = export_dir / f"squirrel_export_{date_str}.ged"
     count = export(conn, out_path)
     return result_block("export gedcom", f"✓ {count} persons exported\n`{out_path}`")
 

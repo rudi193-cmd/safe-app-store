@@ -18,8 +18,22 @@ import time
 import argparse
 from pathlib import Path
 
-# Wire up fleet — need both core dir and parent for relative imports
-WILLOW_ROOT = os.environ.get("WILLOW_ROOT", os.path.expanduser("~/github/Willow"))
+# Wire up fleet — need both core dir and parent for relative imports.
+# Env override first; fall back to a sibling checkout, then ~/github/Willow (ST-PATH-01).
+_willow_candidates = [
+    os.environ.get("WILLOW_ROOT", ""),
+    str(Path(__file__).resolve().parent.parent.parent.parent / "Willow"),
+    os.path.expanduser("~/github/Willow"),
+]
+WILLOW_ROOT = next(
+    (p for p in _willow_candidates if p and os.path.exists(os.path.join(p, "core", "llm_router.py"))),
+    None,
+)
+if not WILLOW_ROOT:
+    sys.exit(
+        "Willow core not found. Set WILLOW_ROOT to your Willow checkout "
+        "(needs core/llm_router.py), or place Willow as a sibling of this repo."
+    )
 sys.path.insert(0, WILLOW_ROOT)
 sys.path.insert(0, os.path.join(WILLOW_ROOT, "core"))
 import llm_router

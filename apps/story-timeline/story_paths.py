@@ -15,3 +15,26 @@ def vault_root() -> Path:
 def app_data() -> Path:
     env = os.environ.get("APP_DATA")
     return Path(env).expanduser() if env else vault_root() / "story-timeline"
+
+
+def willow_root() -> Path | None:
+    """Locate a Willow checkout that ships sap/clients/soil_client.py.
+
+    Probes WILLOW_ROOT, then WILLOW_CORE (which historically pointed at
+    <root>/core), then well-known checkout locations. Each candidate is
+    validated before use so a stale path never lands on sys.path (ST-PATH-01).
+    Returns None when nothing is found — callers degrade gracefully.
+    """
+    core = os.environ.get("WILLOW_CORE", "")
+    candidates = [
+        os.environ.get("WILLOW_ROOT", ""),
+        str(Path(core).expanduser().parent) if core else "",
+        str(Path(__file__).resolve().parent.parent.parent.parent / "willow-2.0"),
+        str(Path.home() / "github" / "willow-2.0"),
+        str(Path.home() / "willow-2.0"),
+        str(Path.home() / "github" / "willow-1.9"),
+    ]
+    for c in candidates:
+        if c and (Path(c).expanduser() / "sap" / "clients" / "soil_client.py").is_file():
+            return Path(c).expanduser()
+    return None

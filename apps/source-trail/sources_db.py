@@ -9,6 +9,7 @@ Env vars: WILLOW_PG_DB, WILLOW_PG_USER, WILLOW_PG_HOST, WILLOW_PG_PORT.
 """
 
 import os
+import re
 import threading
 from datetime import datetime
 from typing import Optional, List, Dict, Any
@@ -21,6 +22,11 @@ _pool = None
 _pool_lock = threading.Lock()
 
 SCHEMA = "source_trail"
+# Schema names can't be parameterized — refuse anything but a plain lowercase
+# identifier before it reaches the f-string SQL sites (ST-SQL-01).
+if not re.fullmatch(r"[a-z_][a-z0-9_]*", SCHEMA):
+    raise ValueError(f"Invalid schema name: {SCHEMA!r}")
+
 
 VALID_SOURCE_TYPES = frozenset({
     "article", "paper", "book", "website", "government",

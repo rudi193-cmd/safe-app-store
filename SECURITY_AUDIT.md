@@ -66,7 +66,7 @@ This PR is the tracking doc. No patches here — patches go in separate PRs.
 
 **Severity:** P0 (Blocks execution on any non-USER system)
 **Files affected:** 12+ safe-apps
-**Status:** Open
+**Status:** Remediated 2026-07-17 (fleet sweep — validated env-override discovery everywhere)
 
 Across the monorepo, paths are hardcoded to USER's machine, making apps non-portable:
 
@@ -109,7 +109,7 @@ WILLOW_CORE = Path(__file__).parent.parent.parent / "willow-1.9" / "core"
 
 **Files:** Multiple database modules (dating-wellbeing/wellbeing_db.py, the-squirrel/squirrel_db.py, etc.)
 **Severity:** P2 (Code smell, not injection risk)
-**Status:** Open
+**Status:** Remediated 2026-07-17 (identifier validation at every interpolation site)
 
 Schema and field names are interpolated using f-strings:
 
@@ -145,7 +145,7 @@ cur.execute(f"UPDATE ... SET {field} = %s", (value,))
 
 **Files:** All safe_integration.py files
 **Severity:** P1 (Blocks safe-app deployment)
-**Status:** Open
+**Status:** Remediated 2026-07-17 (paths validated before sys.path insert; clients fail soft with clear errors)
 
 Each safe_integration.py depends on hardcoded paths that fail on non-USER systems:
 
@@ -196,7 +196,7 @@ from user_lattice import ...
 
 **File:** law-gazelle/src/gazelle_engine.py (lines 160, 179, 206, 249, 270, 438, 609, 624)
 **Severity:** P2
-**Status:** Open
+**Status:** Resolved 2026-07-17 (gazelle_engine.py moved to _archived/; no bare excepts in live code)
 
 Multiple bare `except:` clauses that swallow all exceptions:
 
@@ -224,7 +224,7 @@ except (ValueError, TypeError, KeyError):
 
 **Files:** story-timeline/web.py, nasa-archive web frontend
 **Severity:** P2
-**Status:** Open
+**Status:** Remediated 2026-07-17 (story-timeline Host guard; nasa-archive CORS lockdown; XSS sweeps clean)
 
 Web endpoints in story-timeline and nasa-archive expose HTTP servers without documented CORS policy. If used in production (not just local dev), CORS wildcards or missing headers could expose data to cross-origin requests.
 
@@ -278,6 +278,48 @@ requests==2.31.0
 | P2 | 4 | ST-EXC-01, ST-HTTP-01, ST-RACE-01, ST-DEP-01 |
 
 **CRITICAL BLOCKER:** ST-PATH-01 (hardcoded paths) must be fixed before any safe-app-store app can run on a non-USER system. This affects 12+ apps.
+
+---
+
+## Remediation Log
+
+### 2026-07-17 — nasa-archive hardening pass (v1.0.1)
+
+Per-app remediation of open findings, plus two new findings fixed:
+
+| Finding | File | Fix |
+|---|---|---|
+| NEW: unauthenticated LLM proxy accepted caller-supplied `system` roles, unbounded input | `supabase/functions/oral-chat/index.ts` | History sanitized to user/assistant roles only; message capped at 4000 chars, history at 10 turns × 2000 chars; slug validated against `^[a-z0-9][a-z0-9-]{0,63}$` |
+| NEW: local dev proxy had CORS `*` — any website open in the user's browser could drive it and burn LLM keys | `local_oral_chat.py` | CORS restricted to localhost origins; body size capped at 64KB; malformed JSON → 400 instead of crash; same history/message/slug sanitization as the edge function |
+| ST-PATH-01 | `enrich_rallies.py`, `local_oral_chat.py` | `WILLOW_ROOT` env override + sibling-checkout fallback, validated before `sys.path` insert; clear error message instead of silent `ModuleNotFoundError`. `WILLOW_USERNAME` env override for the registry username. |
+| ST-SQL-01 | `archive_db/db.py` | Schema names validated against `^[a-z_][a-z0-9_]{0,62}$` before f-string interpolation in `SET search_path` / `CREATE SCHEMA` |
+| ST-DEP-01 | `requirements.txt` | CVE floors pinned: `requests>=2.32.4`, `python-dotenv>=1.0.1`, `aiohttp>=3.12.14` |
+
+XSS review (ST-XSS-01/ST-HTTP-01 for nasa-archive): all `innerHTML` sinks in `web/*.html` route user input through `esc()`/`escapeHtml()`; BBS thread data is static in-file; `site/` chat UIs use `textContent`. No unescaped user-input sink found — no change needed.
+
+### 2026-07-17 — story-timeline hardening pass (v2.2.2)
+
+| Finding | File | Fix |
+|---|---|---|
+| ST-HTTP-01 | `web.py` | Host header validated against localhost (DNS-rebinding guard — loopback binding alone doesn't stop a hostile page pointing its own hostname at 127.0.0.1); `X-Content-Type-Options: nosniff` on all responses; security posture documented in the module docstring |
+| ST-PATH-01 | `story_paths.py`, `safe_integration.py`, `soil_protocol.py`, `willow_edges.py` | Triplicated stale `willow-1.9` fallback consolidated into `story_paths.willow_root()`: probes `WILLOW_ROOT` → `WILLOW_CORE` → sibling checkout → `willow-2.0`/`willow-1.9` home dirs, and validates `sap/clients/soil_client.py` exists before any `sys.path` insert. Stale env values are rejected instead of blindly inserted; clients still degrade gracefully. |
+
+XSS review for story-timeline: `web.py` frontend uses `textContent` for all node/edge data; `innerHTML` only ever assigned `''`. SQL in `timeline_db.py` fully parameterized. No change needed on either.
+
+### 2026-07-17 — fleet sweep (10 apps, closes ST-PATH-01 / ST-SQL-01 / ST-INT-01 / ST-EXC-01)
+
+| App (version) | Fix |
+|---|---|
+| private-ledger (0.1.2), field-notes (1.0.2), dating-wellbeing (1.0.2), game (1.0.1) | Lattice import: `WILLOW_CORE` only lands on `sys.path` if it actually holds `user_lattice.py`; app-local `lattice_fallback` still covers standalone mode. SCHEMA identifier guard before all f-string SQL sites. |
+| game (streamlit_app.py) | Stale `willow-1.7` blind insert replaced with validated probe over willow-2.0 → 1.9 → 1.7 for `sap/core/gate.py` |
+| utety-chat (1.0.2) | SAP gate path validated before insert; stale `WILLOW_ROOT` falls through to the existing fallback |
+| the-binder (0.1.1) | Removed the unused willow-1.9 `sys.path` insert entirely (only `psycopg2` was imported after it) |
+| source-trail (1.0.1) | Fixed check/insert mismatch in `_get_source_trail` (checked `core_path`, inserted root); validates `core/source_trail.py` exists with a clear error. SCHEMA guard in `sources_db.py`. |
+| ratatosk (1.0.1) | `start()` validates `sap_mcp.py` exists with a clear `RATATOSK_MCP_PATH` error instead of a 30s timeout |
+| the-squirrel (2.1.1) | GEDCOM export honors `SQUIRREL_EXPORT_DIR` (was hardcoded `~/Desktop`); SCHEMA guard in `db/__init__.py`. The audit's `person.py` field interpolation was already allowlist-guarded (`EDITABLE_FIELDS`) — stale finding. |
+| law-gazelle (1.0.2) | `get_connection(schema=...)` validates the schema identifier before `CREATE SCHEMA` / `SET search_path` interpolation. ST-EXC-01's bare excepts all live in `_archived/gazelle_engine.py` — dead code, resolved by archival; live code has zero bare excepts. |
+
+Not changed, reviewed as acceptable: ask-jeles / semantic-translator `mcp_client.py` discovery (already validates `unified_mcp.sh` before use); the-squirrel `vault.py` (`SQUIRREL_HOME` override already present); `~/.willow` / `~/.mcp.json` style fixed home paths (legitimate config locations, "fragility, not data" per vault lint). utety-chat `chat_db.py` already used `psycopg2.sql.Identifier` — the reference pattern. ST-RACE-01 stays open (accepted for single-user deployment); ST-DEP-01 mitigated by dependabot floors fleet-wide, exact pins only where CVE floors matter (nasa-archive).
 
 ---
 

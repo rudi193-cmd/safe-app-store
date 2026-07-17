@@ -1,7 +1,7 @@
 {
   "app_id": "dating-wellbeing",
   "name": "Dating Wellbeing Analyzer",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "safe_version": ">=2.0.0",
   "b17": "2NCAL",
   "agent_type": "tool",

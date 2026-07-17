@@ -12,6 +12,8 @@ Run: python local_oral_chat.py
 Then: cd site && npm run dev
 """
 import json
+import os
+import re
 import sys
 import io
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -21,9 +23,14 @@ from pathlib import Path
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
-# Willow core
-_WILLOW_ROOT = Path(__file__).parent.parent / "Willow"
+# Willow core — env override first, sibling-checkout fallback (ST-PATH-01)
+_WILLOW_ROOT = Path(os.environ.get("WILLOW_ROOT", Path(__file__).parent.parent / "Willow"))
 WILLOW_CORE = str(_WILLOW_ROOT / "core")
+if not (_WILLOW_ROOT / "core" / "llm_router.py").exists():
+    sys.exit(
+        f"Willow core not found at {_WILLOW_ROOT}. "
+        "Set WILLOW_ROOT to your Willow checkout, or place it as a sibling of this repo."
+    )
 sys.path.insert(0, str(_WILLOW_ROOT))  # for "from core.db import ..."
 sys.path.insert(0, WILLOW_CORE)         # for "import llm_router"
 
@@ -37,7 +44,7 @@ _REPO = Path(__file__).parent
 sys.path.insert(0, str(_REPO))
 from personas import get_persona
 
-USERNAME = "Sweet-Pea-Rudi19"
+USERNAME = os.environ.get("WILLOW_USERNAME", "Sweet-Pea-Rudi19")
 AGENT_NAME = "riggs-archive"
 SITE_ENV_LOCAL = _REPO / "site" / ".env.local"
 
@@ -74,12 +81,39 @@ def _call_fleet(prompt: str) -> str:
     raise RuntimeError("All fleet providers failed")
 
 
+# Abuse guards — this proxy fronts the user's LLM keys.
+MAX_BODY_BYTES = 64 * 1024
+MAX_MESSAGE_CHARS = 4000
+MAX_HISTORY_TURNS = 10
+MAX_HISTORY_CHARS = 2000
+_LOCAL_ORIGIN_RE = re.compile(r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$")
+_SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
+
+
+def _sanitize_history(history):
+    """Keep only well-formed user/assistant turns, capped in count and length."""
+    if not isinstance(history, list):
+        return []
+    clean = []
+    for m in history:
+        if (isinstance(m, dict)
+                and m.get("role") in ("user", "assistant")
+                and isinstance(m.get("content"), str)):
+            clean.append({"role": m["role"], "content": m["content"][:MAX_HISTORY_CHARS]})
+    return clean[-MAX_HISTORY_TURNS:]
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         print(f"oral-chat: {fmt % args}", flush=True)
 
     def _cors(self):
-        self.send_header("Access-Control-Allow-Origin", "*")
+        # Only trust localhost origins — a wildcard would let any website the
+        # user has open drive this proxy (and burn their LLM keys) silently.
+        origin = self.headers.get("Origin", "")
+        if _LOCAL_ORIGIN_RE.match(origin):
+            self.send_header("Access-Control-Allow-Origin", origin)
+        self.send_header("Vary", "Origin")
         self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
@@ -94,17 +128,32 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
-        length = int(self.headers.get("Content-Length", 0))
-        body = json.loads(self.rfile.read(length))
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+        except ValueError:
+            self._json(400, {"error": "bad Content-Length"})
+            return
+        if length <= 0 or length > MAX_BODY_BYTES:
+            self._json(400, {"error": "body required and must be under 64KB"})
+            return
+        try:
+            body = json.loads(self.rfile.read(length))
+            if not isinstance(body, dict):
+                raise ValueError("body must be a JSON object")
+        except (ValueError, UnicodeDecodeError) as e:
+            self._json(400, {"error": f"invalid JSON body: {e}"})
+            return
 
-        message = body.get("message", "").strip()
-        slug = body.get("slug", "").strip()
-        page_type = body.get("page_type", "general").strip()
-        history = body.get("history", [])
+        message = str(body.get("message", "")).strip()[:MAX_MESSAGE_CHARS]
+        slug = str(body.get("slug", "")).strip()
+        page_type = str(body.get("page_type", "general")).strip()
+        history = _sanitize_history(body.get("history", []))
 
         if not message:
             self._json(400, {"error": "message required"})
             return
+        if slug and not _SLUG_RE.match(slug):
+            slug = ""  # ignore malformed slugs rather than feed them to the prompt
 
         # Build context based on page type
         context = ""
@@ -120,7 +169,7 @@ class Handler(BaseHTTPRequestHandler):
         system_content = SYSTEM_PROMPT + context
         history_text = "\n".join(
             f"{'User' if m['role'] == 'user' else 'Riggs'}: {m['content']}"
-            for m in history[-10:]
+            for m in history
         )
         prompt = f"{system_content}\n\n{history_text}\nUser: {message}\nRiggs:"
 

@@ -21,7 +21,10 @@ try:
     from pathlib import Path as _Path
     import os as _os
     _willow_root = _Path(_os.environ.get("WILLOW_ROOT", str(_Path.home() / "github" / "willow-1.9")))
-    _sys.path.insert(0, str(_willow_root))
+    # Only insert a path that actually holds the gate (ST-PATH-01); a stale
+    # WILLOW_ROOT falls through to the ImportError fallback below.
+    if (_willow_root / "sap" / "core" / "gate.py").is_file():
+        _sys.path.insert(0, str(_willow_root))
     from sap.core.gate import authorized as _sap_authorized
 except ImportError:
     from pathlib import Path as _Path

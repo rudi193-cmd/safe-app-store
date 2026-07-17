@@ -20,8 +20,12 @@ _WILLOW_ROOT = os.environ.get("WILLOW_ROOT", os.path.expanduser("~/github/willow
 
 def _get_source_trail():
     """Lazy import of core/source_trail.py from WILLOW_ROOT."""
-    core_path = os.path.join(_WILLOW_ROOT, "core")
-    if core_path not in sys.path:
+    if not os.path.isfile(os.path.join(_WILLOW_ROOT, "core", "source_trail.py")):
+        raise RuntimeError(
+            f"core/source_trail.py not found under {_WILLOW_ROOT!r} — "
+            "set WILLOW_ROOT to a willow-2.0 checkout"
+        )
+    if _WILLOW_ROOT not in sys.path:
         sys.path.insert(0, _WILLOW_ROOT)
     import importlib
     return importlib.import_module("core.source_trail")

@@ -18,6 +18,25 @@ interface RequestBody {
   history?: ChatMessage[];
 }
 
+// Abuse guards — this function fronts a metered LLM key.
+const MAX_MESSAGE_CHARS = 4000;
+const MAX_HISTORY_TURNS = 10;
+const MAX_HISTORY_CHARS = 2000;
+const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
+
+// Only ever forward user/assistant turns — a caller-supplied "system" role
+// would let the client inject instructions above the archive's own prompt.
+function sanitizeHistory(history: unknown): ChatMessage[] {
+  if (!Array.isArray(history)) return [];
+  return history
+    .filter((m): m is ChatMessage =>
+      !!m && typeof m === 'object' &&
+      (m.role === 'user' || m.role === 'assistant') &&
+      typeof m.content === 'string')
+    .slice(-MAX_HISTORY_TURNS)
+    .map(m => ({ role: m.role, content: m.content.slice(0, MAX_HISTORY_CHARS) }));
+}
+
 const SYSTEM_PROMPT = `You are the NASA oral historian — the voice of the North America Scootering Archive.
 
 Your job: help community members share their memories of scooter rallies. You listen, ask follow-up questions, and help people tell their stories in their own words.
@@ -59,10 +78,23 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body: RequestBody = await req.json();
-    const { message, slug, history = [] } = body;
+    const { message, slug } = body;
+    const history = sanitizeHistory(body.history);
 
-    if (!message?.trim() || !slug?.trim()) {
+    if (typeof message !== 'string' || !message.trim() || typeof slug !== 'string' || !slug.trim()) {
       return new Response(JSON.stringify({ error: 'message and slug required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (message.length > MAX_MESSAGE_CHARS) {
+      return new Response(JSON.stringify({ error: `message too long (max ${MAX_MESSAGE_CHARS} chars)` }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (!SLUG_RE.test(slug)) {
+      return new Response(JSON.stringify({ error: 'invalid slug' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -93,7 +125,7 @@ Deno.serve(async (req: Request) => {
         content: SYSTEM_PROMPT + rallyContext +
           `\n\nThe user is sharing memories about the rally with slug: "${slug}"`,
       },
-      ...history.slice(-10), // last 10 turns for context
+      ...history, // sanitized: user/assistant only, last 10 turns, length-capped
       { role: 'user', content: message },
     ];
 

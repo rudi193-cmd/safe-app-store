@@ -44,6 +44,12 @@ def start(sap_mcp: str = _DEFAULT_SAP_MCP) -> tuple[list[dict], set[str]]:
     """Connect to sap_mcp.py, return (anthropic_tool_defs, tool_name_set)."""
     global _mcp_loop
 
+    if not Path(sap_mcp).is_file():
+        raise RuntimeError(
+            f"sap_mcp.py not found at {sap_mcp!r} — set RATATOSK_MCP_PATH "
+            "to your willow-2.0/sap/sap_mcp.py"
+        )
+
     loop = asyncio.new_event_loop()
     _mcp_loop = loop
     ready = threading.Event()
