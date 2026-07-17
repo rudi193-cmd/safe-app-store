@@ -1,11 +1,11 @@
 {
   "app_id": "private-ledger",
   "name": "private-ledger",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "safe_version": ">=2.0.0",
   "b17": "H7864",
   "agent_type": "tool",
-  "description": "Local personal budgeting companion \u2014 fully private, no cloud sync, paired with Public Ledger.",
+  "description": "Local personal budgeting companion — fully private, no cloud sync, paired with Public Ledger.",
   "author": "USER",
   "data_streams": [
     {

@@ -1,11 +1,11 @@
 {
   "app_id": "source-trail",
   "name": "source-trail",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "safe_version": ">=2.0.0",
   "b17": "K7NA1",
   "agent_type": "tool",
-  "description": "Citation and source tracker \u2014 log, verify, and link your research sources. AskJeles companion.",
+  "description": "Citation and source tracker — log, verify, and link your research sources. AskJeles companion.",
   "author": "USER",
   "data_streams": [
     {

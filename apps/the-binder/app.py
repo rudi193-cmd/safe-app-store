@@ -24,12 +24,8 @@ _search_kb = None
 def _init_willow():
     global _WILLOW_AVAILABLE, _search_kb
     try:
-        willow_root = os.environ.get(
-            "WILLOW_ROOT",
-            str(Path.home() / "github" / "willow-1.9")
-        )
-        if willow_root not in sys.path:
-            sys.path.insert(0, willow_root)
+        # Direct Postgres access only — no Willow code imports, so nothing is
+        # added to sys.path here (ST-PATH-01: the old willow-1.9 insert was unused).
         import psycopg2
         _db = os.environ.get("WILLOW_PG_DB", "willow_19")
         _user = os.environ.get("WILLOW_PG_USER", os.environ.get("USER", ""))

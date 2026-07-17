@@ -3,9 +3,19 @@ import json
 import os
 import sys
 
-# SAP gate check
+# SAP gate check — probe known checkouts and only insert a validated path (ST-PATH-01)
 try:
-    sys.path.insert(0, os.environ.get("WILLOW_ROOT", os.path.expanduser("~/github/willow-1.7")))
+    _willow_candidates = [
+        os.environ.get("WILLOW_ROOT", ""),
+        os.path.expanduser("~/github/willow-2.0"),
+        os.path.expanduser("~/willow-2.0"),
+        os.path.expanduser("~/github/willow-1.9"),
+        os.path.expanduser("~/github/willow-1.7"),
+    ]
+    for _c in _willow_candidates:
+        if _c and os.path.isfile(os.path.join(_c, "sap", "core", "gate.py")):
+            sys.path.insert(0, _c)
+            break
     from sap.core.gate import authorized as _sap_authorized
     if not _sap_authorized("Game"):
         st.error("SAP gate denied — SAFE/Applications/Game/ not authorized.")

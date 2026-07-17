@@ -166,6 +166,10 @@ class _PgConn:
 def get_connection(path: str = None, schema: str = SCHEMA_NAME):
     """Return a pooled Postgres connection scoped to law_gazelle schema.
     path is ignored (kept for call-site compatibility during migration)."""
+    # Schema names can't be parameterized — validate before the f-string
+    # interpolation below (ST-SQL-01).
+    if schema and not re.fullmatch(r"[a-z_][a-z0-9_]*", schema):
+        raise ValueError(f"Invalid schema name: {schema!r}")
     pool = _get_pg_pool()
     conn = pool.getconn()
     try:

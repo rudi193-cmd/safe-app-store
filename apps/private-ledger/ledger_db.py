@@ -9,15 +9,17 @@ DB connection follows the same pooled psycopg2 pattern as genealogy_db.py.
 """
 
 import os
+import re
 import sys
 import threading
 from datetime import datetime, date
 from decimal import Decimal
 from typing import Optional, List, Dict, Any
 
-# Import 23-cubed lattice constants
+# Import 23-cubed lattice constants — only trust WILLOW_CORE if it actually
+# holds user_lattice.py, so a stale path never lands on sys.path (ST-PATH-01).
 _WILLOW_CORE = os.environ.get("WILLOW_CORE", os.path.expanduser("~/github/Willow/core"))
-if _WILLOW_CORE not in sys.path:
+if os.path.isfile(os.path.join(_WILLOW_CORE, "user_lattice.py")) and _WILLOW_CORE not in sys.path:
     sys.path.insert(0, _WILLOW_CORE)
 try:
     from user_lattice import DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE
@@ -34,6 +36,11 @@ _pool = None
 _pool_lock = threading.Lock()
 
 SCHEMA = "private_ledger"
+# Schema names can't be parameterized — refuse anything but a plain lowercase
+# identifier before it reaches the f-string SQL sites (ST-SQL-01).
+if not re.fullmatch(r"[a-z_][a-z0-9_]*", SCHEMA):
+    raise ValueError(f"Invalid schema name: {SCHEMA!r}")
+
 
 VALID_ACCOUNT_TYPES = frozenset({
     "checking", "savings", "credit", "investment", "debt", "other"
