@@ -9,13 +9,12 @@ Talks to Willow via SoilClient (MCP/stdio) — all calls go through the SAP gate
 Degrades gracefully if Willow is unavailable.
 """
 import json
-import os
 import re
 import sys
 from datetime import datetime
-from pathlib import Path
 from typing import Optional
 
+import story_paths
 from story_paths import vault_root
 
 _IDENTITY_PATH = vault_root() / "user_identity.json"
@@ -35,15 +34,15 @@ def _get_client():
         return None
 
     try:
-        willow_root = os.environ.get(
-            "WILLOW_ROOT",
-            str(Path(os.environ.get(
-                "WILLOW_CORE",
-                str(Path.home() / "github" / "willow-1.9" / "core")
-            )).parent)
-        )
-        if willow_root not in sys.path:
-            sys.path.insert(0, willow_root)
+        willow_root = story_paths.willow_root()
+        if willow_root is None:
+            sys.stderr.write(
+                "[safe_integration] store init failed: no Willow checkout found (set WILLOW_ROOT)\n"
+            )
+            _CLIENT_INIT_FAILED = True
+            return None
+        if str(willow_root) not in sys.path:
+            sys.path.insert(0, str(willow_root))
         from sap.clients.soil_client import SoilClient
         client = SoilClient(app_id=APP_ID)
         if not client._available:

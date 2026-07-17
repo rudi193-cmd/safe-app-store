@@ -7,8 +7,13 @@ Endpoints:
   GET /api/edges     → JSON list of all edges (from Willow)
   GET /api/node/{id} → JSON single node
   Everything else    → 404
+
+Security posture (ST-HTTP-01): binds 127.0.0.1 only, read-only API, no CORS
+headers (same-origin only), and the Host header is validated against
+localhost so a DNS-rebinding page can't read the graph data.
 """
 import json
+import re
 import socketserver
 import threading
 import webbrowser
@@ -315,6 +320,11 @@ loadAll();
 """
 
 
+# Loopback binding alone doesn't stop DNS rebinding — a hostile page can point
+# its own hostname at 127.0.0.1 and read responses same-origin.
+_LOCAL_HOST_RE = re.compile(r"^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$")
+
+
 class _Handler(BaseHTTPRequestHandler):
     """Request handler — serves HTML root and JSON API endpoints."""
 
@@ -326,6 +336,7 @@ class _Handler(BaseHTTPRequestHandler):
         body = json.dumps(data).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
+        self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -334,11 +345,16 @@ class _Handler(BaseHTTPRequestHandler):
         body = html.encode()
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
 
     def do_GET(self):
+        if not _LOCAL_HOST_RE.match(self.headers.get("Host", "")):
+            self._send_json({"error": "forbidden"}, status=403)
+            return
+
         path = self.path.split("?")[0]
 
         if path == "/":

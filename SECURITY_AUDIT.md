@@ -297,6 +297,15 @@ Per-app remediation of open findings, plus two new findings fixed:
 
 XSS review (ST-XSS-01/ST-HTTP-01 for nasa-archive): all `innerHTML` sinks in `web/*.html` route user input through `esc()`/`escapeHtml()`; BBS thread data is static in-file; `site/` chat UIs use `textContent`. No unescaped user-input sink found — no change needed.
 
+### 2026-07-17 — story-timeline hardening pass (v2.2.2)
+
+| Finding | File | Fix |
+|---|---|---|
+| ST-HTTP-01 | `web.py` | Host header validated against localhost (DNS-rebinding guard — loopback binding alone doesn't stop a hostile page pointing its own hostname at 127.0.0.1); `X-Content-Type-Options: nosniff` on all responses; security posture documented in the module docstring |
+| ST-PATH-01 | `story_paths.py`, `safe_integration.py`, `soil_protocol.py`, `willow_edges.py` | Triplicated stale `willow-1.9` fallback consolidated into `story_paths.willow_root()`: probes `WILLOW_ROOT` → `WILLOW_CORE` → sibling checkout → `willow-2.0`/`willow-1.9` home dirs, and validates `sap/clients/soil_client.py` exists before any `sys.path` insert. Stale env values are rejected instead of blindly inserted; clients still degrade gracefully. |
+
+XSS review for story-timeline: `web.py` frontend uses `textContent` for all node/edge data; `innerHTML` only ever assigned `''`. SQL in `timeline_db.py` fully parameterized. No change needed on either.
+
 ---
 
 *ΔΣ=42*
