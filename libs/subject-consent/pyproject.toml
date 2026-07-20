@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "subject-consent"
+version = "0.0.1"
+description = "subject-consent — the stdlib-only, egress-free guardian-consent primitive: did this person (or a guardian on their behalf) agree to their data being used this way? Shared by willow-mcp, UTETY, and corpus-lens."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Sean Campbell" }]
+requires-python = ">=3.10"
+keywords = ["consent", "guardian-consent", "de-identification", "hash-chain", "privacy", "coppa", "willow", "utety"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries",
+]
+# Zero runtime dependencies, on purpose. The core runs on a child's device (UTETY)
+# and under corpus-lens's stdlib-only charter; tests/test_boundaries.py enforces it.
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/rudi193-cmd/subject-consent"
+Repository = "https://github.com/rudi193-cmd/subject-consent"
+Issues = "https://github.com/rudi193-cmd/subject-consent/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/subject_consent"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
