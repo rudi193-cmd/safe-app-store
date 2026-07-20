@@ -189,9 +189,9 @@ def test_disclosure_absent_is_empty(tmp_path):
 
 def test_disclosure_tamper_raises(tmp_path):
     record_disclosure(tmp_path, "subj-1", "lesson", "A")
-    # find the per-subject file and corrupt it
+    # corrupt the CHAIN file (there is also a sibling .anchor.json now)
     ddir = tmp_path / "disclosures"
-    f = next(ddir.iterdir())
+    f = next(p for p in ddir.iterdir() if p.suffix == ".jsonl")
     row = f.read_text(encoding="utf-8").splitlines()[0]
     f.write_text(row.replace("lesson", "surveillance") + "\n", encoding="utf-8")
     with pytest.raises(ChainTamperError):
@@ -245,3 +245,93 @@ def test_core_has_no_network_or_subprocess_imports():
             mods = [node.module.split(".")[0]]
         hit = sorted(set(mods) & banned)
         assert not hit, f"core.py must not import egress/exec modules: {hit}"
+
+
+# ── truncation anchor (backported from UTETY audit B4) ────────────────────────
+
+def test_disclosure_truncation_is_detected(tmp_path):
+    """Deleting the newest rows leaves a chain that still LINKS cleanly — the
+    anchor (head hash + count) is what catches it."""
+    record_disclosure(tmp_path, "subj-1", "lesson", "A")
+    record_disclosure(tmp_path, "subj-1", "lesson", "B")
+    record_disclosure(tmp_path, "subj-1", "lesson", "C")
+    f = next(p for p in (tmp_path / "disclosures").iterdir() if p.suffix == ".jsonl")
+    lines = f.read_text(encoding="utf-8").splitlines()
+    f.write_text("\n".join(lines[:-1]) + "\n", encoding="utf-8")  # drop the tail
+    with pytest.raises(ChainTamperError):
+        read_disclosures(tmp_path, "subj-1")
+
+
+def test_consent_truncation_denies_at_gate(tmp_path):
+    grant(tmp_path, "subj-1", "kb_promotion", OWNER)
+    grant(tmp_path, "subj-1", "person_inference", OWNER)
+    path = tmp_path / "consent.jsonl"
+    lines = path.read_text(encoding="utf-8").splitlines()
+    path.write_text(lines[0] + "\n", encoding="utf-8")  # drop the 2nd grant
+    # links still clean, but count/head no longer match the anchor → deny
+    assert permitted(tmp_path, "subj-1", "kb_promotion") is False
+    with pytest.raises(ChainTamperError):
+        verify_consent_chain(tmp_path)
+
+
+def test_missing_anchor_on_nonempty_chain_is_tampered(tmp_path):
+    grant(tmp_path, "subj-1", "kb_promotion", OWNER)
+    (tmp_path / "consent.anchor.json").unlink()  # anchor gone, rows remain
+    assert permitted(tmp_path, "subj-1", "kb_promotion") is False
+
+
+def test_append_refuses_after_truncation(tmp_path):
+    grant(tmp_path, "subj-1", "kb_promotion", OWNER)
+    grant(tmp_path, "subj-1", "person_inference", OWNER)
+    path = tmp_path / "consent.jsonl"
+    lines = path.read_text(encoding="utf-8").splitlines()
+    path.write_text(lines[0] + "\n", encoding="utf-8")
+    with pytest.raises(ChainTamperError):
+        grant(tmp_path, "subj-2", "kb_promotion", OWNER)
+
+
+# ── pluggable backend: the same logic over a non-file store ───────────────────
+
+class DictBackend:
+    """An in-memory Backend — proves the chain logic is storage-free (the shape
+    UTETY's SQLite backend fills). Satisfies the Backend protocol structurally."""
+    def __init__(self):
+        self.rows: dict[str, list[dict]] = {}
+        self.anchors: dict[str, dict] = {}
+
+    def read_rows(self, chain):
+        return list(self.rows[chain]) if chain in self.rows else None
+
+    def append_row(self, chain, row):
+        self.rows.setdefault(chain, []).append(row)
+
+    def read_anchor(self, chain):
+        return dict(self.anchors[chain]) if chain in self.anchors else None
+
+    def write_anchor(self, chain, anchor):
+        self.anchors[chain] = dict(anchor)
+
+
+def test_backend_protocol_accepts_a_custom_backend():
+    from subject_consent.core import Backend
+    assert isinstance(DictBackend(), Backend)
+
+
+def test_full_lifecycle_over_dict_backend():
+    b = DictBackend()
+    assert permitted(b, "s1", "kb_promotion") is False
+    grant(b, "s1", "kb_promotion", "guardian")
+    assert permitted(b, "s1", "kb_promotion") is True
+    revoke(b, "s1", "kb_promotion", "guardian")
+    assert permitted(b, "s1", "kb_promotion") is False
+    record_disclosure(b, "s1", "lesson", "fractions")
+    assert [r["detail"] for r in read_disclosures(b, "s1")] == ["fractions"]
+    verify_consent_chain(b)  # intact → no raise
+
+
+def test_dict_backend_truncation_detected():
+    b = DictBackend()
+    grant(b, "s1", "kb_promotion", "guardian")
+    grant(b, "s1", "person_inference", "guardian")
+    b.rows["consent"] = b.rows["consent"][:1]  # truncate, leave stale anchor
+    assert permitted(b, "s1", "kb_promotion") is False
