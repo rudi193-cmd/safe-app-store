@@ -24,6 +24,7 @@ _SENDER = os.environ.get("WILLOW_AGENT_NAME", "ratatosk")
 def _send(content: str) -> None:
     if not _CHANNEL:
         return
+    conn = None
     try:
         import psycopg2
         conn = psycopg2.connect(_PG_URL) if _PG_URL else psycopg2.connect(dbname=_DB, user=_USER)
@@ -36,9 +37,17 @@ def _send(content: str) -> None:
                 "INSERT INTO grove.messages (channel_id, sender, content) VALUES (%s, %s, %s)",
                 (row[0], _SENDER, content),
             )
-        conn.close()
     except Exception:
         pass
+    finally:
+        # Close in finally (the fleet chat client's pattern): a failed query —
+        # e.g. the grove schema not existing on this database — must not leak
+        # the connection on every fire-and-forget call.
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 def session_started(session_id: str, model: str) -> None:
