@@ -109,7 +109,7 @@ class Vault:
     def has(self, name: str) -> bool:
         return self.read(name) is not None
 
-    def list_keys(self):
+    def list_keys(self) -> list[str]:
         conn = sqlite3.connect(str(self._vault))
         rows = conn.execute("SELECT name FROM secrets ORDER BY name").fetchall()
         conn.close()
