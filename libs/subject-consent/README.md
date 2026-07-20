@@ -60,10 +60,24 @@ permitted(store, "s1", "kb_promotion")            # -> True (verified grant)
 deidentify("Alex went home", ["Alex"])            # -> "████ went home" (or raises)
 ```
 
-`store` is a directory holding two append-only, hash-chained JSONL files
-(`consent.jsonl` + `disclosures/<hash>.jsonl`). The package does **not** decide
-who the owner is, judge capacity/self-consent, or expose an MCP surface — those
-belong to the binding that consumes it.
+`store` is either a directory (the default `FileBackend` — append-only,
+hash-chained JSONL plus a sibling anchor file per chain) **or any `Backend`
+instance**. The package does **not** decide who the owner is, judge
+capacity/self-consent, or expose an MCP surface — those belong to the binding.
+
+## Pluggable storage + truncation anchor (v0.0.2)
+
+The chain *logic* — hashing, prev-links, and the head **anchor** — is storage-free;
+where rows land is a `Backend` (four methods: `read_rows` / `append_row` /
+`read_anchor` / `write_anchor`). The default `FileBackend` writes files; UTETY
+plugs a SQLite backend so a child's consent lives in the one on-device store beside
+the learner, atomically.
+
+The **anchor** (backported from UTETY's store, audit B4) records the chain's head
+hash + row count on every append, so **deleting the newest rows is detected** even
+though the shorter chain still links cleanly — the failure mode a plain hash chain
+misses. Fail-closed: a non-empty chain with a missing or mismatched anchor is
+treated as tampered.
 
 ## What lives in the binding, not here (on purpose)
 

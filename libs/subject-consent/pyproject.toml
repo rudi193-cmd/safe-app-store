@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "subject-consent"
-version = "0.0.1"
+version = "0.0.2"
 description = "subject-consent — the stdlib-only, egress-free guardian-consent primitive: did this person (or a guardian on their behalf) agree to their data being used this way? Shared by willow-mcp, UTETY, and corpus-lens."
 readme = "README.md"
 license = { text = "MIT" }
