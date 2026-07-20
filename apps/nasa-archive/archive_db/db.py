@@ -65,7 +65,7 @@ _PG_CONFLICT_TARGETS: dict = {
 }
 
 
-def _sqlite_to_pg(sql):
+def _sqlite_to_pg(sql: str) -> str:
     """Translate SQLite SQL syntax to PostgreSQL."""
     s = sql.strip()
     if _re.match(r"\s*PRAGMA\b", s, _re.IGNORECASE):
@@ -79,7 +79,9 @@ def _sqlite_to_pg(sql):
         table = m.group(1).lower() if m else ""
         conflict = _PG_CONFLICT_TARGETS.get(table, "DO NOTHING")
         s = s.rstrip().rstrip(";") + f" ON CONFLICT {conflict}"
-    # Only translate ? -> %s if query uses SQLite-style placeholders.
+    # Only translate ? -> %s if the query uses SQLite-style placeholders.
+    # If it already uses %s (Postgres-native), leave it alone — escaping % would
+    # turn %s into %%s and break psycopg2.
     if "?" in s:
         s = s.replace("%", "%%")
         s = s.replace("?", "%s")
@@ -100,15 +102,35 @@ class _PgCursor:
 
     def execute(self, sql, params=None):
         pg_sql = _sqlite_to_pg(sql)
+        # If INSERT has RETURNING, use that for lastrowid directly
+        has_returning = bool(_re.search(r"\bRETURNING\b", pg_sql, _re.IGNORECASE))
         self._cur.execute(pg_sql, params)
         self.description = self._cur.description
         self.rowcount    = self._cur.rowcount
-        if _re.match(r"\s*INSERT\b", pg_sql, _re.IGNORECASE):
+        if has_returning:
+            # RETURNING clause present — the result set IS the returned row(s).
+            # Don't fetch here; let the caller use fetchone()/fetchall().
+            self.lastrowid = None
+        elif _re.match(r"\s*INSERT\b", pg_sql, _re.IGNORECASE):
+            # No RETURNING clause — try lastval() for SERIAL/IDENTITY columns.
+            # lastval() fails if no sequence was used (TEXT PK tables).
+            # Use SAVEPOINT so a failed lastval() doesn't poison the transaction.
             try:
-                self._cur.execute("SELECT lastval()")
+                self._cur.execute("SAVEPOINT _lastval_check")
+                self._cur.execute(
+                    "SELECT lastval() WHERE EXISTS ("
+                    "  SELECT 1 FROM pg_sequences LIMIT 1"
+                    ")"
+                )
                 row = self._cur.fetchone()
                 self.lastrowid = row[0] if row else None
+                self._cur.execute("RELEASE SAVEPOINT _lastval_check")
             except Exception:
+                try:
+                    self._cur.execute("ROLLBACK TO SAVEPOINT _lastval_check")
+                    self._cur.execute("RELEASE SAVEPOINT _lastval_check")
+                except Exception:
+                    pass
                 self.lastrowid = None
         else:
             self.lastrowid = None
@@ -228,6 +250,6 @@ def init_schema():
         pool.putconn(conn)
 
 
-def is_postgres():
+def is_postgres() -> bool:
     """Always True -- this codebase is PostgreSQL-only."""
     return DATABASE_URL.startswith("postgresql")
