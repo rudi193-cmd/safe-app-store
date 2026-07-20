@@ -131,6 +131,22 @@ def navigational_handoffs(query: str) -> list[dict[str, Any]]:
     ]
 
 
+# Below this body size a 200-OK page with 0 parsed links is treated as a genuine
+# empty/blocked response, not a structure change. A real DDG results page is tens
+# of KB; a "no results"/interstitial page is small.
+_PARSER_MISS_MIN_BODY = 2000
+
+
+def _looks_like_results_page(html_text: str) -> bool:
+    """Heuristic: did DDG return a substantial results-style page (vs. an empty
+    or interstitial one)? Used to flag a parser miss as likely HTML drift rather
+    than a legitimately empty result set."""
+    body = html_text or ""
+    if len(body) < _PARSER_MISS_MIN_BODY:
+        return False
+    return "result" in body.lower()
+
+
 def ddg_html_search(query: str, max_results: int = 8) -> list[dict[str, Any]]:
     """Fetch DuckDuckGo HTML results (no API key)."""
     q = query.strip()
@@ -171,6 +187,11 @@ def ddg_html_search(query: str, max_results: int = 8) -> list[dict[str, Any]]:
         )
         if len(hits) >= max_results:
             break
+    if not hits and _looks_like_results_page(resp.text):
+        log.warning(
+            "ddg parser miss — HTTP 200, %d-byte results-like body, 0 links parsed; "
+            "DDG HTML structure may have changed (_LINK_RE)", len(resp.text),
+        )
     return hits
 
 
