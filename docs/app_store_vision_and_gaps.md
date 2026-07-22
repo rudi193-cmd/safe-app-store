@@ -9,7 +9,7 @@
 1. **Thesis confirmed** (§2): *a sovereign personal OS — own your data, trust your sources — wearing the friendly face of a fictional university.*
 2. **Direction: Sovereign-first (A3)** (§4). The **sovereign suite is the product**; the personas are its UI; the cloud "UTETY universe" apps are **demos / a side channel, not the destination**.
 3. **Willow: invest in true standalone** (§7). Flagship apps must run with **no Willow and no Postgres** — local SQLite only. Bundling Willow is explicitly *not* the path.
-4. **law-gazelle manifest will be scrubbed** — real case numbers in a public repo (a leak the public-facing audit was meant to prevent).
+4. **law-gazelle manifest will be scrubbed** — real case numbers in a public repo (a leak the public-facing audit was meant to prevent). **DONE — verified 2026-07-22:** the manifest at HEAD carries no case data and declares "app code plus synthetic examples only"; repo-wide sweeps for NM district (`D-xxx-XX-yyyy-nnnnn`) and generic court formats (cv/cr/dm/…) find only the `D-000-DM-0000-00000` placeholder and the synthetic demo; history-wide `-G` search finds no commit that ever removed a real number from this repo — the leak predates the current tree.
 5. **nasa-archive keeps its name** — "NASA" is a deliberate backronym (**N**orth **A**merica **S**cootering **A**rchive), not a mistake.
 6. **App fates decided** (§6, app-by-app):
    - **Flagships** (local-first, true-standalone): story-timeline, ask-jeles, the-binder, private-ledger.
@@ -277,7 +277,7 @@ ordering principle: **make the local suite genuinely ownable by a non-developer 
 
 ### Phase 0 — Truth & hygiene *(small; unblocks everything; safe to start now)*
 - Fix the broken entry points (`game`, `public-ledger`, `nasa-archive`, `dating-wellbeing`).
-- Scrub **law-gazelle**'s manifest (real case numbers in a public repo).
+- ~~Scrub **law-gazelle**'s manifest (real case numbers in a public repo).~~ Verified clean 2026-07-22 (see decision #4).
 - Keep **nasa-archive**'s name (deliberate backronym); just fix its broken entry point and align its
   manifest description to the actual archive content.
 - Resolve `llmphysics-bot/gerald-bot` (fill or delete).
