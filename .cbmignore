@@ -1,0 +1,15 @@
+# .cbmignore — what the codebase-memory-mcp indexer sees.
+# Gitignore syntax; shapes indexing only, no effect on git itself.
+# Docs: codebase-memory-mcp/docs/cbmignore.md
+
+# nasa-archive is a scooter-rally photo archive: ~290M of JSON data dumps
+# (resolved URLs + per-rally photo manifests), not code. The 50M
+# resolved_urls.json sits under the 512 MiB default file cap, so the indexer
+# WOULD parse it via the JSON grammar — a memory/time sink for zero code
+# intelligence. Drop the payload; keep the app's Python/HTML/JS.
+/apps/nasa-archive/data/
+/apps/nasa-archive/downloader/
+
+# Disposable app sandboxes and dev venvs (seeded DBs, fake clones — not source).
+.sandbox/
+.venv-dev/
