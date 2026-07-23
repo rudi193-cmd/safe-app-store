@@ -16,6 +16,11 @@ from textual.widgets import DataTable, Footer, Header, Input, Static
 
 import nightstand_db as db
 
+try:                       # the one-memory seam — optional, standalone-safe
+    import fleet_presence as _fleet
+except ImportError:
+    _fleet = None
+
 WEIGHT_GLYPH = {"heavy": "###", "medium": "## ", "light": "#  "}
 VIEWS = ("down", "done", "archived")
 VIEW_TITLES = {"down": "On the nightstand", "done": "Done", "archived": "Archived"}
@@ -77,6 +82,19 @@ class NightstandApp(App):
         self.render_inhand()
         self.render_table()
         self.render_status()
+        self.announce_presence()
+
+    def announce_presence(self) -> None:
+        """Publish this desk's load into the one memory (no-op if no shared
+        store, no-op if the seam isn't installed). Apps see each other here."""
+        if _fleet is None:
+            return
+        c = db.counts()
+        _fleet.announce(
+            "the-nightstand",
+            f"{c.get('down', 0)} down, {c.get('heavy_down', 0)} heavy",
+            {"down": c.get("down", 0), "heavy": c.get("heavy_down", 0), "done": c.get("done", 0)},
+        )
 
     def render_inhand(self) -> None:
         held = db.in_hand()

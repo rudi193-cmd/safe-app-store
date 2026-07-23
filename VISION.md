@@ -1,3 +1,8 @@
+---
+kind: doc
+name: safe-vision
+description: "A sovereign personal operating system — own your data, trust your sources — wearing the friendly face of a fictional university (ΔΣ=42)."
+---
 @markdownai v1.0
 
 # SAFE — Vision
@@ -142,12 +147,14 @@ know about each other's schemas. They speak to Jeles.
 
 ## The roadmap
 
+@phase phase-0-hygiene-ready-to-start
 ### Phase 0 — Hygiene (ready to start)
 Fix broken entry points (`game`, `public-ledger`, `nasa-archive`). Resolve `llmphysics-bot/gerald-bot`
 (fill or delete). Make catalog statuses honest. Align nasa-archive manifest copy to actual content.
 
 *Outcome: the catalog stops lying.*
 
+@phase phase-1-standalone-flagships
 ### Phase 1 — Standalone flagships
 Each flagship (story-timeline, ask-jeles, the-binder, private-ledger) runs with zero Willow and
 zero Postgres. One-command launch. The Binder gets a write path and real connection engine — it's
@@ -155,6 +162,7 @@ the keystone and is currently a shell.
 
 *Outcome: a non-developer can run the sovereign suite.*
 
+@phase phase-2-connect-the-pipes
 ### Phase 2 — Connect the pipes
 One pipeline, end to end, with consent at every hop:
 `field-notes → the-binder → ask-jeles → story-timeline`.
@@ -162,6 +170,7 @@ Wire verification-as-learning into at least two more apps beyond semantic-transl
 
 *Outcome: the ecosystem value prop is a system, not a story.*
 
+@phase phase-3-polish-and-personas
 ### Phase 3 — Polish and personas
 Shared design language across the suite. Single source of truth for personas in `libs/personas/`.
 Implement the private ⇄ public ledger pairing. Fold source-trail's provenance into ask-jeles.
@@ -173,6 +182,7 @@ Fix the 14 crash bugs. Then design real game-master logic. Not gated by the flag
 
 ---
 
+@phase what-the-store-is
 ## What the store is
 
 The store is not just a launcher. It's the **governance layer** of the SAFE ecosystem.
@@ -193,6 +203,7 @@ direction. The v1 TUI (shipped 2026-06-09) is the foundation.
 
 ---
 
+@phase what-were-not-building
 ## What we're not building
 
 - A cloud platform. The cloud apps are demos. The product is local.

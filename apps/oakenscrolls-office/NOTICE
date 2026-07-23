@@ -1,0 +1,7 @@
+oakenscrolls-office
+Copyright 2026 Sean Campbell
+
+The calibration inference layout (calibration.py) follows the vendoring
+pattern of rudi193-cmd/utety (utety/core/mastery.py, MIT); no source copied.
+The append-only ledger and dew-surfacing seams follow patterns from
+rudi193-cmd/willow-mcp (Apache-2.0); no source copied.

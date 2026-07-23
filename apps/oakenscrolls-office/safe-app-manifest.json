@@ -1,0 +1,26 @@
+{
+  "app_id": "oakenscrolls-office",
+  "name": "oakenscrolls-office",
+  "version": "0.2.0",
+  "safe_version": ">=2.0.0",
+  "b17": "OAKOF",
+  "agent_type": "tool",
+  "description": "Personal calibration ledger: state claims with confidence, grade them when the world weighs in, see whether your 70% means 70%. Append-only, local-first, structurally incapable of egress.",
+  "author": "USER",
+  "data_streams": [
+    {
+      "id": "file_writes",
+      "purpose": "File system writes",
+      "retention": "permanent",
+      "description": "Append-only SQLite prediction ledger under the vault root"
+    }
+  ],
+  "permissions": [
+    "file_write"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "entry_point": "app:main",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/rudi193-cmd/oakenscrolls-office"
+}
