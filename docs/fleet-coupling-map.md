@@ -31,6 +31,10 @@ graph TD
   SC -->|vendored| UTETY["utety"]:::app
   OAKC -->|vendored| OAKA
 
+  %% ---- sibling gate (shared-origin drift, NOT vendored) ----
+  WGATE["willow-gate<br/>agent trust gate · WillowGate spec"]:::origin
+  WGATE <-.->|sibling gates: friction_floor drift 317L vs 208L| WMCP
+
   %% ---- the substrate + the shared memory ----
   WMCP["willow-mcp<br/>the substrate"]:::origin
   subgraph MEM["willow store — one memory (provided by willow-mcp)"]
@@ -104,6 +108,18 @@ origin* with no shared source of truth (tracked: safe-app-store issue #83).
 | `safe_integration.py` | 17 | **17** (every copy different) |
 | `personas.py` | 11 | **10** |
 | `lattice_fallback.py` | 4 | **4** |
+
+**Cross-repo drift — two gate implementations.** `willow-gate` (a standalone
+agent trust-gate from the WillowGate DRAFT_SPEC) and `willow-mcp` are **sibling
+implementations of the same gate idea**, not vendored from one another. They
+share the filename `friction_floor.py` — drifted **317 lines (willow-gate) vs
+208 (willow-mcp)** — and willow-mcp's gate cluster (`gate`, `friction`,
+`signing`, `tier_policy`, `session_binder`, `agent_registry`) mirrors the same
+trust-ladder / HMAC-bound-trust concepts. willow-gate's own README contrasts
+its `friction_floor` with willow-mcp's ("watches a different surface"). Whether
+willow-gate is the canonical gate willow-mcp should vendor, or the two are
+deliberately separate, is the open question (cf. the consolidation logic in
+safe-app-store issue #83).
 
 ## Not coupled
 
