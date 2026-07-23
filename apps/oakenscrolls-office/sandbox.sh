@@ -105,6 +105,7 @@ echo "" >&2
 
 case "${1:-}" in
   --seed-only) exit 0 ;;
+  --stupid)    exec "$PY" stupid_tests.py ;;
   --web)       exec "$PY" web.py ;;
   *)           exec "$PY" app.py ;;
 esac
