@@ -38,6 +38,18 @@ No Willow checkout, Postgres, or network required — the ledger lives in
     ./dev.ps1       # Windows (PowerShell)
     python3 web.py  # the mirror: http://127.0.0.1:8437 (reliability diagram)
 
+## Sandbox — for stupid tests
+
+A disposable, repo-local playground that never touches your real ledger:
+
+    ./sandbox.sh              # seed + TUI (idempotent)
+    ./sandbox.sh --web        # seed + web mirror
+    rm -rf .sandbox           # burn it down; next run reseeds
+
+Seeds 16 predictions (an ~80%-said / ~55%-delivered track record, live dew,
+one cited grade, one void) plus a fake local climate-almanac clone, all under
+gitignored `./.sandbox/`. Also wired as `demo.sh` for the store's `make demo`.
+
 ## Keys
 
 | Key | Action |
