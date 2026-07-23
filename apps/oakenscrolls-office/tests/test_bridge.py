@@ -41,6 +41,22 @@ def test_promote_builds_atom_and_injects(modules):
         bridge.promote_resolved(pid)  # not resolved yet
     db.resolve(pid, True)
     sent = []
-    atom = bridge.promote_resolved(pid, ingest=sent.append)
-    assert sent == [atom]
-    assert atom["domain"] == "calibration" and "TRUE" in atom["content"]
+    def ingest(a):                       # loud contract: return a confirmation
+        sent.append(a)
+        return {"id": "atom-1"}
+    atom = bridge.promote_resolved(pid, ingest=ingest)
+    assert sent[0]["domain"] == "calibration" and "TRUE" in sent[0]["content"]
+    assert atom["stored"] == {"id": "atom-1"}
+
+
+def test_promote_closes_loudly_on_refused_ingest(modules):
+    """A refused KB write must raise, never pass silently (fleet rule)."""
+    db, bridge = modules
+    pid = db.state_claim("this learning will be refused", 0.6)
+    db.resolve(pid, True)
+    # willow-style error dict -> loud
+    with pytest.raises(bridge.PromotionRefused):
+        bridge.promote_resolved(pid, ingest=lambda a: {"error": "gate denied"})
+    # no confirmation (None/falsy) -> loud
+    with pytest.raises(bridge.PromotionRefused):
+        bridge.promote_resolved(pid, ingest=lambda a: None)

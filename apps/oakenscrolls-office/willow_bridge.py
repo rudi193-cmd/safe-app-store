@@ -61,10 +61,21 @@ def surface_due(now: Optional[int] = None) -> bool:
         return False
 
 
+class PromotionRefused(RuntimeError):
+    """The learning was NOT stored. Raised loudly so a refused KB write can
+    never be mistaken for a successful learning (fleet rule: hard stops, no
+    swallowed exceptions)."""
+
+
 def promote_resolved(pid: str, ingest: Optional[Callable[[dict], object]] = None) -> Optional[dict]:
     """Build a knowledge atom from a resolved prediction and hand it to an
     injected ingest callable. With no callable, returns the atom without
-    sending it anywhere — the caller decides; this module never phones home."""
+    sending it anywhere — the caller decides; this module never phones home.
+
+    The ingest contract is LOUD: on success it must return a truthy
+    confirmation (e.g. willow's ``{"id": ...}``). An ``{"error": ...}`` dict or
+    any falsy/None result raises ``PromotionRefused`` — a learning that did not
+    land is never reported as if it did."""
     record = db.current(pid)
     if record["status"] != "resolved":
         raise ValueError("only a resolved prediction can be promoted")
@@ -87,5 +98,15 @@ def promote_resolved(pid: str, ingest: Optional[Callable[[dict], object]] = None
         "tags": tags,
     }
     if ingest is not None:
-        ingest(atom)
+        outcome = ingest(atom)
+        if isinstance(outcome, dict) and outcome.get("error"):
+            raise PromotionRefused(
+                f"learning REFUSED, not stored: {outcome['error']} (atom {atom['id']})"
+            )
+        if not outcome:
+            raise PromotionRefused(
+                f"ingest returned no confirmation for {atom['id']} — "
+                "the learning did not land; refusing to report success"
+            )
+        atom = {**atom, "stored": outcome}
     return atom
