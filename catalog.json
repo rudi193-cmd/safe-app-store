@@ -303,6 +303,19 @@
         "curriculum",
         "jeles"
       ]
+    },
+    {
+      "id": "the-nightstand",
+      "name": "The Nightstand",
+      "description": "Set heavy things down at night; pick up one bite in the morning. Local-first load triage. One thing in hand, ever.",
+      "status": "beta",
+      "path": "apps/the-nightstand",
+      "tags": [
+        "triage",
+        "focus",
+        "load",
+        "local"
+      ]
     }
   ],
   "discovery_sources": [

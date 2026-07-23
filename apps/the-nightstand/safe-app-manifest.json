@@ -1,0 +1,26 @@
+{
+  "app_id": "the-nightstand",
+  "name": "the-nightstand",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "b17": "NSTND",
+  "agent_type": "tool",
+  "description": "Set heavy things down at night; pick up one bite in the morning. Local-first load triage: at most one thing in your hands, everything else waits on the nightstand. Archives, never deletes.",
+  "author": "USER",
+  "data_streams": [
+    {
+      "id": "file_writes",
+      "purpose": "File system writes",
+      "retention": "permanent",
+      "description": "SQLite database of things set down, under the vault root"
+    }
+  ],
+  "permissions": [
+    "file_write"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "entry_point": "app:main",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-store"
+}
