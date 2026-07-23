@@ -116,12 +116,15 @@ the almanac grades everyone's certainty.
 
 ## Open decisions
 
-- **D1 — Name.** ~~the-almanac~~ **collides with the operator's `almanac-data`
-  GitHub org** (13 repos of public-domain data almanacs, July 2026) — in this
-  world "almanac" already means *public datasets*, near-opposite of a private
-  belief ledger. Rename candidates: the-oracle-ledger, oakenscrolls-office,
-  the-reckoning. Adjacency worth keeping: v0.2 could resolve world-facing
-  predictions against almanac-data sources as citation evidence.
+- **D1 — Name. ✅ RESOLVED 2026-07-23: `oakenscrolls-office`.**
+  ~~the-almanac~~ collided with the operator's `almanac-data` GitHub org
+  (13 repos of public-domain data almanacs) — in this world "almanac" already
+  means *public datasets*, near-opposite of a private belief ledger.
+  **v0.1.0 built and shipped:** https://github.com/rudi193-cmd/oakenscrolls-office
+  (Apache-2.0; D2 latest-confidence scoring, D3 P≥0.5 enforced at the prompt,
+  D4 bridge shipped as opt-in no-op seam — all as proposed). Adjacency kept
+  for v0.2: resolve world-facing predictions against almanac-data sources as
+  citation evidence. Next store-side bite: vendor into `apps/` + catalog entry.
 - **D2 — Scoring.** Latest-confidence Brier (proposed for v0.1) vs. time-averaged.
 - **D3 — Confidence floor.** Enforce P ≥ 0.5 by convention (proposed) or allow raw 0–1.
 - **D4 — Willow bridge timing.** Land in v0.1 as a silent no-op seam (proposed) or defer entirely.
