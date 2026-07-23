@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oakenscrolls-office"
+version = "0.2.0"
+description = "Personal calibration ledger — where certainty gets graded. Local-first, append-only, no egress."
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = [
+    "textual>=0.47.0",
+]
+
+[project.scripts]
+oakenscrolls-office = "app:main"

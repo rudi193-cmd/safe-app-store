@@ -316,6 +316,20 @@
         "load",
         "local"
       ]
+    },
+    {
+      "id": "oakenscrolls-office",
+      "name": "Oakenscroll's Office",
+      "description": "Personal calibration ledger \u2014 state claims with confidence, grade them when the world weighs in, see whether your 70% means 70%. Cites almanac-data sources as resolution evidence.",
+      "status": "beta",
+      "version": "0.2.0",
+      "path": "apps/oakenscrolls-office",
+      "tags": [
+        "calibration",
+        "predictions",
+        "epistemics",
+        "local"
+      ]
     }
   ],
   "discovery_sources": [
