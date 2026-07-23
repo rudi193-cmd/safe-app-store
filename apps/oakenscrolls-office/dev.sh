@@ -4,7 +4,8 @@
 # Runs standalone: no Willow checkout, no Postgres, no network required.
 # The ledger lives in ~/.willow/store/oakenscrolls-office/office.db.
 #
-# Usage:   ./dev.sh
+# Usage:   ./dev.sh            the Textual TUI
+#          ./dev.sh --serve    the web mirror (reliability diagram) instead
 # Override venv location:  OAKENSCROLL_VENV=~/some/venv ./dev.sh
 
 set -euo pipefail
@@ -26,4 +27,7 @@ echo "Oakenscroll's Office DEV: $(pwd)" >&2
 echo "  python:  $PY" >&2
 echo "  ledger:  ${OAKENSCROLL_DB:-$HOME/.willow/store/oakenscrolls-office/office.db}" >&2
 
+if [[ "${1:-}" == "--serve" ]]; then
+  exec "$PY" web.py "${@:2}"
+fi
 exec "$PY" app.py "$@"

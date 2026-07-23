@@ -7,7 +7,7 @@
 #
 # Usage:
 #   ./sandbox.sh              seed (idempotent) + launch the TUI
-#   ./sandbox.sh --web        seed + launch the web mirror instead
+#   ./sandbox.sh --serve      seed + launch the web mirror (alias: --web)
 #   ./sandbox.sh --seed-only  seed and exit (CI / smoke tests)
 #   rm -rf .sandbox           burn it down; next run reseeds fresh
 #
@@ -104,8 +104,8 @@ echo "  almanacs: $ALMANAC_DATA_ROOT (fake climate-almanac, 2 sources)" >&2
 echo "" >&2
 
 case "${1:-}" in
-  --seed-only) exit 0 ;;
-  --stupid)    exec "$PY" stupid_tests.py ;;
-  --web)       exec "$PY" web.py ;;
-  *)           exec "$PY" app.py ;;
+  --seed-only)   exit 0 ;;
+  --stupid)      exec "$PY" stupid_tests.py ;;
+  --serve|--web) exec "$PY" web.py ;;
+  *)             exec "$PY" app.py ;;
 esac

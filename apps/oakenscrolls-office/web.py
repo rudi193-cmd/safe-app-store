@@ -143,4 +143,5 @@ def serve(port: int = PORT) -> None:
 
 
 if __name__ == "__main__":
-    serve()
+    import sys
+    serve(int(sys.argv[1]) if len(sys.argv) > 1 else PORT)
