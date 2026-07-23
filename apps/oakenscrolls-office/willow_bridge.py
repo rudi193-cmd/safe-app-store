@@ -68,15 +68,23 @@ def promote_resolved(pid: str, ingest: Optional[Callable[[dict], object]] = None
     record = db.current(pid)
     if record["status"] != "resolved":
         raise ValueError("only a resolved prediction can be promoted")
+    ev = record.get("evidence") or {}
+    cite, tags, source = "", ["prediction", "calibration"] + record["tags"], "oakenscrolls-office"
+    if ev:
+        commit = (ev.get("catalog_commit") or "")[:12]
+        cite = (f" Resolved with almanac evidence: {ev.get('entry_id')} "
+                f"in {ev.get('vertical')}@{commit} — {ev.get('canonical_url', '')}.")
+        tags += ["almanac-cited", ev.get("vertical", "")]
+        source = f"oakenscrolls-office via {ev.get('vertical', 'almanac-data')}"
     atom = {
         "id": f"oakenscroll-{record['id']}",
         "content": (
             f"Prediction graded: \"{record['claim']}\" — stated at "
-            f"{record['confidence']:.0%}, outcome {'TRUE' if record['outcome'] else 'FALSE'}."
+            f"{record['confidence']:.0%}, outcome {'TRUE' if record['outcome'] else 'FALSE'}.{cite}"
         ),
         "domain": "calibration",
-        "source": "oakenscrolls-office",
-        "tags": ["prediction", "calibration"] + record["tags"],
+        "source": source,
+        "tags": tags,
     }
     if ingest is not None:
         ingest(atom)
