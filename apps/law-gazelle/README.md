@@ -1,4 +1,4 @@
-@markdownai
+@markdownai v1.0
 
 # Law Gazelle
 
