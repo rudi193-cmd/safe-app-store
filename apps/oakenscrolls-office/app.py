@@ -18,6 +18,11 @@ import almanac_seam
 import calibration
 import office_db as db
 
+try:                       # the one-memory seam — optional, standalone-safe
+    import fleet_presence as _fleet
+except ImportError:
+    _fleet = None
+
 VIEWS = ("open", "resolved", "scorecard")
 VIEW_TITLES = {"open": "On the record", "resolved": "Graded", "scorecard": "The scorecard"}
 _DAY = 86400
@@ -154,6 +159,20 @@ class OfficeApp(App):
             card.remove_class("visible")
             self.render_board()
         self.render_status()
+        self.announce_presence()
+
+    def announce_presence(self) -> None:
+        """Publish this ledger's calibration into the one memory (no-op if no
+        shared store, no-op if the seam isn't installed)."""
+        if _fleet is None:
+            return
+        s = calibration.summary(db.resolved_pairs())
+        n = s["n"]
+        summary = (f"{n} graded, brier {s['brier']:.2f}" if n else "no graded predictions yet")
+        _fleet.announce(
+            "oakenscrolls-office", summary,
+            {"graded": n, "open": len(db.ledger("open"))},
+        )
 
     def render_candidates(self) -> None:
         """The pick board: almanac sources matching the cite query. Selecting

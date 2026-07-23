@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fleet-presence"
+version = "0.1.0"
+description = "The shared one-memory seam: an app announces itself into the willow store and sees the rest of the fleet. Stdlib-only, egress-free, standalone-safe."
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
