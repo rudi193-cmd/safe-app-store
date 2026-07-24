@@ -39,19 +39,28 @@ See the package README for the full API. It is pure stdlib and reproduces the
 per-app tests byte-for-byte in behavior — verified against private-ledger's live
 core.
 
-## Promotion status (store-wide)
+## Which apps get a no-egress guard
 
-| App | no-egress guard | action |
+The invariant applies to apps that hold **private data locally** — the ledger
+and its math must be incapable of talking out. It does **not** apply to apps
+that egress **by design**. Checked this session:
+
+| App | no-egress guard | status |
 |---|---|---|
 | **private-ledger** | ✅ wired to `safe-app-common` | reference — done |
-| **oakenscrolls-office** | has its own copy | migrate to the shared checker |
-| **public-ledger** | none (opens a server) | add via `safe-app-common` |
-| **ask-jeles** | none (opens an API) | add via `safe-app-common` |
-| others | none | add as each gains a network-capable seam |
+| **oakenscrolls-office** | ✅ migrated to `safe-app-common` | done (was a per-app copy) |
+| **public-ledger** | ❌ **egress by design** | fetches public gov data (`usaspending`/`propublica` via `requests`) — no-egress does not apply |
+| **ask-jeles** | ❌ **egress by design** | web-search app (`web_search`/`leaf`/`prism` via `requests`) — no-egress does not apply |
+| others | assess per app | add only where a private-data core exists |
 
-The network-surface apps (public-ledger, ask-jeles) are the priority — they open
-servers, so they most need the guard. Each is a small PR: add the `[test]` dep,
-declare the app's core modules, call the shared assertions.
+> Correction, kept visible: an earlier draft named public-ledger and ask-jeles
+> as promotion targets "because they open servers." That conflated *has a
+> network surface* with *must not egress*. Both egress by design — a no-egress
+> test there would be theater. The signal is not "opens a port"; it is "holds
+> private data that must never leave." Assess each app's data, not its I/O.
+
+Adding the guard to a qualifying app is a small change: add the `[test]` dep,
+declare the app's no-egress core modules, call the shared assertions.
 
 ## Growing the package
 
