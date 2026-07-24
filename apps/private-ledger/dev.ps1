@@ -1,7 +1,8 @@
 # dev.ps1 — Private Ledger local launcher (Textual TUI, local SQLite).
 #
 # Runs standalone: no Willow checkout, no Postgres, no network required.
-# Ledger data lives in ~/.willow/private-ledger.db.
+# Ledger data lives under $WILLOW_STORE_ROOT/private-ledger/private-ledger.db
+# (default ~/.willow/store/private-ledger/private-ledger.db).
 #
 # Usage:   ./dev.ps1
 # Override venv location:  $env:PRIVATE_LEDGER_VENV = "C:\some\venv"; ./dev.ps1
@@ -20,9 +21,13 @@ if (-not (Test-Path $PyExe)) {
 }
 
 & $PyExe -m pip install -q --upgrade pip
-& $PyExe -m pip install -q -r requirements.txt
+# Editable install of the packaged app (pulls textual/httpx from pyproject and
+# exposes the `private_ledger` package + `private-ledger` console script).
+& $PyExe -m pip install -q -e .
 
+$StoreRoot = if ($env:WILLOW_STORE_ROOT) { $env:WILLOW_STORE_ROOT } else { Join-Path $HOME ".willow/store" }
 Write-Host "Private Ledger DEV: $(Get-Location)"
 Write-Host "  python:  $PyExe"
+Write-Host "  db:      $(Join-Path $StoreRoot 'private-ledger/private-ledger.db')"
 
-& $PyExe app.py @args
+& $PyExe -m private_ledger @args
