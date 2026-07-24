@@ -133,19 +133,27 @@ def _looks_verified(row: dict[str, Any]) -> bool:
     return True
 
 
-def _from_mcp(query: str, limit: int) -> list[dict[str, Any]]:
+def _from_mcp(query: str, limit: int) -> list[dict[str, Any]] | None:
+    """Query the Willow KB via the MCP client (rule #1: KB reads → knowledge_search).
+
+    Returns a list of hits (possibly EMPTY) when the MCP server is REACHABLE — an
+    empty list then means "Willow answered, nothing matched" and is authoritative,
+    so the caller must NOT scan store.db directly. Returns None only when the
+    server is UNREACHABLE or errors, the single condition under which the caller
+    may fall back to the local offline scan.
+    """
     try:
         from askjeles import mcp_client
 
         if not mcp_client.ensure_started(timeout=8):
-            return []
+            return None
         payload = mcp_client.kb_search(query, limit=limit, semantic=False)
     except Exception as exc:
         log.debug("MCP kb_search unavailable: %s", exc)
-        return []
+        return None
 
     if not isinstance(payload, dict) or payload.get("error"):
-        return []
+        return None
 
     hits: list[dict[str, Any]] = []
     for source in ("knowledge", "jeles_atoms", "opus_atoms"):
@@ -211,14 +219,35 @@ def _from_soil(query: str, limit: int) -> list[dict[str, Any]]:
     return hits
 
 
+def _soil_scan_disabled() -> bool:
+    """The direct 80-DB SOIL scan is an OFFLINE-only safety net. Rule #1 wants KB
+    reads to go through knowledge_search, so the scan runs only when the MCP
+    server is unreachable — and can be forbidden entirely (no direct DB read at
+    all) with ASKJELES_NO_SOIL_SCAN=1."""
+    return os.environ.get("ASKJELES_NO_SOIL_SCAN", "").strip().lower() in (
+        "1", "true", "yes", "on",
+    )
+
+
 def search_local_kb(query: str, limit: int = 8) -> list[dict[str, Any]]:
-    """Search the user's own Willow KB/Binder before external sources."""
+    """Search the user's own Willow KB/Binder before external sources.
+
+    The MCP path (knowledge_search, via mcp_client) is AUTHORITATIVE per rule #1:
+    when the Willow MCP server is reachable its answer is used as-is — even when
+    empty — and the local store.db files are NOT touched. The direct 80-DB SOIL
+    scan runs only as an OFFLINE fallback (server unreachable), and can be
+    disabled outright with ASKJELES_NO_SOIL_SCAN=1.
+    """
     query = (query or "").strip()
     if not query:
         return []
 
-    hits = _from_mcp(query, limit)
-    if hits:
-        return hits[:limit]
+    mcp_hits = _from_mcp(query, limit)
+    if mcp_hits is not None:
+        # Willow answered (reachable) — authoritative, even if the result is empty.
+        return mcp_hits[:limit]
 
+    # Willow unreachable — fall back to the local offline scan unless forbidden.
+    if _soil_scan_disabled():
+        return []
     return _from_soil(query, limit)[:limit]
