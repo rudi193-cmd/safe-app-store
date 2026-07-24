@@ -12,6 +12,14 @@ dependencies = [
     "httpx>=0.27.0",
 ]
 
+[project.optional-dependencies]
+# The shared no-egress checker (convention #13). Pinned to the branch until
+# safe-app-common cuts a tag/release; repin then. Installed for tests via
+# `pip install -e .[test]`.
+test = [
+    "safe-app-common @ git+https://github.com/rudi193-cmd/safe-app-common-package@claude/new-ledger-piece-e3vxvn",
+]
+
 [project.scripts]
 private-ledger = "private_ledger.app:main"
 
