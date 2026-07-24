@@ -206,6 +206,8 @@ class TranslatorApp(App):
     # ── mount ───────────────────────────────────────────────────────────────
 
     def on_mount(self) -> None:
+        from .nestor_wiring import configure_nestor
+        configure_nestor()
         self._load_corpus_list()
         self._load_learners()
         self._load_queue()
@@ -270,7 +272,7 @@ class TranslatorApp(App):
         """Resolve a reviewer by name — create on the spot if new — and ledger it.
         A trailing language code marks a native speaker: 'Maria es'."""
         from . import db
-        from .nestor.langid import SUPPORTED
+        from nestor.langid import SUPPORTED
         db.init_db()
 
         parts = raw.split()
@@ -303,7 +305,7 @@ class TranslatorApp(App):
             f"(e.g. 'Maria es') if this is wrong.[/dim]"
         )
         try:
-            from .nestor.cascade import _ledger_append
+            from nestor.cascade import _ledger_append
             _ledger_append({"kind": "reviewer", "name": learner["name"],
                             "learner_id": learner["id"], "created": created})
         except Exception as exc:
@@ -323,7 +325,7 @@ class TranslatorApp(App):
         """What the review session produced and where it lives."""
         try:
             from . import db
-            from .nestor import memory
+            from nestor import memory
             lines = ["Here is where your work went:\n"]
             docs = db.list_documents()
             shown = 0

@@ -104,7 +104,10 @@ def submit_verification(
     if new_status:
         db.update_segment(segment_id, status=new_status)
         if new_status == "verified":
-            from .nestor.cascade import graduate_segment
+            from nestor.cascade import graduate_segment
+
+            from .nestor_wiring import configure_nestor
+            configure_nestor()
             graduate_segment(segment_id, verifier=learner["name"], weight=weight)
 
     seg = db.get_segment(segment_id) or {}

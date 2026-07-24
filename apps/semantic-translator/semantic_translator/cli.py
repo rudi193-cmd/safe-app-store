@@ -54,7 +54,9 @@ def cmd_serve(args: argparse.Namespace) -> None:
 
 
 def cmd_tui(_args: argparse.Namespace) -> None:
+    from .nestor_wiring import configure_nestor
     from .tui import TranslatorApp
+    configure_nestor()
     TranslatorApp().run()
 
 
@@ -143,11 +145,18 @@ def cmd_learner(args: argparse.Namespace) -> None:
 # ── nestor (meaning infrastructure prototype) ───────────────────────────────
 
 def cmd_nestor(args: argparse.Namespace) -> None:
-    from .nestor import glossary, langid, memory
-    from .nestor.cascade import translate_text
+    from nestor import glossary, langid, memory
+    from nestor.cascade import translate_text
+
+    from .nestor_wiring import configure_nestor
+    configure_nestor()
 
     if args.nestor_cmd == "seed":
-        n = memory.seed_from_corpus(corpus_path=args.corpus)
+        # The bilingual loader is wired globally by configure_nestor(); the
+        # corpus data comes from that loader. --corpus stays an existence gate,
+        # matching the original seed_from_corpus(corpus_path=...) behavior.
+        import pathlib
+        n = memory.seed_from_corpus() if pathlib.Path(args.corpus).exists() else 0
         print(f"Sealed {n} pairs from corpus into the memory.")
         s = memory.stats()
         print(f"Memory: {s['total']} pairs ({s['sealed']} sealed, {s['draft']} draft)")
