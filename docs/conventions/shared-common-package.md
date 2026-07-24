@@ -51,7 +51,14 @@ that egress **by design**. Checked this session:
 | **oakenscrolls-office** | ✅ migrated to `safe-app-common` | done (was a per-app copy) |
 | **public-ledger** | ❌ **egress by design** | fetches public gov data (`usaspending`/`propublica` via `requests`) — no-egress does not apply |
 | **ask-jeles** | ❌ **egress by design** | web-search app (`web_search`/`leaf`/`prism` via `requests`) — no-egress does not apply |
+| **utety** | ❌ **stdlib-only exception** | deliberately zero-install ("nothing to pip-install on a child's device"); depending on this package would contradict the principle its own test protects. Keeps its richer self-contained scanner (dir-glob + a runtime subprocess import check). *The cross-fill ran the other way:* its dir-glob pattern and `boto3` were promoted INTO `safe_app_common.no_egress` (`assert_dir_no_egress`). |
 | others | assess per app | add only where a private-data core exists |
+
+> Note the direction: a "duplicate scanner" is not automatically a migration
+> target. utety's is richer than the shared one and its app forbids the
+> dependency — so the right move was to *harvest* what it had (dir-glob, boto3)
+> into the shared checker and leave utety self-contained. Promote the pattern,
+> not the coupling.
 
 > Correction, kept visible: an earlier draft named public-ledger and ask-jeles
 > as promotion targets "because they open servers." That conflated *has a
