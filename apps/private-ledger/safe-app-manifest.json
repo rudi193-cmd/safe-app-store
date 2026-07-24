@@ -39,6 +39,8 @@
     "file_read",
     "file_write"
   ],
+  "surfaces": ["tui", "web", "serve"],
+  "serve": "readonly",
   "privacy_tier": "client_only",
   "local_processing": 0.96,
   "entry_point": "private_ledger.app:main",

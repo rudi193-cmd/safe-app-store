@@ -64,6 +64,8 @@ def main():
 - [ ] Both surfaces are **lazy-imported** from `main()` — importing the app for
       the TUI must not import the web/serve machinery.
 - [ ] `dev.sh` documents all three invocations in its header and forwards `"$@"`.
+- [ ] `safe-app-manifest.json` declares `surfaces` and `serve` (queryable via
+      `whoami`) — see "Making it a machine contract" below.
 - [ ] `tests/test_no_egress.py` present and green (see convention #13).
 - [ ] README "Run" section lists: default TUI, `--web`, `--serve`
       (+ `--allow-write`).
@@ -84,6 +86,63 @@ The naming collision is exactly the kind of "same word, three meanings" drift
 Loki's semantic Mistletoe is meant to catch. Until each app is migrated, an
 agent cannot rely on `--serve` doing the same thing twice — which defeats the
 point of a machine flag.
+
+## Making it a machine contract, not just a word
+
+The orchestrator seat reviewed this convention (`docs/notes/review-web-serve-flags.md`)
+and landed two edges that turn a *preference* into a *control*. Both are
+satisfied by mechanisms willow-mcp **already ships** — the fix is *adopt*, not
+build.
+
+### Edge 1 — seal the apps, not only the word: a queryable surface
+
+Until the three refactors land, `--serve` means three things, so an agent that
+*trusts* the flag is misled. The rule: an orchestrator **queries capability
+before it drives**, it does not trust the CLI word. Each app declares its
+surfaces in `safe-app-manifest.json`:
+
+```json
+"surfaces": ["tui", "web", "serve"],
+"serve": "none" | "readonly" | "write"
+```
+
+The manifest is the *declaration*; the fleet already resolves and serves it as
+the *query* — do not invent a second surface:
+
+- **`whoami(app_id)`** (willow-mcp `server.py`) returns the app's resolved
+  `permissions`, `tools_allowed`, and `store_scope` from its manifest.
+- **`specialist_list(include_permissions=True)`** lists apps with the same.
+
+So an agent reads `surfaces`/`serve` (and, for KB/tool access, `whoami`) before
+launching, rather than assuming `--serve` behaves. A convention a machine can
+verify at runtime is a contract; one it can't is a to-do with good intentions.
+
+### Edge 2 — put an owner on the write gate
+
+`--serve --allow-write` at a human terminal is the operator's sovereignty —
+fine. But the fleet *composes* apps: an orchestrator launching a sub-app with
+`--allow-write` opens the write gate **on itself** — authority minted from a
+flag, the confused deputy the sudo-invariant exists to stop. A bare flag
+requires no one's grant but the caller's.
+
+The rule distinguishes the caller:
+
+- **Human at the terminal:** `--allow-write` is the grant. Keep it.
+- **Agent-composed launch:** the write capability must ride an
+  **operator-granted signed envelope**, not a caller flag. willow-mcp already
+  has it — `egress_authorization.sign_envelope`: an Ed25519 envelope bound to
+  submitter / task / agent, TTL'd, its signing key deliberately kept off every
+  MCP surface so **a model cannot mint its own**. A composing agent may
+  *request* write; it may not *confirm* its own.
+
+Net: a `serve: write` app invoked by an agent takes writes only behind a signed
+envelope; `serve: readonly` is the safe default the convention already mandates.
+
+> Recorded honestly, because the branch keeps teaching it: the review's own
+> suggestions first said *build* these two surfaces before catching that the
+> seat had **operated both hours earlier** — the same "design what already
+> exists" the convention itself diagnoses (`the-nestor-lineage.md` §4.3). This
+> amendment adopts `whoami` and `egress_authorization`; it builds nothing new.
 
 ## Adoption is incremental
 
