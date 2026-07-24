@@ -15,7 +15,7 @@ dependencies = [
 [project.optional-dependencies]
 # Shared no-egress checker (convention #13). Branch-pinned until a tag.
 test = [
-    "safe-app-common @ git+https://github.com/rudi193-cmd/safe-app-common-package@claude/new-ledger-piece-e3vxvn",
+    "safe-app-common @ git+https://github.com/rudi193-cmd/safe-app-common-package@master",
 ]
 
 [project.scripts]

@@ -12,7 +12,7 @@ dependencies = [
     "watchdog>=4.0.0",
     "cryptography>=42",
     "willow-gate @ git+https://github.com/rudi193-cmd/willow-gate@main",
-    "safe-app-common @ git+https://github.com/rudi193-cmd/safe-app-common-package@claude/new-ledger-piece-e3vxvn",
+    "safe-app-common @ git+https://github.com/rudi193-cmd/safe-app-common-package@master",
 ]
 
 [project.optional-dependencies]
