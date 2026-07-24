@@ -15,6 +15,8 @@ in `$WILLOW_STORE_ROOT/private-ledger/private-ledger.db` (default
     ./dev.sh          # macOS/Linux — the TUI
     ./dev.ps1         # Windows (PowerShell)
     ./dev.sh --web    # read-only local HTML mirror on 127.0.0.1
+    ./dev.sh --serve  # machine-facing stdio JSON for a model/agent (read-only;
+                      # add --allow-write to permit add/delete)
 
 The launcher creates a local virtualenv, installs the package, and starts the
 app. The ledger core is strictly local and no-egress (enforced by

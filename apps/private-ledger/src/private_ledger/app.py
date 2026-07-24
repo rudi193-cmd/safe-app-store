@@ -510,6 +510,13 @@ def main():
     import sys
 
     argv = sys.argv[1:]
+    if "--serve" in argv:
+        allow_write = "--allow-write" in argv
+        # Lazy import so the TUI path never pulls in the serve seam.
+        from . import serve
+
+        serve.run(allow_write=allow_write)
+        return
     if "--web" in argv:
         port = 8770
         if "--port" in argv:

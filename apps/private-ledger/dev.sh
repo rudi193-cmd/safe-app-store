@@ -5,8 +5,10 @@
 # Ledger data lives under $WILLOW_STORE_ROOT/private-ledger/private-ledger.db
 # (default ~/.willow/store/private-ledger/private-ledger.db).
 #
-# Usage:   ./dev.sh            # launch the TUI
-#          ./dev.sh --web      # (planned) human-facing local HTML mirror
+# Usage:   ./dev.sh                        # launch the TUI
+#          ./dev.sh --web                  # human-facing local HTML mirror (127.0.0.1)
+#          ./dev.sh --serve                # machine-facing stdio JSON (read-only)
+#          ./dev.sh --serve --allow-write  # ...with writes enabled
 # Override venv location:  PRIVATE_LEDGER_VENV=~/some/venv ./dev.sh
 
 set -euo pipefail
