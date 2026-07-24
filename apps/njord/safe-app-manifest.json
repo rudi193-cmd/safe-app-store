@@ -1,0 +1,47 @@
+{
+  "app_id": "njord",
+  "name": "njord",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "b17": "N7864",
+  "agent_type": "tool",
+  "description": "Local-only, stdio-driven equities analysis + recommendation engine. Verified public sources only. Recommend-only: no live trading, no broker orders, no real-money path.",
+  "author": "USER",
+  "data_streams": [
+    {
+      "id": "market_data_fetch",
+      "purpose": "Public market data ingest",
+      "retention": "session",
+      "description": "Outbound reads to public equities data APIs (opt-in); default provider is an offline deterministic stub"
+    },
+    {
+      "id": "provenance_cache",
+      "purpose": "Reproducibility + audit",
+      "retention": "permanent",
+      "description": "Raw datapoints tagged with source_id + fetched_at so every recommendation is traceable"
+    },
+    {
+      "id": "journal",
+      "purpose": "Append-only decision audit log",
+      "retention": "permanent",
+      "description": "Immutable JSONL of every recommendation/decision with its provenance block"
+    },
+    {
+      "id": "file_writes",
+      "purpose": "File system writes",
+      "retention": "permanent",
+      "description": "Journal + kill-switch dead-man's-file under the vault"
+    }
+  ],
+  "permissions": [
+    "network_read",
+    "pattern_storage",
+    "file_read",
+    "file_write"
+  ],
+  "privacy_tier": "local_first",
+  "local_processing": 0.9,
+  "entry_point": "njord.cli:main",
+  "license": "MIT",
+  "repository": "https://github.com/rudi193-cmd/safe-app-store"
+}

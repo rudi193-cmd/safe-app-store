@@ -78,6 +78,21 @@
       ]
     },
     {
+      "id": "njord",
+      "name": "Njord",
+      "description": "Local-only, stdio-driven equities analysis + recommendation engine. Verified public sources only, first-class provenance. Recommend-only — no live trading, no broker orders.",
+      "author": "USER",
+      "status": "coming_soon",
+      "path": "apps/njord",
+      "tags": [
+        "finance",
+        "equities",
+        "analysis",
+        "provenance",
+        "local"
+      ]
+    },
+    {
       "id": "the-binder",
       "name": "The Binder",
       "description": "Local-first knowledge browser. Jeles at the desk. The Binder files everything.",

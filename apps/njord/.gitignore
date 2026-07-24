@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.db
+.venv/
+venv/
+target/
+credentials.json
+.env
+*.egg-info/
+dist/
+build/
+.mypy_cache/
+.pytest_cache/
+# Never commit secrets or local vault state
+*.key
+*.pem
+.njord_secrets
