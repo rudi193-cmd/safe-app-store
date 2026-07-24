@@ -13,6 +13,9 @@ dependencies = [
     "fastapi>=0.100.0",
     "uvicorn>=0.23.0",
     "mcp>=1.6.0,<2.0.0",
+    # Standalone Nestor (extracted from this app). Repin to a tag or main once
+    # the Nestor branch merges. For local dev: pip install -e /workspace/nestor
+    "nestor @ git+https://github.com/rudi193-cmd/Nestor@claude/new-ledger-piece-e3vxvn",
 ]
 
 [project.scripts]

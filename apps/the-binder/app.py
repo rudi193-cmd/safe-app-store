@@ -17,46 +17,10 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.widgets import DataTable, Footer, Header, Input, Label, Static, TextArea
 
-# Willow KB access — optional, degrades gracefully
-_WILLOW_AVAILABLE = False
-_search_kb = None
-
-def _init_willow():
-    global _WILLOW_AVAILABLE, _search_kb
-    try:
-        # Direct Postgres access only — no Willow code imports, so nothing is
-        # added to sys.path here (ST-PATH-01: the old willow-1.9 insert was unused).
-        import psycopg2
-        _db = os.environ.get("WILLOW_PG_DB", "willow_19")
-        _user = os.environ.get("WILLOW_PG_USER", os.environ.get("USER", ""))
-
-        def _search(query: str, limit: int = 20) -> list[dict]:
-            try:
-                conn = psycopg2.connect(dbname=_db, user=_user)
-                cur = conn.cursor()
-                words = [w for w in query.lower().split() if len(w) > 2]
-                if not words:
-                    return []
-                ilike = " OR ".join(["(title ILIKE %s OR summary ILIKE %s)"] * len(words))
-                params = [p for w in words for p in (f"%{w}%", f"%{w}%")]
-                cur.execute(
-                    f"SELECT title, summary, project FROM willow.knowledge "
-                    f"WHERE invalid_at IS NULL AND ({ilike}) LIMIT %s",
-                    params + [limit]
-                )
-                rows = cur.fetchall()
-                conn.close()
-                return [{"title": r[0], "summary": r[1], "project": r[2]} for r in rows]
-            except Exception:
-                return []
-
-        _search_kb = _search
-        _WILLOW_AVAILABLE = True
-    except Exception:
-        _WILLOW_AVAILABLE = False
-
-
-_init_willow()
+# Willow KB access goes through the injected READ seam (rule #1: KB reads →
+# knowledge_search). The seam PREFERS an injected willow-mcp client and only
+# falls back to direct Postgres; app.py no longer touches the driver or SQL.
+import willow_read
 
 
 class TheBinderApp(App):
@@ -99,10 +63,13 @@ class TheBinderApp(App):
         self.sub_title = "local knowledge browser"
         table = self.query_one("#results", DataTable)
         table.add_columns("Title")
-        if _WILLOW_AVAILABLE:
-            self._set_status("Willow connected — type to search")
+        backend = willow_read.active_backend()
+        if backend == "mcp":
+            self._set_status("Willow (knowledge_search) — type to search")
+        elif backend == "postgres":
+            self._set_status("Willow (postgres fallback) — type to search")
         else:
-            self._set_status("Willow unavailable — install willow-1.9 to enable search")
+            self._set_status("Willow unavailable — no results")
         self.query_one("#search-bar").focus()
 
     def _set_status(self, msg: str) -> None:
@@ -115,10 +82,10 @@ class TheBinderApp(App):
     def _do_search(self, query: str) -> None:
         if not query:
             return
-        if not _WILLOW_AVAILABLE or not _search_kb:
+        if not willow_read.available():
             self._set_status("Willow unavailable — no results")
             return
-        self._results = _search_kb(query, limit=30)
+        self._results = willow_read.search(query, limit=30)
         table = self.query_one("#results", DataTable)
         table.clear()
         for r in self._results:

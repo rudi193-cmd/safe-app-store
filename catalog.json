@@ -78,6 +78,21 @@
       ]
     },
     {
+      "id": "njord",
+      "name": "Njord",
+      "description": "Local-only, stdio-driven equities analysis + recommendation engine. Verified public sources only, first-class provenance. Recommend-only — no live trading, no broker orders.",
+      "author": "USER",
+      "status": "coming_soon",
+      "path": "apps/njord",
+      "tags": [
+        "finance",
+        "equities",
+        "analysis",
+        "provenance",
+        "local"
+      ]
+    },
+    {
       "id": "the-binder",
       "name": "The Binder",
       "description": "Local-first knowledge browser. Jeles at the desk. The Binder files everything.",
@@ -247,6 +262,26 @@
         "chat",
         "u2u",
         "encrypted"
+      ]
+    },
+    {
+      "id": "willow-grove",
+      "name": "Willow Grove",
+      "description": "Canonical Textual TUI dashboard for the Willow fleet. Unified human and agent surface: Grove channel chat, agent presence and message routing, task queue, knowledge base browsing, model switching, live vitals reading Postgres Ollama SAFE manifests and the Kart queue, plus encrypted u2u human-to-human direct messages. No web server, no ports — local-first. This is the one canonical Grove dashboard TUI; earlier scattered dashboard attempts across the fleet (willow-2.0 grove/, apps/pigeon, scripts/grove_standalone) are superseded by it.",
+      "author": "USER",
+      "status": "beta",
+      "repository": "https://github.com/rudi193-cmd/safe-app-willow-grove",
+      "canonical": true,
+      "tags": [
+        "tui",
+        "dashboard",
+        "textual",
+        "fleet",
+        "grove",
+        "agents",
+        "vitals",
+        "canonical",
+        "local-first"
       ]
     },
     {

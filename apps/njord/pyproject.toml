@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-njord"
+version = "0.1.0"
+description = "Local-only, stdio-driven equities analysis + recommendation engine. Verified public sources only. Recommend-only — no live trading."
+requires-python = ">=3.10"
+# Core is stdlib only. Real market data is an opt-in extra (see below).
+dependencies = []
+
+[project.optional-dependencies]
+# Opt-in real-data adapter. Not needed for recommend/backtest on the stub
+# provider, and NOT required to run the tests (they are stdlib-only, offline).
+realdata = ["yfinance>=0.2.40"]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+njord = "njord.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,7 @@
+# Njord core is stdlib only — nothing required here to run recommend/backtest
+# on the offline StubProvider, or to run the test suite.
+#
+# Optional real-data adapter (opt-in via `--provider yfinance`):
+#   pip install "safe-app-njord[realdata]"
+# or uncomment:
+# yfinance>=0.2.40
