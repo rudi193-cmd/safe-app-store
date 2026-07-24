@@ -45,6 +45,15 @@ The list is open — a store is added when someone brings a craft to build in. T
 `tui-design` skill (`.agents/skills/tui-design`) already carries per-ecosystem
 guidance for the terminal ones (Go/Rust/Python/TS).
 
+## The Almanac — a branch, not a store
+
+One node here is a different kind: [`almanac/`](almanac/) is **not** a code
+store and holds no `stored/`/`promoted/` tiers. It is the fleet's public record —
+an **auto-updated list** — and the whole point is that *the store does not store
+it.* A self-renewing list needs no keeping; a frozen copy only goes stale. So the
+Almanac is a **pointer to a live feed**, injected the same way a corpus is. It is
+the `renew` half of `instaurare`, standing alone.
+
 ## The one seam every store shares
 
 A promoted app comes with **its knowledge, semantically reachable** — the
