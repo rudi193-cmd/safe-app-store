@@ -37,6 +37,16 @@ The Almanac follows the same seam as every other store, one axis over:
   private-ledger's bridge, like oakenscrolls' cite-and-grade seam. The list
   stays current because nothing froze it.
 
+## With Nestor behind it
+
+A list, matched against sealed memory, becomes an **oracle.** Put Nestor behind
+the live Almanac and it gains what a firehose cannot have alone: **resolve** (a
+public join key), **grade** (cite-and-grade, already proven over the real
+verticals), and **reconcile** — every auto-update matched against the operator's
+ratified record, drift flagged, queued for the seal. The list renews; Nestor
+establishes; the operator confirms. The reconcile loop and its covenant are
+specced in [`nestor-seam.md`](nestor-seam.md).
+
 Two knowledge sources, one search seam:
 
 | | private | public |
