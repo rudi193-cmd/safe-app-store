@@ -265,6 +265,26 @@
       ]
     },
     {
+      "id": "willow-grove",
+      "name": "Willow Grove",
+      "description": "Canonical Textual TUI dashboard for the Willow fleet. Unified human and agent surface: Grove channel chat, agent presence and message routing, task queue, knowledge base browsing, model switching, live vitals reading Postgres Ollama SAFE manifests and the Kart queue, plus encrypted u2u human-to-human direct messages. No web server, no ports — local-first. This is the one canonical Grove dashboard TUI; earlier scattered dashboard attempts across the fleet (willow-2.0 grove/, apps/pigeon, scripts/grove_standalone) are superseded by it.",
+      "author": "USER",
+      "status": "beta",
+      "repository": "https://github.com/rudi193-cmd/safe-app-willow-grove",
+      "canonical": true,
+      "tags": [
+        "tui",
+        "dashboard",
+        "textual",
+        "fleet",
+        "grove",
+        "agents",
+        "vitals",
+        "canonical",
+        "local-first"
+      ]
+    },
+    {
       "id": "civics-check",
       "name": "Civics Check",
       "description": "America's 250th civics quiz \u2014 naturalization test, state matchups, timeline sort, quote matching, and more. Pure Python, offline, no dependencies.",
