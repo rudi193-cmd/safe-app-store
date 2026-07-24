@@ -17,7 +17,7 @@ from textual.widgets import (
     Static,
 )
 
-from . import pl_paths
+from . import pl_paths, subscriptions
 from .db import LedgerDB
 from .llm import DEFAULT_MODEL, parse_transaction, stream_insights
 from .schema import init_ledger
@@ -189,6 +189,83 @@ class AddAccountScreen(ModalScreen[bool]):
         self.dismiss(False)
 
 
+# ── Subscriptions modal ───────────────────────────────────────────────────────
+
+class SubscriptionsScreen(ModalScreen):
+    CSS = """
+    SubscriptionsScreen {
+        align: center middle;
+        background: $background 60%;
+    }
+    #subs-panel {
+        width: 88%;
+        height: 80%;
+        background: $surface;
+        border: thick $accent;
+        padding: 1 2;
+    }
+    #subs-title {
+        margin-bottom: 1;
+        text-style: bold;
+        color: $accent;
+    }
+    #subs-table { height: 1fr; }
+    #subs-hint {
+        height: 1;
+        color: $text-muted;
+        margin-top: 1;
+    }
+    """
+    BINDINGS = [Binding("escape", "dismiss", "Close")]
+
+    def __init__(self, db: LedgerDB):
+        super().__init__()
+        self.db = db
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="subs-panel"):
+            yield Label("Recurring Subscriptions", id="subs-title")
+            yield DataTable(id="subs-table", cursor_type="row", zebra_stripes=True)
+            yield Label("[dim]Read-only · Esc to close[/dim]", id="subs-hint")
+
+    def on_mount(self):
+        table = self.query_one("#subs-table", DataTable)
+        table.add_columns(
+            "Merchant", "Cadence", "Amount", "Next due",
+            "Monthly", "Annual", "Conf.", "Status",
+        )
+        subs = subscriptions.from_db(self.db)
+        title = self.query_one("#subs-title", Label)
+        if not subs:
+            title.update("Recurring Subscriptions — none detected yet")
+            return
+        annual_total = sum(s["annualized"] for s in subs)
+        title.update(
+            f"Recurring Subscriptions  ·  committed to "
+            f"${annual_total:,.2f}/yr"
+        )
+        for s in subs:
+            if s["amount"] is not None:
+                amount = f"${s['amount']:,.2f}"
+            else:
+                lo, hi = s["amount_range"]
+                amount = f"${lo:,.2f}–${hi:,.2f}"
+            if s["status"] == "possibly_cancelled":
+                status = "[yellow]possibly cancelled[/yellow]"
+            else:
+                status = "[green]active[/green]"
+            table.add_row(
+                s["normalized_merchant"],
+                s["cadence"],
+                amount,
+                s["next_expected"],
+                f"${s['monthly_equivalent']:,.2f}",
+                f"${s['annualized']:,.2f}",
+                f"{s['confidence']*100:.0f}%",
+                status,
+            )
+
+
 # ── Main app ──────────────────────────────────────────────────────────────────
 
 class LedgerApp(App):
@@ -230,6 +307,7 @@ class LedgerApp(App):
     BINDINGS = [
         Binding("q", "quit", "Quit"),
         Binding("i", "insights", "Insights"),
+        Binding("s", "subscriptions", "Subscriptions"),
         Binding("a", "add_account", "Add account"),
         Binding("d", "delete_tx", "Delete"),
         Binding("r", "refresh", "Refresh"),
@@ -398,6 +476,9 @@ class LedgerApp(App):
     def action_insights(self):
         self.push_screen(InsightsScreen(self.db))
 
+    def action_subscriptions(self):
+        self.push_screen(SubscriptionsScreen(self.db))
+
     def action_add_account(self):
         def on_result(saved: bool):
             if saved:
@@ -426,6 +507,21 @@ class LedgerApp(App):
 
 
 def main():
+    import sys
+
+    argv = sys.argv[1:]
+    if "--web" in argv:
+        port = 8770
+        if "--port" in argv:
+            try:
+                port = int(argv[argv.index("--port") + 1])
+            except (IndexError, ValueError):
+                port = 8770
+        # Lazy import so the TUI path never pulls in http.server.
+        from . import web
+
+        web.serve(port=port)
+        return
     LedgerApp().run()
 
 

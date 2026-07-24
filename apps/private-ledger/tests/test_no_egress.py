@@ -1,0 +1,43 @@
+"""The no-egress zone is structural, not policy (oakenscrolls pattern): the
+ledger and the math must be incapable of talking to anything. An AST scan
+refuses network, process, and FFI imports in the core modules, and refuses the
+core from importing the outward web seam.
+
+CORE (no-egress): db.py, schema.py, pl_paths.py, subscriptions.py.
+OUTWARD (excluded): web.py, app.py, llm.py.
+"""
+import ast
+from pathlib import Path
+
+CORE = Path(__file__).resolve().parent.parent / "src" / "private_ledger"
+NO_EGRESS_MODULES = ("db.py", "schema.py", "pl_paths.py", "subscriptions.py")
+FORBIDDEN = {
+    "socket", "http", "urllib", "requests", "httpx", "aiohttp", "ftplib",
+    "smtplib", "telnetlib", "xmlrpc", "webbrowser",
+    "subprocess", "ctypes", "multiprocessing",
+}
+
+
+def _imports(path: Path) -> set[str]:
+    tree = ast.parse(path.read_text())
+    found = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            found.update(alias.name.split(".")[0] for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            found.add(node.module.split(".")[0])
+    return found
+
+
+def test_core_modules_cannot_egress():
+    for name in NO_EGRESS_MODULES:
+        leaked = _imports(CORE / name) & FORBIDDEN
+        assert not leaked, f"{name} imports forbidden modules: {sorted(leaked)}"
+
+
+def test_core_does_not_import_the_web_seam():
+    for name in NO_EGRESS_MODULES:
+        imports = _imports(CORE / name)
+        assert "web" not in imports, (
+            f"{name} must not import web — the seam points outward only"
+        )
