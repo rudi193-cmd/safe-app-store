@@ -51,6 +51,60 @@ def signal_path(signal_dir: Optional[str] = None) -> Path:
     return home / "signals" / "private_ledger_dew.json"
 
 
+# ── Commitment-membrane mapping (#10) ─────────────────────────────────────────
+#
+# willow-mcp's Commitment Membrane surfaces the operator's commitments as
+# ``{"kind": "imminent"|"conflict"|"mismatch", "fact": <title+time only>,
+#   "uids": [...]}`` and publishes them as a dew to ``signals/commitment_dew.json``.
+# private-ledger already publishes its own due-dew; ``_due_to_surfacing`` maps a
+# due row into that same surfacing shape so the ledger's obligations speak the
+# fleet's "due now" vocabulary. FACTS ONLY — the normalized merchant token, the
+# amount, and the date — never a raw statement description (mirrors the
+# membrane's "title + time only, never the sensitive body" rule).
+
+def _due_to_surfacing(row: dict) -> dict:
+    merchant = row.get("merchant", "")
+    nxt = row.get("next_expected", "")
+    amount = row.get("amount")
+    try:
+        amt_txt = f" (${abs(float(amount)):,.2f})" if amount is not None else ""
+    except (TypeError, ValueError):
+        amt_txt = ""
+    return {
+        "kind": "imminent",
+        "fact": f"{merchant} subscription due {str(nxt)[:10]}{amt_txt}".strip(),
+        "uids": [f"private-ledger:{merchant}:{str(nxt)[:10]}"],
+    }
+
+
+def due_as_surfacings(db, today: Optional[date] = None, lead_days: int = 7) -> list[dict]:
+    """The ledger's coming-due obligations in the Commitment Membrane's surfacing
+    shape (``kind`` / ``fact`` / ``uids``). Read-only, facts-only, and computed
+    the same way as :func:`surface_due`'s window. Returns ``[]`` when nothing is
+    due. Does NOT require the proactive gate — this is a pure read a caller can
+    fold into a unified "due now" view; publishing the dew stays gated."""
+    if today is None:
+        today = date.today()
+    from datetime import timedelta
+    window_end = today + timedelta(days=lead_days)
+    out: list[dict] = []
+    for sub in subscriptions.from_db(db, today):
+        if sub.get("status") != "active":
+            continue
+        nxt = sub.get("next_expected")
+        try:
+            nxt_date = date.fromisoformat(str(nxt)[:10])
+        except (TypeError, ValueError):
+            continue
+        if today <= nxt_date <= window_end:
+            out.append(_due_to_surfacing({
+                "merchant": sub["normalized_merchant"],
+                "next_expected": sub["next_expected"],
+                "amount": sub.get("amount"),
+            }))
+    return out
+
+
 # ── The dew: subscriptions coming due ─────────────────────────────────────────
 
 def surface_due(db, today: Optional[date] = None, lead_days: int = 7,
@@ -93,6 +147,13 @@ def surface_due(db, today: Optional[date] = None, lead_days: int = 7,
         "app_id": "private-ledger",
         "lead_days": lead_days,
         "due": due,
+        # #10: the same facts expressed in the Willow Commitment Membrane's
+        # surfacing vocabulary, so a fleet "due now" consumer can read the
+        # ledger's obligations uniformly with calendar commitments. This is an
+        # advisory DEW, never a write into the tamper-evident CommitmentLedger
+        # (the membrane's no-new-authority discipline): the ledger surfaces what
+        # is due; only the operator's own calendar makes a real commitment.
+        "surfacings": [_due_to_surfacing(row) for row in due],
     }
     path = signal_path(signal_dir)
     try:

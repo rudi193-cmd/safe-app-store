@@ -106,3 +106,30 @@ def test_surface_due_publishes_facts_when_enabled(db, monkeypatch):
     assert set(entry) == {"merchant", "next_expected", "amount", "annualized"}
     assert entry["merchant"] == "netflix"
     assert LEAK_TOKEN not in json.dumps(payload)
+
+
+def test_due_as_surfacings_speaks_membrane_vocabulary(db):
+    # #10: the ledger's obligations expressed in the Commitment Membrane's
+    # surfacing shape (kind / fact / uids). Read path — no proactive gate needed.
+    surfacings = bridge.due_as_surfacings(db, today=TODAY, lead_days=40)
+    assert len(surfacings) == 1
+    s = surfacings[0]
+    assert set(s) == {"kind", "fact", "uids"}          # exact membrane shape
+    assert s["kind"] == "imminent"
+    assert "netflix" in s["fact"]
+    assert s["uids"] == ["private-ledger:netflix:2026-08-09"]
+    # Facts only — the fact carries merchant + date + amount, never a raw desc.
+    import json
+    assert LEAK_TOKEN not in json.dumps(surfacings)
+
+
+def test_surface_due_payload_carries_surfacings(db, monkeypatch):
+    monkeypatch.setenv("PRIVATE_LEDGER_PROACTIVE", "1")
+    assert bridge.surface_due(db, today=TODAY, lead_days=40) is True
+    import json
+    payload = json.loads(bridge.signal_path().read_text())
+    # Additive: the dew now carries BOTH the native `due` rows and the
+    # membrane-shaped `surfacings`, so either consumer can read it.
+    assert "due" in payload and "surfacings" in payload
+    assert payload["surfacings"][0]["kind"] == "imminent"
+    assert LEAK_TOKEN not in json.dumps(payload)
