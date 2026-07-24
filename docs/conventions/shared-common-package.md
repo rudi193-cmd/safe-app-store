@@ -69,12 +69,42 @@ that egress **by design**. Checked this session:
 Adding the guard to a qualifying app is a small change: add the `[test]` dep,
 declare the app's no-egress core modules, call the shared assertions.
 
+## Second module: `safe_client` — SAFE-integration dedup (#18)
+
+`safe_integration.py` was copied across ~17 apps. The cross-audit split it:
+
+- **Portless family** (the-squirrel, llmphysics-bot, UTETY-Reddit-Bots) —
+  byte-identical except `_APP_ID`, a store-reachability probe + manifest reader.
+  **Extracted** as `safe_app_common.safe_client` (`store_root`/`status(app_id)`/
+  `get_manifest`), portless by construction. **the-squirrel wired as proof**
+  (thin shim, its public API unchanged). Remaining two are **unpackaged** (no
+  `pyproject.toml`) — they need a packaging pass before they can declare the dep.
+- **Full-API family** (ask-jeles + 7: `ask`/`query`/`contribute`/`SAFESession`/
+  consent/messaging) — a larger surface that talks to a **live MCP/SAFE server**.
+  Deliberately **not** extracted yet: it can't be verified offline, and a broken
+  shared client is worse than the current drift. Follow-on, needs a live server.
+
+### The Jeles persona (#18's other half) — canonical answer, one open fork
+
+The cross-audit resolved *which* Jeles is authoritative:
+
+- **Canon:** `apps/utety-chat/data/professors/jeles_persona.json` (structured,
+  richest) → compiles to the `utety-chat/personas.py` string.
+- `apps/ask-jeles/personas.py` = **byte-identical** copy (safe to point at canon).
+- `apps/the-squirrel/personas.py` = **drifted paraphrase** (regenerate from canon
+  — but that changes the app's Jeles voice, a behavior-affecting edit).
+- `/workspace/jeles` = **empty repo**, the apparent intended home.
+
+**Open fork (operator's call, like #13's topology):** where does the shared
+persona *data* live — bundled in `safe-app-common`, seeded into the empty
+`jeles` repo, or kept canonical in `utety-chat` with others pointing at it? The
+loader is shared code (fits here); the persona *content* home is a topology
+decision not yet made. Held rather than guessed.
+
 ## Growing the package
 
-Add a helper here only when it is genuinely shared and dependency-free (the
-next candidates surfaced this session: a canonical persona loader for #18, once
-the divergent per-app `personas.py` are reconciled). Anything app-specific stays
-in the app.
+Add a helper here only when it is genuinely shared and dependency-free.
+Anything app-specific stays in the app.
 
 ---
 

@@ -1,22 +1,23 @@
-"""SAFE Framework Integration for The Squirrel."""
+"""SAFE Framework Integration for The Squirrel.
 
-import os as _os
-import sqlite3 as _sqlite3
+Thin shim over the shared portless surface (safe-app-common, #18). The
+byte-identical-except-app_id ``safe_integration.py`` stub that was copied across
+the-squirrel / llmphysics-bot / UTETY-Reddit-Bots now lives once in
+``safe_app_common.safe_client``; this file keeps the-squirrel's public API
+(`get_manifest()` / `status()`) and delegates.
+"""
+from pathlib import Path
 
-_STORE_ROOT = _os.path.join(_os.path.expanduser("~"), ".willow", "store")
-_STORE_ROOT = _os.environ.get("WILLOW_STORE_ROOT", _STORE_ROOT)
+from safe_app_common.safe_client import get_manifest as _get_manifest
+from safe_app_common.safe_client import status as _status
+
 _APP_ID = "the-squirrel"
 
 
 def get_manifest():
-    import json
-    from pathlib import Path
-    manifest_path = Path(__file__).parent / "safe-app-manifest.json"
-    return json.loads(manifest_path.read_text())
+    return _get_manifest(Path(__file__).parent)
 
 
 def status():
-    """Check if Willow store is reachable."""
-    db_path = _os.path.join(_STORE_ROOT, "knowledge", "store.db")
-    reachable = _os.path.exists(db_path)
-    return {"ok": reachable, "store": _STORE_ROOT, "mode": "portless"}
+    """Check if Willow store is reachable (portless)."""
+    return _status(_APP_ID)
