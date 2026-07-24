@@ -28,6 +28,13 @@ trust_level  timestamp  tools  state_hash  signature  reserved
   twelve, keyed by a per-agent secret **the gate holds, registered
   out-of-band.** The actor cannot compute it.
 
+*(The field list above mirrors `willow_gate.REQUIRED_FIELDS` — the code is canon;
+if the schema changes, `willow_gate` is the source of truth, not this doc.
+Note also: the gate treats `state_hash` as an **opaque** value it only diffs
+entry-vs-exit — "the sha256 of the raw transcript" is a **convention-layer**
+meaning the gate neither computes nor verifies. The HMAC binds the header's
+integrity; it does not attest that `state_hash` is really the transcript.)*
+
 Two properties give the schema teeth (not preferences — enforced in
 `check_in`/`verify`):
 
@@ -35,10 +42,15 @@ Two properties give the schema teeth (not preferences — enforced in
    the level the signature verifies.** You cannot claim a rung the HMAC doesn't
    back. (5 rungs: Exiled·Rookie·Steady·Veteran·Elder; drift/fail budgets
    *tighten* as trust rises — power buys less slack, not more.)
-2. **Declare → reconcile.** Check-in carries `declared:` (the intents / scope
-   for the turn); check-out carries `reconciled:` (delivered vs declared, *minus
-   what the self-audit diff caught*), with `pass`/`fail` enumerated and `drift`
-   counting the actor's own record-vs-memory errors.
+2. **Declare → reconcile.** A per-session `declared:` (intents / scope at the
+   front) and a check-out `reconciled:` (delivered vs declared, *minus what the
+   self-audit diff caught*), with `pass`/`fail` enumerated and `drift` counting
+   the actor's own record-vs-memory errors. **These ride in a sidecar envelope,
+   NOT in the 13-field header** — `willow_gate._validate_shape` enforces exactly
+   13 fields in and 13 out and raises on any unknown key, so a header literally
+   carrying `declared:` would be *rejected*. `declared`/`reconciled` are the
+   seam's extension (`willow-mcp` `session_binder.RECONCILED_FIELDS`), carried
+   alongside the header, never inside it.
 
 ## The one honest rule: zero, don't fabricate
 
@@ -92,9 +104,9 @@ earns, key registration) stays the operator's — that is the point, not a gap.
 
 ## Template
 
-A seat/app fills this per working session (markdown or the equivalent JSON
-header). Byte-faithful to the 13 fields; `signature` honest-zero until the gate
-signs.
+A seat/app fills this per working session. The **header is exactly 13 fields** —
+no more, or `willow_gate` rejects it; `signature` is honest-zero until the gate
+signs. The `declared:`/`reconciled:` envelope rides **outside** the header.
 
 ```
 ====================== GATE CHECK-IN ======================
@@ -111,14 +123,16 @@ timestamp:   <ISO8601>
 state_hash:  <sha256 of the record this answers to>
 signature:   0000…0000  (UNSIGNED unless a gate secret is registered)
 reserved:    <reserved>
-declared:    <the scope / intents for this session — the per-turn envelope>
 ===========================================================
+-- envelope (sidecar, NOT part of the signed 13-field header) --
+declared:    <the scope / intents for this session — the per-turn envelope>
 ```
 
-Check-out repeats the header with `pass_count`/`fail_count` enumerated, `drift`
-counting caught record-vs-memory errors, a fresh `state_hash` of the record
-itself, `trust_level` unchanged unless a rung was earned, and `reconciled:`
-(declared-vs-delivered minus the diff).
+Check-out repeats the 13-field header with `pass_count`/`fail_count`
+enumerated, `drift` counting caught record-vs-memory errors, a fresh
+`state_hash` of the record itself, and `trust_level` unchanged unless a rung was
+earned — and adds to the envelope a `reconciled:` line (declared-vs-delivered
+minus the diff). Header stays 13; the envelope carries the declare/reconcile.
 
 ---
 
