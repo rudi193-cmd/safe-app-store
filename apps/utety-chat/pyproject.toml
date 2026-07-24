@@ -14,7 +14,7 @@ dependencies = [
     "fastapi>=0.104.0",
     "uvicorn>=0.24.0",
     "requests>=2.28.0",
-    "jeles @ git+https://github.com/rudi193-cmd/jeles@claude/new-ledger-piece-e3vxvn",
+    "jeles @ git+https://github.com/rudi193-cmd/jeles@master",
 ]
 
 [project.urls]

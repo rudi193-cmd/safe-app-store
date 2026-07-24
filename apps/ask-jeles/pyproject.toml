@@ -15,7 +15,7 @@ dependencies = [
     "pyspellchecker>=0.8.1",
     "rapidfuzz>=3.0.0",
     "mcp>=1.6.0,<2.0.0",
-    "jeles @ git+https://github.com/rudi193-cmd/jeles@claude/new-ledger-piece-e3vxvn",
+    "jeles @ git+https://github.com/rudi193-cmd/jeles@master",
 ]
 
 [project.scripts]

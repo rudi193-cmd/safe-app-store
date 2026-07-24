@@ -17,7 +17,7 @@ dependencies = [
 # safe-app-common cuts a tag/release; repin then. Installed for tests via
 # `pip install -e .[test]`.
 test = [
-    "safe-app-common @ git+https://github.com/rudi193-cmd/safe-app-common-package@claude/new-ledger-piece-e3vxvn",
+    "safe-app-common @ git+https://github.com/rudi193-cmd/safe-app-common-package@master",
 ]
 
 [project.scripts]
