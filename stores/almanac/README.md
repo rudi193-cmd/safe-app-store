@@ -5,13 +5,17 @@ Not a code store. Not a major craft. A **branch** — the fleet's public record,
 an **auto-updated list.**
 
 The other stores *keep* things (code, promoted apps). The Almanac is the one
-place where keeping would be a mistake: it is a self-renewing list, so the store
-**does not store it.** That is the deep half of `instaurare` — *renew* — taken
-to its limit. A copy in the tree would only go stale. The store points at the
-live list instead.
+place where keeping would be a mistake — and it isn't even ours to keep.
+**`almanac-data` is its own organization**, outside this account. The store
+cannot store it (a cross-org clone is refused; the live list is reached by
+**fetch**, not by keeping a copy), and it shouldn't want to: it is a
+self-renewing list, so a frozen copy would only go stale. That is the deep half
+of `instaurare` — *renew* — taken to its limit. The store **subscribes** to the
+live list instead of owning it.
 
-*(This is why the `almanac-data` verticals fetched earlier were never committed:
-correctly. You don't store what updates itself. You subscribe to it.)*
+*(This is why the `almanac-data` verticals fetched earlier were never committed —
+correctly. It is another org's public record; you don't store what updates
+itself and isn't yours. You subscribe to it.)*
 
 ## What it is
 
@@ -46,9 +50,10 @@ The semantic-search socket every promoted app carries takes either — or both.
 ## The branch
 
 This directory is a **pointer**, not a payload: it declares *where the live list
-lives and how to reach it*, and stays deliberately empty of data. An auto-updated
-list has no resting copy here to drift. What updates itself, the store does not
-store.
+lives and how to reach it* — across the org boundary, to `almanac-data`'s own
+organization — and stays deliberately empty of data. There is nothing to clone
+here and nothing to drift. What updates itself, and belongs to another org, the
+store does not store — it reaches for it, fresh, each time.
 
 ---
 
