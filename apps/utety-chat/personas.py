@@ -591,6 +591,16 @@ try:
 except Exception:
     pass  # JSON not yet available — hardcoded fallbacks remain active
 
+# The canonical Jeles persona now lives in the `jeles` organ (#18 combine) — one
+# JSON source of truth, compiled to a prompt. When the package is installed,
+# render Jeles from there so utety-chat, ask-jeles, and the organ never drift;
+# otherwise the json/hardcoded Jeles above remains. Same silent-override pattern.
+try:
+    from jeles import persona_prompt as _jeles_persona_prompt
+    PERSONAS["Jeles"] = _jeles_persona_prompt()
+except Exception:
+    pass  # jeles not installed — local Jeles fallback remains active
+
 
 def get_persona(name):
     """Get a persona prompt by name. Returns Willow default if not found."""
