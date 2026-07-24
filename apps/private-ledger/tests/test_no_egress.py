@@ -11,6 +11,7 @@ from pathlib import Path
 
 CORE = Path(__file__).resolve().parent.parent / "src" / "private_ledger"
 NO_EGRESS_MODULES = ("db.py", "schema.py", "pl_paths.py", "subscriptions.py")
+BRIDGE = CORE / "willow_bridge.py"
 FORBIDDEN = {
     "socket", "http", "urllib", "requests", "httpx", "aiohttp", "ftplib",
     "smtplib", "telnetlib", "xmlrpc", "webbrowser",
@@ -41,3 +42,25 @@ def test_core_does_not_import_the_web_seam():
         assert "web" not in imports, (
             f"{name} must not import web — the seam points outward only"
         )
+
+
+def test_core_does_not_import_the_willow_bridge():
+    """The Willow seam points OUTWARD only: bridge imports core, never reverse."""
+    for name in NO_EGRESS_MODULES:
+        imports = _imports(CORE / name)
+        assert "willow_bridge" not in imports, (
+            f"{name} must not import willow_bridge — the bridge imports the "
+            "core, never the reverse"
+        )
+
+
+def test_willow_bridge_is_pure_injection():
+    """willow_bridge is OUTWARD (not in the core set) but must still never phone
+    home: no ``import willow`` and no network/process import. It reaches Willow
+    only through an INJECTED ingest callable."""
+    imports = _imports(BRIDGE)
+    assert "willow" not in imports, (
+        "willow_bridge must not import willow — it is pure dependency injection"
+    )
+    leaked = imports & FORBIDDEN
+    assert not leaked, f"willow_bridge imports forbidden modules: {sorted(leaked)}"
