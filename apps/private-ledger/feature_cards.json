@@ -369,6 +369,16 @@
       "requires_external": true,
       "external_note": "MX or Finicity API key required. Better credit union coverage than Plaid but same sovereignty concern.",
       "tag": "ingestion"
+    },
+    {
+      "id": "local-stock-trader",
+      "title": "Local Stock Trading Engine",
+      "description": "A pure-Python, local-only, stdio-driven equities analysis → recommendation → guarded live-execution engine, assembled from existing OSS (OpenBB, edgartools, FRED, Qlib, pandas-ta, vectorbt, NautilusTrader, alpaca-py). Six swappable layers — data → signals → backtest → risk/portfolio → execution → journal — behind a thin stdio/CLI seam the MCP layer imports directly. Every recommendation carries a provenance block tracing back to a named public source (SEC EDGAR, FRED, broker market data); live execution is the last, most-guarded step behind paper-first gates, hard risk limits, and a kill switch. Extends the ledger from tracking holdings (stock-portfolio) to reasoning about them.",
+      "complexity": "high",
+      "requires_external": true,
+      "external_note": "Outbound calls to public data APIs (SEC EDGAR, FRED, Alpaca/Yahoo market data) and, only after clearing the paper-first gate, a broker (Alpaca, or IBKR via NautilusTrader). Personal-use software only — respect each provider's ToS and SEC EDGAR User-Agent/rate limits. Not financial advice; backtested performance is not predictive.",
+      "implementation_notes": "Six independently-testable layers: (1) data ingest + source registry, every datapoint carrying source_id/timestamp, raw responses cached append-only for byte-for-byte reproducibility; (2) pandas-ta features + Qlib models → ranked ideas; (3) vectorbt fast screens → NautilusTrader strategy classes, walk-forward to guard against look-ahead/overfitting; (4) risk/portfolio — position sizing, exposure caps, daily loss halt, PDT guard; (5) execution — idempotent client-ID'd orders, startup reconciliation against broker state, dead-man's-file kill switch, dry-run; (6) append-only journal/audit with full provenance. Opinionated first build: OpenBB+edgartools+FRED → pandas-ta+Qlib → vectorbt→Nautilus → alpaca-py paper→live. Composes with investment-intelligence as a sovereign local signal source. Full plan: docs/local-stock-trader-plan.md.",
+      "tag": "investments"
     }
   ]
 }
