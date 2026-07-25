@@ -1,4 +1,4 @@
 # bt-controller runtime dependencies (Python >= 3.9)
 pyusb>=1.2.1        # USB adapter presence check (needs libusb: apt install libusb-1.0-0)
 bleak>=3.0.2       # BLE scan/connect — scan code requires the 0.22+ AdvertisementData API
-websockets>=12.0    # ws://localhost:8421 server for the web UI
+websockets>=16.1.1    # ws://localhost:8421 server for the web UI
