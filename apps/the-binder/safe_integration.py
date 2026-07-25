@@ -12,7 +12,6 @@ Topics: ask, query, contribute, connect, status
 import json
 import os
 import uuid
-import sqlite3 as _sqlite3
 from pathlib import Path
 from typing import Dict, Optional
 from datetime import datetime, timezone
@@ -38,20 +37,11 @@ def ask_raw(prompt: str, tier: str = "free") -> dict:
 
 
 def query(q: str, limit: int = 5) -> list:
-    """Query Willow's knowledge store directly via SOIL SQLite."""
-    db_path = os.path.join(_STORE_ROOT, "knowledge", "store.db")
-    if not os.path.exists(db_path):
-        return []
-    try:
-        conn = _sqlite3.connect(db_path)
-        rows = conn.execute(
-            "SELECT data FROM records WHERE deleted=0 AND data LIKE ? LIMIT ?",
-            (f"%{q}%", limit)
-        ).fetchall()
-        conn.close()
-        return [json.loads(r[0]) for r in rows]
-    except Exception:
-        return []
+    """KB search MUST go through the gated ``knowledge_search`` tool, which
+    scopes results to this app server-side. A direct read of the shared
+    ``knowledge`` store returned every app's atoms (box audit B3); it is removed.
+    Portless mode has no gated path, so this returns [] (as ask()/send() do)."""
+    return []
 
 
 def contribute(content: str, category: str = "note", metadata: Optional[dict] = None) -> dict:
