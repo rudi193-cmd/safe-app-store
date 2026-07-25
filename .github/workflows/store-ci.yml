@@ -77,3 +77,11 @@ jobs:
       - name: Run tests
         working-directory: apps/${{ matrix.app }}
         run: python -m pytest tests/ -q
+
+  # Aggregate gate: branch protection requires a single check named "test"
+  # across the whole fleet. Green only when every gate and app suite is.
+  test:
+    needs: [gates, app-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "gates and all app suites green"
