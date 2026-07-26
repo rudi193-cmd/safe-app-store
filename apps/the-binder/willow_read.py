@@ -7,20 +7,22 @@ the app (app.py) imports THIS module; this module never imports app.py, and
 never ``import willow``. Direction is always seam -> stdlib/lazy-fallback,
 never seam -> app.
 
-Rule #1 of the store (CLAUDE.md): "KB reads → knowledge_search". The preferred
-path here is therefore an INJECTED willow-mcp client whose ``knowledge_search``
-tool returns knowledge atoms. Only when no client is injected does the seam
-fall back to the legacy direct-Postgres query — the anti-pattern this refactor
-exists to demote. That fallback's psycopg2 import is LAZY (inside the fallback
-function only), so importing this module, and running its tests, needs neither
-textual nor psycopg2.
+Rule #1 of the store (CLAUDE.md): "KB reads → knowledge_search". The KB is read
+ONLY through an INJECTED willow-mcp client whose ``knowledge_search`` tool scopes
+results to this app server-side. The old direct-Postgres fallback read
+``willow.knowledge`` with NO app scope (it returned any app's rows matching the
+words) — a gate-bypass of the same class as box audit B3, missed in the first
+pass because it queried ``willow.knowledge`` rather than ``records``. It is
+removed: with no gated client injected there is no safe read, so ``search``
+returns []. (Same discipline as the shared ``willow_read`` library, box audit A5;
+The Binder keeps its own copy only because its module name collides with the
+package name, and it adds the app-specific atom→display normalization below.)
 
 The seam NEVER raises out of ``search()``: every backend error degrades to an
 empty list, preserving The Binder's graceful-degradation UX.
 """
 from __future__ import annotations
 
-import os
 from typing import Any, Optional, Protocol, runtime_checkable
 
 
@@ -92,87 +94,29 @@ def _normalize(atom: Any) -> dict:
     }
 
 
-# ── The legacy Postgres fallback (relocated verbatim from app.py) ──────────────
-
-def _postgres_search(query: str, limit: int = 20) -> list[dict]:
-    """Direct-Postgres KB search — the legacy path, moved verbatim from
-    app.py's ``_init_willow._search``. psycopg2 is imported LAZILY here so the
-    seam (and its tests) load without it. NEVER raises: any error -> []."""
-    try:
-        import psycopg2  # lazy: absent in the mcp-preferred path and in tests
-
-        db = os.environ.get("WILLOW_PG_DB", "willow_19")
-        user = os.environ.get("WILLOW_PG_USER", os.environ.get("USER", ""))
-
-        words = [w for w in query.lower().split() if len(w) > 2]
-        if not words:
-            return []
-        conn = psycopg2.connect(dbname=db, user=user)
-        cur = conn.cursor()
-        ilike = " OR ".join(["(title ILIKE %s OR summary ILIKE %s)"] * len(words))
-        params = [p for w in words for p in (f"%{w}%", f"%{w}%")]
-        cur.execute(
-            f"SELECT title, summary, project FROM willow.knowledge "
-            f"WHERE invalid_at IS NULL AND ({ilike}) LIMIT %s",
-            params + [limit],
-        )
-        rows = cur.fetchall()
-        conn.close()
-        return [{"title": r[0], "summary": r[1], "project": r[2]} for r in rows]
-    except Exception:
-        return []
-
-
-def _psycopg2_importable() -> bool:
-    """Best-effort probe for the postgres backend: is psycopg2 importable?
-    Does NOT open a connection — merely importability is treated as the
-    postgres signal per the seam spec."""
-    try:
-        import importlib.util
-
-        return importlib.util.find_spec("psycopg2") is not None
-    except Exception:
-        return False
-
-
 # ── The seam ──────────────────────────────────────────────────────────────────
 
 def active_backend() -> str:
-    """Which backend a search would use right now: "mcp" when a client is
-    injected, else "postgres" when psycopg2 looks importable (and a WILLOW_PG_DB
-    is plausible — always true, since it defaults), else "none"."""
-    if _client is not None:
-        return "mcp"
-    if _psycopg2_importable():
-        return "postgres"
-    return "none"
+    """"mcp" when a gated client is injected, else "none". There is no postgres
+    backend — the unscoped ``willow.knowledge`` read was removed (box audit B3)."""
+    return "mcp" if _client is not None else "none"
 
 
 def available() -> bool:
-    """True when some backend could return results (mcp or postgres)."""
+    """True when the gated client is injected — the only KB-read path now."""
     return active_backend() != "none"
 
 
 def search(query: str, limit: int = 20, *, client: Optional[KnowledgeClient] = None) -> list[dict]:
-    """Search the Willow KB, returning display dicts ``{title, summary,
-    project}``. NEVER raises — every backend error degrades to [].
-
-    Preference order (rule #1):
-      1. An injected client (the ``client`` arg, else the module-level one):
-         call ``client.knowledge_search`` and normalize each atom.
-      2. The legacy Postgres fallback.
-      3. []."""
+    """Search the Willow KB through the injected gated client, returning display
+    dicts ``{title, summary, project}``. NEVER raises — every backend error
+    degrades to []. No client injected -> [] (the raw ``willow.knowledge``
+    fallback that bypassed the gate was removed, box audit B3)."""
     active = client if client is not None else _client
-    if active is not None:
-        try:
-            atoms = active.knowledge_search(query, limit)
-        except Exception:
-            return []
-        if not atoms:
-            return []
-        return [_normalize(a) for a in atoms]
-
-    if _psycopg2_importable():
-        return _postgres_search(query, limit)
-
-    return []
+    if active is None:
+        return []
+    try:
+        atoms = active.knowledge_search(query, limit)
+    except Exception:
+        return []
+    return [_normalize(a) for a in (atoms or [])]
