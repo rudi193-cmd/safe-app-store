@@ -30,14 +30,19 @@ def test_no_app_reads_the_shared_soil_store_raw():
     offenders = []
     for p in _live_app_py_files():
         text = p.read_text(encoding="utf-8", errors="replace")
-        # Only flag a real query (a LIKE bind close to the records read), not a
-        # bare `FROM records` count/exists.
+        # (1) The SOIL `records` shape: a content LIKE with no app scope.
         for m in re.finditer(r"FROM\s+records\b.{0,200}", text, re.IGNORECASE | re.DOTALL):
             snippet = m.group(0)
             if re.search(r"data\s+LIKE", snippet, re.IGNORECASE) and \
                not re.search(r"\bcollection\b|\bapp_id\b", snippet, re.IGNORECASE):
                 offenders.append(str(p.relative_to(_REPO)))
                 break
+        else:
+            # (2) The shared KB table directly: any app reading `willow.knowledge`
+            # bypasses the gate (there's no app-scope column) — the-binder's old
+            # postgres fallback, box audit B3-residual. knowledge_search only.
+            if re.search(r"FROM\s+willow\.knowledge\b", text, re.IGNORECASE):
+                offenders.append(str(p.relative_to(_REPO)))
     assert not offenders, (
-        "raw unscoped SOIL reads reintroduced (box audit B3) — route through the "
-        "gated knowledge_search tool instead:\n  " + "\n  ".join(sorted(offenders)))
+        "raw unscoped shared-KB reads reintroduced (box audit B3) — route through "
+        "the gated knowledge_search tool instead:\n  " + "\n  ".join(sorted(offenders)))

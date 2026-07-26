@@ -6,7 +6,6 @@ These run WITHOUT textual and WITHOUT psycopg2: the seam imports neither at
 module top. They prove the preferred path (injected client) and the graceful
 degradation contract (never raises; empty on any failure).
 """
-import importlib.util
 import os
 import sys
 
@@ -81,14 +80,12 @@ def test_client_passed_as_arg_is_preferred():
     assert fake.calls == [("q", 3)]
 
 
-# ── Degradation: no client + no psycopg2 ──────────────────────────────────────
+# ── Degradation: no gated client -> no read (box audit B3) ────────────────────
 
-def _psycopg2_present():
-    return importlib.util.find_spec("psycopg2") is not None
-
-
-@pytest.mark.skipif(_psycopg2_present(), reason="psycopg2 installed in this env")
-def test_no_client_no_psycopg2_returns_empty_and_reports_none():
+def test_no_client_returns_empty_and_reports_none():
+    # The raw willow.knowledge fallback (an unscoped gate-bypass) was removed, so
+    # with no gated client there is no read — regardless of whether psycopg2 is
+    # installed. Previously this only held when psycopg2 was absent.
     assert willow_read.active_backend() == "none"
     assert willow_read.available() is False
     assert willow_read.search("hello world") == []  # never raises
