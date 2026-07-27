@@ -14,8 +14,9 @@ from pathlib import Path
 from typing import Optional
 from datetime import datetime, timezone
 
-_STORE_ROOT = _os.path.join(_os.path.expanduser("~"), ".willow", "store")
-_STORE_ROOT = _os.environ.get("WILLOW_STORE_ROOT", _STORE_ROOT)
+from vault_paths import vault_root as _vault_root  # shared resolver (box audit A5)
+
+_STORE_ROOT = str(_vault_root())
 APP_ID = "law-gazelle"
 
 _session_id = str(uuid.uuid4())
