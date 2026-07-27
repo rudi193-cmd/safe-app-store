@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "willow-pg"
+version = "0.1.0"
+description = "The shared Postgres seam for hosted apps: one pooled, app-scoped connection helper that sets search_path with psycopg2 sql.Identifier (never string interpolation) and validates the schema name (box audit A5). psycopg2 is imported lazily, so importing the module needs no driver."
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
