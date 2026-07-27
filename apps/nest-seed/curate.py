@@ -21,12 +21,8 @@ from __future__ import annotations
 
 import sqlite3
 
-try:  # works both as a package (apps.nest_seed) and as a plain script dir
-    from . import selflearn as _learn
-    from . import embed as _embed
-except ImportError:
-    import selflearn as _learn
-    import embed as _embed
+from nest_pipeline import selflearn as _learn  # shared Nest pipeline core (box audit A4)
+from nest_pipeline import embed as _embed
 
 
 def _normalize_name(new: str) -> str:

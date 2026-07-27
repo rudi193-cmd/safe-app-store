@@ -23,13 +23,12 @@ import json
 import os
 import sqlite3
 
-try:  # works as a package or a plain script dir
-    from . import selflearn as _learn
-    from . import embed as _embed
+from nest_pipeline import selflearn as _learn  # shared Nest pipeline core (box audit A4)
+from nest_pipeline import embed as _embed
+
+try:  # digest is app-local; works as a package or a plain script dir
     from . import digest as _digest
 except ImportError:
-    import selflearn as _learn
-    import embed as _embed
     import digest as _digest
 
 # Topical categories the bridge summarises (same set the digest treats as topical).

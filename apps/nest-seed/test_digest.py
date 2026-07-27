@@ -1,5 +1,5 @@
 """Smoke test for digest.build_digest — run from inside apps/nest-seed/."""
-import db as _db
+from nest_pipeline import db as _db
 import digest as _digest
 
 
