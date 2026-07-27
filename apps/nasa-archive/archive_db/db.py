@@ -43,7 +43,15 @@ def _get_pg_pool():
 
 import re as _re
 
-# Conflict targets for INSERT OR REPLACE upserts (table -> ON CONFLICT clause)
+# The SQLite->Postgres compatibility shim now lives in libs/pg-sqlite-shim
+# (box audit A5): sqlite_to_pg() + the PgCursor/PgConn sqlite3-compat wrappers,
+# converged onto this app's hardened form (SAVEPOINT-guarded lastval(),
+# RETURNING-aware lastrowid, RealDictCursor row-factory). psycopg2 stays a lazy
+# import inside the shim, so importing this module needs no driver.
+from pg_sqlite_shim import PgConn as _PgConn
+
+# Conflict targets for INSERT OR REPLACE upserts (table -> ON CONFLICT clause).
+# App-specific data: kept here and passed into the shim per connection.
 _PG_CONFLICT_TARGETS: dict = {
     "oral_events":    "(archive_slug) DO UPDATE SET name=EXCLUDED.name, "
                       "event_year=EXCLUDED.event_year, source_type=EXCLUDED.source_type, "
@@ -65,146 +73,6 @@ _PG_CONFLICT_TARGETS: dict = {
 }
 
 
-def _sqlite_to_pg(sql: str) -> str:
-    """Translate SQLite SQL syntax to PostgreSQL."""
-    s = sql.strip()
-    if _re.match(r"\s*PRAGMA\b", s, _re.IGNORECASE):
-        return "SELECT 1"
-    if _re.search(r"\bINSERT\s+OR\s+IGNORE\b", s, _re.IGNORECASE):
-        s = _re.sub(r"\bINSERT\s+OR\s+IGNORE\b", "INSERT", s, flags=_re.IGNORECASE)
-        s = s.rstrip().rstrip(";") + " ON CONFLICT DO NOTHING"
-    elif _re.search(r"\bINSERT\s+OR\s+REPLACE\b", s, _re.IGNORECASE):
-        s = _re.sub(r"\bINSERT\s+OR\s+REPLACE\b", "INSERT", s, flags=_re.IGNORECASE)
-        m = _re.search(r"\bINSERT\s+INTO\s+[\"']?(\w+)", s, _re.IGNORECASE)
-        table = m.group(1).lower() if m else ""
-        conflict = _PG_CONFLICT_TARGETS.get(table, "DO NOTHING")
-        s = s.rstrip().rstrip(";") + f" ON CONFLICT {conflict}"
-    # Only translate ? -> %s if the query uses SQLite-style placeholders.
-    # If it already uses %s (Postgres-native), leave it alone — escaping % would
-    # turn %s into %%s and break psycopg2.
-    if "?" in s:
-        s = s.replace("%", "%%")
-        s = s.replace("?", "%s")
-    return s
-
-
-class _PgCursor:
-    """Wraps psycopg2 cursor to provide sqlite3-compatible interface."""
-
-    def __init__(self, cur):
-        self._cur = cur
-        self.description = cur.description
-        self.rowcount    = cur.rowcount
-        self.lastrowid   = None
-
-    def __getattr__(self, name):
-        return getattr(self._cur, name)
-
-    def execute(self, sql, params=None):
-        pg_sql = _sqlite_to_pg(sql)
-        # If INSERT has RETURNING, use that for lastrowid directly
-        has_returning = bool(_re.search(r"\bRETURNING\b", pg_sql, _re.IGNORECASE))
-        self._cur.execute(pg_sql, params)
-        self.description = self._cur.description
-        self.rowcount    = self._cur.rowcount
-        if has_returning:
-            # RETURNING clause present — the result set IS the returned row(s).
-            # Don't fetch here; let the caller use fetchone()/fetchall().
-            self.lastrowid = None
-        elif _re.match(r"\s*INSERT\b", pg_sql, _re.IGNORECASE):
-            # No RETURNING clause — try lastval() for SERIAL/IDENTITY columns.
-            # lastval() fails if no sequence was used (TEXT PK tables).
-            # Use SAVEPOINT so a failed lastval() doesn't poison the transaction.
-            try:
-                self._cur.execute("SAVEPOINT _lastval_check")
-                self._cur.execute(
-                    "SELECT lastval() WHERE EXISTS ("
-                    "  SELECT 1 FROM pg_sequences LIMIT 1"
-                    ")"
-                )
-                row = self._cur.fetchone()
-                self.lastrowid = row[0] if row else None
-                self._cur.execute("RELEASE SAVEPOINT _lastval_check")
-            except Exception:
-                try:
-                    self._cur.execute("ROLLBACK TO SAVEPOINT _lastval_check")
-                    self._cur.execute("RELEASE SAVEPOINT _lastval_check")
-                except Exception:
-                    pass
-                self.lastrowid = None
-        else:
-            self.lastrowid = None
-        return self
-
-    def executemany(self, sql, seq):
-        import psycopg2.extras
-        pg_sql = _sqlite_to_pg(sql)
-        psycopg2.extras.execute_batch(self._cur, pg_sql, seq)
-
-    def fetchone(self):
-        return self._cur.fetchone()
-
-    def fetchall(self):
-        return self._cur.fetchall()
-
-    def fetchmany(self, n):
-        return self._cur.fetchmany(n)
-
-    def __iter__(self):
-        return iter(self._cur)
-
-
-class _PgConn:
-    """Wraps a pooled psycopg2 connection with sqlite3-compatible interface."""
-
-    def __init__(self, pool, conn):
-        self._pool = pool
-        self._conn = conn
-        self._row_factory = None
-
-    def __getattr__(self, name):
-        return getattr(self._conn, name)
-
-    def cursor(self):
-        import sqlite3 as _sqlite3
-        if self._row_factory is _sqlite3.Row:
-            import psycopg2.extras
-            return _PgCursor(
-                self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-            )
-        return _PgCursor(self._conn.cursor())
-
-    def execute(self, sql, params=None):
-        cur = self.cursor()
-        cur.execute(sql, params)
-        return cur
-
-    @property
-    def row_factory(self):
-        return self._row_factory
-
-    @row_factory.setter
-    def row_factory(self, value):
-        self._row_factory = value
-
-    def close(self):
-        try:
-            self._conn.rollback()
-        except Exception:
-            pass
-        self._pool.putconn(self._conn)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, *_):
-        try:
-            self._conn.rollback()
-        except Exception:
-            pass
-        self._pool.putconn(self._conn)
-
-
 # Schema names can't be parameterized, so validate before interpolating (ST-SQL-01).
 _SCHEMA_IDENT_RE = _re.compile(r"^[a-z_][a-z0-9_]{0,62}$")
 
@@ -223,7 +91,7 @@ def get_connection(schema=SCHEMA):
     conn = pool.getconn()
     try:
         conn.autocommit = False
-        pg_conn = _PgConn(pool, conn)
+        pg_conn = _PgConn(pool, conn, conflict_targets=_PG_CONFLICT_TARGETS)
         _cur = conn.cursor()
         _cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(schema)))
         _cur.close()
