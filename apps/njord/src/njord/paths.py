@@ -7,21 +7,16 @@ $WILLOW_STORE_ROOT/njord/.
 """
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
-
-def vault_root() -> Path:
-    """Root of the local SAFE vault store."""
-    return Path(
-        os.environ.get("WILLOW_STORE_ROOT", str(Path.home() / ".willow" / "store"))
-    ).expanduser()
+# The shared resolver (box audit A5). vault_root is re-exported so callers that
+# do `from njord.paths import vault_root` keep working.
+from vault_paths import app_dir as _vault_app_dir, vault_root  # noqa: F401
 
 
 def app_dir() -> Path:
     """Njord's own directory under the vault. NJORD_HOME overrides for tests."""
-    env = os.environ.get("NJORD_HOME")
-    return Path(env).expanduser() if env else vault_root() / "njord"
+    return _vault_app_dir("njord", env_var="NJORD_HOME")
 
 
 def ensure_app_dir() -> Path:
