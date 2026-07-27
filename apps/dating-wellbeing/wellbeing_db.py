@@ -11,11 +11,11 @@ DB connection follows Willow's core/db.py pattern (psycopg2, pooled).
 """
 
 import os
-import re
 import sys
-import threading
 from datetime import datetime
 from typing import Optional, List, Dict, Any
+
+from willow_pg import get_connection as _pg_connection, release_connection, validate_schema
 
 # Import 23-cubed lattice constants from Willow — only trust WILLOW_CORE if it
 # actually holds user_lattice.py, so a stale path never lands on sys.path (ST-PATH-01).
@@ -30,72 +30,18 @@ except ImportError:
     from lattice_fallback import DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE
 
 # ---------------------------------------------------------------------------
-# Connection
+# Connection — via the shared willow_pg seam (box audit A5). One pooled,
+# schema-scoped helper for every Postgres app; search_path is set with
+# sql.Identifier, never string interpolation. release_connection is re-exported
+# so callers keep using wellbeing_db.release_connection(conn).
 # ---------------------------------------------------------------------------
 
-_pool = None
-_pool_lock = threading.Lock()
-
-SCHEMA = "dating_wellbeing"
-# Schema names can't be parameterized — refuse anything but a plain lowercase
-# identifier before it reaches the f-string SQL sites (ST-SQL-01).
-if not re.fullmatch(r"[a-z_][a-z0-9_]*", SCHEMA):
-    raise ValueError(f"Invalid schema name: {SCHEMA!r}")
-
-
-
-def _resolve_host() -> str:
-    """Return localhost, falling back to WSL resolv.conf nameserver."""
-    host = "localhost"
-    try:
-        with open("/etc/resolv.conf") as f:
-            for line in f:
-                if line.strip().startswith("nameserver"):
-                    host = line.strip().split()[1]
-                    break
-    except FileNotFoundError:
-        pass
-    return host
-
-
-def _get_pool():
-    global _pool
-    if _pool is not None:
-        return _pool
-    with _pool_lock:
-        if _pool is None:
-            import psycopg2.pool
-            dsn = os.getenv("WILLOW_DB_URL", "")
-            if not dsn:
-                host = _resolve_host()
-                dsn = f"dbname=willow user=willow host={host}"
-            _pool = psycopg2.pool.ThreadedConnectionPool(minconn=1, maxconn=10, dsn=dsn)
-    return _pool
+SCHEMA = validate_schema("dating_wellbeing")
 
 
 def get_connection():
-    """Return a pooled Postgres connection with search_path = dating_wellbeing, public."""
-    pool = _get_pool()
-    conn = pool.getconn()
-    try:
-        from psycopg2 import sql as _sql
-        conn.autocommit = False
-        cur = conn.cursor()
-        cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(SCHEMA)))
-        cur.close()
-        return conn
-    except Exception:
-        pool.putconn(conn)
-        raise
-
-
-def release_connection(conn):
-    """Return a connection to the pool."""
-    try:
-        conn.rollback()
-    except Exception:
-        pass
-    _get_pool().putconn(conn)
+    """Return a pooled Postgres connection scoped to the dating_wellbeing schema."""
+    return _pg_connection(SCHEMA)
 
 
 # ---------------------------------------------------------------------------
