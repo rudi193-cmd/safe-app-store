@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vault-paths"
+version = "0.1.0"
+description = "The one vault-rooted path resolver for hosted apps: every persistence path derives from the vault root (WILLOW_STORE_ROOT), with env overrides for migration (installer design D8, box audit A5). Stdlib-only, egress-free."
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+[tool.setuptools.packages.find]
+where = ["src"]

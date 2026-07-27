@@ -7,18 +7,15 @@ point at a legacy location during migration into the vault.
 """
 from __future__ import annotations
 
-import os
 from pathlib import Path
+
+# The shared resolver (box audit A5). vault_root is re-exported so callers that
+# do `from office_paths import vault_root` keep working.
+from vault_paths import resolve, vault_root  # noqa: F401
 
 APP_ID = "oakenscrolls-office"
 
 
-def vault_root() -> Path:
-    """The vault box (D7). Defaults to the willow store root."""
-    return Path(os.environ.get("WILLOW_STORE_ROOT", str(Path.home() / ".willow" / "store"))).expanduser()
-
-
 def db_path() -> Path:
     """This app's ledger database, under the vault. OAKENSCROLL_DB overrides."""
-    env = os.environ.get("OAKENSCROLL_DB")
-    return Path(env).expanduser() if env else vault_root() / APP_ID / "office.db"
+    return resolve(APP_ID, "office.db", env_vars=("OAKENSCROLL_DB",))
