@@ -176,9 +176,10 @@ def get_connection(path: str = None, schema: str = SCHEMA_NAME):
         conn.autocommit = False
         pg_conn = _PgConn(pool, conn)
         if schema:
+            from psycopg2 import sql as _sql
             cur = conn.cursor()
-            cur.execute(f"CREATE SCHEMA IF NOT EXISTS {schema}")
-            cur.execute(f"SET search_path = {schema}, public")
+            cur.execute(_sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(_sql.Identifier(schema)))
+            cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(schema)))
             cur.close()
             conn.commit()
         return pg_conn
