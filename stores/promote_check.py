@@ -77,6 +77,35 @@ def _toplevel_imports(path: Path) -> set[str]:
     return names
 
 
+_DYN_IMPORT = {"__import__", "import_module"}
+
+
+def _toplevel_dynamic_net(path: Path) -> set[str]:
+    """Network root packages pulled in *dynamically at import time* via
+    ``__import__("socket")`` / ``importlib.import_module("socket")`` in a
+    top-level statement. Static top-level imports are covered by
+    :func:`_toplevel_imports`; this closes the dynamic-import evasion the
+    static scan misses. Calls inside a function/class body are lazy (run later,
+    not at import) and are deliberately not flagged."""
+    hits: set[str] = set()
+    try:
+        tree = ast.parse(path.read_text())
+    except Exception:
+        return hits
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            continue  # a dynamic import inside a callable runs later, not at import
+        for n in ast.walk(node):
+            if not isinstance(n, ast.Call):
+                continue
+            fn = n.func
+            fname = fn.id if isinstance(fn, ast.Name) else (fn.attr if isinstance(fn, ast.Attribute) else "")
+            if fname in _DYN_IMPORT and n.args and isinstance(n.args[0], ast.Constant) \
+                    and isinstance(n.args[0].value, str):
+                hits.add(n.args[0].value.split(".")[0])
+    return {h for h in hits if h in _NET}
+
+
 def _defines_symbol(mod_file: Path, symbol: str) -> bool:
     try:
         tree = ast.parse(mod_file.read_text())
@@ -91,6 +120,29 @@ def _defines_symbol(mod_file: Path, symbol: str) -> bool:
                 if isinstance(t, ast.Name) and t.id == symbol:
                     return True
     return False
+
+
+def _vault_leak_gate(cand: Path) -> Result:
+    """Run the store's own vault-leak linter on the candidate. A promoted app
+    must not persist user DATA to a fixed/home path (installer design D8) — the
+    gate had this lint available (`tools/vault_leak_lint.py`) but never called
+    it. Wire it in-process; fail closed if it can't run."""
+    lint = Path(__file__).resolve().parent.parent / "tools" / "vault_leak_lint.py"
+    if not lint.exists():
+        return ("vault_leak [M]", False, "tools/vault_leak_lint.py not found (fail-closed)")
+    import importlib.util
+    try:
+        spec = importlib.util.spec_from_file_location("_vault_leak_lint", lint)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        res = mod.lint_app(cand)
+    except Exception as e:
+        return ("vault_leak [M]", False, f"could not run vault-leak lint (fail-closed): {e}")
+    leaks = res.get("leaks") or []
+    if res.get("verdict") != "FAIL":
+        return ("vault_leak [M]", True, f"no data leaks ({res.get('verdict')})")
+    detail = "; ".join(f"{f['file']}:{f['line']} {f['reason']}" for f in leaks[:3])
+    return ("vault_leak [M]", False, f"user data at fixed path: {detail}")
 
 
 def check(cand: Path) -> list[Result]:
@@ -164,6 +216,9 @@ def check(cand: Path) -> list[Result]:
         except Exception as e:
             out.append(("tests_green [M]", False, f"could not run tests (fail-closed): {e}"))
 
+    # ── [M] no user-data leak to a fixed path (installer design D8) ────────────
+    out.append(_vault_leak_gate(cand))
+
     # ── core-based mechanical checks ──────────────────────────────────────────
     core_dir = cand / core if core else None
     if not core or not (core_dir and core_dir.is_dir()):
@@ -179,7 +234,8 @@ def check(cand: Path) -> list[Result]:
     pfile = cand / (pure.replace(".", "/") + ".py")
     pdir = cand / pure.replace(".", "/")
     pure_files = [pfile] if pfile.exists() else (_py_files(pdir) if pdir.is_dir() else [])
-    net_hits = {p.name: sorted(_NET & _toplevel_imports(p)) for p in pure_files}
+    net_hits = {p.name: sorted((_NET & _toplevel_imports(p)) | _toplevel_dynamic_net(p))
+                for p in pure_files}
     net_hits = {k: v for k, v in net_hits.items() if v}
     out.append(("import_pure_core [M]", bool(pure_files) and not net_hits,
                 f"{pure}: network-free at import" if (pure_files and not net_hits)
