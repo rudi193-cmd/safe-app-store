@@ -282,6 +282,35 @@ def search_verified_claims(conn, query: str = None, document_ref: str = None,
     return _rows_to_dicts(cur, cur.fetchall())
 
 
+def _fetch_host_allowed(url: str) -> bool:
+    """SSRF guard (box audit B16): a stored source URL is fetched (HEAD) by the
+    server, so it must be plain http(s) to a PUBLIC host. Block a URL that
+    resolves to a loopback/private/link-local/reserved address (169.254.169.254
+    cloud metadata, RFC1918 internal services, localhost admin panels) before it
+    reaches urlopen. Fail closed: any parse/DNS error → not allowed."""
+    import ipaddress
+    import socket
+    from urllib.parse import urlsplit
+
+    parts = urlsplit(url)
+    if parts.scheme not in ("http", "https") or not parts.hostname:
+        return False
+    port = parts.port or (443 if parts.scheme == "https" else 80)
+    try:
+        infos = socket.getaddrinfo(parts.hostname, port, proto=socket.IPPROTO_TCP)
+    except OSError:
+        return False
+    for info in infos:
+        try:
+            ip = ipaddress.ip_address(info[4][0])
+        except ValueError:
+            return False
+        if (ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved
+                or ip.is_multicast or ip.is_unspecified):
+            return False
+    return True
+
+
 def verify_source(conn, source_id: int) -> Dict[str, Any]:
     """Check the source URL via HTTP HEAD. Updates is_verified, last_checked, http_status."""
     import urllib.request
@@ -297,7 +326,7 @@ def verify_source(conn, source_id: int) -> Dict[str, Any]:
     http_status = None
     is_verified = False
 
-    if url:
+    if url and _fetch_host_allowed(url):
         try:
             req = urllib.request.Request(url, method="HEAD")
             req.add_header("User-Agent", "SAFE-SourceTrail/1.0")
