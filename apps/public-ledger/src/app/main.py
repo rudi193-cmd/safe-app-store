@@ -7,6 +7,7 @@ Port 8422.
 
 import argparse
 import json
+import os
 import sys
 import threading
 import uuid
@@ -244,7 +245,13 @@ def search_paperclip(req: PaperclipSearchRequest):
 def run():
     """Entry point matching safe-app-manifest.json."""
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8422)
+    # Loopback by default (box audit B9): this app has CORS but NO auth, so a
+    # 0.0.0.0 bind exposed the full API to anyone on the segment via a direct
+    # request (CORS is a browser control, not a server one). An operator who
+    # deliberately wants a wider bind — and adds their own auth/proxy — can set
+    # PUBLIC_LEDGER_HOST.
+    host = os.environ.get("PUBLIC_LEDGER_HOST", "127.0.0.1")
+    uvicorn.run(app, host=host, port=8422)
 
 
 if __name__ == "__main__":
