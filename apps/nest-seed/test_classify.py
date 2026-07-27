@@ -4,7 +4,7 @@ Guards the false-positive date classes found on the real ~/Desktop/Nest dump:
 version strings, epoch-zero timestamps, time-of-day fragments, and out-of-range
 numbers — without dropping real calendar dates.
 """
-import classify as cl
+from nest_pipeline import classify as cl
 
 
 def test_rejects_semver():
