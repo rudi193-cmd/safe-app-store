@@ -9,23 +9,20 @@ Env vars: WILLOW_PG_DB, WILLOW_PG_USER, WILLOW_PG_HOST, WILLOW_PG_PORT.
 """
 
 import os
-import re
-import threading
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
+from willow_pg import (get_connection as _pg_connection,
+                       release_connection as _pg_release, validate_schema)
+
 # ---------------------------------------------------------------------------
-# Connection
+# Connection — via the shared willow_pg seam (box audit A5). search_path is set
+# with sql.Identifier, never string interpolation. This app connects over a Unix
+# socket with keyword params (peer auth), so it builds its own connection kwargs
+# and passes them through; the pooling, scoping, and release live in willow_pg.
 # ---------------------------------------------------------------------------
 
-_pool = None
-_pool_lock = threading.Lock()
-
-SCHEMA = "source_trail"
-# Schema names can't be parameterized — refuse anything but a plain lowercase
-# identifier before it reaches the f-string SQL sites (ST-SQL-01).
-if not re.fullmatch(r"[a-z_][a-z0-9_]*", SCHEMA):
-    raise ValueError(f"Invalid schema name: {SCHEMA!r}")
+SCHEMA = validate_schema("source_trail")
 
 
 VALID_SOURCE_TYPES = frozenset({
@@ -42,48 +39,25 @@ VALID_LINK_TYPES = frozenset({
 })
 
 
-def _get_pool():
-    global _pool
-    if _pool is not None:
-        return _pool
-    with _pool_lock:
-        if _pool is None:
-            import psycopg2
-            import psycopg2.pool
-            # Mirror pg_bridge.py: omit host → Unix socket → peer auth, no password.
-            # WILLOW_PG_HOST can force TCP if needed.
-            _pool = psycopg2.pool.ThreadedConnectionPool(
-                minconn=1,
-                maxconn=10,
-                dbname=os.environ.get("WILLOW_PG_DB", "willow_20"),
-                user=os.environ.get("WILLOW_PG_USER", os.environ.get("USER", "")),
-                host=os.environ.get("WILLOW_PG_HOST") or None,
-                port=os.environ.get("WILLOW_PG_PORT") or None,
-            )
-    return _pool
+def _conn_kwargs() -> dict:
+    """Mirror pg_bridge.py: omit host → Unix socket → peer auth, no password.
+    WILLOW_PG_HOST can force TCP. Deterministic, so willow_pg pools it stably."""
+    return dict(
+        dbname=os.environ.get("WILLOW_PG_DB", "willow_20"),
+        user=os.environ.get("WILLOW_PG_USER", os.environ.get("USER", "")),
+        host=os.environ.get("WILLOW_PG_HOST") or None,
+        port=os.environ.get("WILLOW_PG_PORT") or None,
+    )
 
 
 def get_connection():
-    pool = _get_pool()
-    conn = pool.getconn()
-    try:
-        from psycopg2 import sql as _sql
-        conn.autocommit = False
-        cur = conn.cursor()
-        cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(SCHEMA)))
-        cur.close()
-        return conn
-    except Exception:
-        pool.putconn(conn)
-        raise
+    """Return a pooled Postgres connection scoped to the source_trail schema."""
+    return _pg_connection(SCHEMA, conn_kwargs=_conn_kwargs())
 
 
 def release_connection(conn):
-    try:
-        conn.rollback()
-    except Exception:
-        pass
-    _get_pool().putconn(conn)
+    """Return the connection to its pool."""
+    _pg_release(conn, conn_kwargs=_conn_kwargs())
 
 
 # ---------------------------------------------------------------------------
