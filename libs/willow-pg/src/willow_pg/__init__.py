@@ -76,31 +76,49 @@ def willow_dsn() -> str:
     return dsn or f"dbname=willow user=willow host={resolve_host()}"
 
 
-def get_pool(dsn: Optional[str] = None, *, minconn: int = 1, maxconn: int = 10):
-    """Return the pooled connections for ``dsn`` (default: :func:`willow_dsn`),
-    creating the pool once and caching it per DSN. psycopg2 is imported here, so
-    a module that only ever imports ``willow_pg`` needs no driver installed."""
-    key = dsn or willow_dsn()
+def _pool_key(dsn: Optional[str], conn_kwargs: Optional[dict]):
+    """A stable, hashable cache key: the sorted kwargs when given (an app that
+    connects with keyword params, e.g. a unix socket), else the DSN string."""
+    if conn_kwargs is not None:
+        return ("kw",) + tuple(sorted(conn_kwargs.items()))
+    return dsn or willow_dsn()
+
+
+def get_pool(dsn: Optional[str] = None, *, conn_kwargs: Optional[dict] = None,
+             minconn: int = 1, maxconn: int = 10):
+    """Return the pool for this connection spec, creating it once and caching it.
+
+    Pass ``dsn`` (default: :func:`willow_dsn`) for a DSN string, or
+    ``conn_kwargs`` for keyword connection params (``dbname=``, ``user=``,
+    ``host=None`` for a unix socket, …). psycopg2 is imported here, so a module
+    that only imports ``willow_pg`` needs no driver installed."""
+    key = _pool_key(dsn, conn_kwargs)
     pool = _pools.get(key)
     if pool is not None:
         return pool
     with _lock:
         if key not in _pools:
             import psycopg2.pool
-            _pools[key] = psycopg2.pool.ThreadedConnectionPool(
-                minconn=minconn, maxconn=maxconn, dsn=key)
+            if conn_kwargs is not None:
+                _pools[key] = psycopg2.pool.ThreadedConnectionPool(
+                    minconn, maxconn, **conn_kwargs)
+            else:
+                _pools[key] = psycopg2.pool.ThreadedConnectionPool(
+                    minconn, maxconn, dsn=(dsn or willow_dsn()))
         return _pools[key]
 
 
-def get_connection(schema: str, dsn: Optional[str] = None):
+def get_connection(schema: str, dsn: Optional[str] = None, *,
+                   conn_kwargs: Optional[dict] = None):
     """Return a pooled connection with ``search_path = <schema>, public``.
 
     The schema name is validated and placed with ``sql.Identifier`` — never
     string-interpolated. On any failure setting the search_path the connection
-    is returned to the pool before re-raising, so a failed checkout never leaks."""
+    is returned to the pool before re-raising, so a failed checkout never leaks.
+    See :func:`get_pool` for ``dsn`` vs ``conn_kwargs``."""
     validate_schema(schema)
     from psycopg2 import sql
-    pool = get_pool(dsn)
+    pool = get_pool(dsn, conn_kwargs=conn_kwargs)
     conn = pool.getconn()
     try:
         conn.autocommit = False
@@ -113,11 +131,13 @@ def get_connection(schema: str, dsn: Optional[str] = None):
         raise
 
 
-def release_connection(conn, dsn: Optional[str] = None) -> None:
+def release_connection(conn, dsn: Optional[str] = None, *,
+                       conn_kwargs: Optional[dict] = None) -> None:
     """Roll back and return ``conn`` to its pool. Swallows a rollback error so
-    release is always safe to call in a ``finally``."""
+    release is always safe to call in a ``finally``. Pass the same ``dsn`` /
+    ``conn_kwargs`` the connection was checked out with."""
     try:
         conn.rollback()
     except Exception:
         pass
-    get_pool(dsn).putconn(conn)
+    get_pool(dsn, conn_kwargs=conn_kwargs).putconn(conn)
