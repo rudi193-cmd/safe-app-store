@@ -10,10 +10,9 @@ Topics: ask, query, contribute, connect, status
 import json
 import os as _os
 import re as _re
-_STORE_ROOT = _os.environ.get(
-    "WILLOW_STORE_ROOT",
-    _os.path.join(_os.path.expanduser("~"), ".willow", "store")
-)
+from vault_paths import vault_root as _vault_root  # shared resolver (box audit A5)
+
+_STORE_ROOT = str(_vault_root())
 import uuid
 from pathlib import Path
 from typing import Dict, List, Optional
