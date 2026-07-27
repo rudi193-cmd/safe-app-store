@@ -1,6 +1,6 @@
 """Tests for ask.py — run from inside apps/nest-seed/, no Ollama."""
-import db as _db
-import embed as _embed
+from nest_pipeline import db as _db
+from nest_pipeline import embed as _embed
 import ask as _ask
 
 _VOCAB = ["legal", "school", "money", "weather"]

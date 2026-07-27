@@ -16,10 +16,7 @@ import json
 import os
 import sqlite3
 
-try:  # works as a package or a plain script dir
-    from . import embed as _embed
-except ImportError:
-    import embed as _embed
+from nest_pipeline import embed as _embed  # shared Nest pipeline core (box audit A4)
 
 # Searchable = meaningful content; skip date/person/photo (tiny tokens).
 SEARCHABLE = ("document", "note", "event", "location", "receipt", "secret")
