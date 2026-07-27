@@ -13,12 +13,8 @@ import re
 import sqlite3
 from collections import Counter
 
-try:  # works as a package or a plain script dir
-    from . import selflearn as _learn
-    from . import embed as _embed
-except ImportError:
-    import selflearn as _learn
-    import embed as _embed
+from nest_pipeline import selflearn as _learn  # shared Nest pipeline core (box audit A4)
+from nest_pipeline import embed as _embed
 
 _CATMAP = {
     "data": "structured data (JSON/CSV exports, DB dumps)",

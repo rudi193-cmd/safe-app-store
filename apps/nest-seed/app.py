@@ -22,14 +22,9 @@ from vault_paths import resolve as _vault_resolve  # shared resolver (box audit 
 # NEST_SEED_DB overrides, and --db still overrides per-invocation.
 _DEFAULT_DB = str(_vault_resolve("nest-seed", "seed.db", env_vars=("NEST_SEED_DB",)))
 
-try:  # works both as a package (apps.nest_seed) and as a plain script dir
-    from .ingest import run
-    from . import llm as _llm
-    from . import embed as _embed
-except ImportError:
-    from ingest import run
-    import llm as _llm
-    import embed as _embed
+from nest_pipeline.ingest import run       # shared Nest pipeline core (box audit A4)
+from nest_pipeline import llm as _llm
+from nest_pipeline import embed as _embed
 
 
 def main() -> None:

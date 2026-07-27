@@ -4,8 +4,8 @@ Token fixtures are SYNTHETIC, assembled from parts so no real-looking secret
 literal lives in source (which would trip GitHub push protection). They match
 the detector's shape without being valid credentials.
 """
-import secrets as s
-import classify as cl
+from nest_pipeline import secrets as s
+from nest_pipeline import classify as cl
 
 # synthetic: matches discord_token shape ([MN]{24}.{6}.{27,}) but is clearly fake
 _DISCORD = ".".join(["M" + "q" * 24, "aB3dEf", "z" * 30])
