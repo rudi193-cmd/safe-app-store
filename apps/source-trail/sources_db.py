@@ -67,9 +67,10 @@ def get_connection():
     pool = _get_pool()
     conn = pool.getconn()
     try:
+        from psycopg2 import sql as _sql
         conn.autocommit = False
         cur = conn.cursor()
-        cur.execute(f"SET search_path = {SCHEMA}, public")
+        cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(SCHEMA)))
         cur.close()
         return conn
     except Exception:
@@ -122,10 +123,11 @@ def _rows_to_dicts(cur, rows) -> List[Dict[str, Any]]:
 
 def init_schema(conn):
     """Create the source_trail schema and all tables. Idempotent."""
+    from psycopg2 import sql as _sql
     cur = conn.cursor()
 
-    cur.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}")
-    cur.execute(f"SET search_path = {SCHEMA}, public")
+    cur.execute(_sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(_sql.Identifier(SCHEMA)))
+    cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(SCHEMA)))
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS sources (

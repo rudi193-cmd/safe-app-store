@@ -21,9 +21,10 @@ VALID_CONFIDENCE_LEVELS = frozenset({"confirmed", "likely", "uncertain", "specul
 
 def init_schema(conn):
     """Create fragments, tree_branches. Idempotent."""
+    from psycopg2 import sql as _sql
     cur = conn.cursor()
-    cur.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}")
-    cur.execute(f"SET search_path = {SCHEMA}, public")
+    cur.execute(_sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(_sql.Identifier(SCHEMA)))
+    cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(SCHEMA)))
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS fragments (
@@ -55,7 +56,7 @@ def init_schema(conn):
         cur = conn.cursor()
         # Restore search_path after the rollback (Postgres reverts the session
         # SET with the transaction); no-op on SQLite.
-        cur.execute(f"SET search_path = {SCHEMA}, public")
+        cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(SCHEMA)))
         cur.execute("ALTER TABLE fragments ADD COLUMN bound_person_id BIGINT")
         conn.commit()
 

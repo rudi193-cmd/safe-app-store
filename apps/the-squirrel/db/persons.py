@@ -27,9 +27,10 @@ PARENT_KIND_PRIORITY = {"birth": 0, None: 1, "adopted": 2, "foster": 3, "step": 
 
 def init_schema(conn):
     """Create persons, relationships, person_sources. Idempotent."""
+    from psycopg2 import sql as _sql
     cur = conn.cursor()
-    cur.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}")
-    cur.execute(f"SET search_path = {SCHEMA}, public")
+    cur.execute(_sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(_sql.Identifier(SCHEMA)))
+    cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(SCHEMA)))
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS persons (
@@ -72,7 +73,7 @@ def init_schema(conn):
         # probe (a plain SET is transactional), so restore it before the ALTER
         # or the table resolves to the wrong schema. SQLite translates this to
         # a no-op.
-        cur.execute(f"SET search_path = {SCHEMA}, public")
+        cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(SCHEMA)))
         cur.execute("ALTER TABLE relationships ADD COLUMN parent_kind TEXT")
         conn.commit()
 

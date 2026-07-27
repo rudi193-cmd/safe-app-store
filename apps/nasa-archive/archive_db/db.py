@@ -218,13 +218,14 @@ def _validate_schema(schema):
 def get_connection(schema=SCHEMA):
     """Return a pooled Postgres connection with search_path set to schema."""
     _validate_schema(schema)
+    from psycopg2 import sql as _sql
     pool = _get_pg_pool()
     conn = pool.getconn()
     try:
         conn.autocommit = False
         pg_conn = _PgConn(pool, conn)
         _cur = conn.cursor()
-        _cur.execute(f"SET search_path = {schema}, public")
+        _cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(schema)))
         _cur.close()
         return pg_conn
     except Exception:
@@ -244,7 +245,9 @@ def init_schema():
     try:
         conn.autocommit = True
         cur = conn.cursor()
-        cur.execute(f"CREATE SCHEMA IF NOT EXISTS {_validate_schema(SCHEMA)}")
+        _validate_schema(SCHEMA)
+        from psycopg2 import sql as _sql
+        cur.execute(_sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(_sql.Identifier(SCHEMA)))
         cur.close()
     finally:
         pool.putconn(conn)

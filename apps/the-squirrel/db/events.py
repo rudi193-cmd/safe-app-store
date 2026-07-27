@@ -6,9 +6,10 @@ import sap.core.gate as _gate
 VALID_EVENT_TYPES = frozenset({"birth","death","marriage","immigration","census","other"})
 
 def init_schema(conn):
+    from psycopg2 import sql as _sql
     cur = conn.cursor()
-    cur.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}")
-    cur.execute(f"SET search_path = {SCHEMA}, public")
+    cur.execute(_sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(_sql.Identifier(SCHEMA)))
+    cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(SCHEMA)))
     cur.execute("""
         CREATE TABLE IF NOT EXISTS events (
             id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

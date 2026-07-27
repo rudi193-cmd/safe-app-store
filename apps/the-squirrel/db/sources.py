@@ -54,8 +54,9 @@ def init_schema(conn):
         cur.execute("CREATE INDEX IF NOT EXISTS idx_source_registry_provider ON source_registry (provider)")
         conn.commit()
         return
-    cur.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}")
-    cur.execute(f"SET search_path = {SCHEMA}, public")
+    from psycopg2 import sql as _sql
+    cur.execute(_sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(_sql.Identifier(SCHEMA)))
+    cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(SCHEMA)))
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS source_registry (
