@@ -179,13 +179,12 @@ def _get_pool():
 
 def get_connection():
     if _backend() == "postgres":
-        from psycopg2 import sql as _sql
         pool = _get_pool()
         conn = pool.getconn()
         try:
             conn.autocommit = False
             cur = conn.cursor()
-            cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(SCHEMA)))
+            cur.execute(f"SET search_path = {SCHEMA}, public")
             cur.close()
             return conn
         except Exception:

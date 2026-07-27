@@ -39,10 +39,29 @@ _PATTERNS = [
 
 _SKIP_PARTS = {"_archived", "__pycache__", ".git", "node_modules", ".venv", "venv"}
 
+# Dual-backend packages that keep their SQL as a portable *string* on purpose:
+# the same module SQL runs on Postgres AND on SQLite through an in-process
+# translator (the-squirrel/db: a _SqliteCursor that re-writes the statement with
+# ``re`` before executing). A psycopg2 ``sql.Composed`` isn't a string, so it
+# breaks that translator — Identifier quoting is simply unavailable here. These
+# files interpolate only the module-level ``SCHEMA`` constant, which is validated
+# against ``[a-z_][a-z0-9_]*`` at import (ST-SQL-01), so the interpolation is
+# defended a different way. Exempt by path, with the reason recorded.
+_EXEMPT_PREFIXES = (
+    ("the-squirrel", "db"),   # dual-backend; SQL must stay a string for SQLite
+)
+
+
+def _is_exempt(p) -> bool:
+    parts = p.relative_to(_REPO / "apps").parts
+    return any(parts[:len(pre)] == pre for pre in _EXEMPT_PREFIXES)
+
 
 def _live_py_files():
     for p in (_REPO / "apps").rglob("*.py"):
         if _SKIP_PARTS & set(p.parts):
+            continue
+        if _is_exempt(p):
             continue
         yield p
 

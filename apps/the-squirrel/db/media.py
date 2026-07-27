@@ -9,10 +9,9 @@ VALID_MIME_TYPES = frozenset({
 })
 
 def init_schema(conn):
-    from psycopg2 import sql as _sql
     cur = conn.cursor()
-    cur.execute(_sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(_sql.Identifier(SCHEMA)))
-    cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(SCHEMA)))
+    cur.execute(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}")
+    cur.execute(f"SET search_path = {SCHEMA}, public")
     cur.execute("""
         CREATE TABLE IF NOT EXISTS media (
             id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
