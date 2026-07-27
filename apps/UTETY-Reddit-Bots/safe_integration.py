@@ -3,8 +3,9 @@
 import os as _os
 import sqlite3 as _sqlite3
 
-_STORE_ROOT = _os.path.join(_os.path.expanduser("~"), ".willow", "store")
-_STORE_ROOT = _os.environ.get("WILLOW_STORE_ROOT", _STORE_ROOT)
+from vault_paths import vault_root as _vault_root  # shared resolver (box audit A5)
+
+_STORE_ROOT = str(_vault_root())
 _APP_ID = "UTETY-Reddit-Bots"
 
 
