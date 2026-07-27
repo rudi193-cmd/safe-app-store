@@ -7,14 +7,14 @@ migration off an existing install.
 """
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
-
-def vault_root() -> Path:
-    return Path(os.environ.get("WILLOW_STORE_ROOT", str(Path.home() / ".willow" / "store"))).expanduser()
+# The shared resolver (box audit A5). vault_root is re-exported so callers that
+# do `from private_ledger.pl_paths import vault_root` keep working.
+from vault_paths import resolve, vault_root  # noqa: F401
 
 
 def db_path() -> Path:
-    env = os.environ.get("PRIVATE_LEDGER_DB") or os.environ.get("LEDGER_DB")
-    return Path(env).expanduser() if env else vault_root() / "private-ledger" / "private-ledger.db"
+    # PRIVATE_LEDGER_DB (then the legacy LEDGER_DB) override for migration.
+    return resolve("private-ledger", "private-ledger.db",
+                   env_vars=("PRIVATE_LEDGER_DB", "LEDGER_DB"))
