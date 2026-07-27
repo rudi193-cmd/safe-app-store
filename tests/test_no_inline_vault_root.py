@@ -18,14 +18,13 @@ from pathlib import Path
 
 _REPO = Path(__file__).resolve().parent.parent
 
-# The inline default vault location as a pathlib expression:
-# ``... / ".willow" / "store"``. This is the ``*_paths.py`` / kb_search / nest-seed
-# resolver form that now lives once in vault_paths. (The older ``os.path.join(
-# expanduser("~"), ".willow", "store")`` string form still in some app
-# ``safe_integration.py`` shims is a separate, tracked follow-up; it isn't
-# matched here yet.) Only the vault_paths lib — under libs/, not apps/ — should
-# spell the pathlib default.
-_INLINE_DEFAULT = re.compile(r"""\.willow['"]?\s*/\s*['"]?store""")
+# The inline default vault location: ``.willow`` joined to ``store``, whether as
+# a pathlib expression (``... / ".willow" / "store"`` — the *_paths.py /
+# kb_search / nest-seed resolvers) or a string join (``os.path.join(
+# expanduser("~"), ".willow", "store")`` — the safe_integration.py health-check
+# shims). Both now derive from vault_paths instead. Only the vault_paths lib —
+# under libs/, not apps/ — should spell the default location.
+_INLINE_DEFAULT = re.compile(r"""\.willow['"]?\s*[/,]\s*['"]?store""")
 
 _SKIP_PARTS = {"_archived", "__pycache__", ".git", "node_modules", ".venv",
                "venv", "tests", "test"}
