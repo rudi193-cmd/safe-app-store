@@ -8,9 +8,9 @@ resolves.
 import hashlib
 import importlib
 
-import embed as _embed
-import taxonomy as _tax
-import selflearn as _learn
+from nest_pipeline import embed as _embed
+from nest_pipeline import taxonomy as _tax
+from nest_pipeline import selflearn as _learn
 
 _DIM = 8
 

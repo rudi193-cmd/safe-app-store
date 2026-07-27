@@ -2,8 +2,8 @@
 
 NEST_CACHE_DIR is pointed at tmp so the discovered store is isolated per test.
 """
-import db as _db
-import selflearn as _learn
+from nest_pipeline import db as _db
+from nest_pipeline import selflearn as _learn
 import curate as _curate
 
 _MODEL = "nomic-embed-text"

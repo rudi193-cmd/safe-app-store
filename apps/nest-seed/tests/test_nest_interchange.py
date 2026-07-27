@@ -19,13 +19,7 @@ Measured identical to willow-mcp/src/willow_mcp/nest/db.py on 2026-07-24.
 """
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# nest-seed is a flat package; import db.py directly from the app root.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-import db as nest_db  # noqa: E402
+from nest_pipeline import db as nest_db  # shared Nest pipeline core (box audit A4)
 
 
 # The frozen interchange contract — the columns the fleet's Nest tools consume.
