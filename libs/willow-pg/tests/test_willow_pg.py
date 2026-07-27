@@ -164,3 +164,30 @@ def test_get_pool_is_cached_per_dsn():
     p = _inject(FakeConn())
     assert wp.get_pool() is p
     assert wp.get_pool(wp.willow_dsn()) is p
+
+
+# ── conn_kwargs path (unix-socket / keyword params, e.g. source-trail) ───────────
+
+def test_conn_kwargs_pool_is_keyed_separately_from_dsn():
+    kw = {"dbname": "willow_20", "user": "me", "host": None, "port": None}
+    conn = FakeConn()
+    pool = FakePool(conn)
+    wp._pools[wp._pool_key(None, kw)] = pool
+    # Same kwargs (any order) resolve to this pool; the default DSN does not.
+    assert wp.get_pool(conn_kwargs=dict(reversed(list(kw.items())))) is pool
+    assert wp.get_pool(conn_kwargs=kw) is pool
+    assert wp._pool_key(None, kw) != wp._pool_key(None, None)
+
+
+def test_get_connection_with_conn_kwargs_scopes_and_pools_by_kwargs():
+    kw = {"dbname": "willow_20", "user": "me", "host": None, "port": None}
+    conn = FakeConn()
+    pool = FakePool(conn)
+    wp._pools[wp._pool_key(None, kw)] = pool
+    out = wp.get_connection("source_trail", conn_kwargs=kw)
+    assert out is conn and pool.got == 1
+    stmt = conn._cur.executed[0]
+    idents = [x for x in stmt if isinstance(x, sql.Identifier)]
+    assert idents and idents[0].strings == ("source_trail",)
+    wp.release_connection(conn, conn_kwargs=kw)
+    assert conn.rolled_back is True and pool.put == [conn]
