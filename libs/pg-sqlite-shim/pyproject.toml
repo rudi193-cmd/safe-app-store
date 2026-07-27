@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pg-sqlite-shim"
+version = "0.1.0"
+description = "The shared SQLite->Postgres compatibility shim for hosted apps: sqlite_to_pg() translates SQLite SQL (PRAGMA, INSERT OR IGNORE/REPLACE, ? placeholders) to PostgreSQL, and PgCursor/PgConn wrap a psycopg2 connection behind a sqlite3-compatible surface (box audit A5). psycopg2 is imported lazily, so importing the module needs no driver."
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
