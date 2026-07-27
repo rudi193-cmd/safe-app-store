@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from askjeles.jeles_paths import app_data as _app_data
+from vault_paths import vault_root as _store_root  # shared resolver (box audit A5)
 
 log = logging.getLogger("jeles.kb")
 
@@ -22,10 +23,6 @@ _STOP = {
     "search", "find", "tell", "show", "with", "from", "that", "this", "have",
     "your", "into", "does", "near", "need", "want",
 }
-
-
-def _store_root() -> Path:
-    return Path(os.environ.get("WILLOW_STORE_ROOT", str(Path.home() / ".willow" / "store"))).expanduser()
 
 
 def _views_dir() -> Path:
