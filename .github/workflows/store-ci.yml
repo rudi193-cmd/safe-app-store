@@ -44,6 +44,16 @@ jobs:
       - name: Compile sweep
         run: python -m compileall -q apps tools scripts tui.py store_mcp.py _shot.py
 
+      - name: Drift-guards
+        # Stdlib-only source scanners (no app deps): no app reads the shared
+        # SOIL store raw (B3), and no app builds schema DDL/DML by string
+        # interpolation. Named explicitly so tests/story-timeline/ (an app
+        # suite with its own deps) isn't collected here.
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          python -m pytest tests/test_no_raw_soil_reads.py tests/test_no_fstring_schema_sql.py -q
+
   app-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 15
