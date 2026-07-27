@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nest-pipeline"
+version = "0.1.0"
+description = "The shared Nest content pipeline for hosted apps: the byte-identical seeder core — OCR/text extraction (ocr), ingest walk (ingest), tiered hybrid classification (classify), local embeddings (embed), local LLM seam (llm), taxonomy centroids (taxonomy), self-learning (selflearn), the credential guard (secrets), and the portable SQLite Nest schema (db). This one canonical copy is shared by nest-seed and willow-mcp's Nest engine (box audit A4). Third-party extractors (tesseract, pdfplumber, Pillow) are imported lazily, so importing the package is stdlib-only and egress-free."
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
