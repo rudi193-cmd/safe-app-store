@@ -16,9 +16,11 @@ import os
 import sys
 from pathlib import Path
 
+from vault_paths import resolve as _vault_resolve  # shared resolver (box audit A5)
+
 # Default output DB derives from the vault root (installer design D8);
 # NEST_SEED_DB overrides, and --db still overrides per-invocation.
-_DEFAULT_DB = os.environ.get("NEST_SEED_DB") or str(Path(os.environ.get("WILLOW_STORE_ROOT", str(Path.home() / ".willow" / "store"))).expanduser() / "nest-seed" / "seed.db")
+_DEFAULT_DB = str(_vault_resolve("nest-seed", "seed.db", env_vars=("NEST_SEED_DB",)))
 
 try:  # works both as a package (apps.nest_seed) and as a plain script dir
     from .ingest import run

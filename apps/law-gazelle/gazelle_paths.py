@@ -11,18 +11,16 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+# The shared resolver (box audit A5). vault_root is re-exported so callers that
+# do `from gazelle_paths import vault_root` keep working.
+from vault_paths import app_dir, vault_root  # noqa: F401
+
 APP_ID = "law-gazelle"
-
-
-def vault_root() -> Path:
-    """The vault box (D7). Defaults to the willow store root."""
-    return Path(os.environ.get("WILLOW_STORE_ROOT", str(Path.home() / ".willow" / "store"))).expanduser()
 
 
 def app_data() -> Path:
     """This app's own persistence, under the vault. APP_DATA overrides."""
-    env = os.environ.get("APP_DATA")
-    return Path(env).expanduser() if env else vault_root() / APP_ID
+    return app_dir(APP_ID)
 
 
 def nest_source() -> Path:
