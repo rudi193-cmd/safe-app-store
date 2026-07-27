@@ -30,11 +30,16 @@ def ask(prompt: str, persona: str = None, tier: str = "free") -> str:
 
 
 def query(q: str, limit: int = 5) -> list:
-    """KB search MUST go through the gated ``knowledge_search`` tool, which
-    scopes results to this app server-side. A direct read of the shared
-    ``knowledge`` store returned every app's atoms (box audit B3); it is removed.
-    Portless mode has no gated path, so this returns [] (as ask()/send() do)."""
-    return []
+    """KB search goes through the shared ``willow_read`` seam (box audit A5),
+    which reads the KB only via an injected, app-scoped ``knowledge_search``
+    client — never the shared store raw (the unscoped read leaked every app's
+    atoms, box audit B3). With no client injected (portless mode) there is no
+    gated path, so this returns [] (as ask()/send() do). The seam never raises."""
+    try:
+        from willow_read import search
+    except ImportError:
+        return []
+    return search(q, limit)
 
 
 def contribute(content: str, category: str = "note", metadata: Optional[dict] = None) -> dict:
