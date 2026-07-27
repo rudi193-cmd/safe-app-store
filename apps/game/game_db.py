@@ -10,11 +10,13 @@ DB connection follows Willow's core/db.py pattern (psycopg2, pooled).
 
 import json
 import os
-import re
 import sys
-import threading
 from datetime import datetime
 from typing import Optional, List, Dict, Any
+
+from willow_pg import (get_connection as _pg_connection,
+                       release_connection as _pg_release,
+                       resolve_host, validate_schema)
 
 # Import 23-cubed lattice constants from Willow — only trust WILLOW_CORE if it
 # actually holds user_lattice.py, so a stale path never lands on sys.path (ST-PATH-01).
@@ -29,76 +31,34 @@ except ImportError:
     from lattice_fallback import DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE
 
 # ---------------------------------------------------------------------------
-# Connection
+# Connection — via the shared willow_pg seam (box audit A5). One pooled,
+# schema-scoped helper; search_path is set with sql.Identifier, never string
+# interpolation. This app connects as its own role, so it builds its own DSN and
+# passes it through — the pooling, scoping, and release live in willow_pg.
 # ---------------------------------------------------------------------------
 
-_pool = None
-_pool_lock = threading.Lock()
-
-SCHEMA = "game_master"
-# Schema names can't be parameterized — refuse anything but a plain lowercase
-# identifier before it reaches the f-string SQL sites (ST-SQL-01).
-if not re.fullmatch(r"[a-z_][a-z0-9_]*", SCHEMA):
-    raise ValueError(f"Invalid schema name: {SCHEMA!r}")
-
+SCHEMA = validate_schema("game_master")
 
 VALID_GAME_SYSTEMS = frozenset({"dnd5e", "pathfinder", "fate", "custom", "other"})
 VALID_CAMPAIGN_STATUSES = frozenset({"active", "paused", "completed", "archived"})
 VALID_ENTITY_TYPES = frozenset({"campaign", "character", "session"})
 
 
-def _resolve_host() -> str:
-    """Return localhost, falling back to WSL resolv.conf nameserver."""
-    host = "localhost"
-    try:
-        with open("/etc/resolv.conf") as f:
-            for line in f:
-                if line.strip().startswith("nameserver"):
-                    host = line.strip().split()[1]
-                    break
-    except FileNotFoundError:
-        pass
-    return host
-
-
-def _get_pool():
-    global _pool
-    if _pool is not None:
-        return _pool
-    with _pool_lock:
-        if _pool is None:
-            import psycopg2.pool
-            dsn = os.getenv("GAME_MASTER_DB_URL") or os.getenv("WILLOW_DB_URL", "")
-            if not dsn:
-                host = _resolve_host()
-                dsn = f"dbname=willow user=game_master_app host={host}"
-            _pool = psycopg2.pool.ThreadedConnectionPool(minconn=1, maxconn=10, dsn=dsn)
-    return _pool
+def _dsn() -> str:
+    """This app's DSN: GAME_MASTER_DB_URL (or WILLOW_DB_URL) overrides, else it
+    connects as its own role. Deterministic, so willow_pg pools it stably."""
+    dsn = os.getenv("GAME_MASTER_DB_URL") or os.getenv("WILLOW_DB_URL", "")
+    return dsn or f"dbname=willow user=game_master_app host={resolve_host()}"
 
 
 def get_connection():
-    """Return a pooled Postgres connection with search_path = game_master, public."""
-    pool = _get_pool()
-    conn = pool.getconn()
-    try:
-        from psycopg2 import sql as _sql
-        conn.autocommit = False
-        cur = conn.cursor()
-        cur.execute(_sql.SQL("SET search_path = {}, public").format(_sql.Identifier(SCHEMA)))
-        cur.close()
-        return conn
-    except Exception:
-        pool.putconn(conn)
-        raise
+    """Return a pooled Postgres connection scoped to the game_master schema."""
+    return _pg_connection(SCHEMA, dsn=_dsn())
 
 
 def release_connection(conn):
-    """Return a connection to the pool."""
-    try:
-        conn.rollback()
-    except Exception:
-        pass
-    _get_pool().putconn(conn)
+    """Return the connection to its pool."""
+    _pg_release(conn, dsn=_dsn())
 
 
 # ---------------------------------------------------------------------------
