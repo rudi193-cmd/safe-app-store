@@ -191,5 +191,10 @@ async def classify_batch(files: List[UploadFile] = File(...)):
 
 if __name__ == "__main__":
     import uvicorn
-    print("Starting Vision Board API on port 8420...")
-    uvicorn.run(app, host="0.0.0.0", port=8420)
+    # Loopback by default (box audit B9): CORS is locked to localhost but there
+    # is NO auth, so a 0.0.0.0 bind served the full API to the whole segment via
+    # a direct (non-browser) request. Operators who intend a wider bind — and add
+    # their own auth — can set VISION_BOARD_HOST.
+    host = os.environ.get("VISION_BOARD_HOST", "127.0.0.1")
+    print(f"Starting Vision Board API on {host}:8420...")
+    uvicorn.run(app, host=host, port=8420)
