@@ -7,14 +7,13 @@ the app honors WILLOW_STORE_ROOT (and APP_DATA) overrides at runtime.
 import os
 from pathlib import Path
 
-
-def vault_root() -> Path:
-    return Path(os.environ.get("WILLOW_STORE_ROOT", str(Path.home() / ".willow" / "store"))).expanduser()
+# The shared resolver (box audit A5). vault_root is re-exported so callers that
+# do `from story_paths import vault_root` keep working.
+from vault_paths import app_dir, vault_root  # noqa: F401
 
 
 def app_data() -> Path:
-    env = os.environ.get("APP_DATA")
-    return Path(env).expanduser() if env else vault_root() / "story-timeline"
+    return app_dir("story-timeline")
 
 
 def willow_root() -> Path | None:
