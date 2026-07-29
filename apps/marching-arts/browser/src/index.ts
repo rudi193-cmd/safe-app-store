@@ -30,7 +30,14 @@ export {
   type Params,
   type Rule,
 } from './rules.js';
-export { GrantState, Policy, principal, type Principal } from './policy.js';
+export {
+  GrantState,
+  GrantVia,
+  MAJORITY_AGE,
+  Policy,
+  principal,
+  type Principal,
+} from './policy.js';
 export { MIGRATIONS, apply as applyMigrations } from './schema.js';
 export {
   assertBindable,
