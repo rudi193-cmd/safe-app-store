@@ -41,6 +41,7 @@ import hashlib
 import json
 import sqlite3
 import sys
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from .policy import GrantState, GrantVia, Principal
@@ -254,6 +255,36 @@ class _ChainView(SqliteConsentBackend):
         return self._pinned if chain == CONSENT_CHAIN else chain
 
 
+# ── what opening the roster did ───────────────────────────────────────────────
+
+@dataclass(frozen=True, eq=False)
+class MajoritySweep:
+    """The result of the conversion pass that runs when a roster is opened.
+
+    An *operator's* view, not a principal's. It is the return value of opening
+    the database on this device, and it names members — so it must never be
+    handed to a grantee, rendered in a shared view, or written anywhere the
+    resolver does not already govern. Nothing here reaches a caller who did not
+    already hold the connection.
+
+    ``unconvertible`` is the honest half. A conversion that could not complete
+    is not an emergency — guardian authority already expired at the birthday,
+    by predicate, so the un-converted record authorizes nothing either way — but
+    it is a member who has not been asked, and a sweep that returned only its
+    successes would be a sweep that quietly stopped asking.
+    """
+
+    #: subject id → the grantees whose guardian-sealed access became a question
+    #: for that member. Absent entirely if nothing was due.
+    converted: dict = field(default_factory=dict)
+
+    #: subjects whose conversion could not be completed and were left alone.
+    unconvertible: tuple = ()
+
+    def __bool__(self) -> bool:
+        return bool(self.converted or self.unconvertible)
+
+
 # ── the surface ───────────────────────────────────────────────────────────────
 
 class ConsentedRoster:
@@ -275,11 +306,27 @@ class ConsentedRoster:
     the same transaction as the mutation itself. That chain is where history
     lives — the grants table is a resolver index and is kept residue-free on
     purpose, so revocation can be silent.
+
+    **Opening the roster converts.** Guardian authority *expires* by predicate
+    and needs nothing to run; it *converts* by write, and a write needs a
+    caller. Constructing a roster runs :meth:`convert_everyone_at_majority` —
+    the same place ``Store.__init__`` runs the migrations — so a member who
+    turned eighteen while the laptop was shut is asked the next time somebody
+    opens the file. Pass ``convert_on_open=False`` to open without it; that is
+    for tests and for tooling that must read the database exactly as it was
+    written, and it is safe to skip only because skipping it grants nothing —
+    the un-converted record already authorizes nobody.
     """
 
-    def __init__(self, store: "Store | None" = None) -> None:
+    def __init__(self, store: "Store | None" = None, *,
+                 convert_on_open: bool = True) -> None:
         self.store = store if store is not None else Store(":memory:")
         self.backend = SqliteConsentBackend(self.store.connection)
+        #: What :meth:`convert_everyone_at_majority` did on the way in. Kept so
+        #: a host can render "three members need to be asked" without running
+        #: the pass a second time.
+        self.opened = (self.convert_everyone_at_majority() if convert_on_open
+                       else MajoritySweep())
 
     # ── identity ────────────────────────────────────────────────────────────
     def register_member(self, person_id: str, birthdate: str, source: str) -> None:
@@ -388,31 +435,141 @@ class ConsentedRoster:
         rather than quietly assumed to agree with what their guardian decided
         for them at fifteen.
 
-        Idempotent, and a no-op while the subject is still a minor.
+        **It asks; it does not answer.** ``pending`` with ``sealed_by`` NULL is
+        the only landing state, because the alternative — carrying the seal
+        across and relabelling it ``member`` — mints a grant nobody signed, and
+        the schema would take it: the signer column would be full and the
+        subject is no longer a minor, so no trigger fires. The one rule the
+        whole schema exists to keep would be broken by the one write nobody
+        checks. ``requested_by`` is NULL for the same reason in the other
+        direction: nobody asked. An authority lapsed, and naming a requester
+        would put a person's name on a question the system raised by itself.
+
+        **Sealed grants only.** A ``draft`` guardian grant is something the
+        system inferred and never acted on; turning it into a question put to
+        the member *is* acting on it, and it would write
+        ``guardian_authority_ended`` into a permanent log for authority that
+        never existed. Draft and pending rows are left exactly where they are —
+        they authorize nothing and never did.
+
+        Each grantee's rewrite and its ledger row are one transaction, and a
+        failure rolls the pair back rather than leaving a state change with no
+        record of it. The safe state is the un-converted one: a guardian seal
+        on an adult resolves to nothing, so a conversion that never happened
+        costs the member an invitation, not their privacy.
+
+        Idempotent, and a no-op while the subject is still a minor. Idempotence
+        is not bookkeeping — it falls out of the fact that a converted grant is
+        no longer ``granted_via = 'guardian'`` and so no longer matches.
         """
         if self.is_minor(subject_id):
             return []
         grantees = [
             r[0] for r in self.store.connection.execute(
                 "SELECT grantee_id FROM grants"
-                " WHERE subject_id = ? AND granted_via = ?"
+                " WHERE subject_id = ? AND granted_via = ? AND state = ?"
                 " ORDER BY grantee_id",
-                (subject_id, GrantVia.GUARDIAN.value),
+                (subject_id, GrantVia.GUARDIAN.value, GrantState.SEALED.value),
             )
         ]
+        converted = []
         for grantee in grantees:
-            self.store.connection.execute(
-                "UPDATE grants SET state = ?, granted_via = ?, sealed_by = NULL,"
-                "                  requested_by = NULL"
-                " WHERE subject_id = ? AND grantee_id = ?",
-                (GrantState.PENDING.value, GrantVia.MEMBER.value,
-                 subject_id, grantee),
+            try:
+                self.store.connection.execute(
+                    "UPDATE grants SET state = ?, granted_via = ?, sealed_by = NULL,"
+                    "                  requested_by = NULL"
+                    " WHERE subject_id = ? AND grantee_id = ?",
+                    (GrantState.PENDING.value, GrantVia.MEMBER.value,
+                     subject_id, grantee),
+                )
+                self._disclose(
+                    subject_id, "grant.converted_at_majority",
+                    f"grantee={grantee} guardian_authority_ended",
+                )
+            except Exception:
+                # The rewrite is open on the connection and its ledger row is
+                # not. Leave it there and the next successful append on this
+                # connection commits it as a side effect — an access change
+                # with no record that it happened, which is the shape
+                # `test_a_revocation_and_its_ledger_row_are_one_transaction`
+                # refuses on the revocation path.
+                self.store.connection.rollback()
+                raise
+            converted.append(grantee)
+        return converted
+
+    # ── the caller: lazy, on open ───────────────────────────────────────────
+    #
+    # Expiry needs no caller because it is a predicate. Conversion is a write,
+    # so it needs one, and this app has no scheduler to be it: local-first,
+    # offline, no server, and a corps laptop that is shut for eight months of
+    # the year. A cron job would also be the wrong shape even if one existed —
+    # the failure mode of a job that does not run is exactly the failure mode
+    # migration 002 rejected when it chose a birthdate over an `is_minor` flag.
+    #
+    # So the caller is opening the roster, and it runs where migrations already
+    # run: `Store.__init__` brings the schema up to date on construction, and
+    # this brings consent state up to date on construction. Same idiom, same
+    # place, nothing new for a host to remember.
+    #
+    # WHAT IS DELIBERATELY ABSENT is a "last opened" timestamp. The obvious
+    # phrasing of this pass is "convert everyone who crossed majority since the
+    # last open", and it is the same mistake as `is_minor`: a bookmark is a
+    # second copy of the truth, and it is wrong after a restore from backup,
+    # after a clock change, after a crash between the conversion and the
+    # bookmark write, and after the file is opened by a second device. Every one
+    # of those failures skips a member permanently and silently. The work set is
+    # derived from the data on every open instead — guardian-sealed grants whose
+    # subject is no longer a minor — so it is correct on a database this code
+    # has never seen before, and it empties itself by doing the work.
+
+    def _subjects_at_majority(self) -> "list[str]":
+        """Members holding guardian-sealed grants who are no longer minors.
+
+        Private on purpose. It is a list of members who have recently turned
+        eighteen and once had a guardian, which is two L1 facts about each of
+        them; it answers to whoever holds the connection, and there is no
+        principal to check it against. The public surface is the sweep, whose
+        result the host renders to the member.
+        """
+        still_a_minor = self.store.policy.still_a_minor("grants.subject_id")
+        return [
+            r[0] for r in self.connection.execute(
+                "SELECT DISTINCT grants.subject_id FROM grants"
+                " WHERE grants.granted_via = ? AND grants.state = ?"
+                f"   AND NOT {still_a_minor}"
+                " ORDER BY grants.subject_id",
+                (GrantVia.GUARDIAN.value, GrantState.SEALED.value),
             )
-            self._disclose(
-                subject_id, "grant.converted_at_majority",
-                f"grantee={grantee} guardian_authority_ended",
-            )
-        return grantees
+        ]
+
+    def convert_everyone_at_majority(self) -> MajoritySweep:
+        """Ask every member whose guardian's authority has lapsed. Runs on open.
+
+        One subject's failure does not stop the pass. That is not tidiness: a
+        disclosure chain that fails verification raises, chains are attacker-
+        editable by anyone with the file, and a sweep that propagated the first
+        raise would let one tampered chain stop the whole corps from opening
+        the app. The failed subject is named in
+        :attr:`MajoritySweep.unconvertible` and left untouched, and untouched is
+        safe — their guardian's seal stopped resolving at the birthday and
+        nothing here can bring it back.
+        """
+        converted: "dict[str, list[str]]" = {}
+        unconvertible: "list[str]" = []
+        for subject_id in self._subjects_at_majority():
+            try:
+                grantees = self.convert_at_majority(subject_id)
+            except Exception:
+                # Deliberately broad, and deliberately not re-raised. Every
+                # exception reachable here — a tampered chain, a locked
+                # database, a trigger — leaves the same safe state behind, and
+                # `convert_at_majority` has already rolled its own write back.
+                unconvertible.append(subject_id)
+                continue
+            if grantees:
+                converted[subject_id] = grantees
+        return MajoritySweep(converted, tuple(unconvertible))
 
     # ── use-class consent (subject-consent's own vocabulary) ────────────────
     def grant_use(self, subject_id: str, scope: str, granted_by: str):
@@ -521,6 +678,7 @@ __all__ = [
     "ChainTamperError",
     "ConsentedRoster",
     "DeidentificationError",
+    "MajoritySweep",
     "RELATIONS",
     "SCOPES",
     "SqliteConsentBackend",
