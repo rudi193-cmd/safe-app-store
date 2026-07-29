@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-marching-arts"
+version = "0.1.0"
+description = "Authorization core for a marching-program platform — per-record bands, sealed grants, one compiled SQL predicate."
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+# Stdlib only, on purpose. The browser host reimplements these rules against
+# sqlite-wasm, and a core with dependencies would have needed them ported too.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.setuptools.packages.find]
+include = ["marching_arts*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
