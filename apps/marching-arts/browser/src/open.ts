@@ -37,9 +37,16 @@ export interface OpenResult {
   /**
    * Release the VFS's file handles without losing the pool, so another context
    * may take ownership. Only meaningful on `opfs-sahpool`.
+   *
+   * Closes the database handle as part of doing so — it has to, see the
+   * implementation — so `conn` is unusable between `pause()` and `unpause()`.
+   * Idempotent.
    */
   pause(): Promise<void>;
-  /** Retake the handles after a `pause()`. */
+  /**
+   * Retake the handles after a `pause()` and re-open the database, leaving the
+   * same `conn` object usable again. Idempotent.
+   */
   unpause(): Promise<void>;
   close(): Promise<void>;
 }
@@ -85,21 +92,51 @@ export async function openDatabase(options: OpenOptions = {}): Promise<OpenResul
         initialCapacity: options.initialCapacity ?? 8,
         clearOnInit: false,
       });
-      const db = new pool.OpfsSAHPoolDb(filename);
+      // `installOpfsSAHPoolVfs` is memoised per pool name per realm: a second
+      // call in this context returns the *same* pool object, paused if we paused
+      // it. Without this line the loop in `sharedworker.ts` — hand the pool over,
+      // queue again, re-open — gets back a pool whose VFS is unregistered, the
+      // `OpfsSAHPoolDb` constructor throws, and the owner silently drops to
+      // memory while reporting a clean open. Caught by `handoff/re-open` in
+      // `test/browser-gate.mjs`.
+      if (pool.isPaused()) await pool.unpauseVfs();
+      let db = new pool.OpfsSAHPoolDb(filename);
       db.exec('PRAGMA foreign_keys = ON');
       const conn = new Oo1Connection(api, db);
+      let paused = false;
       return {
         conn,
         vfs: 'opfs-sahpool',
         durable: true,
         notes,
+        // `pauseVfs()` throws SQLITE_MISUSE if *any* database handle it hosts is
+        // still open, and when it throws it has no side effects — the sync access
+        // handles stay held. So the database handle is closed here first. Getting
+        // this backwards is silent in the outgoing context and only shows up in
+        // the incoming one, as a fall back to memory: it acquires the lock it was
+        // queued for, cannot install the pool because the handles were never
+        // released, and reports `durable: false` about a database the user was
+        // told is durable.
         pause: async () => {
+          if (paused) return;
+          db.close();
           pool.pauseVfs();
+          paused = true;
         },
+        // Re-acquire the handles, then re-open the file. The handle closed by
+        // `pause()` cannot come back — `unpauseVfs()` restores the *VFS*, not a
+        // connection — so this opens a new one and repoints the `Connection` the
+        // caller is already holding.
         unpause: async () => {
+          if (!paused) return;
           await pool.unpauseVfs();
+          db = new pool.OpfsSAHPoolDb(filename);
+          db.exec('PRAGMA foreign_keys = ON');
+          conn.rebind(db);
+          paused = false;
         },
         close: async () => {
+          if (paused) return;
           db.close();
         },
       };

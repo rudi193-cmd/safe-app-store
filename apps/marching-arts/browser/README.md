@@ -8,6 +8,14 @@
 > that job is in the aggregate `test` job's `needs:`, so branch protection blocks
 > on it. See *The drift gate* below for what that gate looked like while it was
 > red, which is the more useful half of the story.
+>
+> **The four browser-only mechanisms are gated too, as of now.** `opfs-sahpool`
+> persistence, the Web Locks election, the `pauseVfs()`/`unpauseVfs()` handoff and
+> SharedWorker uniqueness run in a real Chromium as the `browser-mechanisms` job,
+> also in `test`'s `needs:`. Ten mutations, ten caught. It found three defects in
+> code that had never executed under any check, one of which is not fixable on
+> Chromium — see *What the gate found on its first run*, which is the more useful
+> half of *this* story.
 
 The authorization resolver, running in-browser on SQLite-WASM, and a differential
 suite that holds it to the Python core in [`../marching_arts/`](../marching_arts).
@@ -107,6 +115,13 @@ single-ownership is not a nicety:
   WebViews ship no SharedWorker, so each tab runs a dedicated worker and the lock
   is the whole mechanism. It also covers the window during a worker restart when
   two instances briefly coexist.
+
+> **Read the browser gate's findings before trusting the first bullet.** On
+> Chromium a SharedWorker cannot create sync access handles and cannot spawn a
+> nested worker that could, so the shared owner is never on `opfs-sahpool` — it
+> gives uniqueness without durability. The Web Lock is not the fallback here; it
+> is the only mechanism that can deliver both. See *What the gate found on its
+> first run*, item 3.
 - **Handoff** is explicit: the outgoing owner calls `pauseVfs()`, releasing every
   handle, *then* releases the lock; the incoming owner acquires it and calls
   `unpauseVfs()`. The owner detects a challenger by polling `navigator.locks
@@ -122,10 +137,22 @@ knows what a query was about and cannot accidentally answer a wider one.
 
 ```sh
 npm install
-npm run build          # tsc -> dist/
-npm test               # gate + owner protocol + differential
-npm run test:mutation  # break it on purpose, confirm the suite notices
+npm run build                  # tsc -> dist/
+npm test                       # gate + owner protocol + differential   (Node + Python)
+npm run test:mutation          # break it on purpose, confirm the suite notices
+
+npm run test:browser           # the four browser-only mechanisms       (Node + Chromium)
+npm run test:browser:mutation  # break each of those four, same question
+
+npm run serve                  # http://127.0.0.1:8177 for test/browser.html by hand
 ```
+
+**Two entry points on purpose.** `npm test` needs Node and a stdlib Python and
+nothing else, which is what lets it run anywhere the core runs; `npm run
+test:browser` needs a ~150 MB Chromium. Folding the second into the first would
+have made the differential — the thing holding this port to the semantics it
+copies — unrunnable wherever a browser download fails. They are separate CI jobs
+for the same reason, and both are in the aggregate `test` job's `needs:`.
 
 `npm test` **regenerates** `test/reference.json` on every run, from the working
 tree, and fails if it cannot. It does not reuse what is on disk, and that is not
@@ -277,34 +304,172 @@ not a caveat, and P2 did not change it.
 
 ---
 
-## What is NOT verified here
+## The browser gate — the four that used to be ungated
+
+`npm test` runs on the in-memory VFS because Node has no OPFS, no
+`navigator.locks` and no SharedWorker. Four things this app depends on were
+therefore checked by nothing automated. They are now checked by
+[`test/browser-gate.mjs`](test/browser-gate.mjs), in a headless Chromium, as the
+`browser-mechanisms` CI job.
+
+| # | Mechanism | Gated by |
+| --- | --- | --- |
+| 1 | `opfs-sahpool` persisting | write → `page.reload()` → read back, in a fresh OPFS partition |
+| 2 | the Web Locks election | two pages, one lock; the loser stays queued and is *observed* queued |
+| 3 | `pauseVfs()`/`unpauseVfs()` handoff | owner writes, is challenged, yields; challenger takes the pool, reads the write, writes its own; then the first owner comes back through `unpause()` |
+| 4 | SharedWorker uniqueness | two tabs see each other's writes **and** the owner script is fetched exactly once |
+
+11 tests, ~9 s. Three things about the shape, all forced by the platform rather
+than chosen:
+
+- **Everything runs in a dedicated worker.**
+  `FileSystemFileHandle.createSyncAccessHandle()` is `[Exposed=DedicatedWorker]`.
+  On the main thread `installOpfsSAHPoolVfs()` fails with "Missing required OPFS
+  APIs." and `openDatabase()` silently returns the memory rung. The first version
+  of `test/browser.html` called it from the page and had been reporting
+  `vfs = memory` for its entire existence, which reads as a broken pool rather
+  than as the wrong thread. That page now drives a worker too.
+- **A reload is a real reload.** Reading back in the same worker proves a cache.
+- **Two contexts are two pages.** Two workers spawned by one page share a page
+  lifetime; an election is about contexts that do not.
+
+**One flake, found and closed before landing.** Across repeated runs the suite
+went red once, at 37 s instead of 9 s, on `handoff · the owner notices a
+challenger`. It was not the handoff: booting a harness page means fetching and
+compiling ~1 MB of SQLite WASM into a fresh context with an empty HTTP cache,
+and under load that crossed Playwright's *30 s default* `waitForFunction`
+timeout. A timeout there surfaces as `FAIL handoff · …` and reads as the
+mechanism being broken. The boot wait is now explicit (90 s,
+`MARCHING_ARTS_BOOT_TIMEOUT_MS`) and its failure says
+`INFRASTRUCTURE, NOT A MECHANISM` in as many words, because a gate that can cry
+wolf gets muted and then it is not a gate either.
+
+`test/serve.mjs` exists because OPFS needs a secure context (`http://127.0.0.1`
+is one, so no TLS) and because `dist/open.js` imports the bare specifier
+`@sqlite.org/sqlite-wasm`, which a browser cannot resolve. An import map would
+fix that for the page and not for the SharedWorker — import maps are
+document-scoped — so the rewrite happens in the server, on the way out. Nothing
+on disk is touched, which matters because the mutation runner edits those same
+files and restores them by hash.
+
+### The mutation table — what each gate actually catches
+
+`npm run test:browser:mutation`, ~2.5 min. Every mutation names the block it is
+supposed to break; one caught only by some *other* block is reported as a
+failure, because that would mean the mechanism it targets is still ungated and
+the red came from somewhere incidental. Actual output:
+
+| Mutation | What breaks | Target | Caught by |
+| --- | --- | --- | --- |
+| `durable-lie` | pool installed and reported, database opened on `:memory:` | vfs | vfs + handoff |
+| `no-opfs-at-all` | the ladder never tries the pool | vfs | vfs + election + handoff |
+| `no-lock` | ownership granted without requesting the lock | election | election + handoff + sharedworker |
+| `shared-mode` | the lock is taken `shared`, so nobody ever queues | election | election + handoff |
+| `skip-pause` | `pause()` releases nothing | handoff | handoff |
+| `pause-before-close` | `pauseVfs()` before the db is closed | handoff | handoff |
+| `no-unpause-on-reopen` | a re-open gets its own still-paused pool | handoff | handoff |
+| `no-challenger-poll` | the owner never notices a challenger | handoff | handoff |
+| `per-tab-worker-url` | a per-tab query string on the worker URL | sharedworker | sharedworker |
+| `dedicated-worker-per-tab` | one owner per tab instead of one per origin | sharedworker | sharedworker |
+
+Ten for ten, each caught by the block that targets it, restored build green.
+`durable-lie` is the one worth reading: every label a caller can see stays
+correct — `vfs: 'opfs-sahpool'`, `durable: true`, no notes — and only the reload
+can tell. A persistence test that asserted the *rung* rather than reading the row
+back would report a clean pass.
+
+Two of these are not inventions. `pause-before-close` and `no-unpause-on-reopen`
+restore bugs that were in this tree until the gate found them, below.
+
+### What the gate found on its first run
+
+Three defects, all in code that had never executed under any check.
+
+**1 · The handoff never handed anything over.** `pauseVfs()` throws
+`SQLITE_MISUSE` if any database handle it hosts is open, and *when it throws it
+has no side effects* — the sync access handles stay held. `OpenResult.pause()`
+called `pool.pauseVfs()` without closing the database, and `sharedworker.ts`
+called `pause()` then `close()` with `.catch(() => {})` around both. So every
+handoff went: outgoing owner throws silently, releases the lock still holding
+every handle; incoming owner acquires the lock, cannot install the pool, falls
+back to memory. The failure is invisible in the context that causes it and
+arrives in a different context as a downgrade. `pause()` now closes the database
+first, and `sharedworker.ts` announces the failure instead of swallowing it.
+
+**2 · A context that yielded could not come back.** `installOpfsSAHPoolVfs()` is
+memoised per pool name per realm, so the second lap of `ownershipCycle`'s loop —
+hand over, queue again, re-open — got back the same pool object, still paused,
+and `new pool.OpfsSAHPoolDb()` threw into the `catch` that falls to memory.
+`openDatabase()` now calls `unpauseVfs()` when it is handed a paused pool.
+Relatedly, `unpauseVfs()` restores the *VFS*, not a connection: the handle
+`pause()` closed cannot come back, so `unpause()` re-opens the file and repoints
+the `Connection` the caller already holds (`Oo1Connection.rebind`).
+
+**3 · The SharedWorker owner can never be durable, and cannot be made durable.**
+This one is not fixed, because on Chromium it is not fixable:
+
+- `createSyncAccessHandle()` is `[Exposed=DedicatedWorker]`. It is absent in a
+  SharedWorker, so `dist/sharedworker.js` fails to install `opfs-sahpool` every
+  time and the shared owner is *always* on the memory rung.
+- The obvious repair — the shared owner spawning a nested dedicated worker to
+  hold the pool and transferring each tab's port to it — is unavailable too:
+  Chromium does not expose `Worker` inside `SharedWorkerGlobalScope` at all
+  (`ReferenceError: Worker is not defined`).
+
+So on this engine the two halves of the owner design are mutually exclusive: a
+SharedWorker gives uniqueness without durability, and a dedicated worker gives
+durability without uniqueness. **That makes the Web Lock the load-bearing
+mechanism rather than the belt-and-braces this file described above**, and it
+means an app that wants a durable database on `opfs-sahpool` has to run a
+dedicated worker per tab and elect between them — the path this README called the
+fallback for Chrome on Android. Deciding that is a design change, not a test fix,
+so it is written down rather than made.
+
+The gate does not paper over it. The SharedWorker block asserts what is actually
+true (uniqueness; and that the owner never claims a durability it does not have),
+and a **tripwire** test probes `createSyncAccessHandle` and `Worker` inside a
+SharedWorker and fails the day Chromium exposes either — which is the day someone
+should move the owner onto the pool and delete the tripwire.
+
+## What is still NOT verified here
 
 Stated plainly rather than buried.
 
-- **The differential runs on the in-memory VFS, not `opfs-sahpool`.** Node has no
-  OPFS, so `sqlite3.installOpfsSAHPoolVfs` does not exist in the Node build and
-  the VFS this app ships on is not exercised by `npm test`. What *is* exercised
-  is every line of the resolver, compiler, schema and store, against the same
-  SQLite library the browser gets. The VFS sits below all of that and changes no
-  query result — but "changes no query result" is an argument, not a test.
-- **The Web Locks election is untested.** `src/owner/election.ts` is never
-  executed by any automated check. Node has no `navigator.locks`.
-- **`pauseVfs()`/`unpauseVfs()` handoff is untested.** Same reason.
-- **SharedWorker uniqueness is untested.** `test/owner.mjs` drives the protocol
-  over a real `MessageChannel` with real structured cloning, which is the whole
-  wire; it cannot test that the browser gives every tab the same worker.
-
-[`test/browser.html`](test/browser.html) drives those four manually: serve the
-directory over http (not `file://` — a null origin has no OPFS), open it in two
-tabs, and press the buttons. It is a manual check and it is not a gate. Wiring it
-to Playwright would make it one; that work is not done.
-
-**Wiring the differential into CI did not change any of the above.** The
-`browser-resolver` job runs the same Node suite on the same in-memory VFS, so the
-four browser-only mechanisms are exactly as unverified by automation as they were
-before — and are now unverified *in CI*, which is easier to misread. A green
-required check named `test` is easy to take as "the browser half is covered". What
-is covered is the resolver, the compiler, the schema and the store.
+- **The differential still runs on the in-memory VFS.** Node has no OPFS, so
+  `npm test` exercises every line of the resolver, compiler, schema and store
+  against the same SQLite library the browser gets, but not against the SAH pool.
+  The browser gate covers the VFS; it does **not** re-run the 27,534 comparisons
+  there. So "the resolver is correct" and "the VFS is real" are proved by two
+  different suites and nothing proves them together.
+- **One engine.** Chromium only. Firefox and WebKit implement OPFS, Web Locks and
+  SharedWorker differently enough that the expectations above are not portable —
+  most obviously finding 3, which is a Chromium fact. Running the same file
+  against three browsers would produce three different right answers, and none of
+  them are written.
+- **The SharedWorker owner's durability**, per finding 3 — gated as *not*
+  durable, which is honest but is the opposite of what the design wanted.
+- **A cold-start race in the client.** `serve()` answers a request that arrives
+  before the owner has opened with a hard `OwnerUnavailable` rather than queueing
+  it, so a tab that issues SQL the moment its port exists loses the race with the
+  owner's lock acquisition. The `ready` notice is the documented signal and both
+  the harness and `test/browser.html` wait for it, but nothing forces a caller to,
+  and no test covers what happens to a caller that does not. Left alone
+  deliberately: making `serve()` queue would also change what happens to in-flight
+  requests *during* a handoff, which is a protocol decision, not a test.
+- **One of the three repairs is ungated.** Removing the `.catch(() => {})` around
+  the pause/close pair in `sharedworker.ts` has no mutation behind it: the handoff
+  blocks drive `election.ts` and `open.ts` directly, and the SharedWorker owner
+  cannot reach the pool on this engine anyway, so a mutation restoring the swallow
+  would pass. It is named in `test/mutate-browser.mjs` rather than written and
+  reported as caught.
+- **Crash and eviction.** Every handoff tested here is cooperative. What happens
+  when the owning context is killed without releasing — the lock drops, but the
+  sync access handles are released by the browser on some schedule of its own —
+  is not covered, and `page.close()` is not a crash.
+- **Storage pressure.** OPFS eviction, quota exhaustion and
+  `navigator.storage.persist()` are untouched.
+- **`test/browser.html` itself is still manual.** It is no longer the only check,
+  and it now drives a worker so its numbers are real, but nothing asserts on it.
 
 Also not automated here: the `subject_consent` core, which is Python-only by
 design and is tested by `../tests/test_consent.py`. This port carries the schema
@@ -349,13 +514,53 @@ job's `needs:`:
         working-directory: apps/marching-arts/browser
         run: npm run test:mutation
 
+  browser-mechanisms:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/marching-arts/browser/package-lock.json
+      - name: Install
+        working-directory: apps/marching-arts/browser
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+        run: npm ci
+      - name: Install Chromium
+        working-directory: apps/marching-arts/browser
+        run: npx playwright install --with-deps chromium
+      - name: Build
+        working-directory: apps/marching-arts/browser
+        run: npm run build
+      - name: Browser mechanisms
+        working-directory: apps/marching-arts/browser
+        run: npm run test:browser
+      - name: Browser mutation test
+        working-directory: apps/marching-arts/browser
+        run: npm run test:browser:mutation
+
   test:
-    needs: [gates, app-tests, browser-resolver]
+    needs: [gates, app-tests, browser-resolver, browser-mechanisms]
 ```
 
 The `needs:` line is the load-bearing one. Branch protection requires a single
 check named `test`; without it the job runs, nothing depends on it, and that is
 the same as not running.
+
+`browser-mechanisms` is its own job rather than two more steps on
+`browser-resolver` for one reason: `browser-resolver` needs Node and a stdlib
+Python and nothing else, and that is worth keeping. A flaky ~150 MB browser
+install should not be able to take the differential red with it. Note also that
+`browser-resolver`'s install step sets `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` —
+`playwright` is a devDependency of this package now, and without that its
+postinstall would pull a Chromium into a job that never launches one.
+
+**No `--rev` pin and no `if:` guard on either job.** Same argument as the
+differential: a gate that can be skipped by the thing it gates is a decoration.
 
 It is a separate job rather than an addition to the `app-tests` matrix because
 that matrix is Python-only, and folding Node into it would put a `setup-node`

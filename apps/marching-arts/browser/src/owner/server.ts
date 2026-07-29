@@ -7,10 +7,19 @@
  * `handleRequest` is a pure function of (connection, request). That is on
  * purpose — it is the only part of the SharedWorker story Node can execute, and
  * `test/owner.mjs` drives it over a real MessageChannel against a real
- * SQLite-WASM connection. The parts that cannot be tested headlessly (Web Locks
- * election, SAH pool pause/resume) are isolated in `election.ts` and
- * `../open.ts` and are marked as untested in README.md rather than being mixed
- * in here where the distinction would blur.
+ * SQLite-WASM connection. The parts Node cannot reach (Web Locks election, SAH
+ * pool pause/resume) are isolated in `election.ts` and `../open.ts` rather than
+ * mixed in here where the distinction would blur; they are gated separately, in
+ * a browser, by `test/browser-gate.mjs`.
+ *
+ * One thing here is neither: a request arriving before `getConnection()` returns
+ * a connection is answered with a hard `OwnerUnavailable` rather than queued, so
+ * a tab that issues SQL the moment its port exists races the owner's lock
+ * acquisition and loses on a cold start. `ready` is the documented signal that
+ * the owner is serving and callers are expected to wait for it. Whether this
+ * should queue instead is a protocol decision — it would also change what
+ * happens to in-flight requests *during* a handoff — and is listed as uncovered
+ * in README.md rather than quietly changed.
  */
 
 import type { Connection } from '../connection.js';
