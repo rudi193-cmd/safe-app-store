@@ -7,12 +7,12 @@ Authorization core for a marching-program platform — the thing a corps, a
 drumline or a high-school band would run to hold roster, craft and schedule
 information without any of it leaving the building.
 
-This is **P1** of [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md):
-storage and the authorization resolver. It ships nothing a user sees, and it is
-first on purpose. Everything else depends on it — including the sync spine,
-which is this same component wearing a different hat. A device receives only
-what its holder may see, so the filter that decides a query is the filter that
-decides a sync. Build it once.
+This is **P1 and P2** of [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md):
+storage and the authorization resolver, then identity, roles and consent. They
+ship nothing a user sees, and they are first on purpose. Everything else depends
+on them — including the sync spine, which is this same component wearing a
+different hat. A device receives only what its holder may see, so the filter
+that decides a query is the filter that decides a sync. Build it once.
 
 ---
 
@@ -31,6 +31,58 @@ cannot be. So none of the promises below are enforced by discipline:
 | Refusal is invisible | A subject you may not see returns byte-identical results to a subject who does not exist. Tested as indistinguishability, not as absence. |
 | Roles grant nothing on their own | Authorization comes only from a grant naming the principal individually. A director with every role sees no health band. |
 | The core cannot reach the network | An AST walk over every module, plus a check that importing it pulls in no third-party package. |
+| A minor does not consent for themselves | A trigger refuses any sealed grant on a minor that is not signed by a *registered* guardian. Migration 002, not a validator a caller can skip. |
+| Guardian access does not outlive childhood | The resolver honours `granted_via = 'guardian'` only while a birthdate says the subject is under eighteen. Nothing is scheduled, so nothing can fail to run. |
+| Consent is never obtained by whoever benefits | The beneficiary may be neither `requested_by` nor `sealed_by`. One carve-out — a registered guardian of that subject — and it expires like all the rest. |
+| A deleted disclosure log cannot pass as a clean one | The chain carries a head anchor with a **count**. Truncating the tail still links perfectly and still fails verification. |
+| A boundary crossing proves its scrub | `deidentify()` removes named identifiers and then *verifies* the removal, raising an error that carries neither the identifier nor the text. |
+
+## P2 — identity, roles, consent
+
+`libs/subject-consent` is the canonical consent primitive, and it lands here on
+the connection P1 already opened. Grants, the hash-chained consent and
+disclosure logs, and the roster are one SQLite file, so a corps backs up all of
+them or none of them. A consent record restorable out of step with the data it
+governs will eventually authorize something nobody agreed to.
+
+```python
+from marching_arts import Band, Store
+from marching_arts.consent import ConsentedRoster
+
+roster = ConsentedRoster(Store("corps.db"))
+roster.register_member("tan", "2009-03-14", "2026 registration")
+roster.register_guardian("guardian:tan", "tan", "child", "2026 registration")
+roster.seal("tan", "delacroix", Band.CRAFT, "guardian:tan", "consent form",
+            requested_by="hayes")     # not requested_by="delacroix"
+```
+
+Two consent layers, deliberately not merged, because a single "consented?"
+boolean would have to answer both wrong:
+
+* **band grants** — *who may see which row, to what band*. Per record, because
+  every leader is also a member. Compiled into the one SQL predicate.
+* **use-class consent** — subject-consent's `local_only`, `process_analysis`,
+  `kb_promotion`, `person_inference`: *whether this subject's data may be put to
+  this kind of use at all*. Hash-chained and tamper-evident. A coordinate is not
+  a diagnosis, and the platform may hold the first without ever being allowed to
+  derive the second.
+
+**Silent revocation** deletes the grant rather than flagging it, so the resolver
+sees no residue and a grantee cannot discover that they *used to* have access
+from the shape of what they can no longer see. The disclosure chain keeps the
+history, it is the subject's record and not the grantee's, and the delete and
+the ledger row commit as one transaction.
+
+**Refusal stays invisible, now including guardians.** A member whose guardian
+declined, a member whose guardian revoked, and a member who turned eighteen are
+each byte-identical to a member who was never enrolled — across the rows, the
+count, the subject list and the disclosure log. If any one of the four differed,
+declining would be the signal and every family that exercised the choice would
+be marked by exercising it.
+
+`marching_arts.consent` is the only module that imports the consent library, and
+`marching_arts/__init__.py` does not import it — so the core still pulls in
+nothing but the standard library.
 
 ## Bands
 
@@ -76,10 +128,14 @@ marching_arts/
   bands.py     the classification scale, and the two bands that behave differently
   rules.py     Rule, Effect, and the compiler. Knows nothing about people.
   policy.py    who may see what. The only file that decides anything.
-  schema.py    migration 001 — band and source, present from the start
+  schema.py    001 band and source · 002 people, guardianship, the chain tables
+               and the triggers · 003 the guardian rule over the chain itself
   store.py     authorized reads. There is no second path.
+  consent.py   P2's binding: libs/subject-consent on this store's connection
 tests/
   test_gate.py        count · filter · sort · empty state
+  test_consent.py     P2's gate: guardians · majority · silent revocation ·
+                      coercion · the count anchor · de-identify-or-refuse
   test_provenance.py  the schema's own guarantees, and per-record resolution
   test_rules.py       precedence, tested directly
   test_no_egress.py   the AST walk
@@ -106,11 +162,22 @@ and reported a judge-independence finding that does not exist.
 ## Run it
 
 ```bash
-python3 -m pytest tests -q      # 51 passed
+python3 -m pytest tests -q      # 98 passed
 python3 app.py                  # a walkthrough on synthetic data
 ```
 
-Stdlib only. Python 3.10+. No install step, no server, no ports.
+Stdlib only. Python 3.10+. No install step, no server, no ports. `consent.py`
+resolves `libs/subject-consent` from the repo when it is not already installed;
+migration 003 needs SQLite's JSON1, which has been on by default since 3.38 and
+is present in the `sqlite-wasm` build the browser host will use.
+
+Every guarantee above was verified by breaking it. Twenty-one mutations — drop
+the expiry clause, defang each trigger, make `append_row` commit on its own,
+turn the count anchor back into a plain head hash, let `disclose_text` skip the
+scrub — and each one turns this suite red. Two of them turned it red for the
+wrong reason and found real bugs: a `CHECK` that evaluated to NULL (and
+therefore passed) on a malformed birthdate, and a backend that reported an
+emptied chain as an absent one.
 
 ## Why Python, when the plan says browser
 
@@ -128,3 +195,9 @@ written.
 
 Playground. Contested tier, not canonical, not promoted. Scoped to its own SOIL
 collection (`marching_arts_*`) with no fleet-store writes.
+
+P2 adds three data streams the app manifest does not yet declare — `people`
+(birthdates), `guardianships`, and `consent_chain` / `consent_anchor` (the
+hash-chained consent and disclosure logs). A birthdate is L1 roster data and a
+guardianship names a second person who is not a member at all, so both belong in
+the manifest before this leaves the playground.
