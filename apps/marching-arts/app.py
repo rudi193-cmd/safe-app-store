@@ -153,12 +153,23 @@ def consent_walkthrough() -> None:
     show(roster.store, Principal("delacroix"), "section leader sees")
     print("  the grant row is untouched and still says: "
           + roster.connection.execute("SELECT state FROM grants").fetchone()[0])
-    print(f"  convert_at_majority → {roster.convert_at_majority('tan')}"
-          "  (now pending: the member is asked, not assumed)")
     print("\n  \033[2mThe resolver stopped honouring guardian authority on a birthday.")
     print("  No scheduled job, so no scheduled job that failed to run.\033[0m")
 
-    rule("12. The ledger is where the history lives")
+    rule("12. Somebody opens the roster. Now the member gets asked.")
+    reopened = ConsentedRoster(Store(roster.connection))
+    print(f"  opening converted: {reopened.opened.converted}")
+    print("  the grant row now says: " + ", ".join(
+        f"{state} via {via} signed_by={signer}" for state, via, signer in
+        reopened.connection.execute("SELECT state, granted_via, sealed_by FROM grants")))
+    show(reopened.store, Principal("delacroix"), "section leader sees")
+    print("  opening again converts: "
+          f"{ConsentedRoster(Store(roster.connection)).opened.converted}")
+    print("\n  \033[2mExpiry is a predicate and needs no caller. Conversion is a write,")
+    print("  so its caller is opening the file — the same place migrations run.")
+    print("  Pending, unsigned, and nobody but the member is told it is waiting.\033[0m")
+
+    rule("13. The ledger is where the history lives")
     for row in roster.disclosures("tan", reader="tan"):
         print(f"  {row['at'][:19]}  {row['action']:<32} {row['detail']}")
     print("\n  \033[2mHash-chained with a count anchor, on this same connection. Editing a")
