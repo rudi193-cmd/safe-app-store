@@ -25,6 +25,7 @@ import { MessageChannel } from 'node:worker_threads';
 import {
   Band,
   GrantState,
+  MIGRATIONS,
   RemoteConnection,
   Store,
   announce,
@@ -110,12 +111,20 @@ async function seed(store) {
 // ---------------------------------------------------------------------------
 
 await test('migrations run across the port', async () => {
+  // Compared against MIGRATIONS rather than a hardcoded list. The point of this
+  // test is that `exec` crosses the wire and the schema lands on the owner's
+  // side, not that there happen to be N migrations — a literal here goes stale
+  // the moment the core gains one, and a test that fails for the wrong reason
+  // trains people to edit it without reading it. The *names and text* are held
+  // to Python byte-for-byte by the constants tier of the differential, which is
+  // the right place for that.
   const w = await wired();
   const store = await Store.open(w.remote);
   const names = (await w.conn.all('SELECT name FROM schema_migrations ORDER BY name')).map(
     (r) => String(r[0]),
   );
-  eq(names, ['001_facts_and_grants']);
+  eq(names, MIGRATIONS.map(([name]) => name).sort());
+  assert(names.length > 0, 'no migration ran across the port');
   assert(store, 'no store');
   w.close();
 });
