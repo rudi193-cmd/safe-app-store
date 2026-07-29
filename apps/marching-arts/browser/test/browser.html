@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>marching-arts — browser-only checks</title>
+    <style>
+      :root { color-scheme: light dark; --ok: #157f3b; --bad: #b3261e; --dim: #6b6b6b; }
+      body {
+        font: 15px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        margin: 0 auto; max-width: 62rem; padding: 2rem 1.25rem 4rem;
+      }
+      h1 { font-size: 1.3rem; margin: 0 0 .25rem; }
+      p.lede { color: var(--dim); margin: 0 0 1.5rem; max-width: 46rem; font-family: system-ui, sans-serif; }
+      button { font: inherit; padding: .45rem .9rem; margin: 0 .5rem .5rem 0; }
+      .row { display: flex; gap: .5rem; align-items: baseline; padding: .15rem 0; }
+      .tag { flex: 0 0 5.5rem; font-weight: 600; }
+      .ok .tag { color: var(--ok); }
+      .bad .tag { color: var(--bad); }
+      .skip .tag { color: var(--dim); }
+      pre { background: rgba(127,127,127,.12); padding: .75rem; overflow-x: auto; border-radius: 4px; }
+      section { border-top: 1px solid rgba(127,127,127,.3); margin-top: 1.5rem; padding-top: 1rem; }
+    </style>
+  </head>
+  <body>
+    <h1>marching-arts — the checks Node cannot run</h1>
+    <p class="lede">
+      <code>npm test</code> covers the resolver, the predicate compiler, the schema and the
+      owner protocol, all on the in-memory VFS. Three things it cannot cover, because Node has
+      neither OPFS nor SharedWorker: the <code>opfs-sahpool</code> VFS itself, the Web Locks
+      election, and the <code>pauseVfs()</code>/<code>unpauseVfs()</code> handoff. This page
+      drives those. Serve it over http (not <code>file://</code> — a null origin has no OPFS)
+      and open it in <em>two tabs</em> for the handoff check.
+    </p>
+
+    <button id="run-vfs">1 · open on opfs-sahpool</button>
+    <button id="run-gate">2 · run the gate on the real VFS</button>
+    <button id="run-owner">3 · attach to the SharedWorker owner</button>
+    <button id="run-handoff">4 · yield the pool to another tab</button>
+    <button id="wipe">wipe the pool</button>
+
+    <section><div id="out"></div></section>
+    <section>
+      <h2 style="font-size:1rem">What a pass here means</h2>
+      <pre id="notes">
+1  the SAH pool installed and a database opened on it: durability is real
+2  the P1 gate holds against a file, not only against :memory:
+3  every tab shares one owner: the second tab's count sees the first tab's writes
+4  the pool was released and retaken without corruption: pauseVfs/unpauseVfs work
+      </pre>
+    </section>
+
+    <script type="module">
+      import {
+        Band,
+        GrantState,
+        Store,
+        connectToOwner,
+        openDatabase,
+        principal,
+        sqlite3,
+      } from '../dist/index.js';
+
+      const out = document.getElementById('out');
+      const line = (cls, tag, text) => {
+        const el = document.createElement('div');
+        el.className = `row ${cls}`;
+        el.innerHTML = `<span class="tag">${tag}</span><span></span>`;
+        el.lastElementChild.textContent = text;
+        out.append(el);
+        return el;
+      };
+      const ok = (t) => line('ok', 'ok', t);
+      const bad = (t) => line('bad', 'FAIL', t);
+      const info = (t) => line('skip', '·', t);
+
+      const check = (cond, t) => (cond ? ok(t) : bad(t));
+
+      document.getElementById('run-vfs').onclick = async () => {
+        try {
+          const api = await sqlite3();
+          info(`sqlite ${api.version.libVersion}`);
+          check(
+            typeof api.installOpfsSAHPoolVfs === 'function',
+            'installOpfsSAHPoolVfs is present in this build',
+          );
+          const open = await openDatabase();
+          check(open.vfs === 'opfs-sahpool', `vfs = ${open.vfs}`);
+          check(open.durable === true, `durable = ${open.durable}`);
+          for (const n of open.notes) info(n);
+          const store = await Store.open(open.conn);
+          const before = await store.count(principal('probe'));
+          await store.recordFact('probe', Band.ROSTER, 'browser check', {
+            payload: `written at ${new Date().toISOString()}`,
+          });
+          const after = await store.count(principal('probe'));
+          check(after === before + 1, `count ${before} -> ${after} (survives reload if durable)`);
+          await open.close();
+        } catch (error) {
+          bad(String(error));
+        }
+      };
+
+      document.getElementById('run-gate').onclick = async () => {
+        try {
+          const open = await openDatabase();
+          info(`running the gate on vfs=${open.vfs}`);
+          const store = await Store.open(open.conn);
+          const stamp = String(Date.now());
+          const visible = `visible-${stamp}`;
+          const hidden = `hidden-${stamp}`;
+          const leader = principal(`leader-${stamp}`);
+          for (let i = 0; i < 3; i++)
+            await store.recordFact(visible, Band.CRAFT, 'rehearsal log', { payload: `v${i}` });
+          for (let i = 0; i < 7; i++)
+            await store.recordFact(hidden, Band.CRAFT, 'rehearsal log', { payload: `h${i}` });
+          await store.recordGrant(visible, leader.personId, Band.CRAFT, GrantState.SEALED, 'form', {
+            sealedBy: 'guardian',
+          });
+
+          check((await store.count(leader)) === 3, 'COUNT excludes hidden rows');
+          check(
+            (await store.count(leader, { where: '1 = 1 OR 1 = 1' })) === 3,
+            'a caller filter cannot widen',
+          );
+          const refused = await store.visible(leader, {
+            where: 'facts.subject_id = :s',
+            params: { s: hidden },
+          });
+          const absent = await store.visible(leader, {
+            where: 'facts.subject_id = :s',
+            params: { s: 'no-such-person' },
+          });
+          check(
+            refused.length === 0 && absent.length === 0,
+            'refused and nonexistent are indistinguishable',
+          );
+          const subjects = await store.subjects(leader);
+          check(subjects.length === 1 && subjects[0] === visible, 'the subject list omits');
+          check((await store.count(principal('nobody-at-all'))) === 0, 'an unknown principal sees nothing');
+          await open.close();
+        } catch (error) {
+          bad(String(error));
+        }
+      };
+
+      document.getElementById('run-owner').onclick = async () => {
+        try {
+          check(typeof SharedWorker === 'function', 'SharedWorker is available');
+          const conn = connectToOwner(new URL('../dist/sharedworker.js', import.meta.url));
+          conn.onNotice = (n) => info(`owner notice: ${n.notice} vfs=${n.vfs} durable=${n.durable}`);
+          const store = await Store.open(conn);
+          const who = principal('owner-probe');
+          const before = await store.count(who);
+          await store.recordFact('owner-probe', Band.ROSTER, 'browser check', {
+            payload: `tab ${Math.random().toString(36).slice(2, 7)}`,
+          });
+          const after = await store.count(who);
+          ok(`count through the owner: ${before} -> ${after}`);
+          info('open this page in a second tab and press 3 again: the count must continue, not restart');
+        } catch (error) {
+          bad(String(error));
+        }
+      };
+
+      document.getElementById('run-handoff').onclick = async () => {
+        try {
+          check(typeof navigator.locks === 'object', 'Web Locks are available');
+          const state = await navigator.locks.query();
+          const held = (state.held ?? []).filter((l) => l.name === 'marching-arts.db.owner');
+          const pending = (state.pending ?? []).filter((l) => l.name === 'marching-arts.db.owner');
+          info(`owner lock: ${held.length} held, ${pending.length} pending`);
+          check(held.length <= 1, 'at most one context holds the owner lock');
+          info('now: challenge it, and confirm the pool is released and retaken');
+          const t0 = performance.now();
+          await navigator.locks.request(
+            'marching-arts.db.owner',
+            { mode: 'exclusive' },
+            async () => {
+              const waited = performance.now() - t0;
+              ok(`acquired the owner lock after ${waited.toFixed(0)} ms`);
+              const open = await openDatabase();
+              check(open.vfs === 'opfs-sahpool', `retook the pool: vfs = ${open.vfs}`);
+              const store = await Store.open(open.conn);
+              const n = await store.count(principal('owner-probe'));
+              ok(`the database is readable after the handoff: ${n} row(s) for owner-probe`);
+              await open.pause();
+              ok('pauseVfs() released the handles');
+              await open.unpause();
+              ok('unpauseVfs() retook them');
+              await open.close();
+            },
+          );
+        } catch (error) {
+          bad(String(error));
+        }
+      };
+
+      document.getElementById('wipe').onclick = async () => {
+        try {
+          const api = await sqlite3();
+          const pool = await api.installOpfsSAHPoolVfs({ name: 'marching-arts-pool' });
+          await pool.wipeFiles();
+          ok('pool wiped');
+        } catch (error) {
+          bad(String(error));
+        }
+      };
+    </script>
+  </body>
+</html>
