@@ -49,7 +49,10 @@ export {
 } from './connection.js';
 export { Oo1Connection, openMemory } from './sqlite.js';
 export { openDatabase, sqlite3, type OpenOptions, type OpenResult, type Vfs } from './open.js';
-export { SORTABLE, SortColumnError, Store, type Fact, type ReadOptions } from './store.js';
+export {
+  SORTABLE, SortColumnError, Store,
+  type Fact, type Publication, type Rationale, type ReadOptions,
+} from './store.js';
 export { RemoteConnection } from './owner/client.js';
 export { handleRequest, serve, announce, type PortLike } from './owner/server.js';
 export {
