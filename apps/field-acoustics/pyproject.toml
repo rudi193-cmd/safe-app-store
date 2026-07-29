@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "field-acoustics"
+version = "0.1.0"
+description = "Design-time acoustic model for marching drill — what the audience actually hears when the form turns in."
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+# AES69/SOFA measured-directivity loading. The analytic model works without it.
+sofa = ["h5py>=3.8"]
+
+[tool.setuptools.packages.find]
+include = ["dcisim*"]
