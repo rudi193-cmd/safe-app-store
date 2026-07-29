@@ -1,0 +1,39 @@
+{
+  "app_id": "marching-arts",
+  "name": "marching-arts",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "agent_type": "tool",
+  "description": "Placeholder name. Authorization core for a marching-program platform — per-record bands, sealed grants, and a resolver that compiles to one SQL predicate.",
+  "author": "USER",
+  "data_streams": [
+    {
+      "id": "facts",
+      "purpose": "Records about members, each carrying a classification band and a provenance string",
+      "retention": "permanent",
+      "description": "On-device only. Never leaves the process; no export path exists rather than a disabled one."
+    },
+    {
+      "id": "grants",
+      "purpose": "Consent grants — who may see whose information, and to what band",
+      "retention": "permanent",
+      "description": "Only a grant a named human sealed authorizes anything. Revocation deletes rather than flags, so no residue of a former grant is readable."
+    }
+  ],
+  "permissions": [
+    "pattern_storage"
+  ],
+  "store_scope": [
+    "marching_arts_*"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "network": "none",
+  "entry_point": "app:main",
+  "license": "Apache-2.0",
+  "notes": {
+    "phase": "P1 of docs/BUILD_PLAN.md",
+    "name": "Generic placeholder. Directory name is the app_id while in the playground; a promoted app gets its own repo and its own identity.",
+    "not_stored_here": "Band 5 (safeguarding) is never served by this app to anyone under any grant. Concerns are routed to the people whose job it is."
+  }
+}
