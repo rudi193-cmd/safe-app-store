@@ -365,6 +365,21 @@
         "epistemics",
         "local"
       ]
+    },
+    {
+      "id": "marching-arts",
+      "name": "Marching Arts (placeholder)",
+      "description": "Authorization core for a marching-program platform. Per-record classification bands, sealed grants, and a resolver that compiles to one SQL predicate. Name not chosen yet.",
+      "status": "playground",
+      "version": "0.1.0",
+      "path": "apps/marching-arts",
+      "tags": [
+        "marching",
+        "authorization",
+        "consent",
+        "privacy",
+        "local-first"
+      ]
     }
   ],
   "discovery_sources": [
