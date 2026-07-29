@@ -23,10 +23,19 @@
  * handle, and only then releases the lock; the incoming owner acquires the lock
  * and calls `unpauseVfs()`.
  *
- * **Untested here.** Node has neither `navigator.locks` nor SharedWorker, so
- * nothing in this file is exercised by the differential suite. It is written to
- * be readable and is marked as unverified in README.md. Do not read a green
- * `npm test` as evidence that the election works.
+ * **Not exercised by `npm test`.** Node has neither `navigator.locks` nor
+ * SharedWorker, so nothing in this file runs under the differential suite; do not
+ * read a green `npm test` as evidence that the election works. It *is* gated, in
+ * a real Chromium, by the `election` and `handoff` blocks of
+ * `test/browser-gate.mjs` — two pages, one lock, the loser observed queued — and
+ * `test/mutate-browser.mjs` breaks the lock request, the lock mode and the
+ * challenger poll to prove those blocks can fail.
+ *
+ * One thing the gate found that this file's opening claim did not anticipate: on
+ * Chromium the SharedWorker in point 1 above can never hold `opfs-sahpool`, so
+ * the Web Lock is not the belt-and-braces described there. It is the only
+ * mechanism that can deliver a single durable owner. See README.md, *What the
+ * gate found on its first run*.
  */
 
 export const OWNER_LOCK = 'marching-arts.db.owner';

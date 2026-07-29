@@ -50,10 +50,29 @@ function bindDeclared(sqlite3: Sqlite3, stmt: Oo1Stmt, params: Params): void {
 
 export class Oo1Connection implements Connection {
   readonly sqlite3: Sqlite3;
-  readonly db: Oo1Db;
+  db: Oo1Db;
 
   constructor(sqlite3: Sqlite3, db: Oo1Db) {
     this.sqlite3 = sqlite3;
+    this.db = db;
+  }
+
+  /**
+   * Point this connection at a different `oo1.DB` handle.
+   *
+   * Exists for one caller: the `opfs-sahpool` handoff in `open.ts`. Pausing that
+   * VFS requires every database handle it hosts to be **closed** first — the
+   * library throws `SQLITE_MISUSE` otherwise — so resuming means opening a new
+   * handle on the same file. Everything upstream (`Store`, and whatever holds a
+   * `Store`) is written against a `Connection`, not against a `DB` pointer, and
+   * a handoff that invalidated the caller's `Store` would push the whole
+   * lifecycle problem into every call site.
+   *
+   * Not a general-purpose setter. Nothing else in this codebase calls it, and a
+   * second caller would be a sign that a database's identity has stopped being
+   * stable somewhere it should be.
+   */
+  rebind(db: Oo1Db): void {
     this.db = db;
   }
 

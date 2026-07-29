@@ -13,7 +13,16 @@ name: store
 #                 authorization resolver, in TypeScript on SQLite-WASM. This job
 #                 is what holds it to the Python core: it regenerates the
 #                 differential reference from marching_arts/ at this commit and
-#                 fails if the two disagree anywhere.
+#                 fails if the two disagree anywhere. Runs under Node, on the
+#                 in-memory VFS.
+#   browser-mechanisms
+#               — the same app's four browser-only mechanisms, in a real
+#                 Chromium: the opfs-sahpool VFS persisting across a reload, the
+#                 Web Locks election, the pauseVfs()/unpauseVfs() handoff, and
+#                 SharedWorker uniqueness. None of them are reachable from Node,
+#                 so browser-resolver says nothing about any of them. Separate
+#                 job because it needs a browser and browser-resolver must stay
+#                 runnable without one.
 
 on:
   push:
@@ -123,6 +132,11 @@ jobs:
 
       - name: Install
         working-directory: apps/marching-arts/browser
+        env:
+          # This job runs nothing in a browser. playwright is a devDependency for
+          # the browser-mechanisms job; without this its postinstall would pull a
+          # ~150 MB Chromium into a job that never launches one.
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
         run: npm ci
 
       - name: Build
@@ -146,10 +160,66 @@ jobs:
         # requires each to be caught.
         run: npm run test:mutation
 
+  # The four things browser-resolver structurally cannot check, in a browser.
+  #
+  # Its own job rather than two more steps on browser-resolver, for one reason:
+  # browser-resolver needs Node and a stdlib Python and nothing else, and that is
+  # worth keeping. This job needs a ~150 MB Chromium download and a display-less
+  # sandbox, and a flaky browser install should not be able to take the
+  # differential red with it. Both are in `test`'s needs:, so neither can be
+  # skipped without branch protection noticing.
+  browser-mechanisms:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"          # >=22: @sqlite.org/sqlite-wasm requires it
+          cache: npm
+          cache-dependency-path: apps/marching-arts/browser/package-lock.json
+
+      - name: Install
+        working-directory: apps/marching-arts/browser
+        env:
+          # The browser is installed by the next step, from the pinned
+          # playwright, rather than by npm's postinstall.
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+        run: npm ci
+
+      - name: Install Chromium
+        working-directory: apps/marching-arts/browser
+        # Chromium only: the mechanisms under test are Chromium-shaped
+        # (opfs-sahpool needs createSyncAccessHandle, which is DedicatedWorker-
+        # only, and the SharedWorker findings in README.md are engine-specific).
+        # Firefox and WebKit would need their own expectations, not the same
+        # ones run three times.
+        run: npx playwright install --with-deps chromium
+
+      - name: Build
+        working-directory: apps/marching-arts/browser
+        run: npm run build
+
+      - name: Browser mechanisms
+        working-directory: apps/marching-arts/browser
+        # opfs-sahpool persistence across a reload, the Web Locks election, the
+        # pauseVfs()/unpauseVfs() handoff, SharedWorker uniqueness. Serves the
+        # package over http://127.0.0.1 — a secure context, so no TLS needed,
+        # and OPFS is present.
+        run: npm run test:browser
+
+      - name: Browser mutation test
+        working-directory: apps/marching-arts/browser
+        # Breaks each of the four on purpose and requires the block that targets
+        # it to go red. Without this the job above is a suite, not a gate.
+        run: npm run test:browser:mutation
+
   # Aggregate gate: branch protection requires a single check named "test"
   # across the whole fleet. Green only when every gate and app suite is.
   test:
-    needs: [gates, app-tests, browser-resolver]
+    needs: [gates, app-tests, browser-resolver, browser-mechanisms]
     runs-on: ubuntu-latest
     steps:
-      - run: echo "gates, all app suites and the browser resolver green"
+      - run: echo "gates, all app suites, the browser resolver and the browser mechanisms green"
