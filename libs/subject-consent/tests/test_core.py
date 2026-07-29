@@ -13,6 +13,7 @@ Two properties are load-bearing and each has its own section below:
      mirrors UTETY's test_boundaries.py: the boundary is a test, not a comment.
 """
 import ast
+import json
 import sys
 from pathlib import Path
 
@@ -22,6 +23,7 @@ from subject_consent import core
 from subject_consent.core import (
     ChainTamperError,
     DeidentificationError,
+    FileBackend,
     SubjectConsentError,
     deidentify,
     grant,
@@ -290,6 +292,116 @@ def test_append_refuses_after_truncation(tmp_path):
         grant(tmp_path, "subj-2", "kb_promotion", OWNER)
 
 
+# ── the COMPLETE truncation: emptied is not absent ────────────────────────────
+#
+# The count anchor catches "delete the newest rows". It cannot catch "delete ALL
+# the rows" unless the reader can tell an emptied chain from one that never
+# existed — `read_rows() -> None` means absent, and absent is legitimately not
+# tampered. So a backend that returns None for both hands an attacker the
+# strongest attack available *and* the simplest one: delete every row and the
+# log reads as one that never existed. The revocation, the disclosure that names
+# them — gone, silently.
+#
+# `FileBackend` writes `<root>/consent.jsonl` beside `<root>/consent.anchor.json`,
+# so it has the same evidence marching-arts's SQLite backend has: an anchor with
+# no rows beside it is positive evidence that rows WERE here. These tests pin
+# that reading, and pin the one state that must still be absent — both gone.
+
+def _consent_rows(tmp_path):
+    """What the FileBackend itself reports for the consent chain."""
+    return FileBackend(tmp_path).read_rows("consent")
+
+
+def test_deleted_rows_file_beside_a_surviving_anchor_reads_as_emptied(tmp_path):
+    grant(tmp_path, "subj-1", "kb_promotion", OWNER)
+    (tmp_path / "consent.jsonl").unlink()          # every row deleted
+    assert (tmp_path / "consent.anchor.json").is_file()  # the anchor survives
+
+    assert _consent_rows(tmp_path) == []           # emptied, NOT None/absent
+    assert permitted(tmp_path, "subj-1", "kb_promotion") is False
+    with pytest.raises(ChainTamperError):
+        verify_consent_chain(tmp_path)             # and it says so out loud
+
+
+def test_deleted_disclosure_rows_file_raises_rather_than_reading_empty(tmp_path):
+    """A guardian's record that was emptied must announce it, not return []."""
+    record_disclosure(tmp_path, "subj-1", "lesson", "A")
+    record_disclosure(tmp_path, "subj-1", "lesson", "B")
+    f = next(p for p in (tmp_path / "disclosures").iterdir() if p.suffix == ".jsonl")
+    f.unlink()
+    with pytest.raises(ChainTamperError):
+        read_disclosures(tmp_path, "subj-1")
+
+
+def test_emptied_rows_file_with_a_surviving_anchor_is_tampered(tmp_path):
+    """The file left in place but truncated to nothing — same attack, one syscall
+    different. Already caught; pinned so it stays caught."""
+    grant(tmp_path, "subj-1", "kb_promotion", OWNER)
+    (tmp_path / "consent.jsonl").write_text("", encoding="utf-8")
+    assert _consent_rows(tmp_path) == []
+    assert permitted(tmp_path, "subj-1", "kb_promotion") is False
+    with pytest.raises(ChainTamperError):
+        verify_consent_chain(tmp_path)
+
+
+def test_unreadable_rows_file_beside_an_anchor_is_tampered_not_absent(tmp_path):
+    """Unparseable is not absent either: an anchor beside a garbage rows file is
+    the same evidence. Fail closed — ambiguous reads as tampered."""
+    grant(tmp_path, "subj-1", "kb_promotion", OWNER)
+    (tmp_path / "consent.jsonl").write_text("{not json at all\n", encoding="utf-8")
+    assert _consent_rows(tmp_path) == []
+    assert permitted(tmp_path, "subj-1", "kb_promotion") is False
+    with pytest.raises(ChainTamperError):
+        verify_consent_chain(tmp_path)
+
+
+def test_deleted_anchor_with_rows_present_is_still_tampered(tmp_path):
+    """The mirror image: rows are evidence of an anchor just as an anchor is
+    evidence of rows. `read_rows` must keep reporting the rows it has."""
+    grant(tmp_path, "subj-1", "kb_promotion", OWNER)
+    (tmp_path / "consent.anchor.json").unlink()
+    assert len(_consent_rows(tmp_path)) == 1       # not None, not []
+    assert permitted(tmp_path, "subj-1", "kb_promotion") is False
+    with pytest.raises(ChainTamperError):
+        verify_consent_chain(tmp_path)
+
+
+def test_both_files_gone_is_genuinely_absent(tmp_path):
+    """The one state that must NOT read as tampered: nothing is left to say a
+    chain was ever here, and a store that was never written is clean."""
+    grant(tmp_path, "subj-1", "kb_promotion", OWNER)
+    (tmp_path / "consent.jsonl").unlink()
+    (tmp_path / "consent.anchor.json").unlink()
+    assert _consent_rows(tmp_path) is None
+    assert permitted(tmp_path, "subj-1", "kb_promotion") is False
+    verify_consent_chain(tmp_path)                 # must not raise
+
+
+def test_never_written_chain_is_absent(tmp_path):
+    assert _consent_rows(tmp_path) is None
+    assert FileBackend(tmp_path).read_rows("disclosure/deadbeef") is None
+
+
+def test_append_refuses_to_rebuild_a_chain_whose_rows_were_deleted(tmp_path):
+    """Otherwise the next honest grant launders the attack: it would start a new
+    chain at genesis and overwrite the orphaned anchor with count=1, and the
+    store would verify clean afterwards with the deleted history gone."""
+    grant(tmp_path, "subj-1", "kb_promotion", OWNER)
+    (tmp_path / "consent.jsonl").unlink()
+    with pytest.raises(ChainTamperError):
+        grant(tmp_path, "subj-2", "kb_promotion", OWNER)
+    # the anchor was not advanced, so the evidence is still there afterwards
+    assert json.loads((tmp_path / "consent.anchor.json").read_text())["count"] == 1
+    with pytest.raises(ChainTamperError):
+        verify_consent_chain(tmp_path)
+
+
+def test_append_still_starts_a_genuinely_absent_chain(tmp_path):
+    """The refusal above must not make a fresh store unwritable."""
+    grant(tmp_path, "subj-1", "kb_promotion", OWNER)
+    assert permitted(tmp_path, "subj-1", "kb_promotion") is True
+
+
 # ── pluggable backend: the same logic over a non-file store ───────────────────
 
 class DictBackend:
@@ -335,3 +447,73 @@ def test_dict_backend_truncation_detected():
     grant(b, "s1", "person_inference", "guardian")
     b.rows["consent"] = b.rows["consent"][:1]  # truncate, leave stale anchor
     assert permitted(b, "s1", "kb_promotion") is False
+
+
+# ── the emptied chain is refused on WRITE, for every backend ──────────────────
+#
+# `read_rows` distinguishes None ("absent") from [] ("present but empty"), and
+# that distinction is the whole defence against the complete truncation. But
+# `_append` used to read `read_rows(chain) or []`, collapsing the two — and
+# since [] is falsy the guard was skipped, so no backend could make the write
+# path refuse an emptied chain however carefully it reported one.
+#
+# The failure was worse than a missed detection. `verify` caught the wipe, and
+# then the next honest append restarted at genesis, overwrote the orphaned
+# anchor with count=1, and the store verified clean with the deleted history
+# gone. The detection window was real and SELF-CLOSING: any legitimate write
+# laundered it. These tests are the closing of that window.
+
+def _wiped():
+    """Two granted transitions, then every row deleted and the anchor left."""
+    b = DictBackend()
+    grant(b, "s1", "local_only", "guardian")
+    grant(b, "s1", "kb_promotion", "guardian")
+    b.rows[core._CONSENT_CHAIN] = []          # emptied, anchor survives
+    return b
+
+
+def test_an_emptied_chain_refuses_the_next_append():
+    b = _wiped()
+    with pytest.raises(core.ChainTamperError):
+        grant(b, "s1", "person_inference", "guardian")
+
+
+def test_the_orphaned_anchor_survives_the_refused_append():
+    """The point of refusing: the evidence must still be there afterwards. If the
+    append had gone through it would have overwritten count=2 with count=1."""
+    b = _wiped()
+    with pytest.raises(core.ChainTamperError):
+        grant(b, "s1", "local_only", "guardian")
+    assert b.anchors[core._CONSENT_CHAIN]["count"] == 2
+    with pytest.raises(core.ChainTamperError):
+        core.verify_consent_chain(b)
+
+
+def test_a_wiped_chain_cannot_be_laundered_by_an_honest_write():
+    """End to end, the attack as it would actually be run: delete the rows, then
+    wait for anybody to do something ordinary."""
+    b = _wiped()
+    with pytest.raises(core.ChainTamperError):
+        grant(b, "s1", "local_only", "guardian")
+    assert permitted(b, "s1", "kb_promotion") is False
+    with pytest.raises(core.ChainTamperError):
+        core.verify_consent_chain(b)
+
+
+def test_an_emptied_disclosure_chain_is_refused_too():
+    b = DictBackend()
+    core.record_disclosure(b, "s1", "read", "leader")
+    chain = core._disclosure_chain("s1")
+    b.rows[chain] = []
+    with pytest.raises(core.ChainTamperError):
+        core.record_disclosure(b, "s1", "read", "leader")
+
+
+def test_a_genuinely_absent_chain_still_starts_at_genesis():
+    """The control. Without it, 'refuse everything' passes every test above and
+    a first grant would be impossible."""
+    b = DictBackend()
+    c = grant(b, "fresh", "local_only", "guardian")
+    assert c.status == core.GRANTED
+    assert permitted(b, "fresh", "local_only") is True
+    assert b.anchors[core._CONSENT_CHAIN]["count"] == 1
