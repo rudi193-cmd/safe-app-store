@@ -748,3 +748,250 @@ def test_the_old_global_chain_name_cannot_dodge_the_guardian_rule(roster):
         roster.connection.execute(
             "INSERT INTO consent_chain(chain, seq, row) VALUES ('consent', 1, ?)",
             (row,))
+
+
+# ── conversion has a caller, and the caller is opening the roster ───────────
+#
+# Expiry is a predicate and needs nobody to run it. Conversion is a write, and
+# until now nothing outside this file and the demo ever called it: a member
+# turned eighteen, guardian access correctly stopped resolving, and nobody was
+# ever asked whether they wanted to grant it themselves. These are the gates on
+# the pass that closes that, and each one was written by breaking the
+# implementation first.
+
+
+@pytest.fixture()
+def aged_out(tmp_path):
+    """A file-backed corps where a member turned eighteen while it was shut.
+
+    Sealed by a registered guardian at fifteen, then the birthday passes with
+    the file closed — which is the whole scenario, because a local-first app on
+    a corps laptop has no process running to notice.
+    """
+    db = tmp_path / "corps.db"
+    r = ConsentedRoster(Store(str(db)))
+    r.register_member("member", birthdate(15), "registration form")
+    r.register_guardian("parent", "member", "child", "registration form")
+    for i in range(3):
+        r.store.record_fact("member", Band.CRAFT, "rehearsal log",
+                            payload=f"member {i}")
+    r.seal("member", "parent", Band.CRAFT, "parent", "consent form")
+    r.seal("member", "leader", Band.CRAFT, "parent", "consent form")
+    r.register_member("member", birthdate(18), "corrected registration")
+    r.connection.close()
+    return db
+
+
+class _ChainCrashes(SqliteConsentBackend):
+    """A backend that dies between the row and the anchor for ONE subject.
+
+    Scoped to one chain rather than all of them so the sweep's isolation is
+    testable: a chain nobody can extend must not stop the members either side
+    of it from being asked.
+    """
+
+    def __init__(self, conn, doomed_chain):
+        super().__init__(conn)
+        self._doomed = doomed_chain
+
+    def write_anchor(self, chain, anchor):
+        if chain == self._doomed:
+            raise RuntimeError("power cut between the row and the anchor")
+        return super().write_anchor(chain, anchor)
+
+
+def test_opening_the_roster_is_what_converts(aged_out):
+    """The gap this closes: the write had no caller in any real flow.
+
+    Opening is the right one for an offline app with no scheduler, and it is
+    where migrations already run — ``Store.__init__`` brings the schema up to
+    date on construction, this brings consent state up to date on the same
+    call. Opened with the pass switched off, the guardian seals are still
+    sitting there; opened normally, the member has been asked.
+    """
+    untouched = ConsentedRoster(Store(str(aged_out)), convert_on_open=False)
+    assert untouched.opened.converted == {}
+    assert untouched.connection.execute(
+        "SELECT COUNT(*) FROM grants WHERE granted_via = 'guardian'"
+    ).fetchone()[0] == 2
+    untouched.connection.close()
+
+    opened = ConsentedRoster(Store(str(aged_out)))
+    assert opened.opened.converted == {"member": ["leader", "parent"]}
+    assert opened.opened.unconvertible == ()
+    assert opened.connection.execute(
+        "SELECT state, granted_via, sealed_by, requested_by FROM grants"
+        " WHERE subject_id = 'member' ORDER BY grantee_id"
+    ).fetchall() == [(GrantState.PENDING.value, "member", None, None)] * 2
+
+
+def test_opening_twice_asks_once(aged_out):
+    """Idempotence, and it is the ledger that makes it matter.
+
+    The disclosure chain is append-only, so a pass that ran twice would leave a
+    member's permanent record saying their guardian's authority ended twice.
+    Nothing bookkeeps this: a converted grant is no longer guardian-derived, so
+    it no longer matches the query that finds work.
+    """
+    first = ConsentedRoster(Store(str(aged_out)))
+    assert first.opened.converted == {"member": ["leader", "parent"]}
+    ledger = [d["action"] for d in first.disclosures("member", reader="member")]
+    assert ledger.count("grant.converted_at_majority") == 2  # one per grantee
+    first.connection.close()
+
+    for _ in range(2):
+        again = ConsentedRoster(Store(str(aged_out)))
+        assert again.opened.converted == {}, "a second open asked a second time"
+        assert [d["action"] for d in
+                again.disclosures("member", reader="member")] == ledger
+        again.connection.close()
+
+
+def test_conversion_never_mints_a_grant_nobody_signed(aged_out):
+    """The one thing the whole schema refuses, at the one write that could.
+
+    Carrying the guardian's seal across and relabelling it ``member`` would
+    look like continuity and would be a forgery — the member never signed
+    anything. Nothing below this module would stop it: the subject is no longer
+    a minor, so the guardian triggers do not fire, and ``sealed_by`` would be
+    populated, so the CHECK is satisfied. The second half of this test performs
+    that write by hand to show the database accepts it.
+    """
+    r = ConsentedRoster(Store(str(aged_out)))
+    for state, via, sealed_by in r.connection.execute(
+            "SELECT state, granted_via, sealed_by FROM grants"
+            " WHERE subject_id = 'member'"):
+        assert (state, via, sealed_by) == (GrantState.PENDING.value, "member", None)
+    assert r.count(LEADER) == 0
+    assert r.count(PARENT) == 0
+    assert r.subjects(LEADER) == []
+
+    r.connection.execute(
+        "UPDATE grants SET state = 'sealed', granted_via = 'member',"
+        "                  sealed_by = 'member'"
+        " WHERE subject_id = 'member' AND grantee_id = 'leader'")
+    r.connection.commit()
+    assert r.count(LEADER) == 3, (
+        "if this stops being true the schema grew a rule and this test can be"
+        " weakened; while it is true, this test is the only thing refusing it")
+
+
+def test_an_unanswered_conversion_is_not_itself_a_disclosure(aged_out):
+    """A pending ask leaks a birthday and a former guardianship, or it would.
+
+    If a section leader could see that a member has an unanswered conversion
+    request, they would have learned that the member just turned eighteen and
+    that somebody used to consent on their behalf — two L1 facts nobody granted
+    them, recovered from the shape of a question. So the ask exists only in the
+    grants table, where it authorizes nothing, and in the member's own ledger,
+    which is now theirs alone.
+    """
+    r = ConsentedRoster(Store(str(aged_out)))
+    assert _view(r, LEADER, "member") == \
+        _view(r, LEADER, "no-such-member") == ([], 0, False, [])
+
+    # Not written into the grantee's log either — "tell them a request is
+    # waiting" is the helpful-looking version of this leak.
+    assert r.disclosures("leader", reader="leader") == []
+    assert r.disclosures("parent", reader="parent") == []
+    # The former guardian's authority over the log expired on the same birthday.
+    assert r.disclosures("member", reader="parent") == []
+    # The member's own record has it, and only theirs.
+    assert [d["action"] for d in r.disclosures("member", reader="member")][-2:] \
+        == ["grant.converted_at_majority"] * 2
+
+
+def test_a_draft_guardian_grant_is_not_converted_into_a_question(aged_out):
+    """Draft is what a machine produced, and asking about it is acting on it.
+
+    Turning an inference into a consent question put to a member ratifies the
+    inference, and it writes ``guardian_authority_ended`` into an append-only
+    log for authority that never existed. Sealed rows only.
+    """
+    r = ConsentedRoster(Store(str(aged_out)), convert_on_open=False)
+    r.store.record_grant("member", "director", Band.CRAFT,
+                         GrantState.DRAFT.value, "inferred from roster",
+                         granted_via="guardian")
+    assert r.convert_everyone_at_majority().converted == \
+        {"member": ["leader", "parent"]}
+    assert r.connection.execute(
+        "SELECT state, granted_via FROM grants WHERE grantee_id = 'director'"
+    ).fetchone() == (GrantState.DRAFT.value, "guardian")
+    assert not any("director" in d["detail"] for d in
+                   r.disclosures("member", reader="member"))
+
+
+def test_a_failed_conversion_leaves_guardian_access_expired(aged_out):
+    """The failure direction. Never fall back to leaving the old grant live.
+
+    Untouched is the safe state and this is why: the guardian's seal is still
+    sitting in the table, unchanged, and it authorizes exactly nothing, because
+    what ended the access was the birthday and not the conversion. A pass that
+    could not finish costs the member an invitation, not their privacy.
+    """
+    r = ConsentedRoster(Store(str(aged_out)), convert_on_open=False)
+    r.backend = _ChainCrashes(r.connection, disclosure_chain("member"))
+
+    sweep = r.convert_everyone_at_majority()
+    assert sweep.converted == {}
+    assert sweep.unconvertible == ("member",)
+    assert not r.connection.in_transaction, "a rewrite was left open uncommitted"
+
+    assert r.connection.execute(
+        "SELECT DISTINCT state, granted_via FROM grants WHERE subject_id = 'member'"
+    ).fetchall() == [(GrantState.SEALED.value, "guardian")]
+    assert r.count(PARENT) == 0
+    assert r.count(LEADER) == 0
+    assert _view(r, PARENT, "member")[:3] == ([], 0, False)
+
+
+def test_a_failed_conversion_does_not_ride_in_on_the_next_success(aged_out):
+    """One member's broken chain must not stop — or forge — anyone else's.
+
+    Two things at once. A chain that cannot be extended is attacker-editable by
+    anyone holding the file, so a sweep that propagated the first raise would
+    let one tampered chain keep the whole corps out of the app. And the failed
+    member's rewrite is still open on the shared connection when the next
+    member's ledger row commits: leave it there and it lands as an access
+    change with no record that it happened.
+    """
+    r = ConsentedRoster(Store(str(aged_out)), convert_on_open=False)
+    r.register_member("second", birthdate(15), "registration form")
+    r.register_guardian("parent", "second", "child", "registration form")
+    r.seal("second", "leader", Band.CRAFT, "parent", "consent form")
+    r.register_member("second", birthdate(18), "corrected registration")
+
+    r.backend = _ChainCrashes(r.connection, disclosure_chain("member"))
+    sweep = r.convert_everyone_at_majority()
+
+    assert sweep.converted == {"second": ["leader"]}
+    assert sweep.unconvertible == ("member",)
+    assert r.connection.execute(
+        "SELECT DISTINCT state, granted_via FROM grants WHERE subject_id = 'member'"
+    ).fetchall() == [(GrantState.SEALED.value, "guardian")]
+    r.backend = SqliteConsentBackend(r.connection)
+    assert "grant.converted_at_majority" not in \
+        [d["action"] for d in r.disclosures("member", reader="member")]
+
+
+def test_a_corrected_birthdate_is_not_missed(tmp_path):
+    """Why the work set is derived from the data and not from a bookmark.
+
+    The obvious phrasing is "convert everyone who crossed majority since the
+    roster was last opened". This member crossed it four years before the
+    record was created: registered at fifteen from a form with a typo, and
+    corrected two seasons later. Every window query answers nobody, and answers
+    it silently and permanently. "A guardian seal on somebody who is not a
+    minor" has no window in it and is true whenever it is asked.
+    """
+    db = tmp_path / "corps.db"
+    r = ConsentedRoster(Store(str(db)))
+    r.register_member("member", birthdate(15), "registration form")
+    r.register_guardian("parent", "member", "child", "registration form")
+    r.store.record_fact("member", Band.CRAFT, "rehearsal log", payload="x")
+    r.seal("member", "leader", Band.CRAFT, "parent", "consent form")
+    r.register_member("member", birthdate(22), "birthdate corrected from the form")
+    r.connection.close()
+
+    assert ConsentedRoster(Store(str(db))).opened.converted == \
+        {"member": ["leader"]}
