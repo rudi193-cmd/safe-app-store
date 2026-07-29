@@ -79,6 +79,20 @@ though the shorter chain still links cleanly — the failure mode a plain hash c
 misses. Fail-closed: a non-empty chain with a missing or mismatched anchor is
 treated as tampered.
 
+**Emptied is not absent.** `read_rows` returns `None` for "no such chain" and `[]`
+for "there, and empty" — and absent is legitimately *not* tampered, so answering
+`None` for a chain whose rows were all deleted would make the strongest attack
+also the simplest one: delete every row and the log reads as one that never
+existed. A backend must be able to tell the two apart, and the anchor is what
+lets it: the anchor lives beside the rows and survives their deletion, so an
+**orphaned anchor is positive evidence that rows were here**. An emptied chain
+therefore reads `[]` (which fails verification), and `None` is answered only when
+nothing is left at all. For `FileBackend`: `consent.jsonl` gone — or unreadable —
+beside a surviving `consent.anchor.json` is *tampered*; both files gone is
+*absent*. An orphaned anchor also blocks `append_row`, because otherwise the next
+honest grant would rebuild the chain from genesis, overwrite the anchor, and
+leave a store that verifies clean with the deleted history gone.
+
 ## What lives in the binding, not here (on purpose)
 
 - **owner == subject** is not special-cased — the core doesn't know who the owner
