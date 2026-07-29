@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>marching-arts — browser-only checks</title>
+    <title>marching-arts — browser-only checks, by hand</title>
     <style>
       :root { color-scheme: light dark; --ok: #157f3b; --bad: #b3261e; --dim: #6b6b6b; }
       body {
@@ -11,7 +11,8 @@
         margin: 0 auto; max-width: 62rem; padding: 2rem 1.25rem 4rem;
       }
       h1 { font-size: 1.3rem; margin: 0 0 .25rem; }
-      p.lede { color: var(--dim); margin: 0 0 1.5rem; max-width: 46rem; font-family: system-ui, sans-serif; }
+      p.lede, .note { color: var(--dim); margin: 0 0 1rem; max-width: 48rem; font-family: system-ui, sans-serif; }
+      .note { border-left: 3px solid rgba(127,127,127,.5); padding-left: .9rem; }
       button { font: inherit; padding: .45rem .9rem; margin: 0 .5rem .5rem 0; }
       .row { display: flex; gap: .5rem; align-items: baseline; padding: .15rem 0; }
       .tag { flex: 0 0 5.5rem; font-weight: 600; }
@@ -20,20 +21,41 @@
       .skip .tag { color: var(--dim); }
       pre { background: rgba(127,127,127,.12); padding: .75rem; overflow-x: auto; border-radius: 4px; }
       section { border-top: 1px solid rgba(127,127,127,.3); margin-top: 1.5rem; padding-top: 1rem; }
+      code { background: rgba(127,127,127,.15); padding: 0 .2em; border-radius: 3px; }
     </style>
   </head>
   <body>
     <h1>marching-arts — the checks Node cannot run</h1>
-    <p class="lede">
-      <code>npm test</code> covers the resolver, the predicate compiler, the schema and the
-      owner protocol, all on the in-memory VFS. Three things it cannot cover, because Node has
-      neither OPFS nor SharedWorker: the <code>opfs-sahpool</code> VFS itself, the Web Locks
-      election, and the <code>pauseVfs()</code>/<code>unpauseVfs()</code> handoff. This page
-      drives those. Serve it over http (not <code>file://</code> — a null origin has no OPFS)
-      and open it in <em>two tabs</em> for the handoff check.
+
+    <p class="note">
+      <strong>These four are now automated.</strong>
+      <code>npm run test:browser</code> drives all of them in a headless Chromium
+      and <code>npm run test:browser:mutation</code> breaks each one to prove the
+      checks can fail. Both run in CI as the <code>browser-mechanisms</code> job.
+      This page is kept for looking at a mechanism by hand, and for driving the
+      <em>two-tab</em> cases interactively — it is not the gate.
     </p>
 
-    <button id="run-vfs">1 · open on opfs-sahpool</button>
+    <p class="lede">
+      Serve this directory over http (<code>npm run serve</code>, then
+      <a href="http://127.0.0.1:8177/test/browser.html">127.0.0.1:8177/test/browser.html</a>).
+      Not <code>file://</code>: a null origin has no OPFS. That server also
+      rewrites the one bare import specifier <code>dist/</code> uses, which a
+      browser cannot resolve on its own — any other static server will 404 on
+      <code>@sqlite.org/sqlite-wasm</code>.
+    </p>
+
+    <p class="note">
+      <strong>Everything below runs in a worker, not on this page.</strong>
+      <code>FileSystemFileHandle.createSyncAccessHandle()</code> is
+      <code>[Exposed=DedicatedWorker]</code>, so <code>installOpfsSAHPoolVfs()</code>
+      on the main thread fails with <em>“Missing required OPFS APIs.”</em> and
+      <code>openDatabase()</code> silently returns the memory rung. An earlier
+      version of this page called it directly and reported <code>vfs = memory</code>
+      forever, which read as a broken pool rather than as the wrong thread.
+    </p>
+
+    <button id="run-vfs">1 · open on opfs-sahpool (in a worker)</button>
     <button id="run-gate">2 · run the gate on the real VFS</button>
     <button id="run-owner">3 · attach to the SharedWorker owner</button>
     <button id="run-handoff">4 · yield the pool to another tab</button>
@@ -45,21 +67,21 @@
       <pre id="notes">
 1  the SAH pool installed and a database opened on it: durability is real
 2  the P1 gate holds against a file, not only against :memory:
-3  every tab shares one owner: the second tab's count sees the first tab's writes
+3  every tab shares one owner — but see the note below about what that owner is on
 4  the pool was released and retaken without corruption: pauseVfs/unpauseVfs work
       </pre>
+      <p class="note">
+        On button 3, expect <code>vfs=memory durable=false</code>, and that is not
+        a bug in this page. A SharedWorker is not a DedicatedWorker, so it cannot
+        create sync access handles either; the shared owner gives uniqueness
+        without durability on this engine. See <em>What is NOT verified here</em>
+        in README.md — the tripwire in <code>test/browser-gate.mjs</code> fails the
+        day that changes.
+      </p>
     </section>
 
     <script type="module">
-      import {
-        Band,
-        GrantState,
-        Store,
-        connectToOwner,
-        openDatabase,
-        principal,
-        sqlite3,
-      } from '../dist/index.js';
+      import { Band, Store, connectToOwner, principal, sqlite3 } from '../dist/index.js';
 
       const out = document.getElementById('out');
       const line = (cls, tag, text) => {
@@ -73,29 +95,50 @@
       const ok = (t) => line('ok', 'ok', t);
       const bad = (t) => line('bad', 'FAIL', t);
       const info = (t) => line('skip', '·', t);
-
       const check = (cond, t) => (cond ? ok(t) : bad(t));
+
+      // ── the worker that can actually hold the pool ────────────────────────
+      const worker = new Worker(new URL('./fixtures/probe-worker.js', import.meta.url), {
+        type: 'module',
+      });
+      let nextId = 0;
+      const call = (cmd, arg) =>
+        new Promise((resolve, reject) => {
+          const id = ++nextId;
+          const onMessage = (e) => {
+            if (!e.data || e.data.id !== id) return;
+            worker.removeEventListener('message', onMessage);
+            if (e.data.ok) resolve(e.data.value);
+            else reject(new Error(e.data.error));
+          };
+          worker.addEventListener('message', onMessage);
+          worker.postMessage({ id, cmd, arg });
+        });
+
+      let opened = false;
+      async function ensureOpen() {
+        if (opened) return null;
+        const open = await call('open');
+        opened = true;
+        return open;
+      }
 
       document.getElementById('run-vfs').onclick = async () => {
         try {
           const api = await sqlite3();
-          info(`sqlite ${api.version.libVersion}`);
-          check(
-            typeof api.installOpfsSAHPoolVfs === 'function',
-            'installOpfsSAHPoolVfs is present in this build',
-          );
-          const open = await openDatabase();
+          info(`sqlite ${api.version.libVersion} (this page: ${self.constructor.name})`);
+          const open = (await ensureOpen()) ?? { vfs: '(already open)', durable: true, notes: [] };
           check(open.vfs === 'opfs-sahpool', `vfs = ${open.vfs}`);
           check(open.durable === true, `durable = ${open.durable}`);
           for (const n of open.notes) info(n);
-          const store = await Store.open(open.conn);
-          const before = await store.count(principal('probe'));
-          await store.recordFact('probe', Band.ROSTER, 'browser check', {
+          const subject = 'probe';
+          const before = await call('count', { subject });
+          const after = await call('write', {
+            subject,
             payload: `written at ${new Date().toISOString()}`,
           });
-          const after = await store.count(principal('probe'));
-          check(after === before + 1, `count ${before} -> ${after} (survives reload if durable)`);
-          await open.close();
+          check(after === before + 1, `count ${before} -> ${after}`);
+          info('now reload this page and press 1 again: the count must continue, not restart');
         } catch (error) {
           bad(String(error));
         }
@@ -103,42 +146,9 @@
 
       document.getElementById('run-gate').onclick = async () => {
         try {
-          const open = await openDatabase();
-          info(`running the gate on vfs=${open.vfs}`);
-          const store = await Store.open(open.conn);
-          const stamp = String(Date.now());
-          const visible = `visible-${stamp}`;
-          const hidden = `hidden-${stamp}`;
-          const leader = principal(`leader-${stamp}`);
-          for (let i = 0; i < 3; i++)
-            await store.recordFact(visible, Band.CRAFT, 'rehearsal log', { payload: `v${i}` });
-          for (let i = 0; i < 7; i++)
-            await store.recordFact(hidden, Band.CRAFT, 'rehearsal log', { payload: `h${i}` });
-          await store.recordGrant(visible, leader.personId, Band.CRAFT, GrantState.SEALED, 'form', {
-            sealedBy: 'guardian',
-          });
-
-          check((await store.count(leader)) === 3, 'COUNT excludes hidden rows');
-          check(
-            (await store.count(leader, { where: '1 = 1 OR 1 = 1' })) === 3,
-            'a caller filter cannot widen',
-          );
-          const refused = await store.visible(leader, {
-            where: 'facts.subject_id = :s',
-            params: { s: hidden },
-          });
-          const absent = await store.visible(leader, {
-            where: 'facts.subject_id = :s',
-            params: { s: 'no-such-person' },
-          });
-          check(
-            refused.length === 0 && absent.length === 0,
-            'refused and nonexistent are indistinguishable',
-          );
-          const subjects = await store.subjects(leader);
-          check(subjects.length === 1 && subjects[0] === visible, 'the subject list omits');
-          check((await store.count(principal('nobody-at-all'))) === 0, 'an unknown principal sees nothing');
-          await open.close();
+          const open = await ensureOpen();
+          info(`running the gate on vfs=${open ? open.vfs : '(already open)'}`);
+          for (const [passed, name] of await call('gateBattery')) check(passed, name);
         } catch (error) {
           bad(String(error));
         }
@@ -148,7 +158,20 @@
         try {
           check(typeof SharedWorker === 'function', 'SharedWorker is available');
           const conn = connectToOwner(new URL('../dist/sharedworker.js', import.meta.url));
-          conn.onNotice = (n) => info(`owner notice: ${n.notice} vfs=${n.vfs} durable=${n.durable}`);
+          const ready = new Promise((resolve) => {
+            conn.onNotice = (n) => {
+              info(`owner notice: ${n.notice} vfs=${n.vfs} durable=${n.durable}`);
+              if (n.notice === 'ready') resolve(n);
+            };
+          });
+          // Wait for `ready`. A request issued before the owner has opened is
+          // answered with OwnerUnavailable rather than queued, so a shell has to
+          // wait for this notice too.
+          const notice = await ready;
+          check(
+            notice.durable === (notice.vfs === 'opfs-sahpool'),
+            `the owner does not overclaim: vfs=${notice.vfs} durable=${notice.durable}`,
+          );
           const store = await Store.open(conn);
           const who = principal('owner-probe');
           const before = await store.count(who);
@@ -157,7 +180,7 @@
           });
           const after = await store.count(who);
           ok(`count through the owner: ${before} -> ${after}`);
-          info('open this page in a second tab and press 3 again: the count must continue, not restart');
+          info('open this page in a second tab and press 3 again: the count must continue');
         } catch (error) {
           bad(String(error));
         }
@@ -171,26 +194,21 @@
           const pending = (state.pending ?? []).filter((l) => l.name === 'marching-arts.db.owner');
           info(`owner lock: ${held.length} held, ${pending.length} pending`);
           check(held.length <= 1, 'at most one context holds the owner lock');
-          info('now: challenge it, and confirm the pool is released and retaken');
+          info('challenging it; the current holder must release the pool first');
           const t0 = performance.now();
-          await navigator.locks.request(
-            'marching-arts.db.owner',
-            { mode: 'exclusive' },
-            async () => {
-              const waited = performance.now() - t0;
-              ok(`acquired the owner lock after ${waited.toFixed(0)} ms`);
-              const open = await openDatabase();
-              check(open.vfs === 'opfs-sahpool', `retook the pool: vfs = ${open.vfs}`);
-              const store = await Store.open(open.conn);
-              const n = await store.count(principal('owner-probe'));
-              ok(`the database is readable after the handoff: ${n} row(s) for owner-probe`);
-              await open.pause();
-              ok('pauseVfs() released the handles');
-              await open.unpause();
-              ok('unpauseVfs() retook them');
-              await open.close();
-            },
-          );
+          const got = await call('acquire', { timeoutMs: 30000 });
+          check(got.held, `acquired the owner lock after ${(performance.now() - t0).toFixed(0)} ms`);
+          const open = await call('open');
+          check(open.vfs === 'opfs-sahpool', `retook the pool: vfs = ${open.vfs}`);
+          opened = true;
+          const n = await call('count', { subject: 'probe' });
+          ok(`the database is readable after the handoff: ${n} row(s) for probe`);
+          await call('pause');
+          ok('pause() closed the database and released the handles');
+          await call('unpause');
+          ok('unpause() retook them and re-opened the file');
+          await call('release');
+          info('released the owner lock');
         } catch (error) {
           bad(String(error));
         }
@@ -198,12 +216,15 @@
 
       document.getElementById('wipe').onclick = async () => {
         try {
+          // Deliberately on the main thread: wipeFiles() needs the pool, which
+          // the main thread cannot install, so this reports honestly rather than
+          // appearing to work.
           const api = await sqlite3();
           const pool = await api.installOpfsSAHPoolVfs({ name: 'marching-arts-pool' });
           await pool.wipeFiles();
           ok('pool wiped');
         } catch (error) {
-          bad(String(error));
+          bad(`${error} — wipe from a worker, or close the tab holding the pool`);
         }
       };
     </script>

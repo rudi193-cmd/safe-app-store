@@ -29,6 +29,9 @@
     "test:owner": "node test/owner.mjs",
     "test:differential": "python3 test/gen_reference.py && node test/differential.mjs",
     "test:mutation": "node test/mutate.mjs",
+    "test:browser": "node test/browser-gate.mjs",
+    "test:browser:mutation": "node test/mutate-browser.mjs",
+    "serve": "node test/serve.mjs",
     "gen": "python3 test/gen_reference.py"
   },
   "engines": {
@@ -38,6 +41,7 @@
     "@sqlite.org/sqlite-wasm": "^3.53.0-build1"
   },
   "devDependencies": {
+    "playwright": "1.56.1",
     "typescript": ">=5.4"
   }
 }

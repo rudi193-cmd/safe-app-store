@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>marching-arts — browser gate harness</title>
+  </head>
+  <body>
+    <p>
+      Harness page for <code>test/browser-gate.mjs</code>. One of these is one
+      browsing context. It spawns a dedicated worker running
+      <code>fixtures/probe-worker.js</code> and exposes it to Playwright as
+      <code>window.probe</code>; the SharedWorker helpers below stay on the main
+      thread, because that is where a tab attaches to the owner.
+    </p>
+
+    <script type="module">
+      // ── the dedicated worker, over the RPC in probe-worker.js ──────────────
+      const worker = new Worker(new URL('./probe-worker.js', import.meta.url), {
+        type: 'module',
+      });
+
+      let nextId = 0;
+      const events = [];
+      worker.addEventListener('message', (e) => {
+        if (e.data && e.data.event) events.push(e.data);
+      });
+
+      const call = (cmd, arg) =>
+        new Promise((resolve, reject) => {
+          const id = ++nextId;
+          const onMessage = (e) => {
+            if (!e.data || e.data.id !== id) return;
+            worker.removeEventListener('message', onMessage);
+            if (e.data.ok) resolve(e.data.value);
+            else reject(new Error(e.data.error));
+          };
+          worker.addEventListener('message', onMessage);
+          worker.postMessage({ id, cmd, arg });
+        });
+
+      // ── the SharedWorker owner, as a tab actually attaches to it ───────────
+      let ownerConn = null;
+      const notices = [];
+
+      /**
+       * Attach, and wait for the owner's `ready` notice before returning.
+       *
+       * The wait is not politeness. `serve()` answers a request that arrives
+       * before the owner has opened with a hard `OwnerUnavailable` rather than
+       * queueing it, so a tab that starts issuing SQL the moment its port exists
+       * races the owner's lock acquisition and loses on a cold start. `ready` is
+       * the documented signal that the owner is serving; a shell has to wait for
+       * it, and so does this.
+       *
+       * It is also the only sane failure mode for the uniqueness check: a second
+       * SharedWorker instance would sit blocked on the owner lock forever and
+       * never announce `ready`, so this times out rather than hanging.
+       */
+      async function attachToOwner({ timeoutMs = 10000 } = {}) {
+        const { connectToOwner } = await import('../../dist/index.js');
+        ownerConn = connectToOwner(new URL('../../dist/sharedworker.js', import.meta.url));
+        return new Promise((resolve, reject) => {
+          const timer = setTimeout(
+            () => reject(new Error(`no ready notice from the owner within ${timeoutMs} ms`)),
+            timeoutMs,
+          );
+          ownerConn.onNotice = (n) => {
+            notices.push(n);
+            if (n.notice === 'ready') {
+              clearTimeout(timer);
+              resolve(true);
+            }
+          };
+        });
+      }
+
+      async function ownerStore() {
+        const { Store } = await import('../../dist/index.js');
+        if (!globalThis.__store) globalThis.__store = await Store.open(ownerConn);
+        return globalThis.__store;
+      }
+
+      window.probe = {
+        call,
+        events: () => events.slice(),
+        attachToOwner,
+        notices: () => notices.map((n) => ({ ...n })),
+        async ownerWrite(subject, payload) {
+          const { Band, principal } = await import('../../dist/index.js');
+          const store = await ownerStore();
+          await store.recordFact(subject, Band.ROSTER, 'browser-gate', { payload });
+          return store.count(principal(subject));
+        },
+        async ownerCount(subject) {
+          const { principal } = await import('../../dist/index.js');
+          const store = await ownerStore();
+          return store.count(principal(subject));
+        },
+        async ownerPayloads(subject) {
+          const { principal } = await import('../../dist/index.js');
+          const store = await ownerStore();
+          const rows = await store.visible(principal(subject), { orderBy: 'id' });
+          return rows.map((r) => r.payload);
+        },
+      };
+
+      window.probeReady = true;
+    </script>
+  </body>
+</html>
