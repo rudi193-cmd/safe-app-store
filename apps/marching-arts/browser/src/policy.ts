@@ -14,6 +14,17 @@
  * revocation therefore takes effect on the next read with no cache to
  * invalidate.
  *
+ * **Guardian authority expires; it does not persist.** A grant a guardian signed
+ * for a minor carries `granted_via = 'guardian'`, and the predicate honours it
+ * only while the subject is still under `MAJORITY_AGE`. Nothing is scheduled and
+ * nothing has to remember: the day the member turns eighteen the guardian's
+ * grant stops resolving, and the member is the only person who can put it back.
+ * An `is_minor` flag would have needed a nightly job, and the failure mode of a
+ * job that does not run is a guardian who keeps reading an adult's record. The
+ * clause is nested *inside* the grant lookup, so it is re-evaluated per row on
+ * every read — in a browser tab that has been open since before a birthday just
+ * as much as in a fresh one.
+ *
  * **Only a sealed grant authorizes.** A grant a named human signed is *sealed*;
  * anything the system inferred is *draft* and is never acted on; a subject with
  * no grant on file is *pending*, which is not a denial to be rendered but an
@@ -31,6 +42,14 @@
 import { DERIVE_AT, NEVER_SERVED, neverServedList } from './bands.js';
 import { Effect, type Params, type Rule, rule } from './rules.js';
 
+/**
+ * The age at which a member's consent becomes their own. Referenced by the
+ * resolver below *and* by schema.ts's triggers, so the read path and the write
+ * path cannot drift apart on the one number that decides whose consent counts —
+ * the same single-definition arrangement policy.py and schema.py have.
+ */
+export const MAJORITY_AGE = 18;
+
 /** Nestor's cascade, applied to consent rather than to answers. */
 export const GrantState = {
   /** A named human signed this. The only state that authorizes. */
@@ -42,6 +61,21 @@ export const GrantState = {
 } as const;
 
 export type GrantState = (typeof GrantState)[keyof typeof GrantState];
+
+/**
+ * Whose consent this grant is. Not a synonym for who signed it.
+ *
+ * `MEMBER` is a grant the subject gave for themselves and it stands until they
+ * revoke it. `GUARDIAN` is authority borrowed from a relationship the platform
+ * did not create and cannot extend: it stops resolving at `MAJORITY_AGE`,
+ * whether or not anyone converts it.
+ */
+export const GrantVia = {
+  MEMBER: 'member',
+  GUARDIAN: 'guardian',
+} as const;
+
+export type GrantVia = (typeof GrantVia)[keyof typeof GrantVia];
 
 /**
  * Whoever is asking. Roles are context, never authority on their own.
@@ -74,6 +108,29 @@ export class Policy {
    */
   readonly grantsTable: string = 'grants';
 
+  /**
+   * Table carrying birthdates. Referenced by correlated subquery from inside the
+   * grant lookup so that "still a minor" is re-evaluated on every read.
+   */
+  readonly peopleTable: string = 'people';
+
+  /**
+   * SQL that is true while `person` is under `MAJORITY_AGE`.
+   *
+   * `person` is a SQL expression, not a value — a column reference from the
+   * enclosing query, or a bound placeholder. Written once and reused so that a
+   * guardian-expiry check cannot end up phrased two slightly different ways in
+   * two places, which is the shape of bug where access expires in the resolver
+   * but not in the thing that decides who may seal.
+   */
+  stillAMinor(person: string): string {
+    return (
+      `EXISTS (SELECT 1 FROM ${this.peopleTable} p` +
+      ` WHERE p.person_id = ${person}` +
+      `   AND date('now') < date(p.birthdate, '+${MAJORITY_AGE} years'))`
+    );
+  }
+
   rules(p: Principal): Rule[] {
     const rules: Rule[] = [
       // A person always sees their own record, at every band, with no grant
@@ -95,9 +152,18 @@ export class Policy {
           ' g WHERE g.subject_id = facts.subject_id' +
           '   AND g.grantee_id = {viewer}' +
           '   AND g.state = {sealed}' +
-          '   AND g.band >= facts.band)',
-        { viewer: p.personId, sealed: GrantState.SEALED },
-        "a sealed grant from the subject reaches this row's band",
+          '   AND g.band >= facts.band' +
+          // Guardian-derived authority is honoured only while the subject is
+          // still a minor. Delete this clause and a guardian keeps an adult
+          // member's record for life; that is the mutation the majority test in
+          // tests/test_consent.py exists to catch, and `guardian-clause` in
+          // test/mutate.mjs is its counterpart on this side.
+          '   AND (g.granted_via = {member} OR ' +
+          this.stillAMinor('g.subject_id') +
+          '))',
+        { viewer: p.personId, sealed: GrantState.SEALED, member: GrantVia.MEMBER },
+        'a sealed grant from the subject — or from a guardian while the' +
+          " subject is still a minor — reaches this row's band",
       ),
     ];
 

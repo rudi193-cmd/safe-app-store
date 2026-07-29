@@ -28,6 +28,7 @@ import {
   Effect,
   DENY_ALL,
   GrantState,
+  GrantVia,
   Policy,
   Store,
   compileRules,
@@ -132,6 +133,33 @@ async function fixture() {
   await store.recordGrant('visible-member', 'leader', Band.CRAFT, GrantState.SEALED, 'consent form', {
     sealedBy: 'guardian',
   });
+  return { conn, store };
+}
+
+/** A birthdate `yearsAgo` years before today, in the form the CHECK demands. */
+function birthdate(yearsAgo) {
+  const d = new Date();
+  d.setUTCFullYear(d.getUTCFullYear() - yearsAgo);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * A fifteen-year-old with a registered guardian, and an adult member.
+ *
+ * Mirrors the `roster` fixture in `../tests/test_consent.py`, minus the consent
+ * library itself — that core is Python-only. What is reproduced here is the part
+ * the resolver owns: rows, people, guardianships and grants.
+ */
+async function guardianFixture() {
+  const conn = new TracingConnection(await openMemory(api));
+  const store = await Store.open(conn);
+  for (let i = 0; i < 3; i++) {
+    await store.recordFact('minor-member', Band.CRAFT, 'rehearsal log', { payload: `minor ${i}` });
+    await store.recordFact('adult-member', Band.CRAFT, 'rehearsal log', { payload: `adult ${i}` });
+  }
+  await store.recordPerson('minor-member', birthdate(15), 'registration form');
+  await store.recordPerson('adult-member', birthdate(30), 'registration form');
+  await store.recordGuardianship('parent', 'minor-member', 'child', 'registration form');
   return { conn, store };
 }
 
@@ -401,6 +429,217 @@ test('a grant in an invented state is refused by the schema', async () => {
     () => store.recordGrant('p', 'q', Band.CRAFT, 'approved', 'form', { sealedBy: 'x' }),
     "state 'approved' accepted",
   );
+});
+
+// ── guardian authority, and the fact that it expires ────────────────────────
+//
+// These exist because the differential structurally cannot check them. The
+// randomised corpus in gen_reference.py contains no `people` rows and no
+// guardian-derived grants, so deleting the guardian clause from policy.ts
+// changes *no answer* anywhere in it — all 14,650 disagreements that mutation
+// produces are SQL text and bound parameters, not a single count or row. Text
+// agreement is a real check and it caught the drift that started this work, but
+// it is agreement about spelling. The tests below say what the clause is *for*,
+// in answers, the way `../tests/test_consent.py` does on the Python side.
+
+test('a guardian sees their minor’s rows while the minor is a minor', async () => {
+  const { store } = await guardianFixture();
+  await store.recordGrant('minor-member', 'parent', Band.CRAFT, GrantState.SEALED, 'consent form', {
+    sealedBy: 'parent',
+    grantedVia: GrantVia.GUARDIAN,
+  });
+  eq(await store.count(principal('parent')), 3, 'the guardian sees nothing');
+  eq(await store.subjects(principal('parent')), ['minor-member']);
+});
+
+test('guardian access stops at majority with nothing scheduled', async () => {
+  // The birthday is the mechanism. No job runs, and no job can fail to run: the
+  // grant row is untouched and the access is gone anyway, because the predicate
+  // re-asks on every read.
+  const { conn, store } = await guardianFixture();
+  await store.recordGrant('minor-member', 'parent', Band.CRAFT, GrantState.SEALED, 'consent form', {
+    sealedBy: 'parent',
+    grantedVia: GrantVia.GUARDIAN,
+  });
+  eq(await store.count(principal('parent')), 3);
+
+  await store.recordPerson('minor-member', birthdate(18), 'corrected registration');
+
+  eq(await store.count(principal('parent')), 0, 'a guardian kept an adult’s record');
+  eq(await store.subjects(principal('parent')), []);
+  eq(
+    await store.visible(principal('parent'), {
+      where: 'facts.subject_id = :s',
+      params: { s: 'minor-member' },
+    }),
+    [],
+  );
+  // Untouched in the table. Nothing ran; the access is gone regardless.
+  const row = await conn.get("SELECT state, granted_via FROM grants WHERE grantee_id = 'parent'");
+  eq([String(row[0]), String(row[1])], [GrantState.SEALED, GrantVia.GUARDIAN]);
+});
+
+test('a member-granted grant is unaffected by the subject’s age', async () => {
+  // The control. Without this, "deny everything" would pass the test above.
+  const { store } = await guardianFixture();
+  await store.recordGrant('adult-member', 'leader', Band.CRAFT, GrantState.SEALED, 'consent form', {
+    sealedBy: 'adult-member',
+    grantedVia: GrantVia.MEMBER,
+  });
+  eq(await store.count(LEADER), 3, 'a member’s own consent stopped resolving');
+  await store.recordPerson('adult-member', birthdate(80), 'corrected registration');
+  eq(await store.count(LEADER), 3, 'the member grant depended on the birthdate');
+});
+
+test('a subject still sees their own record after majority', async () => {
+  // Guardian expiry withdraws the guardian, not the member. The self rule needs
+  // no grant, so nothing about a birthday touches it.
+  const { store } = await guardianFixture();
+  await store.recordPerson('minor-member', birthdate(18), 'corrected registration');
+  eq(await store.count(principal('minor-member')), 3);
+});
+
+// ── the schema refuses, on the guardian path ────────────────────────────────
+//
+// Migration 002's triggers. They hold against a writer who never heard of them,
+// including one written in JavaScript, because they live in the database rather
+// than in either implementation.
+
+test('a minor’s sealed grant must be guardian-derived', async () => {
+  const { store } = await guardianFixture();
+  await rejects(
+    () =>
+      store.recordGrant('minor-member', 'leader', Band.CRAFT, GrantState.SEALED, 'consent form', {
+        sealedBy: 'parent',
+      }),
+    'a minor consented for themselves',
+  );
+});
+
+test('only a registered guardian may seal for a minor', async () => {
+  const { store } = await guardianFixture();
+  await rejects(
+    () =>
+      store.recordGrant('minor-member', 'leader', Band.CRAFT, GrantState.SEALED, 'consent form', {
+        sealedBy: 'some-adult',
+        grantedVia: GrantVia.GUARDIAN,
+      }),
+    'an unregistered adult sealed for a minor',
+  );
+});
+
+test('guardian authority cannot be written for an adult', async () => {
+  // Not merely un-honoured at read time — unwritable, so the row cannot sit
+  // there looking valid.
+  const { store } = await guardianFixture();
+  await store.recordGuardianship('parent', 'adult-member', 'other', 'registration form');
+  await rejects(
+    () =>
+      store.recordGrant('adult-member', 'leader', Band.CRAFT, GrantState.SEALED, 'consent form', {
+        sealedBy: 'parent',
+        grantedVia: GrantVia.GUARDIAN,
+      }),
+    'guardian authority was written over an adult',
+  );
+});
+
+test('consent may not be signed or requested by the beneficiary', async () => {
+  const { store } = await guardianFixture();
+  await rejects(
+    () =>
+      store.recordGrant('adult-member', 'leader', Band.CRAFT, GrantState.SEALED, 'consent form', {
+        sealedBy: 'leader',
+      }),
+    'the beneficiary signed their own access',
+  );
+  await rejects(
+    () =>
+      store.recordGrant('adult-member', 'leader', Band.CRAFT, GrantState.DRAFT, 'consent form', {
+        requestedBy: 'leader',
+      }),
+    'the beneficiary requested their own access',
+  );
+  // The carve-out: a registered guardian of the subject, whose access to their
+  // own minor's record is the relationship rather than an abuse of one.
+  await store.recordGrant('minor-member', 'parent', Band.CRAFT, GrantState.SEALED, 'consent form', {
+    sealedBy: 'parent',
+    grantedVia: GrantVia.GUARDIAN,
+  });
+  eq(await store.count(principal('parent')), 3);
+});
+
+test('a guardianship must be over somebody else who exists', async () => {
+  const { store } = await guardianFixture();
+  await rejects(
+    () => store.recordGuardianship('minor-member', 'minor-member', 'other', 'form'),
+    'somebody was made their own guardian',
+  );
+  await rejects(
+    () => store.recordGuardianship('parent', 'no-such-member', 'child', 'form'),
+    'a guardianship over nobody was accepted',
+  );
+});
+
+test('a malformed birthdate is refused rather than read as NULL', async () => {
+  // A CHECK that evaluates to NULL passes. Without the IS NOT NULL half, a
+  // fourteen-year-old with a typo'd birthdate quietly becomes an adult.
+  const { store } = await guardianFixture();
+  await rejects(() => store.recordPerson('p', 'not-a-date', 'form'), 'a non-date was accepted');
+  await rejects(() => store.recordPerson('p', '2011-6-1', 'form'), 'an unnormalised date was accepted');
+});
+
+// ── migration 004: the guardian rule survives per-subject partitioning ───────
+//
+// The resolver does not write the consent chain — `subject_consent` is
+// Python-only and stays that way. The *schema* is ported, though, and 003's
+// trigger matched `new.chain = 'consent'` exactly, so partitioning the chain as
+// `consent/<subject_hash>` silently stopped it firing. This is the check that
+// 004's replacement landed on this side too.
+
+async function chainInsert(conn, chain, seq, row) {
+  await conn.run('INSERT INTO consent_chain(chain, seq, row) VALUES (:c, :s, :r)', {
+    c: chain,
+    s: seq,
+    r: JSON.stringify(row),
+  });
+}
+
+test('a minor’s use-consent is refused in a per-subject chain partition', async () => {
+  const { conn } = await guardianFixture();
+  const granted = { subject_id: 'minor-member', status: 'granted', granted_by: 'minor-member' };
+  await rejects(
+    () => chainInsert(conn, 'consent/9f86d081884c7d65', 1, granted),
+    'a minor consented for themselves in a partitioned chain',
+  );
+  // The bare name is kept on purpose: a writer reaching past the module straight
+  // to SQL must not be able to dodge the rule by using the old chain name.
+  await rejects(
+    () => chainInsert(conn, 'consent', 1, granted),
+    'a minor consented for themselves under the bare chain name',
+  );
+});
+
+test('a guardian’s use-consent lands, and unrelated chains are untouched', async () => {
+  const { conn } = await guardianFixture();
+  await chainInsert(conn, 'consent/9f86d081884c7d65', 1, {
+    subject_id: 'minor-member',
+    status: 'granted',
+    granted_by: 'parent',
+  });
+  // An adult grants their own; and a chain that is not a consent chain is not
+  // this trigger's business.
+  await chainInsert(conn, 'consent/ab12', 1, {
+    subject_id: 'adult-member',
+    status: 'granted',
+    granted_by: 'adult-member',
+  });
+  await chainInsert(conn, 'disclosure/9f86', 1, {
+    subject_id: 'minor-member',
+    status: 'granted',
+    granted_by: 'minor-member',
+  });
+  const row = await conn.get('SELECT COUNT(*) FROM consent_chain');
+  eq(Number(row[0]), 3);
 });
 
 // ── the compiler, independently of the policy ───────────────────────────────
