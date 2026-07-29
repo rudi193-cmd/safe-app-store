@@ -13,6 +13,14 @@ negatively regardless of the underlying agreement. It reported GE1 vs GE2 at
 -0.24 — a startling finding of judge independence that does not exist. The true
 value is +0.988. Do not residualise on an aggregate the inputs compose.
 
+AND SAY WHICH AGGREGATION. A rank correlation is not one number until you state
+what you grouped by, and +0.988 was quoted in four documents without that. It is
+the MEAN OF WITHIN-SHEET rho across the 12 qualifying sheets. Pooling all 280
+rows into one correlation instead gives 0.986, and semifinals rows alone give
+0.985 — the same conclusion, different figures, and a reader who cannot tell
+which one they are holding cannot check it. The output below prints the
+aggregation next to the numbers for that reason.
+
 Usage:  python tools/caption_dimensionality.py path/to/dci_scores.db
 
 Stdlib only. Reads; never writes.
@@ -63,7 +71,13 @@ def main(db_path: str) -> None:
         sheets[(row["year"], row["round"])].append(row)
     scored = [s for s in sheets.values() if len(s) >= MIN_SHEET]
 
-    print(f"{len(rows)} caption rows, {len(scored)} sheets of >= {MIN_SHEET}\n")
+    print(f"{len(rows)} caption rows, {len(scored)} sheets of >= {MIN_SHEET}")
+    print("aggregation: MEAN OF WITHIN-SHEET Spearman rho, one sheet per "
+          "(year, round).")
+    print("             Pooling all rows into a single correlation gives a "
+          "different\n"
+          "             figure for the same conclusion — see the module "
+          "docstring.\n")
     print(f"{'pair':<34}{'mean rho':>10}{'worst':>9}   scope")
     for left, right, scope in PAIRS:
         rhos = [spearman([r[left] for r in s], [r[right] for r in s]) for s in scored]
