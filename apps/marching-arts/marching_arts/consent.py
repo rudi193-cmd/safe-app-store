@@ -37,6 +37,7 @@ importable with nothing on the path but the standard library, which is what
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import sqlite3
 import sys
@@ -76,6 +77,17 @@ from subject_consent import (  # noqa: E402
 CONSENT_CHAIN = _sc.core._CONSENT_CHAIN
 
 
+def _subject_key(subject_id: str) -> str:
+    """The subject's opaque chain suffix — the same hashing the core uses for
+    disclosure chains, so an opaque id never becomes a table key either way."""
+    return hashlib.sha256(subject_id.encode("utf-8")).hexdigest()[:32]
+
+
+def consent_chain(subject_id: str) -> str:
+    """The chain name for one subject's consent log, as stored."""
+    return f"{CONSENT_CHAIN}/{_subject_key(subject_id)}"
+
+
 def disclosure_chain(subject_id: str) -> str:
     """The chain name for one subject's disclosure log (the subject id is
     hashed by the core, so an opaque id never becomes a table key)."""
@@ -111,8 +123,10 @@ class SqliteConsentBackend:
     its ledger entry into one transaction.
     """
 
-    def __init__(self, conn: "sqlite3.Connection | str" = ":memory:") -> None:
+    def __init__(self, conn: "sqlite3.Connection | str" = ":memory:",
+                 subject_id: "str | None" = None) -> None:
         self._conn = sqlite3.connect(conn) if isinstance(conn, str) else conn
+        self._subject = subject_id
         # Idempotent, and normally a no-op: migration 002 already made these.
         # Present so the backend also works against a bare connection.
         self._conn.executescript(
@@ -124,8 +138,45 @@ class SqliteConsentBackend:
         )
         self._conn.commit()
 
+    # ── chain partitioning: one consent chain per subject ────────────────────
+    #
+    # The core addresses ONE global consent chain, `"consent"`, holding every
+    # subject's transitions interleaved (disclosure chains are already
+    # per-subject). That is fine until someone asks to be forgotten: their rows
+    # are links in a chain the whole corps depends on, so removing them either
+    # breaks consent for everybody or cannot be done at all. Neither is an
+    # answer you can give a guardian.
+    #
+    # So this backend partitions at rest. A backend scoped to a subject rewrites
+    # the core's `"consent"` to `"consent/<subject_hash>"`, and the core is none
+    # the wiser — every consent operation it exposes (grant, revoke, permitted)
+    # already names a subject, so a scoped view is the whole view for that call.
+    # One member's chain can then be dropped without touching anyone else's.
+    #
+    # Done here rather than in `libs/subject-consent` deliberately: that copy is
+    # canonical and UTETY vendors it, so re-chaining its data model is its own
+    # change with its own blast radius. This needs no lib change at all.
+    def for_subject(self, subject_id: str) -> "SqliteConsentBackend":
+        """A view of the same connection scoped to one subject's consent chain."""
+        if not (subject_id and subject_id.strip()):
+            raise SubjectConsentError("subject_id required to scope a consent chain")
+        return SqliteConsentBackend(self._conn, subject_id)
+
+    def _key(self, chain: str) -> str:
+        """Map the core's chain name onto the name used at rest."""
+        if chain != CONSENT_CHAIN:
+            return chain          # disclosure chains are already per-subject
+        if self._subject is None:
+            # Fail closed. An unscoped consent write would land in a global chain
+            # and re-create exactly the entanglement this partitioning removes.
+            raise SubjectConsentError(
+                "the consent chain is per-subject; use for_subject(subject_id)"
+            )
+        return f"{CONSENT_CHAIN}/{_subject_key(self._subject)}"
+
     # ── Backend protocol ────────────────────────────────────────────────────
     def read_rows(self, chain: str) -> "list[dict] | None":
+        chain = self._key(chain)
         rows = [
             json.loads(r[0]) for r in self._conn.execute(
                 "SELECT row FROM consent_chain WHERE chain = ? ORDER BY seq",
@@ -147,6 +198,19 @@ class SqliteConsentBackend:
         return [] if self.read_anchor(chain) is not None else None
 
     def append_row(self, chain: str, row: dict) -> None:
+        chain = self._key(chain)
+        # A row must land in the partition naming its own subject, or the
+        # partition is a filing convention rather than a fact and deleting one
+        # member's chain could silently take another member's consent with it.
+        # This is the check migration 004 documents as living here: it cannot be
+        # a trigger, because the partition key is a SHA-256 and stock SQLite has
+        # no SHA-256. Weaker than the schema rules by exactly that much.
+        subject = row.get("subject_id")
+        if chain.startswith(f"{CONSENT_CHAIN}/") and subject:
+            if chain != consent_chain(subject):
+                raise SubjectConsentError(
+                    "consent row does not belong to the chain it was written to"
+                )
         nxt = self._conn.execute(
             "SELECT COALESCE(MAX(seq), 0) + 1 FROM consent_chain WHERE chain = ?",
             (chain,),
@@ -157,12 +221,14 @@ class SqliteConsentBackend:
         )  # no commit: write_anchor commits the pair
 
     def read_anchor(self, chain: str) -> "dict | None":
+        chain = self._key(chain)
         row = self._conn.execute(
             "SELECT hash, count FROM consent_anchor WHERE chain = ?", (chain,)
         ).fetchone()
         return {"hash": row[0], "count": row[1]} if row else None
 
     def write_anchor(self, chain: str, anchor: dict) -> None:
+        chain = self._key(chain)
         self._conn.execute(
             "INSERT INTO consent_anchor(chain, hash, count) VALUES (?, ?, ?)"
             " ON CONFLICT(chain) DO UPDATE SET"
@@ -170,6 +236,22 @@ class SqliteConsentBackend:
             (chain, anchor["hash"], int(anchor["count"])),
         )
         self._conn.commit()  # commits this write AND the preceding append_row
+
+
+class _ChainView(SqliteConsentBackend):
+    """A backend pinned to one already-resolved chain name.
+
+    The sweep in :meth:`ConsentedRoster.verify` walks stored chain names and has
+    no subject id to scope by — the id is not recoverable from its own hash, by
+    design. This maps the core's `"consent"` onto that one stored name.
+    """
+
+    def __init__(self, conn: "sqlite3.Connection", chain: str) -> None:
+        super().__init__(conn)
+        self._pinned = chain
+
+    def _key(self, chain: str) -> str:
+        return self._pinned if chain == CONSENT_CHAIN else chain
 
 
 # ── the surface ───────────────────────────────────────────────────────────────
@@ -341,22 +423,36 @@ class ConsentedRoster:
         the chain's own JSON, by joining it to the roster. That join is the
         whole reason this log lives here rather than in a file beside the app.
         """
-        return _sc.grant(self.backend, subject_id, scope, granted_by)
+        return _sc.grant(self.backend.for_subject(subject_id), subject_id, scope, granted_by)
 
     def revoke_use(self, subject_id: str, scope: str, revoked_by: str):
         """Withdraw consent to a kind of use. Denies from this moment on, and
         stays on the record permanently — the chain is append-only."""
-        return _sc.revoke(self.backend, subject_id, scope, revoked_by)
+        return _sc.revoke(self.backend.for_subject(subject_id), subject_id, scope, revoked_by)
 
     def permitted(self, subject_id: str, scope: str) -> bool:
         """Fail-closed. Absent, unparseable, broken, truncated, pending or
         revoked all answer the same way: ``False``."""
-        return _sc.permitted(self.backend, subject_id, scope)
+        return _sc.permitted(self.backend.for_subject(subject_id), subject_id, scope)
 
-    def verify(self) -> None:
-        """Raise :class:`ChainTamperError` if the consent chain is edited or
-        truncated. The gate denies silently; this says why."""
-        _sc.verify_consent_chain(self.backend)
+    def verify(self, subject_id: "str | None" = None) -> None:
+        """Raise :class:`ChainTamperError` if a consent chain is edited or
+        truncated. The gate denies silently; this says why.
+
+        One subject, or — with no argument — every subject who has a chain.
+        Sweeping them all matters because the chains are now independent: a
+        tampered chain no longer breaks anyone else's, which is the whole point
+        of partitioning, and is also exactly how one could go unnoticed.
+        """
+        if subject_id is not None:
+            _sc.verify_consent_chain(self.backend.for_subject(subject_id))
+            return
+        for (chain,) in self.connection.execute(
+            "SELECT DISTINCT chain FROM consent_chain WHERE chain LIKE ?"
+            " UNION SELECT chain FROM consent_anchor WHERE chain LIKE ?",
+            (f"{CONSENT_CHAIN}/%", f"{CONSENT_CHAIN}/%"),
+        ).fetchall():
+            _sc.verify_consent_chain(_ChainView(self.connection, chain))
 
     # ── the disclosure log ──────────────────────────────────────────────────
     def may_read_disclosures(self, subject_id: str, reader: str) -> bool:
@@ -428,6 +524,7 @@ __all__ = [
     "RELATIONS",
     "SCOPES",
     "SqliteConsentBackend",
+    "consent_chain",
     "SubjectConsentError",
     "consent_core_path",
     "deidentify",
