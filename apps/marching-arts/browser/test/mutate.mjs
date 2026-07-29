@@ -17,6 +17,19 @@
  *                     unrecognised principal sees every row.
  *   param-collision   drop the per-rule parameter scoping, so two rules using
  *                     `viewer` overwrite each other's binding.
+ *   guardian-clause   delete the guardian-expiry clause from the grant lookup —
+ *                     i.e. put policy.ts back the way P1 left it, so a guardian
+ *                     keeps an adult member's record for life. Worth reading
+ *                     alongside count-in-js: the differential reports ~14.6k
+ *                     disagreements, and *every one of them is SQL text or a
+ *                     bound parameter*. Not one is a count, a row or a subject
+ *                     list, because the randomised corpus has no `people` rows
+ *                     and no guardian-derived grants, so the mutation changes no
+ *                     answer in it. The differential is checking spelling here,
+ *                     which is a real check and is what caught the drift this
+ *                     port was behind on — but the tests that say what the
+ *                     clause is *for*, in answers, are the guardian block in
+ *                     gate.mjs.
  *   count-in-js       compute count() as the length of a fetched array. The
  *                     *number is still correct*, so the differential cannot see
  *                     it — every comparison still agrees. What is wrong is that
@@ -70,6 +83,16 @@ const MUTATIONS = [
     from: 'scoped[`r${index}_${key}`] = r.params[key];\n        placeholders[key] = `:r${index}_${key}`;',
     to: 'scoped[`r_${key}`] = r.params[key];\n        placeholders[key] = `:r_${key}`;',
     why: 'two rules using the same parameter name overwrite each other',
+  },
+  {
+    name: 'guardian-clause',
+    file: 'policy.js',
+    from:
+      "'   AND (g.granted_via = {member} OR ' +\n" +
+      "                this.stillAMinor('g.subject_id') +\n" +
+      "                '))', { viewer: p.personId, sealed: GrantState.SEALED, member: GrantVia.MEMBER }",
+    to: "')', { viewer: p.personId, sealed: GrantState.SEALED }",
+    why: 'guardian authority never expires — the P1 rule, i.e. the port left behind',
   },
   {
     name: 'count-in-js',

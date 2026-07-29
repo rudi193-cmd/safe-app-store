@@ -28,7 +28,7 @@
  * Nothing in this module opens a socket, and nothing it imports could.
  */
 
-import { Policy, type Principal } from './policy.js';
+import { GrantVia, Policy, type Principal } from './policy.js';
 import { compileRules, type Params } from './rules.js';
 import type { Connection } from './connection.js';
 import * as schema from './schema.js';
@@ -226,31 +226,57 @@ export class Store {
     return result.lastInsertRowid;
   }
 
-  /** Insert or replace a grant. A sealed grant without a signer is refused. */
+  /**
+   * Insert or replace a grant. A sealed grant without a signer is refused.
+   *
+   * Four more refusals arrive from the schema rather than from here, which is
+   * why this method stays this short: a minor's grant that is not
+   * guardian-derived, a guardian-derived grant whose signer is not a registered
+   * guardian, a guardian-derived grant on a subject who has reached majority,
+   * and any grant the beneficiary signed or requested. Each is a trigger in
+   * migration 002. No code path avoids them, including one written later by
+   * somebody who has not read this comment — and including one written in
+   * JavaScript, because the rule is in the database and not in either port.
+   *
+   * `commit: false` leaves the write open so a caller can land the grant and its
+   * disclosure row in one transaction.
+   */
   async recordGrant(
     subjectId: string,
     granteeId: string,
     band: number,
     state: string,
     source: string,
-    extra: { sealedBy?: string | null } = {},
+    extra: {
+      sealedBy?: string | null;
+      grantedVia?: string;
+      requestedBy?: string | null;
+      commit?: boolean;
+    } = {},
   ): Promise<number> {
     const result = await this.connection.run(
-      'INSERT INTO grants(subject_id, grantee_id, band, state, sealed_by, source)' +
-        ' VALUES (:subject_id, :grantee_id, :band, :state, :sealed_by, :source)' +
+      'INSERT INTO grants(subject_id, grantee_id, band, state, sealed_by,' +
+        '                   granted_via, requested_by, source)' +
+        ' VALUES (:subject_id, :grantee_id, :band, :state, :sealed_by,' +
+        '         :granted_via, :requested_by, :source)' +
         ' ON CONFLICT(subject_id, grantee_id) DO UPDATE SET' +
         '   band = excluded.band, state = excluded.state,' +
-        '   sealed_by = excluded.sealed_by, source = excluded.source',
+        '   sealed_by = excluded.sealed_by,' +
+        '   granted_via = excluded.granted_via,' +
+        '   requested_by = excluded.requested_by,' +
+        '   source = excluded.source',
       {
         subject_id: subjectId,
         grantee_id: granteeId,
         band: Math.trunc(band),
         state,
         sealed_by: extra.sealedBy ?? null,
+        granted_via: extra.grantedVia ?? GrantVia.MEMBER,
+        requested_by: extra.requestedBy ?? null,
         source,
       },
     );
-    await this.connection.commit();
+    if (extra.commit !== false) await this.connection.commit();
     return result.lastInsertRowid;
   }
 
@@ -260,12 +286,88 @@ export class Store {
    * A delete rather than a state change, so no residue of the former grant is
    * readable. The disclosure ledger, which lives beside this store, is where the
    * history belongs — not in the table the resolver reads on every query.
+   *
+   * Resolves to `undefined` on purpose, and resolves to it whether or not a
+   * grant was there to delete. A rowcount would be a side channel: a grantee who
+   * could call this and read "1" would learn they had access, which is exactly
+   * the fact a silent revocation withholds.
    */
-  async revoke(subjectId: string, granteeId: string): Promise<void> {
+  async revoke(
+    subjectId: string,
+    granteeId: string,
+    extra: { commit?: boolean } = {},
+  ): Promise<void> {
     await this.connection.run(
       'DELETE FROM grants WHERE subject_id = :subject_id AND grantee_id = :grantee_id',
       { subject_id: subjectId, grantee_id: granteeId },
     );
+    if (extra.commit !== false) await this.connection.commit();
+  }
+
+  // ── people and guardianship ──────────────────────────────────────────────
+
+  /**
+   * Register a person's birthdate. Rejected if it is not a real date.
+   *
+   * A birthdate and not an `is_minor` flag, because the flag is only true until
+   * the job that clears it fails to run, and the failure is silent and in the
+   * wrong direction.
+   */
+  async recordPerson(personId: string, birthdate: string, source: string): Promise<void> {
+    await this.connection.run(
+      'INSERT INTO people(person_id, birthdate, source)' +
+        ' VALUES (:person_id, :birthdate, :source)' +
+        ' ON CONFLICT(person_id) DO UPDATE SET' +
+        '   birthdate = excluded.birthdate, source = excluded.source',
+      { person_id: personId, birthdate, source },
+    );
     await this.connection.commit();
+  }
+
+  /**
+   * Register who may consent for a minor. The subject must exist first — a
+   * guardianship over nobody is refused by the foreign key.
+   */
+  async recordGuardianship(
+    guardianId: string,
+    subjectId: string,
+    relation: string,
+    source: string,
+  ): Promise<void> {
+    await this.connection.run(
+      'INSERT INTO guardianships(guardian_id, subject_id, relation, source)' +
+        ' VALUES (:guardian_id, :subject_id, :relation, :source)' +
+        ' ON CONFLICT(guardian_id, subject_id) DO UPDATE SET' +
+        '   relation = excluded.relation, source = excluded.source',
+      { guardian_id: guardianId, subject_id: subjectId, relation, source },
+    );
+    await this.connection.commit();
+  }
+
+  /**
+   * True only for a person on file who is under the age of majority.
+   *
+   * A person with no birthdate on file is **not** a minor here. That is the
+   * fail-closed direction for this particular question: treating an unknown as a
+   * minor would let anybody claim guardian authority over a subject the platform
+   * knows nothing about.
+   *
+   * Phrased by `Policy.stillAMinor`, the same expression the resolver's grant
+   * lookup embeds, so this answer and the predicate cannot disagree.
+   */
+  async isMinor(personId: string): Promise<boolean> {
+    const row = await this.connection.get(`SELECT ${this.policy.stillAMinor(':who')}`, {
+      who: personId,
+    });
+    return Boolean(row && Number(row[0]));
+  }
+
+  async guardiansOf(subjectId: string): Promise<string[]> {
+    const rows = await this.connection.all(
+      'SELECT guardian_id FROM guardianships WHERE subject_id = :subject_id' +
+        ' ORDER BY guardian_id',
+      { subject_id: subjectId },
+    );
+    return rows.map((r) => String(r[0]));
   }
 }
