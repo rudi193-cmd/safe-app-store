@@ -1,12 +1,13 @@
 # marching-arts / browser — the browser half of P1
 
-> **Status: behind the core, and `npm test` fails saying so.** This port
-> implements P1 as merged at `1ee4ee6`. P2 — consent, guardianships, migrations
-> 002/003 — landed in `../marching_arts/` afterwards and is not ported yet, so
-> the differential reports disagreements in the constants and policy tiers. That
-> is the harness doing its job, not a broken build. **Do not wire this into CI
-> until the port is brought forward**; it would turn the store's aggregate
-> `test` job red. See *The drift gate* below.
+> **Status: level with the core.** This port implements P1 *and* P2 — migrations
+> 002, 003 and 004, and the guardian clause inside the grant-lookup predicate.
+> `npm test` regenerates the reference from `../marching_arts/` in the working
+> tree on every run and reports **27,534 comparisons, 0 disagreements**. It is
+> wired into `.github/workflows/store-ci.yml` as the `browser-resolver` job, and
+> that job is in the aggregate `test` job's `needs:`, so branch protection blocks
+> on it. See *The drift gate* below for what that gate looked like while it was
+> red, which is the more useful half of the story.
 
 The authorization resolver, running in-browser on SQLite-WASM, and a differential
 suite that holds it to the Python core in [`../marching_arts/`](../marching_arts).
@@ -17,7 +18,7 @@ keeps the two identical. That something is [`test/`](test): a generator that run
 the Python resolver over a randomised corpus and dumps everything it produced,
 and a comparator that replays the identical corpus through this port.
 
-**27,528 comparisons, 0 disagreements.** Four deliberate bugs, all caught. The
+**27,534 comparisons, 0 disagreements.** Five deliberate bugs, all caught. The
 numbers and what they do and do not cover are below.
 
 ---
@@ -27,10 +28,10 @@ numbers and what they do and do not cover are below.
 | File | What it is |
 | --- | --- |
 | `src/rules.ts` | The rules→SQL `WHERE` compiler. `compile_rules` reproduced exactly. |
-| `src/policy.ts` | Who may see what. Every SQL fragment byte-compared against `policy.py`. |
+| `src/policy.ts` | Who may see what, including the guardian clause. Every SQL fragment byte-compared against `policy.py`. |
 | `src/bands.ts` | L0–L6, `DERIVE_AT`, `NEVER_SERVED`. |
-| `src/schema.ts` | Migration 001, DDL byte-identical to `schema.py`. |
-| `src/store.ts` | Authorized reads. `count` is a SQL `COUNT(*)`; there is no array to take the length of. |
+| `src/schema.ts` | Migrations 001–004, DDL byte-identical to `schema.py`. |
+| `src/store.ts` | Authorized reads, plus people and guardianships. `count` is a SQL `COUNT(*)`; there is no array to take the length of. |
 | `src/connection.ts` | The one seam: an async `Connection` the store is written against. |
 | `src/sqlite.ts` | `Connection` over `sqlite3.oo1.DB`. |
 | `src/open.ts` | The VFS ladder: `opfs-sahpool`, then memory, with every rung reported. |
@@ -55,6 +56,43 @@ numbers and what they do and do not cover are below.
    negation of the *union* rather than of the first term. Drop them and only the
    first deny binds; the rest quietly stop applying, the SQL stays valid, and
    nothing raises.
+
+### The guardian clause, and what is deliberately not here
+
+P2's read-path change is one clause, nested *inside* the correlated grant lookup:
+
+```sql
+AND (g.granted_via = :r1_member OR EXISTS (SELECT 1 FROM people p
+     WHERE p.person_id = g.subject_id
+       AND date('now') < date(p.birthdate, '+18 years')))
+```
+
+Guardian-derived authority is honoured only while the subject is still a minor.
+Nothing is scheduled and nothing has to remember: the day the member turns
+eighteen the guardian's grant stops resolving, in a tab that has been open since
+before the birthday exactly as in a fresh one, because the predicate re-asks per
+row on every read. It is emitted by `Policy.stillAMinor`, which is the same
+single definition `policy.py` keeps for the same reason — a guardian-expiry check
+phrased two slightly different ways in two places is the shape of bug where
+access expires in the resolver but not in the thing that decides who may seal.
+
+`MAJORITY_AGE` lives in `policy.ts` and is imported by `schema.ts`, mirroring the
+Python, so the read path and the write path cannot drift apart on the one number
+that decides whose consent counts.
+
+**What is not here: the `subject_consent` core.** That library is Python-only and
+stays that way. What is ported is the *schema* its rows land in — `consent_chain`,
+`consent_anchor`, and the triggers of migrations 002–004 — so a database a browser
+creates is the same database, byte for byte, as one Python creates, and the
+guardian rule holds over the chain in either. The resolver reads `grants`; it
+never walks a chain, and there is no chain logic in `src/`.
+
+Migration 004 is worth a line on its own. 003's trigger matched
+`new.chain = 'consent'` exactly, so partitioning the chain per subject as
+`consent/<subject_hash>` silently stopped it firing and a minor could consent for
+themselves with nothing raised. 004 replaces it with a match on the partitions
+*and* the bare name. `gate.mjs` checks both halves here, because a ported trigger
+that does not fire looks exactly like a ported trigger that does.
 
 ### The owner
 
@@ -89,13 +127,22 @@ npm test               # gate + owner protocol + differential
 npm run test:mutation  # break it on purpose, confirm the suite notices
 ```
 
-`npm test` generates `test/reference.json` if it is missing and **fails** if it
-cannot. `gen_reference.py` is stdlib-only, so any Python that can run the app's
-own suite can produce it. The sibling harness in `apps/field-acoustics/kernel`
-reports its differential as *skipped* when its reference is absent, which is
-honest there because it needs numpy and scipy. A skip here would mean the browser
-resolver shipped with nothing holding it to the semantics it is a copy of, so
-this one refuses.
+`npm test` **regenerates** `test/reference.json` on every run, from the working
+tree, and fails if it cannot. It does not reuse what is on disk, and that is not
+an optimisation left undone — generating only when the file was absent made this
+a gate that stopped being one the moment the core moved. It did exactly that
+here: a reference written before P2 reported *27,528 comparisons and 0
+disagreements* while the port was missing the entire guardian clause. A green run
+against yesterday's core is worse than no run, because it is indistinguishable
+from a real one. Regeneration is a couple of seconds of stdlib Python. Do not
+reintroduce the cache.
+
+`gen_reference.py` is stdlib-only, so any Python that can run the app's own suite
+can produce it. The sibling harness in `apps/field-acoustics/kernel` reports its
+differential as *skipped* when its reference is absent, which is honest there
+because it needs numpy and scipy. A skip here would mean the browser resolver
+shipped with nothing holding it to the semantics it is a copy of, so this one
+refuses.
 
 ### Which Python is "the" Python
 
@@ -109,8 +156,8 @@ file so a reader can always tell what a reference was generated from.
 
 ## The numbers
 
-Reference generated against `marching_arts/` at `1ee4ee6` (P1 as merged;
-`--rev HEAD`, because the working tree was mid-P2 under another pair of hands).
+Reference generated against `marching_arts/` in the working tree — the default,
+and the only mode CI uses.
 
 ```
 corpus     14 worlds · 130 principal cases · 7,130 store queries
@@ -118,45 +165,52 @@ corpus     14 worlds · 130 principal cases · 7,130 store queries
            8 schema rejections, each confirmed refused by Python first
 
 tier         checks   result
-constants         9   ok      band integers, DERIVE_AT, NEVER_SERVED,
-                              DENY_ALL, SORTABLE, migration DDL byte-for-byte
+constants        15   ok      band integers, DERIVE_AT, NEVER_SERVED,
+                              DENY_ALL, SORTABLE, and all four migrations'
+                              DDL byte-for-byte
 compiler        996   ok      predicate text, parameters, explain(), and the
                               rows each predicate actually selects
 policy          780   ok      every rule fragment as SQL text, per principal
 store        25,735   ok      the adversarial battery, per (world, principal)
 schema            8   ok      the writes that must be refused
 
-27,528 comparisons, 0 disagreements
+27,534 comparisons, 0 disagreements
 ```
 
-Plus 31 gate tests and 10 owner-protocol tests, which say what *correct* is
+Plus 43 gate tests and 10 owner-protocol tests, which say what *correct* is
 independently — two implementations can agree while both being wrong.
 
 ### The drift gate, demonstrated
 
-While this was being built, `marching_arts/` was being extended in the working
-tree by another pair of hands: P2 consent — a `people` table, guardianships, a
-hash-chained consent log, migration 002, and a `granted_via` clause inside the
-grant subquery. That is what the generator's default mode is for. Pointed at the
-working tree instead of `HEAD`:
+This is kept because it is the useful half. While P1 was being built,
+`marching_arts/` was being extended in the working tree by another pair of hands:
+P2 consent — a `people` table, guardianships, a hash-chained consent log,
+migration 002, and a `granted_via` clause inside the grant subquery. That is what
+the generator's default mode is for. Pointed at the working tree, the P1-era port
+reported:
 
 ```
-constants     13 checks   FAIL 5       migration count 3, port has 1;
-                                       002_people_guardianship_and_consent_chain missing
+constants     15 checks   FAIL 7       migration count 4, port has 1;
+                                       002/003/004 missing
 compiler     996 checks   ok           compile_rules is unchanged — correctly unaffected
 policy       780 checks   FAIL 520     the grant fragment gained a guardian clause
 store     25,735 checks   FAIL 14,260
 ```
 
-14,785 disagreements, located in seconds, and the tiering did its job: the
+14,787 disagreements, located in seconds, and the tiering did its job: the
 compiler tier stayed green because the compiler did not change, so the finding
-points at the policy rather than at everything at once.
+pointed at the policy rather than at everything at once.
 
-**This port therefore implements P1 as merged at `1ee4ee6`, and is already behind
-the core.** Bringing it forward is a follow-up: port migration 002, the guardian
-clause in `Policy.rules`, and the consent chain, then regenerate with the default
-(working-tree) mode and drive the count back to zero. Nothing in the harness needs
-to change to do that — which is the point of building the harness first.
+That is now closed. `schema.ts` carries migrations 001–004 with the DDL byte-for-
+byte — including the double spaces and comment art that are artefacts of Python's
+implicit string concatenation, reproduced deliberately; the only edits are the
+interpolations standing where `.format()` fields stood and the escaped backticks
+a template literal requires, neither of which changes a byte of the result.
+`policy.ts` carries the guardian clause, `MAJORITY_AGE` and `GrantVia`, and
+`store.ts` carries `granted_via`/`requested_by` on the grant write plus
+`recordPerson`, `recordGuardianship`, `isMinor` and `guardiansOf`. `bands.ts` and
+`rules.ts` needed nothing — checked rather than assumed; `compile_rules` was
+untouched by P2, which is why the compiler tier stayed green throughout.
 
 The store battery per principal covers, from `tests/test_gate.py`: hidden rows
 under `COUNT`, a caller filter that tries to widen (`1 = 1 OR 1 = 1`), a filter
@@ -188,20 +242,38 @@ verifies the restoration by hash. Actual output:
 | `deny-precedence` | denies negate only the first term | differential (7,473 disagreements) + gate |
 | `fail-open` | empty allow set compiles to `1` | differential (124) + gate |
 | `param-collision` | per-rule scoping dropped | differential (14,997) + gate |
+| `guardian-clause` | guardian authority never expires | differential (14,650, **all text**) + gate |
 | `count-in-js` | `count()` becomes `rows.length` | **gate only** |
 
-The last row is the interesting one and it is in the list on purpose. Computing
-the count over fetched rows returns *the same number*, so the differential agrees
-on all 27,528 comparisons and reports a clean pass. What is wrong is that the
-hidden rows were read into the tab to produce it — which is exactly what the
-build plan forbids ("if the count is computed in JavaScript over fetched rows,
-the phase is not done"). Only the traced test in `test/gate.mjs` sees it: it
-records every statement the store issues and requires `count()` to issue exactly
-one touching `facts`, that it be a `COUNT(*)`, that it carry the predicate, and
-that it select no payload.
+The last two rows are the interesting ones and both are in the list on purpose.
+
+**`count-in-js`.** Computing the count over fetched rows returns *the same
+number*, so the differential agrees on all 27,534 comparisons and reports a clean
+pass. What is wrong is that the hidden rows were read into the tab to produce it —
+which is exactly what the build plan forbids ("if the count is computed in
+JavaScript over fetched rows, the phase is not done"). Only the traced test in
+`test/gate.mjs` sees it: it records every statement the store issues and requires
+`count()` to issue exactly one touching `facts`, that it be a `COUNT(*)`, that it
+carry the predicate, and that it select no payload.
+
+**`guardian-clause`.** Deleting the guardian clause — putting `policy.ts` back the
+way P1 left it — produces 14,650 differential disagreements, which looks like an
+emphatic catch. Classified, they are 130 policy `rules`, 130 policy `predicate`,
+130 policy `params`, 7,130 store `predicate` and 7,130 store `predicate params`.
+**Zero counts, zero row sets, zero subject lists.** The randomised corpus has no
+`people` rows and no guardian-derived grants, so removing the clause changes no
+answer anywhere in it; the differential is comparing spelling. That is a real
+check — it is what caught this port being behind in the first place — but it
+would not survive the port spelling an equivalent predicate differently, and it
+says nothing about what the clause is *for*. The guardian block in `gate.mjs`
+does: a guardian sees their fifteen-year-old's rows, the same grant row untouched
+authorizes nothing once the birthdate says eighteen, and a member-granted grant is
+unaffected by any birthdate (the control, without which "deny everything" would
+pass). Plus migration 002's triggers on the write path, and 004's per-partition
+chain rule.
 
 **The differential alone is not sufficient for the P1 gate.** That is a finding,
-not a caveat.
+not a caveat, and P2 did not change it.
 
 ---
 
@@ -227,18 +299,26 @@ directory over http (not `file://` — a null origin has no OPFS), open it in tw
 tabs, and press the buttons. It is a manual check and it is not a gate. Wiring it
 to Playwright would make it one; that work is not done.
 
+**Wiring the differential into CI did not change any of the above.** The
+`browser-resolver` job runs the same Node suite on the same in-memory VFS, so the
+four browser-only mechanisms are exactly as unverified by automation as they were
+before — and are now unverified *in CI*, which is easier to misread. A green
+required check named `test` is easy to take as "the browser half is covered". What
+is covered is the resolver, the compiler, the schema and the store.
+
+Also not automated here: the `subject_consent` core, which is Python-only by
+design and is tested by `../tests/test_consent.py`. This port carries the schema
+its rows land in and nothing else, so the triggers hold for the tables a browser
+creates — `gate.mjs` checks that they fire — but nothing confirms the two hosts
+agree about the *chain*, because only one of them has one.
+
 ---
 
-## CI wiring this needs
+## CI wiring — applied
 
-**None of this runs in CI yet, and a test that does not run in CI is not a test.**
-The wiring below is described rather than added, because `.github/workflows/
-store-ci.yml` is outside this task's write scope.
-
-The store-wide workflow has two jobs: `gates` (Python-only, whole-store) and
-`app-tests` (a matrix leg per app, running `python -m pytest tests/ -q`). Neither
-runs Node. What is needed is a third job, or an addition to the `marching-arts`
-matrix leg:
+A test that does not run in CI is not a test. `.github/workflows/store-ci.yml`
+now carries a `browser-resolver` job, and that job is in the aggregate `test`
+job's `needs:`:
 
 ```yaml
   browser-resolver:
@@ -246,9 +326,12 @@ matrix leg:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with: { python-version: "3.12" }
-      - uses: actions/setup-node@v4
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
           node-version: "22"          # >=22: @sqlite.org/sqlite-wasm requires it
           cache: npm
@@ -261,30 +344,38 @@ matrix leg:
         run: npm run build
       - name: Differential against the Python core
         working-directory: apps/marching-arts/browser
-        run: npm test                 # generates reference.json, then all stages
+        run: npm test                 # regenerates reference.json, then all stages
       - name: Mutation test
         working-directory: apps/marching-arts/browser
         run: npm run test:mutation
+
+  test:
+    needs: [gates, app-tests, browser-resolver]
 ```
 
-Then add `browser-resolver` to the `needs:` list of the aggregate `test` job, so
-branch protection actually blocks on it. Without that last line the job runs and
-nothing depends on it, which is the same as not running.
+The `needs:` line is the load-bearing one. Branch protection requires a single
+check named `test`; without it the job runs, nothing depends on it, and that is
+the same as not running.
 
-**Sequencing matters here.** CI checks out a clean tree, so the generator's
-default mode compares against whatever `marching_arts/` is at that commit. The
-port is currently behind the core by the P2 consent work (see *The drift gate,
-demonstrated* above), so wiring this job today makes `test` red on the next merge
-of P2. Two honest options, in preference order: bring the port forward first and
-then wire the job, or wire it now with `continue-on-error: true` and an issue
-tracking its removal. What is not acceptable is pinning the generator to a fixed
-`--rev` in CI to keep it green — that converts the gate into a decoration.
+It is a separate job rather than an addition to the `app-tests` matrix because
+that matrix is Python-only, and folding Node into it would put a `setup-node`
+step in every other app's leg for the benefit of none of them.
 
-Two properties of this repo's CI that the wiring has to respect:
+**Sequencing.** This was deliberately not wired before, because CI checks out a
+clean tree and the generator's default mode compares against whatever
+`marching_arts/` is at that commit — with the port behind by P2, wiring it would
+have turned the whole store's `test` job red. It is wired now because the port is
+genuinely level: 27,534 comparisons, 0 disagreements, reference regenerated from
+the working tree. What was never an option is pinning the generator to a fixed
+`--rev` in CI to keep it green; that converts the gate into a decoration. If this
+job goes red, the core moved and the port did not, and that is the finding.
+
+Two properties of this repo's CI that the wiring respects:
 
 - `gates` runs `python -m compileall -q apps ...` over everything. `test/
   gen_reference.py` byte-compiles; keep it stdlib-only so no dependency install
-  is needed for that step.
+  is needed for that step — and note the job above installs no Python packages
+  for the same reason.
 - `app-tests` for `marching-arts` runs `pytest tests/` from the app directory.
   `browser/` contains no `test_*.py`, so it is not collected there and the two
   suites stay independent.
