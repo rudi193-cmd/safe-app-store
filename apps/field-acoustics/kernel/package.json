@@ -1,0 +1,40 @@
+{
+  "name": "@dcisim/kernel",
+  "version": "0.1.0",
+  "description": "TypeScript port of the dcisim acoustic propagation kernel, restructured for the browser.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./worker": "./dist/worker.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "sideEffects": [
+    "./dist/worker.js"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "test": "node test/run.mjs",
+    "test:invariants": "node test/invariants.mjs",
+    "test:differential": "python3 test/gen_reference.py && node test/differential.mjs",
+    "test:worker": "node test/worker.mjs",
+    "bench": "node test/bench.mjs",
+    "bench:pool": "node test/pool_bench.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": ">=5.4"
+  }
+}

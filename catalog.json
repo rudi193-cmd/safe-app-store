@@ -380,6 +380,21 @@
         "privacy",
         "local-first"
       ]
+    },
+    {
+      "id": "field-acoustics",
+      "name": "Field Acoustics",
+      "description": "Design-time acoustic model for marching drill \u2014 what the audience actually hears when the form turns in. Python model plus a dependency-free TypeScript kernel, held together by a five-tier differential suite. Nothing else in the category models acoustics.",
+      "status": "playground",
+      "version": "0.1.0",
+      "path": "apps/field-acoustics",
+      "tags": [
+        "marching",
+        "acoustics",
+        "simulation",
+        "drill-design",
+        "local-first"
+      ]
     }
   ],
   "discovery_sources": [

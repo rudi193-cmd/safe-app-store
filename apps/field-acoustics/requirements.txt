@@ -1,0 +1,7 @@
+numpy>=2.0
+scipy>=1.11
+matplotlib>=3.7
+
+# Optional: reading measured directivity from AES69 (SOFA) files.
+# The analytic model works without it.
+h5py>=3.10

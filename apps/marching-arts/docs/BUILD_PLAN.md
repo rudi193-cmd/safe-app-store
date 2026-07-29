@@ -11,12 +11,13 @@ rankings" but *ranked peer data is not in the product*.
 Every phase below ships with the mechanism that makes its promise checkable. A
 phase without a gate is not done.
 
-Companion to `docs/PRODUCT_PLAN.md` in the [`field-acoustics`][fa] repo, which
-covers the acoustic capability specifically. This covers the platform underneath
-it — the storage, authorization, consent and transport that every capability
-sits on, acoustics included.
+Companion to [`PRODUCT_PLAN.md`](../../field-acoustics/docs/PRODUCT_PLAN.md) in
+the sibling [`field-acoustics`][fa] build, which covers the acoustic capability
+specifically. This covers the platform underneath it — the storage,
+authorization, consent and transport every capability sits on, acoustics
+included.
 
-[fa]: https://github.com/rudi193-cmd/field-acoustics
+[fa]: ../../field-acoustics
 
 ---
 
@@ -54,11 +55,10 @@ refuses to improvise when it has nothing. Three systems, built for unrelated
 purposes, all reached the same conclusion: *a missing row and a row that says
 "missing" are different facts, and conflating them is how a tool starts lying.*
 
-This is the same trichotomy [`field-acoustics`][fa] carries as
-`MEASURED / FITTED / ASSUMED`,
-propagated by `min()` so a result is worth its weakest input. It is the same
-shape as the privacy model, where a refused consent grant must render as *no
-slot* rather than an empty one. **Build it once, in P1, and the other three
+This is the same trichotomy [`field-acoustics`][fa] carries as `MEASURED /
+FITTED / ASSUMED`, propagated by `min()` so a result is worth its weakest input.
+It is the same shape as the privacy model, where a refused consent grant must
+render as *no slot* rather than an empty one. **Build it once, in P1, and the other three
 become configurations of it.**
 
 What this buys, concretely:

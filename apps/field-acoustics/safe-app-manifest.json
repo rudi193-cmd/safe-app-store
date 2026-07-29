@@ -1,0 +1,35 @@
+{
+  "app_id": "field-acoustics",
+  "name": "field-acoustics",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "agent_type": "tool",
+  "description": "Design-time acoustic model for marching drill — what the audience actually hears when the form turns in. Python model plus a TypeScript kernel, held together by a differential suite.",
+  "author": "USER",
+  "status": "playground",
+  "data_streams": [
+    {
+      "id": "file_reads",
+      "purpose": "Drill coordinate CSVs and optional AES69/SOFA directivity files supplied by the user",
+      "retention": "session",
+      "description": "Read on demand from paths the user passes on the command line. Nothing is retained."
+    }
+  ],
+  "permissions": [
+    "file_read"
+  ],
+  "store_scope": [
+    "field_acoustics_*"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "network": "none",
+  "entry_point": "simulate:main",
+  "license": "Apache-2.0",
+  "notes": {
+    "ships_no_data": "The SOFA loader reads measured directivity but bundles none, and requires a citation rather than accepting one optionally. Measured data whose source nobody can check is not meaningfully better than a fitted curve.",
+    "headline_is_assumed": "The rear hemisphere rests on an asserted front-to-back array, and turning the form in puts most of the hornline into exactly that region. The provenance report says ASSUMED and so does the product.",
+    "dependencies": "numpy, scipy and matplotlib — not stdlib-only like the marching-arts core. The TypeScript kernel under kernel/ has no runtime dependencies at all.",
+    "licence_trap": "TU Berlin's directivity database is CC BY-NC-SA and is deliberately unsupported as a bundled source: the non-commercial clause would propagate to programs that pay for things. BYU's is CC BY 4.0 and is the one to use."
+  }
+}
