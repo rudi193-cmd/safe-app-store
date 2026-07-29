@@ -319,6 +319,48 @@ Until then the provenance report says ASSUMED and the product says so too.
   still operative, any reporting affordance is decorative.
 - **Counsel before anything touches L5**, and before L4 leaves the device.
 
+### What stands between this and a corps actually using it
+
+Separate from the phase plan, because none of these is a phase — they are the
+gap between *the resolver is correct* and *the artifact is usable*, and they were
+not written down anywhere until somebody asked.
+
+**Mechanically blocking, and not code.** `stores/promote_check.py` reports one
+failure: no `promotion.json`. That file needs `verified_by ≠ author`, so it is a
+human act by somebody who is not the person who wrote this. Nothing else in the
+gate fails.
+
+**The largest gap is authentication.** `Principal("delacroix")` is an
+unverified string. The predicate compiled from it is correct, per-record, and
+mutation-tested — and a perfect predicate over an unauthenticated principal is
+theatre, because anything that can construct a `Principal` can construct any
+`Principal`. Every guarantee in this app is conditional on a claim nothing
+checks. It is named here rather than in a phase because it is not P3's transport
+problem and not P4's shell problem: it sits underneath both.
+
+**Also absent:** no UI (the Python core has `app.py`, a walkthrough, and no
+host); no transport, so a corps is single-device; no roster import or export, so
+getting a season in means writing Python.
+
+**Closed as of `tests/test_migratability.py`.** Four things a real install does
+that no test did, each now with a gate and sixteen mutations behind them:
+
+| | What it turned out to be |
+| --- | --- |
+| Forward migration on populated data | Works. Migration 002 rebuilds `grants` by rename-copy-drop, so "the migrations are additive" was false and the copy is now checked. Migration names are pinned to a frozen literal — the ledger is keyed by name, so a rename re-runs and an insertion never runs. |
+| 150 members and a season | 3,600 facts, a fifth of the roster minors with guardian-derived seals. Correct at volume, and gated by **query plan** rather than by clock: both lookups in the predicate are correlated, so a lost index turns per-row seeks into per-row scans and the arithmetic stops being linear. The wall-clock ceiling is a labelled smoke test, not a benchmark. |
+| Two processes, one file | Fails closed. A contended writer raises rather than losing a row, uncommitted grants authorize nothing, and the consent chain refuses a concurrent append instead of forking. `MajoritySweep.unconvertible` now has a real cause behind it — a locked database — where before only a synthetic exception had ever made it non-empty. |
+| Backup and restore | A whole-file restore carries every migration and verifies. The partial ones — rows without their anchor, an anchor over rows from a different snapshot — are detected, and a tampered restore cannot be laundered by the next honest write. |
+
+Two claims did not survive that mutation run, and both are corrected beside the
+record rather than over it. A rename of the consent chain's subject hash was
+invisible to every assertion in the new module, because the fixture wrote the
+chain with the same function the test read it with; the stored name is now pinned
+to a literal. And the test named for the count anchor
+(`test_tail_truncation_is_detected_only_because_of_the_count_anchor`) overstates
+its title — its scenario is caught by the anchor's *hash*, and `count` earns its
+keep against a directly edited anchor, which two other tests cover.
+
 ---
 
 ## Process changes

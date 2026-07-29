@@ -129,7 +129,8 @@ marching_arts/
   rules.py     Rule, Effect, and the compiler. Knows nothing about people.
   policy.py    who may see what. The only file that decides anything.
   schema.py    001 band and source · 002 people, guardianship, the chain tables
-               and the triggers · 003 the guardian rule over the chain itself
+               and the triggers · 003 the guardian rule over the chain itself ·
+               004 one consent chain per subject · 005 shipped rationale
   store.py     authorized reads. There is no second path.
   consent.py   P2's binding: libs/subject-consent on this store's connection
 tests/
@@ -139,6 +140,13 @@ tests/
   test_provenance.py  the schema's own guarantees, and per-record resolution
   test_rules.py       precedence, tested directly
   test_no_egress.py   the AST walk
+  test_rationale.py   005's two gates: draft never ships, shipped names a
+                      mechanism
+  test_migratability.py
+                      what has to hold before a corps puts a season in the file:
+                      forward migration on populated data · 150 members and a
+                      season, plan-checked rather than timed · two processes on
+                      one file · backup and restore, including the partial ones
 docs/
   BUILD_PLAN.md       all five phases, each with its gate, and the refusals
 tools/
@@ -162,7 +170,7 @@ and reported a judge-independence finding that does not exist.
 ## Run it
 
 ```bash
-python3 -m pytest tests -q      # 98 passed
+python3 -m pytest tests -q      # 159 passed
 python3 app.py                  # a walkthrough on synthetic data
 ```
 
@@ -178,6 +186,16 @@ scrub — and each one turns this suite red. Two of them turned it red for the
 wrong reason and found real bugs: a `CHECK` that evaluated to NULL (and
 therefore passed) on a malformed birthdate, and a backend that reported an
 emptied chain as an absent one.
+
+`test_migratability.py` was built the same way, sixteen more mutations, and the
+run corrected two claims rather than confirming them. A rename of the consent
+chain's subject hash was invisible to every assertion in the module, because the
+fixture writes the chain with the function the test reads it with — so the stored
+name is now pinned to a literal, the way the migration names are. And
+`test_tail_truncation_is_detected_only_because_of_the_count_anchor` overstates
+its own title: that scenario is caught by the anchor's *hash*: the `count` field
+earns its keep against a directly edited anchor, which two other tests cover.
+The correction is recorded in that test's docstring beside the claim.
 
 ## Why Python, when the plan says browser
 
