@@ -6,14 +6,6 @@ Two ideas carry most of the weight here.
 section leader is a grantee on their squad's rows and a subject on their own,
 often in the same query, so authorization cannot be a property of the person.
 
-**Guardian authority expires; it does not persist.** A grant a guardian signed
-for a minor carries ``granted_via = 'guardian'``, and the predicate honours it
-only while the subject is still under :data:`MAJORITY_AGE`. Nothing is scheduled
-and nothing has to remember: the day the member turns eighteen the guardian's
-grant stops resolving, and the member is the only person who can put it back.
-An ``is_minor`` flag would have needed a nightly job, and the failure mode of a
-job that does not run is a guardian who keeps reading an adult's record.
-
 **Only a sealed grant authorizes.** The state machine is Nestor's: a grant a
 named human signed is *sealed*; anything the system inferred is *draft* and is
 never acted on; a subject with no grant on file is *pending*, which is not a
@@ -30,11 +22,6 @@ from enum import Enum
 from .bands import DERIVE_AT, NEVER_SERVED, Band
 from .rules import Effect, Rule
 
-#: The age at which a member's consent becomes their own. Referenced by the
-#: resolver below *and* by schema.py's triggers, so the read path and the write
-#: path cannot drift apart on the one number that decides whose consent counts.
-MAJORITY_AGE = 18
-
 
 class GrantState(Enum):
     """Nestor's cascade, applied to consent rather than to answers."""
@@ -42,19 +29,6 @@ class GrantState(Enum):
     SEALED = "sealed"    # a named human signed this. The only state that authorizes.
     DRAFT = "draft"      # the system inferred it. Recorded, never acted on.
     PENDING = "pending"  # nothing on file. Renders as nothing, not as an empty slot.
-
-
-class GrantVia(Enum):
-    """Whose consent this grant is. Not a synonym for who signed it.
-
-    ``MEMBER`` is a grant the subject gave for themselves and it stands until
-    they revoke it. ``GUARDIAN`` is authority borrowed from a relationship the
-    platform did not create and cannot extend: it stops resolving at
-    :data:`MAJORITY_AGE`, whether or not anyone converts it.
-    """
-
-    MEMBER = "member"
-    GUARDIAN = "guardian"
 
 
 @dataclass(frozen=True)
@@ -83,25 +57,6 @@ class Policy:
     #: revocation takes effect on the next read with no cache to invalidate.
     grants_table = "grants"
 
-    #: Table carrying birthdates. Referenced by correlated subquery from inside
-    #: the grant lookup so that "still a minor" is re-evaluated on every read.
-    people_table = "people"
-
-    def still_a_minor(self, person: str) -> str:
-        """SQL that is true while ``person`` is under :data:`MAJORITY_AGE`.
-
-        ``person`` is a SQL expression, not a value — a column reference from
-        the enclosing query, or a bound placeholder. Written once and reused so
-        that a guardian-expiry check cannot end up phrased two slightly
-        different ways in two places, which is the shape of bug where access
-        expires in the resolver but not in the thing that decides who may seal.
-        """
-        return (
-            "EXISTS (SELECT 1 FROM {people} p"
-            " WHERE p.person_id = {person}"
-            "   AND date('now') < date(p.birthdate, '+{years} years'))"
-        ).format(people=self.people_table, person=person, years=int(MAJORITY_AGE))
-
     def rules(self, principal: Principal) -> list[Rule]:
         rules = [
             # A person always sees their own record, at every band, with no
@@ -123,21 +78,9 @@ class Policy:
                 + " g WHERE g.subject_id = facts.subject_id"
                 "   AND g.grantee_id = {viewer}"
                 "   AND g.state = {sealed}"
-                "   AND g.band >= facts.band"
-                # Guardian-derived authority is honoured only while the subject
-                # is still a minor. Delete this clause and a guardian keeps an
-                # adult member's record for life; that is the mutation the
-                # majority test in tests/test_consent.py exists to catch.
-                "   AND (g.granted_via = {member} OR "
-                + self.still_a_minor("g.subject_id")
-                + "))",
-                {
-                    "viewer": principal.person_id,
-                    "sealed": GrantState.SEALED.value,
-                    "member": GrantVia.MEMBER.value,
-                },
-                "a sealed grant from the subject — or from a guardian while the"
-                " subject is still a minor — reaches this row's band",
+                "   AND g.band >= facts.band)",
+                {"viewer": principal.person_id, "sealed": GrantState.SEALED.value},
+                "a sealed grant from the subject reaches this row's band",
             ),
         ]
 
