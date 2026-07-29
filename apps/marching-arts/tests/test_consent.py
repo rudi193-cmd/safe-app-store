@@ -27,6 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from marching_arts import Band, GrantState, Principal, Store  # noqa: E402
 from marching_arts.consent import (  # noqa: E402
     CONSENT_CHAIN,
+    consent_chain,
     ChainTamperError,
     ConsentedRoster,
     DeidentificationError,
@@ -163,7 +164,7 @@ def test_a_truncated_consent_chain_denies_rather_than_answers(roster):
     roster.connection.execute(
         "DELETE FROM consent_chain WHERE chain = ? AND seq ="
         " (SELECT MAX(seq) FROM consent_chain WHERE chain = ?)",
-        (CONSENT_CHAIN, CONSENT_CHAIN))
+        (consent_chain("adult-member"), consent_chain("adult-member")))
     roster.connection.commit()
     assert roster.permitted("adult-member", "local_only") is False
     assert roster.permitted("adult-member", "kb_promotion") is False
@@ -182,9 +183,9 @@ def test_deleting_the_whole_chain_is_not_the_same_as_never_having_one(roster):
     """
     roster.grant_use("adult-member", "local_only", "adult-member")
     roster.connection.execute("DELETE FROM consent_chain WHERE chain = ?",
-                              (CONSENT_CHAIN,))
+                              (consent_chain("adult-member"),))
     roster.connection.commit()
-    assert roster.backend.read_rows(CONSENT_CHAIN) == []   # emptied, not absent
+    assert roster.backend.for_subject("adult-member").read_rows(CONSENT_CHAIN) == []   # emptied, not absent
     assert roster.backend.read_rows("disclosure/never-existed") is None
     assert roster.permitted("adult-member", "local_only") is False
     with pytest.raises(ChainTamperError):
@@ -196,11 +197,11 @@ def test_a_mid_chain_edit_is_detected(roster):
     roster.revoke_use("adult-member", "local_only", "adult-member")
     row = json.loads(roster.connection.execute(
         "SELECT row FROM consent_chain WHERE chain = ? AND seq = 1",
-        (CONSENT_CHAIN,)).fetchone()[0])
+        (consent_chain("adult-member"),)).fetchone()[0])
     row["status"] = "revoked"
     roster.connection.execute(
         "UPDATE consent_chain SET row = ? WHERE chain = ? AND seq = 1",
-        (json.dumps(row, sort_keys=True), CONSENT_CHAIN))
+        (json.dumps(row, sort_keys=True), consent_chain("adult-member")))
     roster.connection.commit()
     assert roster.permitted("adult-member", "local_only") is False
     with pytest.raises(ChainTamperError):
@@ -212,7 +213,7 @@ def test_a_tampered_chain_is_not_silently_extended(roster):
     roster.grant_use("adult-member", "local_only", "adult-member")
     roster.connection.execute(
         "UPDATE consent_anchor SET count = count + 1 WHERE chain = ?",
-        (CONSENT_CHAIN,))
+        (consent_chain("adult-member"),))
     roster.connection.commit()
     with pytest.raises(ChainTamperError):
         roster.grant_use("adult-member", "kb_promotion", "adult-member")
@@ -646,3 +647,104 @@ def test_the_chain_name_does_not_leak_the_subject(roster):
     assert "adult-member" not in " ".join(names)
     assert disclosure_chain("adult-member") == \
         "disclosure/" + hashlib.sha256(b"adult-member").hexdigest()[:32]
+
+
+# ── one member's consent chain is theirs alone ────────────────────────────────
+#
+# Before partitioning, every subject's transitions were links in one global
+# chain. Deleting one member's rows to honour a request broke consent for the
+# whole corps, and refusing to delete them was the only alternative. These are
+# the tests for the fix, and each one fails against the old global chain.
+
+def _adults(roster, *ids):
+    for i in ids:
+        roster.register_member(i, "1998-01-01", "test")
+        roster.grant_use(i, "local_only", i)
+    return ids
+
+
+def test_forgetting_one_member_leaves_everyone_elses_consent_intact(roster):
+    _adults(roster, "alice", "bob", "carol")
+    roster.connection.execute("DELETE FROM consent_chain WHERE chain = ?",
+                              (consent_chain("bob"),))
+    roster.connection.execute("DELETE FROM consent_anchor WHERE chain = ?",
+                              (consent_chain("bob"),))
+    roster.connection.commit()
+
+    assert roster.permitted("alice", "local_only") is True
+    assert roster.permitted("carol", "local_only") is True
+    assert roster.permitted("bob", "local_only") is False
+    roster.verify()  # sweeps every remaining chain; none is broken
+
+
+def test_a_forgotten_member_is_indistinguishable_from_one_who_never_existed(roster):
+    _adults(roster, "dave")
+    roster.connection.execute("DELETE FROM consent_chain WHERE chain = ?",
+                              (consent_chain("dave"),))
+    roster.connection.execute("DELETE FROM consent_anchor WHERE chain = ?",
+                              (consent_chain("dave"),))
+    roster.connection.commit()
+
+    gone = roster.backend.for_subject("dave")
+    never = roster.backend.for_subject("no-such-person")
+    assert gone.read_rows(CONSENT_CHAIN) is None      # absent, not emptied
+    assert never.read_rows(CONSENT_CHAIN) is None
+    assert roster.permitted("dave", "local_only") is False
+    roster.verify()
+
+
+def test_one_tampered_chain_does_not_hide_behind_the_others(roster):
+    """Independence cuts both ways: a broken chain no longer breaks the corps,
+    which is also how one could go unnoticed. The sweep is what closes that."""
+    _adults(roster, "erin", "frank")
+    roster.connection.execute(
+        "UPDATE consent_anchor SET count = count + 1 WHERE chain = ?",
+        (consent_chain("frank"),))
+    roster.connection.commit()
+
+    roster.verify("erin")                       # erin's chain is fine
+    with pytest.raises(ChainTamperError):
+        roster.verify("frank")
+    with pytest.raises(ChainTamperError):
+        roster.verify()                         # and the sweep finds it
+
+
+def test_a_consent_row_cannot_be_written_into_another_subjects_chain(roster):
+    """The partition must be a fact, not a filing convention — otherwise
+    deleting one member's chain silently takes another member's consent."""
+    _adults(roster, "gina")
+    wrong = roster.backend.for_subject("gina")
+    with pytest.raises(SubjectConsentError):
+        wrong.append_row(CONSENT_CHAIN, {"subject_id": "someone-else",
+                                         "scope": "local_only",
+                                         "status": "granted"})
+
+
+def test_an_unscoped_backend_refuses_the_consent_chain(roster):
+    """Fail closed. An unscoped write would land in a global chain and rebuild
+    exactly the entanglement this removes."""
+    with pytest.raises(SubjectConsentError):
+        roster.backend.read_rows(CONSENT_CHAIN)
+    with pytest.raises(SubjectConsentError):
+        roster.backend.append_row(CONSENT_CHAIN, {"subject_id": "gina"})
+
+
+def test_the_guardian_rule_survived_the_partitioning(roster):
+    """The regression this migration exists for: 003's trigger matched the
+    chain name EXACTLY, so adding a suffix silently switched it off and a minor
+    could consent for themselves."""
+    roster.register_member("kid", "2012-01-01", "test")
+    with pytest.raises(sqlite3.IntegrityError):
+        roster.grant_use("kid", "local_only", "kid")
+
+
+def test_the_old_global_chain_name_cannot_dodge_the_guardian_rule(roster):
+    """A writer reaching past this module could otherwise insert under the bare
+    name the trigger used to match, and slip through the gap."""
+    roster.register_member("kid2", "2012-01-01", "test")
+    row = json.dumps({"subject_id": "kid2", "scope": "local_only",
+                      "status": "granted", "granted_by": "kid2"}, sort_keys=True)
+    with pytest.raises(sqlite3.IntegrityError):
+        roster.connection.execute(
+            "INSERT INTO consent_chain(chain, seq, row) VALUES ('consent', 1, ?)",
+            (row,))
