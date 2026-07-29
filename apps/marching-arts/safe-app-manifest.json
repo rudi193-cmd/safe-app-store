@@ -33,7 +33,7 @@
   "entry_point": "app:main",
   "license": "Apache-2.0",
   "notes": {
-    "phase": "P1 of docs/BUILD_PLAN.md in rudi193-cmd/quick-stupids",
+    "phase": "P1 of docs/BUILD_PLAN.md",
     "name": "Generic placeholder. Directory name is the app_id while in the playground; a promoted app gets its own repo and its own identity.",
     "not_stored_here": "Band 5 (safeguarding) is never served by this app to anyone under any grant. Concerns are routed to the people whose job it is."
   }

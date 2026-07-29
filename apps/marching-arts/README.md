@@ -7,14 +7,12 @@ Authorization core for a marching-program platform — the thing a corps, a
 drumline or a high-school band would run to hold roster, craft and schedule
 information without any of it leaving the building.
 
-This is **P1** of [`docs/BUILD_PLAN.md`][plan] in `rudi193-cmd/quick-stupids`:
+This is **P1** of [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md):
 storage and the authorization resolver. It ships nothing a user sees, and it is
 first on purpose. Everything else depends on it — including the sync spine,
 which is this same component wearing a different hat. A device receives only
 what its holder may see, so the filter that decides a query is the filter that
 decides a sync. Build it once.
-
-[plan]: https://github.com/rudi193-cmd/quick-stupids/blob/claude/quick-task-mskd7h/docs/BUILD_PLAN.md
 
 ---
 
@@ -85,7 +83,25 @@ tests/
   test_provenance.py  the schema's own guarantees, and per-record resolution
   test_rules.py       precedence, tested directly
   test_no_egress.py   the AST walk
+docs/
+  BUILD_PLAN.md       all five phases, each with its gate, and the refusals
+tools/
+  caption_dimensionality.py   reproduces the figures the plan's evidence rests on
 ```
+
+The plan and the analysis behind it travel with the build on purpose. The
+correlations in `docs/BUILD_PLAN.md` are the evidence for a decision the whole
+design turns on — that the tool never produces a number competing with a caption
+score — and a table of numbers in a markdown file is a claim. The script is the
+mechanism:
+
+```bash
+python3 tools/caption_dimensionality.py path/to/dci_scores.db
+```
+
+Its docstring records why it ranks within sheet rather than residualising on the
+composed total: that earlier method forces negative correlation by construction
+and reported a judge-independence finding that does not exist.
 
 ## Run it
 

@@ -1,6 +1,6 @@
 """marching_arts — the authorization core for a marching-program platform.
 
-Placeholder name. This is P1 of docs/BUILD_PLAN.md in rudi193-cmd/quick-stupids:
+Placeholder name. This is P1 of docs/BUILD_PLAN.md:
 storage and the authorization resolver, built first because everything else
 depends on it — including the sync spine, which is this same component wearing
 a different hat. A device receives only what its holder may see, so the filter
