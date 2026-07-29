@@ -133,6 +133,19 @@ def test_tail_truncation_is_detected_only_because_of_the_count_anchor(roster):
     the ones worth deleting: the revocation, and the disclosure that names you.
     So the test asserts *both* halves — that the truncated chain still passes a
     links-only check, and that verification fails anyway.
+
+    CORRECTION, and it lands on the name of this test: *this* scenario is caught
+    by the anchor's **hash**, not by its ``count``. The surviving last row is not
+    the row the anchor names, so deleting the ``count`` comparison from
+    ``_verify`` leaves this test green — checked by mutation while building
+    ``tests/test_migratability.py``. What ``count`` uniquely catches is an anchor
+    edited *directly*, rows untouched and hash still matching:
+    ``test_a_tampered_chain_is_not_silently_extended`` and
+    ``test_one_tampered_chain_does_not_hide_behind_the_others`` are the two that
+    fail without it. The name is left as written rather than rewritten so the
+    correction reads beside the claim instead of over it. Both halves asserted
+    below are still true, and "a links-only verifier would sign this off" is
+    still the point.
     """
     chain = disclosure_chain("adult-member")
     for i in range(3):
