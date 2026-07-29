@@ -298,6 +298,52 @@ MIGRATIONS: "list[tuple[str, str]]" = [
         END;
         """.format(majority=int(MAJORITY_AGE)),
     ),
+    (
+        "004_consent_chain_is_per_subject",
+        """
+        -- The consent core addresses ONE global chain holding every subject's
+        -- transitions interleaved. Unremarkable until someone asks to be
+        -- forgotten: their rows are links in a chain the whole corps depends on,
+        -- so removing them either breaks consent for everybody or cannot be done
+        -- at all. Neither is an answer you can give a guardian. The backend now
+        -- partitions at rest as `consent/<subject_hash>`; this makes the schema
+        -- agree.
+        --
+        -- The bug this fixes is the partitioning's own: 003's guardian rule
+        -- matched `new.chain = 'consent'` EXACTLY, so the moment the chain name
+        -- gained a suffix the rule stopped firing and a minor could consent for
+        -- themselves with nothing raised. It was caught by the test that exists
+        -- for it, which is the only reason this comment is not an incident note.
+        --
+        -- The replacement matches the partitions AND the bare name. Keeping the
+        -- bare name matters: a writer reaching past this module straight to SQL
+        -- could otherwise insert under the old chain name and dodge the rule.
+        DROP TRIGGER IF EXISTS trg_use_consent_minor_needs_guardian;
+
+        CREATE TRIGGER trg_use_consent_minor_needs_guardian
+        BEFORE INSERT ON consent_chain
+        WHEN (new.chain = 'consent' OR new.chain LIKE 'consent/%')
+         AND json_extract(new.row, '$.status') = 'granted'
+         AND EXISTS (SELECT 1 FROM people p
+                     WHERE p.person_id = json_extract(new.row, '$.subject_id')
+                       AND date('now') < date(p.birthdate, '+{majority} years'))
+         AND NOT EXISTS (SELECT 1 FROM guardianships g
+                         WHERE g.subject_id = json_extract(new.row, '$.subject_id')
+                           AND g.guardian_id = json_extract(new.row, '$.granted_by'))
+        BEGIN
+            SELECT RAISE(ABORT,
+                'a minor does not consent for themselves: a registered guardian must grant this use');
+        END;
+
+        -- NOT ENFORCED HERE, and the gap is deliberate rather than overlooked:
+        -- that a row lands in the partition naming its own subject cannot be a
+        -- trigger, because stock SQLite has no SHA-256 and the partition key is
+        -- one. `SqliteConsentBackend.append_row` checks it instead, which is a
+        -- weaker guarantee than every other rule in this schema -- those hold
+        -- against a writer who bypasses the module, and this one does not.
+        -- Recorded so the asymmetry is visible rather than assumed away.
+        """.format(majority=int(MAJORITY_AGE)),
+    ),
 ]
 
 
