@@ -88,9 +88,9 @@ canonical list. Cheap, and it stops the collision reopening.
 ### P1 — The keeping record · needs P0
 
 Every held build gets exactly one record at
-`stores/{major}/stored/<app_id>.json`:
+`stores/{anchor}/stored/<app_id>.json`:
 
-- `app_id`, `major`, and **where the code actually is** — an `apps/` path, or a
+- `app_id`, `majors`, and **where the code actually is** — an `apps/` path, or a
   loose repo URL for work kept outside this tree
 - `maker` — attribution, per §7; ideally the signed manifest
 - `lane` — the app's `store_scope`, so the record states the app's reach rather
@@ -99,7 +99,7 @@ Every held build gets exactly one record at
 
 This is the phase that makes `stores/` a storehouse: after it, the twelve empty
 directories hold the house's actual knowledge of its stock, and the majors mean
-something because each build is assigned to one.
+something because every build is accounted for under one.
 
 `llmphysics` is the first thing the record surfaces — a build directory with no
 manifest at all. It gets a record like everything else; the record is allowed to
@@ -107,10 +107,54 @@ say the manifest is missing. **Absence is a value, not a gap** — the same
 mechanic `dci_scores.db` uses for the unscored 2021 season, and Nestor for
 *pending*.
 
-**Gate.** Extend `tools/catalog_lint.py --strict`: every build directory on disk
-resolves to exactly one keeping record; every record resolves to a real location;
-no build appears under two majors. Fail-closed, wired into the existing `gates`
-job.
+#### One record, more than one major
+
+A build may span crafts, so `majors` is a list and the record carries the
+**relation** between them — `differential-paired`, for two implementations of
+one component held together by a differential suite. The relation is the
+load-bearing fact: it is what makes two copies of a thing *safe* rather than the
+drift hazard #83 measures at 17-of-17 for `safe_integration.py`. A record that
+flattens a spanning build to a single major is losing precisely the thing worth
+keeping.
+
+The record still lives in one place, filed under the **anchor** major — *the
+implementation that defines what correct means*, which for a differential pair
+is the reference side, not the larger side. Anchor is not "primary": it is not a
+judgment about which half matters more, and it is not decided by file count.
+
+#### The `state` vocabulary is closed, and pinned here
+
+`state` is a **closed enum, validated by the lint** — an unknown value fails,
+exactly as `catalog_lint --strict` today rejects a `status` it does not know.
+Proposed set, ratified in P0 alongside the tier vocabulary because it is the
+same collision one level down:
+
+`seeded · building · gated · stalled · archived`
+
+Two distinctions the enum has to keep separate, because conflating them is the
+mistake that has already been made once:
+
+- **Tier is expressed by the path** (`stored/` vs `promoted/`), never by
+  `state`. A build is not *in state* playground; playground is where it is kept.
+- **Missing facts are recorded, not encoded as a state.** `llmphysics` is not
+  `state: unmanifested` — it is whatever it actually is, with the absent
+  manifest recorded as a gap. Otherwise every new kind of absence needs a new
+  state value and the enum stops closing.
+
+Pinning this in P1 rather than P3 is deliberate: after P3 the records are the
+only writer, so an unpinned vocabulary stops being a documentation problem and
+becomes data loss with no second source to check against.
+
+**Gate.** Extend `tools/catalog_lint.py --strict`, fail-closed, wired into the
+existing `gates` job:
+
+- every build directory on disk resolves to **exactly one** keeping record, and
+  no two records claim the same `app_id`
+- every record resolves to a real location
+- every major named on a record is a real store
+- **a record naming more than one major must name the relation** — a spanning
+  build with an unnamed relation fails
+- `state` is in the closed set
 
 ### P2 — Promotion leaves a record · needs P1
 
@@ -142,7 +186,11 @@ from them and stops being authorable:
 - `tier` and `major` become real fields, because there is now something to read
   them from
 - `status` splits: shop vocabulary (`stable`, `beta`, `coming_soon`) gives way
-  to state-of-becoming; **`archived` stays** — §4, archive never delete
+  to the `state` enum pinned in P1; **`archived` stays** — §4, archive never
+  delete. The lint's accepted set moves in the *same* change, because it
+  currently rejects anything outside the four it knows — that is how an invented
+  `status: "playground"` was caught, and the catch was cheap only because the
+  lint already existed
 - it moves to `.willow/store/` per §9, with a root pointer left for existing
   consumers (`tui.py`, `store_mcp.py`) so nothing breaks on the move
 
@@ -186,13 +234,37 @@ grow a new organ without someone deciding to add one.
 
 ---
 
+## Settled in review
+
+**Which major owns a build that spans two crafts** — raised as the gate blocking
+P1, answered on the measurement rather than on preference. Both new builds are
+near-even, counted on the tree that tracks the browser halves:
+
+| | `.py` | `.ts` | `.mjs` |
+| --- | ---: | ---: | ---: |
+| `marching-arts` | 15 | 14 | 6 |
+| `field-acoustics` | 15 | 13 | 8 |
+
+A primary-major rule would decide those on a coin flip. But the ratio is the
+weaker half of the argument: in neither build are the two languages *two
+components*. They are **two implementations of one component, held together by a
+differential suite** — `field-acoustics/kernel` against `dcisim`, and
+`marching-arts/browser` against the resolver across 27,528 comparisons. So a
+primary-major record would state something false about where the code lives, and
+the P1 gate would then be **enforcing that falsehood rather than catching
+drift** — which is the whole reason the gate exists.
+
+Resolved as record-both, plus the relation, filed under the anchor major. The
+first draft of P1's gate asserted *"no build appears under two majors"* and would
+have made this unrepresentable; it is corrected above.
+
 ## Open gates
 
-- **Which major does each build belong to?** 27 builds, mostly Python, but
-  `utety-chat` is a web front, `field-acoustics` carries a TypeScript kernel
-  beside a Python model, and `the-binder` is a Cloudflare Pages shell. A build
-  that spans two crafts needs a rule — primary major, or a record that names
-  both — and the answer changes P1's schema. **This blocks P1 and nothing else.**
+- **`utety-chat` and `the-binder` are not differential pairs.** The settled rule
+  covers a build whose halves check each other. A web front with a Python shim,
+  or a Pages shell, spans crafts *without* a reference implementation defining
+  correct — so `anchor` has no principled answer there, and either the relation
+  vocabulary grows a second term or those builds get a rule of their own.
 - **`llmphysics` has no manifest.** Held, unmanifested, and in the catalog. The
   record can say so; whether it stays held or is archived (§4) is the operator's.
 - **Loose repos.** `stores/README.md` admits work kept *"local, or a loose repo"*
