@@ -19,7 +19,15 @@
  *      owner acquires it and calls `unpauseVfs()`. Then queue behind them, so a
  *      handoff is a rotation rather than an abdication.
  *
- * Untested headlessly — see `owner/election.ts`.
+ * Gated by the `sharedworker` block of `test/browser-gate.mjs`: two tabs must see
+ * each other's writes *and* the browser must fetch this script exactly once.
+ *
+ * **What that block cannot make true.** `createSyncAccessHandle()` is
+ * `[Exposed=DedicatedWorker]`, so step 2 above always fails here and this owner
+ * is always on the memory rung; Chromium does not expose `Worker` inside a
+ * SharedWorker either, so it cannot delegate the pool to a nested dedicated
+ * worker. The uniqueness this file gives is real; the durability is not, and a
+ * tripwire test fails the day Chromium changes either. See README.md.
  */
 
 import { openDatabase, type OpenOptions, type OpenResult } from './open.js';
@@ -64,8 +72,21 @@ async function ownershipCycle(options: OpenOptions): Promise<void> {
     announce(ports, { notice: 'paused', reason: 'another context asked for the database' });
     const closing = open;
     open = null;
-    await closing.pause().catch(() => {});
-    await closing.close().catch(() => {});
+    // Not `.catch(() => {})`. If `pause()` fails the sync access handles are
+    // still held, and releasing the lock anyway hands the challenger a lock over
+    // a pool it cannot install — it falls back to memory and the handoff has
+    // silently become a downgrade. The lock is released regardless, because the
+    // alternative is a challenger that waits forever, but the reason travels to
+    // every attached port instead of being swallowed.
+    try {
+      await closing.pause();
+      await closing.close();
+    } catch (error) {
+      announce(ports, {
+        notice: 'lost',
+        reason: `could not release the pool cleanly: ${(error as Error).message}`,
+      });
+    }
     ownership.release();
   }
 }

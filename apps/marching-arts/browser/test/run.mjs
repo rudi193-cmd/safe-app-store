@@ -72,9 +72,14 @@ for (const [name, script] of stages) {
 }
 
 console.log(
-  '\nnot covered by this runner: the opfs-sahpool VFS, the Web Locks election, and\n' +
-    'the pauseVfs()/unpauseVfs() handoff. Node has no OPFS and no SharedWorker.\n' +
-    'Open test/browser.html in a real browser for those; see README.md.',
+  '\nnot covered by this runner: the opfs-sahpool VFS, the Web Locks election, the\n' +
+    'pauseVfs()/unpauseVfs() handoff, and SharedWorker uniqueness. Node has no OPFS\n' +
+    'and no SharedWorker — which is also why this runner needs no browser and stays\n' +
+    'runnable anywhere Node and a stdlib Python are.\n' +
+    'Those four are gated separately, in a real Chromium:\n' +
+    '    npm run test:browser            # test/browser-gate.mjs\n' +
+    '    npm run test:browser:mutation   # and the proof that it can fail\n' +
+    'CI runs both. See README.md.',
 );
 
 if (failed) {
