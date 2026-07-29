@@ -1,27 +1,20 @@
 #!/usr/bin/env python3
 """A walkthrough of the resolver on synthetic data. `make run app=marching-arts`.
 
-Not a product surface — P1 and P2 ship nothing a user sees. This exists so the
+Not a product surface — P1 ships nothing a user sees. This exists so the
 guarantees can be watched happening rather than read about, which is a
 different kind of convincing than a passing test suite.
-
-Steps 1–7 are P1's resolver. Steps 8–12 are P2: a minor, a guardian, a refusal
-that comes from the database rather than from this file, and an authority that
-ends on a birthday with nothing scheduled.
 
 Every person and every record below is invented.
 """
 from __future__ import annotations
 
-import datetime
-import sqlite3
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from marching_arts import Band, GrantState, Principal, Store  # noqa: E402
-from marching_arts.consent import ConsentedRoster  # noqa: E402
 from marching_arts.rules import compile_rules, explain  # noqa: E402
 
 
@@ -106,63 +99,8 @@ def main() -> int:
     print("\n  \033[2mEvery role in the program, and no grant naming them. L4 is named")
     print("  persons only — not caption heads, not program coordinators.\033[0m")
 
-    consent_walkthrough()
     print()
     return 0
-
-
-def consent_walkthrough() -> None:
-    """P2, on the same connection: guardians, expiry, and the ledger."""
-    roster = ConsentedRoster(Store(":memory:"))
-    today = datetime.date.today()
-
-    def on_a_birthday(years_ago: int) -> str:
-        return today.replace(year=today.year - years_ago).isoformat()
-
-    roster.register_member("tan", on_a_birthday(17), "2026 registration")
-    roster.register_guardian("guardian:tan", "tan", "child", "2026 registration")
-    roster.store.record_fact("tan", Band.CRAFT, "rehearsal log 07-14",
-                             payload="mellophone 2; horn angle drops in the arc")
-
-    rule("8. A seventeen-year-old. The member cannot consent for themselves.")
-    try:
-        roster.store.record_grant("tan", "delacroix", Band.CRAFT,
-                                  GrantState.SEALED.value, "asked at rehearsal",
-                                  sealed_by="tan")
-    except sqlite3.IntegrityError as refused:
-        print(f"  refused by the database: {refused}")
-    print("\n  \033[2mA trigger in migration 002, not a validator in the app. The refusal")
-    print("  holds for code paths that have never heard of the rule.\033[0m")
-
-    rule("9. The section leader may not ask for their own access either")
-    try:
-        roster.request("tan", "delacroix", Band.CRAFT,
-                       requested_by="delacroix", source="asked at rehearsal")
-    except sqlite3.IntegrityError as refused:
-        print(f"  refused by the database: {refused}")
-    print("\n  \033[2mAsking is the pressure. A section leader canvassing their own squad")
-    print("  is coercion with extra steps, so the beneficiary is not a valid asker.\033[0m")
-
-    rule("10. The guardian seals it")
-    roster.seal("tan", "delacroix", Band.CRAFT, "guardian:tan",
-                "signed consent form 2026-05-02", requested_by="hayes")
-    show(roster.store, Principal("delacroix"), "section leader sees")
-
-    rule("11. The member turns eighteen. Nothing runs.")
-    roster.register_member("tan", on_a_birthday(18), "2026 registration")
-    show(roster.store, Principal("delacroix"), "section leader sees")
-    print("  the grant row is untouched and still says: "
-          + roster.connection.execute("SELECT state FROM grants").fetchone()[0])
-    print(f"  convert_at_majority → {roster.convert_at_majority('tan')}"
-          "  (now pending: the member is asked, not assumed)")
-    print("\n  \033[2mThe resolver stopped honouring guardian authority on a birthday.")
-    print("  No scheduled job, so no scheduled job that failed to run.\033[0m")
-
-    rule("12. The ledger is where the history lives")
-    for row in roster.disclosures("tan", reader="tan"):
-        print(f"  {row['at'][:19]}  {row['action']:<32} {row['detail']}")
-    print("\n  \033[2mHash-chained with a count anchor, on this same connection. Editing a")
-    print("  row breaks the links; deleting the newest rows breaks the count.\033[0m")
 
 
 if __name__ == "__main__":
