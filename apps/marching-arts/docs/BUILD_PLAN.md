@@ -63,13 +63,22 @@ become configurations of it.**
 
 What this buys, concretely:
 
-- **Nestor is the seal layer for every machine-produced number** — an acoustic
-  prediction, a schedule conflict, a position diagnosis. Apache-2.0, zero
-  runtime dependencies, 96 tests, and its `Storage` is an injectable `Protocol`,
-  so it lands on the same SQLite connection P1 opens. Honest caveat: its schema
-  vocabulary is translation-shaped (`memory_find(source_norm, source_lang,
-  target_lang)`). Adopting it means lifting the cascade + ledger + rejection
-  mechanic and re-vocabularising, not `pip install`.
+- **Nestor's cascade is the seal layer for every machine-produced number** — an
+  acoustic prediction, a schedule conflict, a position diagnosis. Apache-2.0,
+  zero runtime dependencies, 123 tests, and its `Storage` is an injectable
+  `Protocol`. **Resolved by spike: fork the mechanic, do not adopt the package.**
+  Two findings decided it. The browser half of P1 is TypeScript over
+  sqlite-wasm, so depending on a Python package still requires the mechanic
+  written twice; and this app authorizes through a SQL correlated subquery on
+  `g.state = 'sealed'`, which cannot call Nestor's Python-side `is_verified_seal`
+  — adopting its storage would import the vocabulary without the safety. Two
+  things the spike found by running the code: there is no principal parameter
+  anywhere in the 19-method `Storage` Protocol, so `memory_candidates` must
+  return every row and score in Python, which is the exact leak shape `store.py`
+  is built to refuse; and its fuzzy matcher scores two adjacent member ids at
+  0.9524 against a 0.92 seal threshold. Worth taking from it regardless: its
+  `ConflictingSealError` refuses a second verifier escalating a grant's band,
+  which this app does not yet guard against.
 - **SOIL is the decision ledger the project already needs.** Fifty-six records
   is the answer to "why is it built this way," queryable by anyone who joins
   later. Every settled decision below has a record id behind it.
@@ -150,10 +159,14 @@ spine, which is the same component wearing a different hat.
   migration** — copied straight from `dci_scores.db`. Retrofitting provenance is
   the same class of mistake as retrofitting the classification band: it can be
   added to the schema later but not to the data.
-- Nestor's `Storage` protocol satisfied by the same connection, so the seal
-  ledger and the domain data are one file. UTETY's `SqliteBackend` is the worked
+- The seal ledger and the domain data on the same connection, so they are one
+  file backed up and audited as a unit. UTETY's `SqliteBackend` is the worked
   example: append-row and write-anchor in *one* transaction, because the
   filesystem backend's two non-atomic writes wedge the chain on a crash.
+  (Correction: this lesson does **not** transfer to Nestor itself. Its ledger is
+  a JSONL file with no head anchor and cannot join a SQLite transaction at all.
+  The lesson is sound and migration 002 already applies it — it was cited two
+  bullets after a package it does not describe.)
 
 **Gate.** A test that seeds hidden rows and proves they cannot appear in a
 `COUNT`, a filter, a sort order or an empty state. If the count is computed in
