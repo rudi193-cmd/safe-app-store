@@ -18,24 +18,6 @@
       "purpose": "Consent grants — who may see whose information, and to what band",
       "retention": "permanent",
       "description": "Only a grant a named human sealed authorizes anything. Revocation deletes rather than flags, so no residue of a former grant is readable."
-    },
-    {
-      "id": "people",
-      "purpose": "Roster identity and birthdate — the input to whether a member is a minor",
-      "retention": "permanent",
-      "description": "A birthdate rather than an is_minor flag: a flag is true until somebody remembers to run the job that clears it. On-device only."
-    },
-    {
-      "id": "guardianships",
-      "purpose": "Which adult holds guardian authority over which minor",
-      "retention": "permanent",
-      "description": "Names a second person who is not themselves a member. A guardian is the only party who may seal a grant they benefit from, and that authority expires at majority rather than persisting."
-    },
-    {
-      "id": "consent_chain",
-      "purpose": "Hash-chained consent and disclosure log, with a count anchor",
-      "retention": "permanent",
-      "description": "Append-only and tamper-evident. The count anchor is what detects tail truncation, which a plain chain cannot. Chain names do not carry the subject id. Readable only by the subject and parties entitled to it; a non-entitled reader gets an empty list rather than a refusal, so probing the log cannot distinguish a member who declined from one who does not exist."
     }
   ],
   "permissions": [
@@ -50,7 +32,7 @@
   "entry_point": "app:main",
   "license": "Apache-2.0",
   "notes": {
-    "phase": "P1 and P2 of docs/BUILD_PLAN.md",
+    "phase": "P1 of docs/BUILD_PLAN.md",
     "name": "Generic placeholder. Directory name is the app_id while in the playground; a promoted app gets its own repo and its own identity.",
     "not_stored_here": "Band 5 (safeguarding) is never served by this app to anyone under any grant. Concerns are routed to the people whose job it is."
   }
