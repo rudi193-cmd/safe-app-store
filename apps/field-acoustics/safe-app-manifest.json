@@ -6,7 +6,6 @@
   "agent_type": "tool",
   "description": "Design-time acoustic model for marching drill — what the audience actually hears when the form turns in. Python model plus a TypeScript kernel, held together by a differential suite.",
   "author": "USER",
-  "status": "playground",
   "data_streams": [
     {
       "id": "file_reads",

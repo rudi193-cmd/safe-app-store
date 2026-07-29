@@ -1,7 +1,18 @@
 """Invariants the model must not violate.
 
-Run with `python -m pytest test_dcisim.py -q`, or just `python test_dcisim.py`.
+Run with `python -m pytest tests/ -q` (what CI runs), or `python
+tests/test_dcisim.py` for the same 38 checks with no pytest installed — the
+__main__ block at the bottom is a deliberate zero-dependency path.
+
+The sys.path insert below is what makes both work: the tests live one level
+below the package they exercise, and neither pytest's rootdir insertion nor a
+bare `python tests/...` finds it otherwise.
 """
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import numpy as np
 

@@ -16,7 +16,7 @@ pip install -r requirements.txt    # numpy, scipy, matplotlib
 python simulate.py                 # default corps, arc form
 python simulate.py --sections      # per-section breakdown
 python simulate.py --provenance    # where every number came from
-python test_dcisim.py              # 38 invariants
+python -m pytest tests/ -q         # 38 invariants
 ```
 
 Full detail on the model, including everything it does *not* do:
@@ -93,7 +93,7 @@ would propagate to programs that pay for things.
 
 ## Validation
 
-`python test_dcisim.py` runs 38 invariants rather than golden numbers, so they
+`python -m pytest tests/ -q` runs 38 invariants rather than golden numbers, so they
 stay meaningful when the inputs change. The load-bearing one:
 
 **Radiated power must match the declared `Lw`.** Intensity is integrated over a

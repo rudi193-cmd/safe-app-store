@@ -370,7 +370,7 @@
       "id": "marching-arts",
       "name": "Marching Arts (placeholder)",
       "description": "Authorization core for a marching-program platform. Per-record classification bands, sealed grants, and a resolver that compiles to one SQL predicate. Name not chosen yet.",
-      "status": "playground",
+      "status": "beta",
       "version": "0.1.0",
       "path": "apps/marching-arts",
       "tags": [
@@ -385,7 +385,7 @@
       "id": "field-acoustics",
       "name": "Field Acoustics",
       "description": "Design-time acoustic model for marching drill \u2014 what the audience actually hears when the form turns in. Python model plus a dependency-free TypeScript kernel, held together by a five-tier differential suite. Nothing else in the category models acoustics.",
-      "status": "playground",
+      "status": "beta",
       "version": "0.1.0",
       "path": "apps/field-acoustics",
       "tags": [

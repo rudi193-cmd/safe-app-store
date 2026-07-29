@@ -6,7 +6,6 @@
   "agent_type": "tool",
   "description": "Placeholder name. Authorization core for a marching-program platform — per-record bands, sealed grants, and a resolver that compiles to one SQL predicate.",
   "author": "USER",
-  "status": "playground",
   "data_streams": [
     {
       "id": "facts",

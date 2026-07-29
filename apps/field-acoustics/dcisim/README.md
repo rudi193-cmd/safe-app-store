@@ -13,7 +13,7 @@ python simulate.py                       # default corps, arc form
 python simulate.py --form block
 python simulate.py --drill mydrill.csv   # your real coordinates
 python simulate.py --sections            # per-section breakdown
-python test_dcisim.py                    # invariants
+python -m pytest tests/ -q               # invariants
 ```
 
 Outputs land in `out/`: a text summary, a plan view of the drill with bell
@@ -123,7 +123,7 @@ summed on an energy basis, because independent players are mutually incoherent.
 
 ## Checking it yourself
 
-`python test_dcisim.py` runs 33 invariants rather than golden numbers, so they
+`python -m pytest tests/ -q` runs 38 invariants rather than golden numbers, so they
 stay meaningful when you change the inputs. The load-bearing ones:
 
 - **Radiated power matches the declared `Lw`.** Intensity is integrated over a
