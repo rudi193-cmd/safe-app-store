@@ -107,20 +107,26 @@ Each row is a SOIL record, not a recollection. The id is the audit trail.
 ### The number that settles "no AI judging" on evidence, not taste
 
 The decision was made on values. The database independently makes it the
-*correct* engineering call, which is a much better place to be. Spearman rank
-correlation within each year and round, across four seasons — reproduce with
-`tools/caption_dimensionality.py`:
+*correct* engineering call, which is a much better place to be.
 
-| Sub-caption pair | Mean ρ | Worst single sheet | What it means |
+**Aggregation, stated because a rank correlation is not one number without it:**
+mean of within-sheet Spearman ρ, one sheet per (year, round), across the 12
+sheets with 5 or more corps. Pooling all 280 rows into a single correlation
+instead gives GE1~GE2 at **0.986**, and semifinals rows alone give **0.985** —
+the same conclusion, different figures. Reproduce any of them with
+`tools/caption_dimensionality.py`, which now prints its aggregation.
+
+| Sub-caption pair | Mean within-sheet ρ | Worst single sheet | What it means |
 | --- | ---: | ---: | --- |
 | GE1 ~ GE2 | 0.988 | 0.978 | Two judges, two boxes, one judgement. Not two independent readings of effect. |
 | Brass ~ Music Analysis | 0.977 | 0.937 | The music captions do not separate. |
 | Visual Prof ~ Visual Analysis | 0.972 | 0.944 | Nor do the visual ones. |
 | GE ~ Visual | 0.980 | 0.958 | Nor do the top-level captions from each other. |
 
-n = 101 semifinals sheets, 2022–25. Spread on the same rows: GE sd 2.92 against
-2.24 visual and 2.19 music — GE is where the separation lives, and it is also
-the pair that agrees with itself most.
+Spread, on the 101 semifinals **rows** (not sheets — an earlier draft said
+sheets, and there are 12 of those): GE sd 2.92 against 2.24 visual and 2.19
+music. GE is where the separation lives, and it is also the pair that agrees
+with itself most.
 
 A model trained on this sheet would learn *placement* and dress it as eight
 opinions. The honest product measures things the sheet does not contain — SPL at
@@ -130,7 +136,11 @@ human. That is not a concession. It is the only defensible position.
 > **Method note.** Rank within year and round. An earlier pass residualised each
 > caption on the composed total, which forces negative correlation by
 > construction and produced a false finding of GE1/GE2 *disagreement* at −0.24.
-> The correct value is the +0.988 above. SOIL `methodology-residualising-error`.
+> The correct value is the +0.988 above, under the aggregation named above — and
+> the aggregation had to be named because this figure was carried into four
+> documents without it, which is the same failure one level up: a number quoted
+> from a summary rather than from its method. SOIL
+> `methodology-residualising-error`, `ge1-ge2-aggregation-reconciled`.
 
 ---
 
