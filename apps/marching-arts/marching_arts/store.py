@@ -48,6 +48,23 @@ class Fact:
     source: str
 
 
+@dataclass(frozen=True)
+class Rationale:
+    """One answer to "why does the software do that", and its provenance.
+
+    ``mechanism`` is the load-bearing field. A shipped row must name one, by
+    trigger — the migration, constraint or test that makes the answer true.
+    Without it the row is a promise, and this project does not ship promises.
+    """
+    topic: str
+    question: str
+    answer: str
+    mechanism: "str | None"
+    source: str
+    publication: str
+    sealed_by: "str | None"
+
+
 class Store:
     """Authorized reads over the facts table.
 
@@ -259,5 +276,65 @@ class Store:
             r[0] for r in self._conn.execute(
                 "SELECT guardian_id FROM guardianships WHERE subject_id = ?"
                 " ORDER BY guardian_id", (subject_id,)
+            )
+        ]
+
+    # ── rationale: why the software refuses what it refuses ─────────────────
+    #
+    # Not gated by the authorization predicate, and that is the design rather
+    # than an omission. A `facts` row is about a PERSON and needs a `WHERE`
+    # clause. A `rationale` row is about the SOFTWARE and needs a human to have
+    # said it may leave the building. Two tables, two gates, no path that
+    # confuses them — see migration 005.
+
+    def record_rationale(self, topic: str, question: str, answer: str,
+                         source: str, *, mechanism: "str | None" = None,
+                         publication: str = "draft",
+                         sealed_by: "str | None" = None) -> int:
+        """Write a rationale. Defaults to ``draft``, which never ships.
+
+        Three refusals come from the schema rather than from here: an unknown
+        ``publication``, a ``shipped`` row with no signer, and a ``shipped`` row
+        that names no mechanism. The last one is this project's thesis as a
+        trigger — a guarantee with no mechanism is a wish, and a wish does not
+        go in the box.
+        """
+        cur = self._conn.execute(
+            "INSERT INTO rationale(topic, question, answer, mechanism, source,"
+            " publication, sealed_by) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (topic, question, answer, mechanism, source, publication, sealed_by),
+        )
+        self._conn.commit()
+        return cur.lastrowid
+
+    def seal_rationale(self, topic: str, sealed_by: str) -> None:
+        """Mark a rationale shippable. Only a human does this.
+
+        Deliberately a separate call from writing one: the machine that drafts
+        an answer is not the thing that decides a customer may read it, which is
+        the same separation Nestor draws between draft and sealed.
+        """
+        if not (sealed_by and sealed_by.strip()):
+            raise ValueError("a seal needs a name: 'shipped' with no signer is refused")
+        self._conn.execute(
+            "UPDATE rationale SET publication = 'shipped', sealed_by = ?"
+            " WHERE topic = ?", (sealed_by, topic),
+        )
+        self._conn.commit()
+
+    def rationale(self, *, publication: str = "shipped") -> "list[Rationale]":
+        """Rationale rows at one publication level. Defaults to what ships.
+
+        The default is the whole point: a caller that forgets to say what it
+        wants gets the shippable set, not everything. Asking for ``draft`` or
+        ``internal`` is a deliberate act.
+        """
+        if publication not in ("draft", "internal", "shipped"):
+            raise ValueError(f"unknown publication level {publication!r}")
+        return [
+            Rationale(*row) for row in self._conn.execute(
+                "SELECT topic, question, answer, mechanism, source, publication,"
+                " sealed_by FROM rationale WHERE publication = ?"
+                " ORDER BY topic", (publication,)
             )
         ]
