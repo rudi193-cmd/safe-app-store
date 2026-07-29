@@ -344,6 +344,100 @@ MIGRATIONS: "list[tuple[str, str]]" = [
         -- Recorded so the asymmetry is visible rather than assumed away.
         """.format(majority=int(MAJORITY_AGE)),
     ),
+    (
+        "005_rationale",
+        """
+        -- WHY THE SOFTWARE REFUSES WHAT IT REFUSES, shipped in the box.
+        --
+        -- A director asks why they cannot see a member's health record. A
+        -- guardian asks why a declined grant renders as nothing rather than as
+        -- a greyed row. A maintainer eighteen months from now asks why the
+        -- consent chain is partitioned per subject. Today each of those is a
+        -- support conversation, and the answer lives in a commit message or in
+        -- somebody's head.
+        --
+        -- This table is the answer, on the same connection as the data it
+        -- explains, so a corps that backed up one file backed up the reasoning
+        -- with it. It is deliberately NOT a separate store: this app is
+        -- stdlib-only and import-pure (tests/test_no_egress.py, and
+        -- test_import_is_stdlib_only), so it cannot take a runtime dependency
+        -- on anything that would host one -- and the browser half has no such
+        -- host available at all.
+        --
+        -- THE GATE IS DIFFERENT FROM THE ONE ON `facts`, AND THE DIFFERENCE IS
+        -- THE POINT. A row in `facts` is about a PERSON, so it is gated by the
+        -- authorization predicate. A row here is about the SOFTWARE, so it is
+        -- gated by whether a named human has said it may leave the building.
+        -- Two tables, two gates, and no code path that confuses them.
+        --
+        -- `publication` defaults to 'draft', so a record that nobody has
+        -- classified cannot ship. That is the same fail-closed direction as an
+        -- empty allow set compiling to 0 rather than 1.
+        --
+        --   draft    -- written, not reviewed. The default. Never packaged.
+        --   internal -- true and correct, and not for a customer. Competitive
+        --               assessments of other vendors live here; so does
+        --               anything whose subject is a live defect.
+        --   shipped  -- a named human sealed it for the box.
+        --
+        -- The seal requirement is `grants`' own rule pointed at a different
+        -- noun: a sealed grant nobody signed is refused, and so is a shipped
+        -- rationale nobody signed. Machine-written text stays draft forever
+        -- unless a person puts their name to it.
+        CREATE TABLE IF NOT EXISTS rationale (
+            id          INTEGER PRIMARY KEY,
+            -- Stable slug, so a UI can deep-link an answer and a test can
+            -- assert a specific one is present. Also the join key to the SOIL
+            -- record this was distilled from, where one exists.
+            topic       TEXT    NOT NULL UNIQUE
+                        CHECK (length(trim(topic)) > 0),
+            -- The question in the words somebody would actually ask it.
+            question    TEXT    NOT NULL
+                        CHECK (length(trim(question)) > 0),
+            answer      TEXT    NOT NULL
+                        CHECK (length(trim(answer)) > 0),
+            -- The mechanism, named. Not "we don't share health data" but the
+            -- migration, trigger or test that makes it so. An answer with no
+            -- mechanism is a promise, and this project does not ship those.
+            mechanism   TEXT,
+            -- Same rule as every fact row: provenance is not optional.
+            source      TEXT    NOT NULL
+                        CHECK (length(trim(source)) > 0),
+            publication TEXT    NOT NULL DEFAULT 'draft'
+                        CHECK (publication IN ('draft', 'internal', 'shipped')),
+            sealed_by   TEXT,
+            created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+            CHECK (publication != 'shipped' OR (sealed_by IS NOT NULL
+                                                AND length(trim(sealed_by)) > 0))
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_rationale_publication
+            ON rationale(publication, topic);
+
+        -- A shipped record must name its mechanism. An internal note may be
+        -- prose; the thing that goes to a customer may not be, because "there
+        -- is no code path that transmits it" is checkable and "we take privacy
+        -- seriously" is not. This is a trigger rather than a CHECK so the
+        -- message can say why.
+        CREATE TRIGGER IF NOT EXISTS trg_rationale_shipped_names_a_mechanism
+        BEFORE INSERT ON rationale
+        WHEN new.publication = 'shipped'
+         AND (new.mechanism IS NULL OR length(trim(new.mechanism)) = 0)
+        BEGIN
+            SELECT RAISE(ABORT,
+                'a shipped rationale must name its mechanism: a guarantee with no mechanism is a wish');
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_rationale_shipped_names_a_mechanism_upd
+        BEFORE UPDATE ON rationale
+        WHEN new.publication = 'shipped'
+         AND (new.mechanism IS NULL OR length(trim(new.mechanism)) = 0)
+        BEGIN
+            SELECT RAISE(ABORT,
+                'a shipped rationale must name its mechanism: a guarantee with no mechanism is a wish');
+        END;
+        """,
+    ),
 ]
 
 

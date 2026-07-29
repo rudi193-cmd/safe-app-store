@@ -54,6 +54,25 @@ export interface Fact {
   readonly source: string;
 }
 
+/**
+ * One answer to "why does the software do that", and its provenance.
+ *
+ * `mechanism` is the load-bearing field. A shipped row must name one, by
+ * trigger — the migration, constraint or test that makes the answer true.
+ * Without it the row is a promise, and this project does not ship promises.
+ */
+export interface Rationale {
+  readonly topic: string;
+  readonly question: string;
+  readonly answer: string;
+  readonly mechanism: string | null;
+  readonly source: string;
+  readonly publication: string;
+  readonly sealedBy: string | null;
+}
+
+export type Publication = 'draft' | 'internal' | 'shipped';
+
 export interface ReadOptions {
   where?: string | null;
   params?: Params | null;
@@ -369,5 +388,87 @@ export class Store {
       { subject_id: subjectId },
     );
     return rows.map((r) => String(r[0]));
+  }
+
+  // ── rationale: why the software refuses what it refuses ──────────────────
+  //
+  // Not gated by the authorization predicate, and that is the design rather
+  // than an omission. A `facts` row is about a PERSON and needs a `WHERE`
+  // clause. A `rationale` row is about the SOFTWARE and needs a human to have
+  // said it may leave the building. Two tables, two gates, no path that
+  // confuses them — see migration 005.
+
+  /** Write a rationale. Defaults to `draft`, which never ships. */
+  async recordRationale(
+    topic: string,
+    question: string,
+    answer: string,
+    source: string,
+    opts: {
+      mechanism?: string | null;
+      publication?: Publication;
+      sealedBy?: string | null;
+    } = {},
+  ): Promise<void> {
+    await this.connection.run(
+      'INSERT INTO rationale(topic, question, answer, mechanism, source,' +
+        ' publication, sealed_by)' +
+        ' VALUES (:topic, :question, :answer, :mechanism, :source,' +
+        ' :publication, :sealed_by)',
+      {
+        topic,
+        question,
+        answer,
+        mechanism: opts.mechanism ?? null,
+        source,
+        publication: opts.publication ?? 'draft',
+        sealed_by: opts.sealedBy ?? null,
+      },
+    );
+  }
+
+  /**
+   * Mark a rationale shippable. Only a human does this.
+   *
+   * Deliberately a separate call from writing one: the machine that drafts an
+   * answer is not the thing that decides a customer may read it.
+   */
+  async sealRationale(topic: string, sealedBy: string): Promise<void> {
+    if (!sealedBy || !sealedBy.trim()) {
+      throw new Error("a seal needs a name: 'shipped' with no signer is refused");
+    }
+    await this.connection.run(
+      "UPDATE rationale SET publication = 'shipped', sealed_by = :sealed_by" +
+        ' WHERE topic = :topic',
+      { sealed_by: sealedBy, topic },
+    );
+  }
+
+  /**
+   * Rationale rows at one publication level. Defaults to what ships.
+   *
+   * The default is the point: a caller that forgets to say what it wants gets
+   * the shippable set, not everything.
+   */
+  async rationale(publication: Publication = 'shipped'): Promise<Rationale[]> {
+    if (publication !== 'draft' && publication !== 'internal' &&
+        publication !== 'shipped') {
+      throw new Error(`unknown publication level ${String(publication)}`);
+    }
+    const rows = await this.connection.all(
+      'SELECT topic, question, answer, mechanism, source, publication,' +
+        ' sealed_by FROM rationale WHERE publication = :publication' +
+        ' ORDER BY topic',
+      { publication },
+    );
+    return rows.map((r) => ({
+      topic: String(r[0]),
+      question: String(r[1]),
+      answer: String(r[2]),
+      mechanism: r[3] === null ? null : String(r[3]),
+      source: String(r[4]),
+      publication: String(r[5]),
+      sealedBy: r[6] === null ? null : String(r[6]),
+    }));
   }
 }
