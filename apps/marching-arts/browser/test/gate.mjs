@@ -745,6 +745,105 @@ test('no read the store issues selects rows without a predicate', async () => {
 
 // ---------------------------------------------------------------------------
 
+// ── migration 005: rationale, and the gate that is NOT the predicate ─────────
+//
+// A `facts` row is about a PERSON and is gated by the authorization predicate.
+// A `rationale` row is about the SOFTWARE and is gated by whether a named human
+// said it may leave the building. These hold that line in the port, mirroring
+// tests/test_rationale.py.
+
+const MECH = 'marching_arts/schema.py migration 001, CHECK on facts.band';
+
+async function withRationale() {
+  // A bare store. fixture() seeds facts and grants, and a rationale row has
+  // nothing to do with either — using it would imply a relationship that the
+  // two-tables-two-gates design specifically does not have.
+  return Store.open(new TracingConnection(await openMemory(api)));
+}
+
+async function draft(store, topic = 'why-no-health', opts = {}) {
+  await store.recordRationale(
+    topic, 'Why can I not see that?',
+    'Because a grant covers its band and everything below.',
+    'docs/BUILD_PLAN.md', { mechanism: MECH, ...opts });
+}
+
+test('rationale · a new record does not ship', async () => {
+  const store = await withRationale();
+  await draft(store);
+  eq((await store.rationale()).length, 0, 'default read is the shippable set');
+  eq((await store.rationale('draft')).length, 1);
+});
+
+test('rationale · reading defaults to the shippable set', async () => {
+  const store = await withRationale();
+  await draft(store, 'a');
+  await draft(store, 'b', { publication: 'internal' });
+  await draft(store, 'c', { publication: 'shipped', sealedBy: 'sean' });
+  eq((await store.rationale()).map((r) => r.topic).join(','), 'c');
+});
+
+test('rationale · internal is a real third state', async () => {
+  const store = await withRationale();
+  await draft(store, 'vendor-note', { publication: 'internal' });
+  eq((await store.rationale()).length, 0);
+  eq((await store.rationale('internal')).length, 1);
+});
+
+test('rationale · shipped without a signer is refused', async () => {
+  const store = await withRationale();
+  await rejects(() => draft(store, 'x', { publication: 'shipped' }));
+});
+
+test('rationale · shipped without a mechanism is refused', async () => {
+  const store = await withRationale();
+  await rejects(() => draft(store, 'x',
+    { publication: 'shipped', sealedBy: 'sean', mechanism: null }));
+});
+
+test('rationale · an UPDATE cannot smuggle a mechanismless row into shipped', async () => {
+  const store = await withRationale();
+  await draft(store, 'no-mech', { mechanism: null });
+  await rejects(() => store.connection.run(
+    "UPDATE rationale SET publication='shipped', sealed_by='sean'" +
+    " WHERE topic='no-mech'"));
+});
+
+test('rationale · sealing is a separate act from writing', async () => {
+  const store = await withRationale();
+  await draft(store);
+  eq((await store.rationale()).length, 0);
+  await store.sealRationale('why-no-health', 'sean');
+  const rows = await store.rationale();
+  eq(rows.length, 1);
+  eq(rows[0].sealedBy, 'sean');
+});
+
+test('rationale · sealing with no name is refused before it reaches SQL', async () => {
+  const store = await withRationale();
+  await draft(store);
+  await rejects(() => store.sealRationale('why-no-health', ''));
+});
+
+test('rationale · a record with no source is refused', async () => {
+  const store = await withRationale();
+  await rejects(() => store.recordRationale('t', 'q?', 'a', '', { mechanism: MECH }));
+});
+
+test('rationale · an unknown publication level is refused', async () => {
+  const store = await withRationale();
+  await rejects(() => draft(store, 'x', { publication: 'public' }));
+  await rejects(() => store.rationale('public'));
+});
+
+test('rationale · it is not gated by the authorization predicate', async () => {
+  // No Principal appears anywhere in this call. If one were needed, the two
+  // concepts would have been confused.
+  const store = await withRationale();
+  await draft(store, 'x', { publication: 'shipped', sealedBy: 'sean' });
+  eq((await store.rationale()).length, 1);
+});
+
 for (const [name, fn] of pending) {
   try {
     await fn();
