@@ -5,5 +5,7 @@ dist/
 # from stdlib Python alone. It is deliberately NOT committed: a checked-in
 # reference is a snapshot of what the core used to do, and the whole point of
 # the differential is to notice when the core changes and the port does not.
-# `npm test` regenerates it if missing and fails if it cannot.
+# `npm test` regenerates it on every run — not only when missing — and fails if
+# it cannot. A reference from before the last core change agrees with the port
+# forever, which is indistinguishable from a real pass.
 test/reference.json

@@ -8,6 +8,12 @@ name: store
 #   vault-clean — no app leaks user data to fixed paths (tools/vault_leak_lint.py --strict)
 #   compile     — every .py in the repo byte-compiles
 #   app-tests   — test suites with no dedicated workflow, one matrix leg per app
+#   browser-resolver
+#               — marching-arts ships a second implementation of its
+#                 authorization resolver, in TypeScript on SQLite-WASM. This job
+#                 is what holds it to the Python core: it regenerates the
+#                 differential reference from marching_arts/ at this commit and
+#                 fails if the two disagree anywhere.
 
 on:
   push:
@@ -91,10 +97,59 @@ jobs:
         working-directory: apps/${{ matrix.app }}
         run: python -m pytest tests/ -q
 
+  # marching-arts' browser port, held to the Python core by a differential.
+  # Separate from the app-tests matrix because that matrix is Python-only and
+  # this leg needs Node; folding it in would have meant a Node setup step every
+  # other app pays for and none of them use.
+  browser-resolver:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          # No pip install: test/gen_reference.py is stdlib-only, deliberately,
+          # so the reference can always be produced wherever the core can run.
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"          # >=22: @sqlite.org/sqlite-wasm requires it
+          cache: npm
+          cache-dependency-path: apps/marching-arts/browser/package-lock.json
+
+      - name: Install
+        working-directory: apps/marching-arts/browser
+        run: npm ci
+
+      - name: Build
+        working-directory: apps/marching-arts/browser
+        run: npm run build
+
+      - name: Differential against the Python core
+        working-directory: apps/marching-arts/browser
+        # `npm test` regenerates test/reference.json from marching_arts/ in this
+        # checkout on every run, then runs the gate, the owner protocol and the
+        # differential. Do not pin the generator to a fixed --rev to keep this
+        # green: a reference generated from a revision the core has moved past
+        # agrees with the port forever, which converts the gate into a
+        # decoration. A red job here means the core moved and the port did not,
+        # and that is the finding, not the failure.
+        run: npm test
+
+      - name: Mutation test
+        working-directory: apps/marching-arts/browser
+        # A gate that cannot fail is not a gate. Breaks the port five ways and
+        # requires each to be caught.
+        run: npm run test:mutation
+
   # Aggregate gate: branch protection requires a single check named "test"
   # across the whole fleet. Green only when every gate and app suite is.
   test:
-    needs: [gates, app-tests]
+    needs: [gates, app-tests, browser-resolver]
     runs-on: ubuntu-latest
     steps:
-      - run: echo "gates and all app suites green"
+      - run: echo "gates, all app suites and the browser resolver green"
