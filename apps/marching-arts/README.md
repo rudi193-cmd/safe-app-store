@@ -84,6 +84,57 @@ be marked by exercising it.
 `marching_arts/__init__.py` does not import it — so the core still pulls in
 nothing but the standard library.
 
+## Authentication — who is asking, and the proof
+
+Everything above was conditional on a claim nothing checked.
+`Principal("delacroix")` was an unverified string, and a perfect predicate over an
+unauthenticated principal is theatre: anything that can construct a `Principal`
+can construct any `Principal`.
+
+**The gate is at the read, not at the login.** A login function returning a plain
+dataclass closes the honest-mistake case and nothing else — the next feature to
+need a principal constructs one inline and it works. So a `Principal` carries a
+`proof`, an HMAC over its identity, its roles and an expiry, and `predicate()`
+verifies it. That is the one method every read already went through, so `count`,
+`visible` and `subjects` are gated by a single line and a fourth read added later
+inherits it.
+
+```python
+store.auth.enroll("delacroix", "correct horse battery staple", "roster-import")
+store.count(Principal("delacroix"))          # AuthError — nobody proved this
+who = store.auth.authenticate("delacroix", "correct horse battery staple")
+store.count(who)                             # resolves, exactly as before
+store.count(replace(who, roles=frozenset({"director"})))   # AuthError
+```
+
+Three decisions carry the weight:
+
+- **No key at rest.** The signing key is generated per `Authenticator`, held in
+  memory and gone when the process exits. A key beside the data it authenticates
+  is a key an attacker with the file can use to mint any principal they like. The
+  price is that tokens do not survive a restart, which is right for an app with no
+  server — there is no session to resume, only a file to reopen.
+- **Arming is a one-way latch.** "Require proofs if credentials exist" makes
+  `DELETE FROM credentials` a privilege escalation, so arming lives in its own
+  table behind a trigger refusing `1 → 0`. Delete every credential and the corps
+  is locked out of their own database rather than let in. That is the correct
+  direction to fail.
+- **PBKDF2, not scrypt.** `hashlib.scrypt` is in the standard library and is not
+  in WebCrypto, and the browser half has to agree with this one by differential.
+  Portability, not taste.
+
+**What it does not do.** It does not make the file confidential. Anyone holding it
+opens it with `sqlite3` and reads every row — including L4 — with no credential
+and no proof. This gates the resolver, not the file. A test asserts that, so the
+limit cannot quietly stop being said; the day it fails is the day encryption at
+rest arrives, and that needs a cipher this project does not have.
+
+**And roles are still a claim.** Asked for at authenticate time, checked against
+nothing, because there is no roles table. Signing them stops them being added to
+an issued token; it does not make them true. Survivable only while the default
+policy grants nothing on a role, which
+`test_a_role_still_buys_nothing_in_the_default_policy` exists to notice.
+
 ## Bands
 
 `L0 SELF · L1 ROSTER · L2 CRAFT · L3 ACCOMMODATION · L4 HEALTH · L5 SAFEGUARDING · L6 FAMILY`
@@ -130,7 +181,10 @@ marching_arts/
   policy.py    who may see what. The only file that decides anything.
   schema.py    001 band and source · 002 people, guardianship, the chain tables
                and the triggers · 003 the guardian rule over the chain itself ·
-               004 one consent chain per subject · 005 shipped rationale
+               004 one consent chain per subject · 005 shipped rationale ·
+               006 credentials, and the arming latch
+  auth.py      who is asking, and the proof. Verified inside predicate(), not at
+               a front door a caller can walk past
   store.py     authorized reads. There is no second path.
   consent.py   P2's binding: libs/subject-consent on this store's connection
 tests/
@@ -140,6 +194,8 @@ tests/
   test_provenance.py  the schema's own guarantees, and per-record resolution
   test_rules.py       precedence, tested directly
   test_no_egress.py   the AST walk
+  test_auth.py        the proof: fabricated · borrowed · edited · expired ·
+                      re-enrolled · and the latch that will not disarm
   test_rationale.py   005's two gates: draft never ships, shipped names a
                       mechanism
   test_migratability.py
@@ -170,7 +226,7 @@ and reported a judge-independence finding that does not exist.
 ## Run it
 
 ```bash
-python3 -m pytest tests -q      # 159 passed
+python3 -m pytest tests -q      # 197 passed
 python3 app.py                  # a walkthrough on synthetic data
 ```
 
@@ -186,6 +242,16 @@ scrub — and each one turns this suite red. Two of them turned it red for the
 wrong reason and found real bugs: a `CHECK` that evaluated to NULL (and
 therefore passed) on a malformed birthdate, and a backend that reported an
 emptied chain as an absent one.
+
+`test_auth.py` is held the same way, twenty-five more mutations — stop verifying
+the proof, leave identity out of the signed message, parse the expiry before
+checking the signature, make an expired token distinguishable from a forged one,
+derive arming from the credentials table so deleting them reopens the door, write
+the signing key into the file. One of them found a test that could not fail: the
+tripwire meant to force a roles table compared what a decorated principal sees
+against what a plain one sees, and the fixture had no row the principal could not
+already see, so a blanket `admin` allow changed nothing. The fixture now carries a
+row nobody can reach.
 
 `test_migratability.py` was built the same way, sixteen more mutations, and the
 run corrected two claims rather than confirming them. A rename of the consent

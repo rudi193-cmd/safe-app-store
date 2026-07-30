@@ -16,6 +16,7 @@ from __future__ import annotations
 import datetime
 import sqlite3
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -174,6 +175,50 @@ def consent_walkthrough() -> None:
         print(f"  {row['at'][:19]}  {row['action']:<32} {row['detail']}")
     print("\n  \033[2mHash-chained with a count anchor, on this same connection. Editing a")
     print("  row breaks the links; deleting the newest rows breaks the count.\033[0m")
+
+    rule("14. Every step above trusted a string. Now it does not.")
+    from marching_arts.auth import AuthError, Authenticator, unproven
+
+    auth = Authenticator(roster.connection, iterations=100_000)
+    roster.store.auth = auth
+    SECRET = "correct horse battery staple"
+
+    def FAR_FUTURE_PROOF(who: Principal) -> str:
+        """The same digest with a later expiry stapled on — the edit the signed
+        message exists to refuse."""
+        later = (datetime.datetime.now(datetime.timezone.utc)
+                 + datetime.timedelta(days=3650)).isoformat()
+        return f"{later}.{who.proof.rpartition('.')[2]}"
+
+    print("  before enrolment, an unproven principal resolves: "
+          f"count={roster.count(Principal('delacroix'))}")
+
+    auth.enroll("delacroix", SECRET, "roster-import")
+    auth.enroll("tan", SECRET, "roster-import")
+    print("  credentials enrolled — the database is armed, one way, for good")
+    real = auth.authenticate("delacroix", SECRET)
+    for label, who in (
+        ("fabricated outright", Principal("delacroix")),
+        ("someone else's identity", replace(real, person_id="hayes")),
+        ("a role added afterwards", replace(real, roles=frozenset({"director"}))),
+        ("an expiry pushed out", replace(real, proof=FAR_FUTURE_PROOF(real))),
+        ("expired", auth.authenticate("delacroix", SECRET, ttl_seconds=-1)),
+        ("the proof stripped off", unproven(real)),
+    ):
+        try:
+            roster.count(who)
+            print(f"    {label:<26} LEAKED")
+        except AuthError as refusal:
+            print(f"    {label:<26} refused — {refusal}")
+
+    show(roster.store, auth.authenticate("tan", SECRET),
+         "tan, proven, sees own record")
+    print("\n  \033[2mThe check is inside predicate(), which every read already went")
+    print("  through — so count, visible and subjects are all gated by one line and")
+    print("  a fourth read added later inherits it. The signing key is per-process")
+    print("  and never written down, so there is no key in the file to steal.")
+    print("  What this does NOT do: the file is still fully readable by anyone")
+    print("  holding it. This gates the resolver, not the disk.\033[0m")
 
 
 if __name__ == "__main__":
