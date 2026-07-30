@@ -59,16 +59,30 @@ class GrantVia(Enum):
 
 @dataclass(frozen=True)
 class Principal:
-    """Whoever is asking. Roles are context, never authority on their own.
+    """Whoever is asking, and — since :mod:`marching_arts.auth` — the proof.
 
     ``roles`` cannot grant access to anything at or above :data:`bands.DERIVE_AT`
     — those bands are reachable only by a grant naming this principal
     individually. That is the "L4 is named persons only" decision, and it is
     enforced below rather than documented.
+
+    ``proof`` is an HMAC over ``person_id``, ``roles`` and an expiry, minted by
+    :meth:`marching_arts.auth.Authenticator.authenticate` and verified by
+    :meth:`marching_arts.store.Store.predicate` — so a principal a caller
+    fabricated resolves to nothing on a database that has ever enrolled a
+    credential. ``None`` means *unproven*, which is a claim and not an identity.
+
+    **This class stays freely constructible, and that is deliberate.** A private
+    constructor would move the check to the front door, where a caller who skips
+    the front door skips the check. All three signed fields live inside the proof
+    instead, so building one by hand — or editing one with ``dataclasses.replace``
+    to add a role or push out an expiry — produces a token the store refuses. The
+    gate is at the read, not at the type.
     """
 
     person_id: str
     roles: frozenset = field(default_factory=frozenset)
+    proof: "str | None" = None
 
 
 class Policy:

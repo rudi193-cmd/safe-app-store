@@ -330,17 +330,61 @@ failure: no `promotion.json`. That file needs `verified_by ≠ author`, so it is
 human act by somebody who is not the person who wrote this. Nothing else in the
 gate fails.
 
-**The largest gap is authentication.** `Principal("delacroix")` is an
-unverified string. The predicate compiled from it is correct, per-record, and
-mutation-tested — and a perfect predicate over an unauthenticated principal is
-theatre, because anything that can construct a `Principal` can construct any
-`Principal`. Every guarantee in this app is conditional on a claim nothing
-checks. It is named here rather than in a phase because it is not P3's transport
-problem and not P4's shell problem: it sits underneath both.
+**Authentication was the largest gap. It is now built, and the shape matters
+more than the fact.** `Principal("delacroix")` was an unverified string, so every
+guarantee in this app was conditional on a claim nothing checked. Migration 006
+and `marching_arts/auth.py` close it — but *not* at the front door, because a
+login function that returns a plain dataclass closes the honest-mistake case and
+nothing else: the next feature to need a principal constructs one inline and it
+works. So:
 
-**Also absent:** no UI (the Python core has `app.py`, a walkthrough, and no
+- **A `Principal` carries a `proof`** — an HMAC over its identity, its roles and
+  an expiry — and `Store.predicate` verifies it. That is the one method every
+  read already funnelled through, so `count`, `visible` and `subjects` are gated
+  by one line and a fourth read added later inherits it. Fabricate a principal,
+  edit one with `dataclasses.replace`, or reach past `authenticate()` entirely,
+  and the store refuses it. Same shape as the rest of the schema: the module can
+  be bypassed, the gate cannot.
+- **The signing key is never written down.** Generated per `Authenticator`, held
+  in memory, gone when the process exits. Stronger than storing it — a key beside
+  the data it authenticates is a key an attacker with the file can use to mint
+  any principal they like — and the price is that tokens do not survive a
+  restart, which is correct for an app with no server.
+- **Arming is a one-way latch, and the downgrade is the interesting half.** The
+  obvious implementation requires proofs when credentials exist, which makes
+  `DELETE FROM credentials` a privilege escalation. Arming is a separate table
+  with a trigger refusing `1 → 0`, so deleting every credential locks the corps
+  out of their own database instead of opening it. That is the correct direction
+  to fail.
+- **PBKDF2-HMAC-SHA256, not scrypt**, and the reason is portability rather than
+  taste: `hashlib.scrypt` is in the Python standard library and is **not** in
+  WebCrypto, and the browser half has to agree with this one by differential.
+  Choosing the stronger primitive would have meant two different KDFs across two
+  implementations required to produce identical answers.
+
+**What it does not do, and this is the part worth repeating.** It does not make
+the file confidential. Anyone holding it opens it with `sqlite3` and reads every
+row, with no credential and no proof — including L4. It gates the *resolver*, not
+the *file*. A test asserts exactly that, so the limit cannot quietly stop being
+said; the day it fails will be the day encryption at rest arrives, which is P3's
+stolen-device gate and needs a cipher this project does not have.
+
+**And roles are still an unverified claim.** They are asked for at authenticate
+time and checked against nothing, because there is no roles table. Signing them
+stops them being *added* to an issued token, which is the tamper case; it does
+not make them true. That is survivable only while the default policy grants
+nothing on the basis of a role, and
+`test_a_role_still_buys_nothing_in_the_default_policy` fails the day that stops
+being true. **That tripwire did not work when it was first written** — the
+fixture had no row the principal could not already see, so a mutation granting a
+blanket `admin` allow changed nothing to compare. Caught by the mutation, not by
+review.
+
+**Still absent:** no UI (the Python core has `app.py`, a walkthrough, and no
 host); no transport, so a corps is single-device; no roster import or export, so
-getting a season in means writing Python.
+getting a season in means writing Python. And the browser port does not have
+authentication yet — Python landed first, as it did for P2, and until the port
+catches up the differential covers the resolver and not the gate in front of it.
 
 **Closed as of `tests/test_migratability.py`.** Four things a real install does
 that no test did, each now with a gate and sixteen mutations behind them:
