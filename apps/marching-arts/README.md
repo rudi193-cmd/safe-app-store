@@ -135,6 +135,54 @@ an issued token; it does not make them true. Survivable only while the default
 policy grants nothing on a role, which
 `test_a_role_still_buys_nothing_in_the_default_policy` exists to notice.
 
+## Corrections, and why migration 005 was wrong about them
+
+*Corrections land beside the record, never on top of it* is one of this project's
+own rules. Migration 005 shipped a table that structurally could not keep it:
+`rationale.topic` is `UNIQUE` and there was no supersedes column, so a correction
+could not be a second row — and amending the existing one **overwrote** the text
+it replaced. A log that quietly overwrites its own mistakes can confirm the
+current answer and cannot be used to check whether the reasoning was sound. 005
+was built to ship reasoning and made exactly that mistake.
+
+Migration 007 splits the two. `rationale` stays one row per topic — the *current*
+guarantee, deep-linkable, existing API untouched. `rationale_correction` is the
+history: append-only, many rows per topic, because a guarantee can be wrong more
+than once.
+
+**The keeping is a trigger, not a convention.** Rewriting a shipped answer records
+the text being replaced in the same transaction, whether or not the writer has
+heard of the rule — a convention would have been enough for a careful caller, and
+a careful caller was never the problem. The row lands as `draft` carrying a stub,
+because the database can see *that* the text changed and cannot know *what was
+wrong*; a human fills that in and seals it.
+
+**And the candour claim is a query.**
+
+```python
+store.corrected_topics()      # every guarantee that has ever been wrong
+```
+
+That one line is why 007 is a table and not prose in `answer`. "We disclose what
+we got wrong" is a guarantee like any other, so it needs a mechanism or it is a
+wish — and buried in text, a guarantee with a clean history and one that was wrong
+for six months read identically.
+
+**What ships is a discriminator, not taste.** Does the mistake change what a
+reader should believe about a current guarantee? A tripwire that could not fail
+means the guarantee was unprotected for its whole life — that ships. A
+contaminated test baseline or a stale count in a README is a fact about how the
+work is done — internal, where a maintainer finds it and a customer does not. A
+**live** defect stays internal in every case, which is 005's rule unchanged.
+
+Three refusals come from the schema: a shipped correction must name what makes the
+guarantee true *now* (`"we fixed it"` is not a mechanism), must be signed, and may
+not ship ahead of the guarantee it corrects — disclosing a defect in work nobody
+has seen is disclosure with none of the benefit.
+
+What the schema cannot check is whether a human classified honestly. `sealed_by`
+is the whole answer to that, and no test stands in for a name.
+
 ## Bands
 
 `L0 SELF · L1 ROSTER · L2 CRAFT · L3 ACCOMMODATION · L4 HEALTH · L5 SAFEGUARDING · L6 FAMILY`
@@ -182,7 +230,8 @@ marching_arts/
   schema.py    001 band and source · 002 people, guardianship, the chain tables
                and the triggers · 003 the guardian rule over the chain itself ·
                004 one consent chain per subject · 005 shipped rationale ·
-               006 credentials, and the arming latch
+               006 credentials, and the arming latch · 007 corrections beside
+               the record, and the trigger that keeps the superseded text
   auth.py      who is asking, and the proof. Verified inside predicate(), not at
                a front door a caller can walk past
   store.py     authorized reads. There is no second path.
@@ -196,6 +245,8 @@ tests/
   test_no_egress.py   the AST walk
   test_auth.py        the proof: fabricated · borrowed · edited · expired ·
                       re-enrolled · and the latch that will not disarm
+  test_corrections.py 007: the prior text survives an amendment, and "what we
+                      got wrong" is a query rather than a paragraph
   test_rationale.py   005's two gates: draft never ships, shipped names a
                       mechanism
   test_migratability.py
@@ -226,7 +277,7 @@ and reported a judge-independence finding that does not exist.
 ## Run it
 
 ```bash
-python3 -m pytest tests -q      # 197 passed
+python3 -m pytest tests -q      # 221 passed
 python3 app.py                  # a walkthrough on synthetic data
 ```
 

@@ -897,6 +897,57 @@ test('006 · KNOWN GAP · this port does not yet refuse an unproven principal', 
     'if this now returns 0 or throws, the port has grown a verifier — invert this test');
 });
 
+// ── migration 007: the overwrite fix travels, because it is a trigger ────────
+//
+// Unlike 006's verifier, this one needs no port. `rationale` keeps the current
+// answer and `rationale_correction` keeps the history, and what moves the old
+// text into the history is a trigger — so it holds in a browser tab, in the
+// Python, and for a writer who has never heard of either. That is the difference
+// between a rule in an implementation and a rule in the database, and it is worth
+// a test here precisely because the same migration's *policy* half (what may
+// ship) is application logic that this port does not have.
+
+test('007 · amending a shipped answer keeps what it used to say, in the browser', async () => {
+  const store = await withRationale();
+  await store.recordRationale(
+    'why-no-health', 'Why can I not see that?', 'Because L4 is named persons only.',
+    'docs/BUILD_PLAN.md',
+    { mechanism: 'policy.Policy.projection', publication: 'shipped', sealedBy: 'sean' });
+
+  await store.connection.run(
+    "UPDATE rationale SET answer = 'rewritten' WHERE topic = 'why-no-health'");
+
+  const kept = await store.connection.all(
+    'SELECT superseded_answer, publication FROM rationale_correction');
+  eq(kept.length, 1, 'the prior text should have been kept');
+  eq(String(kept[0][0]), 'Because L4 is named persons only.');
+  eq(String(kept[0][1]), 'draft', 'the stub must not ship');
+});
+
+test('007 · a correction cannot ship ahead of the guarantee it corrects', async () => {
+  const store = await withRationale();
+  await store.recordRationale('unshipped', 'q?', 'a', 'src',
+    { mechanism: 'migration 001' });                     // draft, never shipped
+  await rejects(
+    () => store.connection.run(
+      "INSERT INTO rationale_correction(topic, what_was_wrong, mechanism, source," +
+      " publication, sealed_by) VALUES ('unshipped', 'wrong', 'migration 001'," +
+      " 'test', 'shipped', 'sean')"),
+    'a correction should not ship ahead of its subject');
+});
+
+test('007 · a shipped correction must name what fixed it', async () => {
+  const store = await withRationale();
+  await store.recordRationale('shipped-one', 'q?', 'a', 'src',
+    { mechanism: 'migration 001', publication: 'shipped', sealedBy: 'sean' });
+  await rejects(
+    () => store.connection.run(
+      "INSERT INTO rationale_correction(topic, what_was_wrong, source," +
+      " publication, sealed_by) VALUES ('shipped-one', 'wrong', 'test'," +
+      " 'shipped', 'sean')"),
+    '"we fixed it" is not a mechanism');
+});
+
 for (const [name, fn] of pending) {
   try {
     await fn();
