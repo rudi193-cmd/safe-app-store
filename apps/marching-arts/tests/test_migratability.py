@@ -69,6 +69,7 @@ APPLIED_ORDER = (
     "003_minor_use_consent_is_a_guardians_to_give",
     "004_consent_chain_is_per_subject",
     "005_rationale",
+    "006_credentials_and_the_arming_latch",
 )
 
 #: The stored chain name for subject ``kid``, as a literal — ``sha256("kid")``
@@ -235,7 +236,7 @@ def test_upgrading_twice_runs_nothing_the_second_time(older_install):
     """Idempotence, from the outside. ``apply`` returns the names it ran, and on
     a database already at head that list must be empty — an upgrade that re-ran
     002 would rename ``grants`` a second time and copy an empty table over it."""
-    assert schema.apply(sqlite3.connect(older_install)) == ["005_rationale"]
+    assert schema.apply(sqlite3.connect(older_install)) == list(APPLIED_ORDER[4:])
     assert schema.apply(sqlite3.connect(older_install)) == []
     assert schema.apply(sqlite3.connect(older_install)) == []
 
