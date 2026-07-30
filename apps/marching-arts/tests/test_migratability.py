@@ -70,6 +70,7 @@ APPLIED_ORDER = (
     "004_consent_chain_is_per_subject",
     "005_rationale",
     "006_credentials_and_the_arming_latch",
+    "007_corrections_land_beside_the_record",
 )
 
 #: The stored chain name for subject ``kid``, as a literal — ``sha256("kid")``
