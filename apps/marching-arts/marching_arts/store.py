@@ -50,6 +50,29 @@ class Fact:
 
 
 @dataclass(frozen=True)
+class Correction:
+    """One thing a guarantee got wrong, recorded beside it rather than over it.
+
+    ``superseded_answer`` is what the record said before, captured by trigger so
+    the prior text cannot be lost by the amendment that replaces it — which is
+    the whole failure migration 007 exists to fix.
+
+    ``mechanism`` is what makes the guarantee true *now*. Required to ship, the
+    same way a guarantee's mechanism is: for a guarantee it is what makes the
+    answer true, for a correction it is what stopped it being false.
+    """
+    id: int
+    topic: str
+    superseded_answer: "str | None"
+    superseded_mechanism: "str | None"
+    what_was_wrong: str
+    mechanism: "str | None"
+    source: str
+    publication: str
+    sealed_by: "str | None"
+
+
+@dataclass(frozen=True)
 class Rationale:
     """One answer to "why does the software do that", and its provenance.
 
@@ -355,6 +378,114 @@ class Store:
             " WHERE topic = ?", (sealed_by, topic),
         )
         self._conn.commit()
+
+    # ── corrections: beside the record, never on top of it ──────────────────
+    #
+    # Migration 005 shipped a table that could not keep this project's own
+    # correction rule: `topic` is UNIQUE with no supersedes column, so a
+    # correction could not be a second row and amending one overwrote the text it
+    # replaced. Migration 007 splits current state from history — `rationale` is
+    # still one row per topic, and these are the many.
+
+    _PUBLICATION = ("draft", "internal", "shipped")
+
+    def record_correction(self, topic: str, what_was_wrong: str, source: str, *,
+                          mechanism: "str | None" = None,
+                          publication: str = "draft",
+                          sealed_by: "str | None" = None) -> int:
+        """File a correction against a guarantee. Defaults to ``draft``.
+
+        Four refusals arrive from the schema rather than from here: an unknown
+        ``publication``, a ``shipped`` row with no signer, a ``shipped`` row that
+        names no mechanism, and a ``shipped`` correction whose *subject* has not
+        shipped — disclosing a defect in work nobody has seen is disclosure with
+        none of the benefit. A topic that does not exist is refused by the
+        foreign key.
+
+        Deliberately does not touch the guarantee. A correction that edited the
+        row it corrects would be the overwrite this migration exists to remove.
+        """
+        cur = self._conn.execute(
+            "INSERT INTO rationale_correction(topic, what_was_wrong, mechanism,"
+            " source, publication, sealed_by) VALUES (?, ?, ?, ?, ?, ?)",
+            (topic, what_was_wrong, mechanism, source, publication, sealed_by),
+        )
+        self._conn.commit()
+        return cur.lastrowid
+
+    def amend_rationale(self, topic: str, answer: str, *,
+                        mechanism: "str | None" = None) -> None:
+        """Rewrite a guarantee's answer, keeping what it used to say.
+
+        The keeping is not done here — it is
+        ``trg_amending_a_shipped_answer_keeps_the_old_one``, so it also happens
+        for a writer who reaches past this method straight to SQL. This method
+        exists to make the honest path obvious, not to be the mechanism.
+
+        The correction the trigger lands is a ``draft`` stub: the database can see
+        *that* the text changed and cannot know *what was wrong*. Fill that in and
+        seal it, or it never ships.
+        """
+        self._conn.execute(
+            "UPDATE rationale SET answer = ?, mechanism = ? WHERE topic = ?",
+            (answer, mechanism, topic),
+        )
+        self._conn.commit()
+
+    def seal_correction(self, correction_id: int, sealed_by: str, *,
+                        what_was_wrong: "str | None" = None,
+                        mechanism: "str | None" = None) -> None:
+        """Mark a correction shippable. Only a human does this.
+
+        Takes the reason and the mechanism as optional arguments because the
+        common case is sealing a trigger-written stub, which carries neither —
+        and requiring two calls to do one thing is how a stub ends up shipped
+        with its placeholder text still in it.
+        """
+        if not (sealed_by and sealed_by.strip()):
+            raise ValueError("a seal needs a name: 'shipped' with no signer is refused")
+        sets, params = ["publication = 'shipped'", "sealed_by = ?"], [sealed_by]
+        if what_was_wrong is not None:
+            sets.append("what_was_wrong = ?")
+            params.append(what_was_wrong)
+        if mechanism is not None:
+            sets.append("mechanism = ?")
+            params.append(mechanism)
+        params.append(int(correction_id))
+        self._conn.execute(
+            f"UPDATE rationale_correction SET {', '.join(sets)} WHERE id = ?",
+            params)
+        self._conn.commit()
+
+    def corrections(self, *, topic: "str | None" = None,
+                    publication: str = "shipped") -> "list[Correction]":
+        """Corrections at one publication level, newest last. Defaults to shipped."""
+        if publication not in self._PUBLICATION:
+            raise ValueError(f"unknown publication level {publication!r}")
+        sql = ("SELECT id, topic, superseded_answer, superseded_mechanism,"
+               " what_was_wrong, mechanism, source, publication, sealed_by"
+               " FROM rationale_correction WHERE publication = ?")
+        params: list = [publication]
+        if topic is not None:
+            sql += " AND topic = ?"
+            params.append(topic)
+        return [Correction(*row)
+                for row in self._conn.execute(sql + " ORDER BY id", params)]
+
+    def corrected_topics(self, *, publication: str = "shipped") -> "list[str]":
+        """Every guarantee that has ever been wrong.
+
+        This one query is the reason 007 is a table and not prose in ``answer``.
+        "We disclose what we got wrong" is a guarantee like any other, so it needs
+        a mechanism or it is a wish — and a claim nobody can enumerate is not
+        checkable. Buried in text, a guarantee with a clean history and one that
+        was wrong for six months read identically.
+        """
+        if publication not in self._PUBLICATION:
+            raise ValueError(f"unknown publication level {publication!r}")
+        return [r[0] for r in self._conn.execute(
+            "SELECT DISTINCT topic FROM rationale_correction"
+            " WHERE publication = ? ORDER BY topic", (publication,))]
 
     def rationale(self, *, publication: str = "shipped") -> "list[Rationale]":
         """Rationale rows at one publication level. Defaults to what ships.
