@@ -380,6 +380,48 @@ fixture had no row the principal could not already see, so a mutation granting a
 blanket `admin` allow changed nothing to compare. Caught by the mutation, not by
 review.
 
+### Corrections ship, and 005 could not do it
+
+The open question was whether a *shipped* `rationale` record includes this
+project's own mistakes. Answering it turned up something sharper: **migration 005
+shipped a table that structurally could not keep this project's correction rule.**
+`topic` is `UNIQUE` with no supersedes column, so a correction could not be a
+second row, and amending the existing one *overwrote* the text it replaced. "A log
+that quietly overwrites its own mistakes can confirm the current answer and cannot
+be used to check whether the reasoning was sound" — 005 was built to ship
+reasoning and made exactly that mistake.
+
+So the policy question was downstream of a structural one, and migration 007
+answers both.
+
+- **`rationale` is current state; `rationale_correction` is history.** One row per
+  topic stays deep-linkable and the existing API is untouched; corrections are
+  append-only and many per topic, because a guarantee can be wrong twice.
+- **The keeping is a trigger.** Rewriting a shipped answer records the superseded
+  text in the same transaction, for any writer. It lands as `draft` with a stub:
+  the database can see *that* the text changed and cannot know *what was wrong*, so
+  a human fills that in and seals it. Recording is mechanical; explaining is not.
+- **`corrected_topics()` is the answer to the candour question.** "We disclose what
+  we got wrong" is a guarantee like any other, so by the first rule it needs a
+  mechanism or it is a wish — and a claim nobody can enumerate is not checkable.
+  Prose in `answer` would have satisfied the letter and none of it.
+- **The discriminator, not taste.** Does the mistake change what a reader should
+  believe about a current guarantee? A tripwire that could not fail means the
+  guarantee was unprotected for its whole life — ships. A contaminated test
+  baseline or a stale README count is a fact about how the work is done —
+  internal. A **live** defect stays internal in every case, unchanged from 005.
+- **A correction may not ship ahead of its subject.** Disclosing a defect in work
+  nobody has seen is disclosure with none of the benefit, and the fail-closed
+  direction holds the correction back rather than pushing the guarantee out.
+
+What the schema cannot check is whether a human classified honestly — whether "this
+was embarrassing" was filed internal to avoid saying it. `sealed_by` is the whole
+answer, and no test stands in for a name.
+
+**Not done: the rows.** Both tables ship empty. The 97 records in SOIL
+(`gate_app_ideas`) now have a rule to be classified against instead of a judgement
+call each, and that pass has not been run.
+
 **Still absent:** no UI (the Python core has `app.py`, a walkthrough, and no
 host); no transport, so a corps is single-device; no roster import or export, so
 getting a season in means writing Python. And the browser port does not have
