@@ -3,7 +3,7 @@
 > **Status: level with the core.** This port implements P1 *and* P2 — migrations
 > 002, 003 and 004, and the guardian clause inside the grant-lookup predicate.
 > `npm test` regenerates the reference from `../marching_arts/` in the working
-> tree on every run and reports **27,538 comparisons, 0 disagreements**. It is
+> tree on every run and reports **27,540 comparisons, 0 disagreements**. It is
 > wired into `.github/workflows/store-ci.yml` as the `browser-resolver` job, and
 > that job is in the aggregate `test` job's `needs:`, so branch protection blocks
 > on it. See *The drift gate* below for what that gate looked like while it was
@@ -26,7 +26,7 @@ keeps the two identical. That something is [`test/`](test): a generator that run
 the Python resolver over a randomised corpus and dumps everything it produced,
 and a comparator that replays the identical corpus through this port.
 
-**27,538 comparisons, 0 disagreements.** Five deliberate bugs, all caught. The
+**27,540 comparisons, 0 disagreements.** Five deliberate bugs, all caught. The
 numbers and what they do and do not cover are below.
 
 ---
@@ -193,7 +193,7 @@ corpus     14 worlds · 130 principal cases · 7,130 store queries
 
 tier         checks   result
 constants        19   ok      band integers, DERIVE_AT, NEVER_SERVED,
-                              DENY_ALL, SORTABLE, and all six migrations'
+                              DENY_ALL, SORTABLE, and all seven migrations'
                               DDL byte-for-byte
 compiler        996   ok      predicate text, parameters, explain(), and the
                               rows each predicate actually selects
@@ -201,10 +201,10 @@ policy          780   ok      every rule fragment as SQL text, per principal
 store        25,735   ok      the adversarial battery, per (world, principal)
 schema            8   ok      the writes that must be refused
 
-27,538 comparisons, 0 disagreements
+27,540 comparisons, 0 disagreements
 ```
 
-Plus 57 gate tests and 10 owner-protocol tests, which say what *correct* is
+Plus 60 gate tests and 10 owner-protocol tests, which say what *correct* is
 independently — two implementations can agree while both being wrong.
 
 Three of those 57 are migration 006, and one of them asserts a **gap** rather
@@ -290,7 +290,7 @@ verifies the restoration by hash. Actual output:
 The last two rows are the interesting ones and both are in the list on purpose.
 
 **`count-in-js`.** Computing the count over fetched rows returns *the same
-number*, so the differential agrees on all 27,538 comparisons and reports a clean
+number*, so the differential agrees on all 27,540 comparisons and reports a clean
 pass. What is wrong is that the hidden rows were read into the tab to produce it —
 which is exactly what the build plan forbids ("if the count is computed in
 JavaScript over fetched rows, the phase is not done"). Only the traced test in
@@ -453,7 +453,7 @@ Stated plainly rather than buried.
 - **The differential still runs on the in-memory VFS.** Node has no OPFS, so
   `npm test` exercises every line of the resolver, compiler, schema and store
   against the same SQLite library the browser gets, but not against the SAH pool.
-  The browser gate covers the VFS; it does **not** re-run the 27,538 comparisons
+  The browser gate covers the VFS; it does **not** re-run the 27,540 comparisons
   there. So "the resolver is correct" and "the VFS is real" are proved by two
   different suites and nothing proves them together.
 - **One engine.** Chromium only. Firefox and WebKit implement OPFS, Web Locks and
@@ -585,7 +585,7 @@ step in every other app's leg for the benefit of none of them.
 clean tree and the generator's default mode compares against whatever
 `marching_arts/` is at that commit — with the port behind by P2, wiring it would
 have turned the whole store's `test` job red. It is wired now because the port is
-genuinely level: 27,538 comparisons, 0 disagreements, reference regenerated from
+genuinely level: 27,540 comparisons, 0 disagreements, reference regenerated from
 the working tree. What was never an option is pinning the generator to a fixed
 `--rev` in CI to keep it green; that converts the gate into a decoration. If this
 job goes red, the core moved and the port did not, and that is the finding.
