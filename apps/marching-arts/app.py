@@ -220,6 +220,46 @@ def consent_walkthrough() -> None:
     print("  What this does NOT do: the file is still fully readable by anyone")
     print("  holding it. This gates the resolver, not the disk.\033[0m")
 
+    rule("15. And when the software itself was wrong, that is in the box too")
+    store = roster.store
+    MECH = "policy.Policy.projection, DERIVE_AT"
+    store.record_rationale(
+        "why-no-health", "Why can I not see a member's health record?",
+        "Because L4 is served as a derived instruction and never as the fact.",
+        "docs/BUILD_PLAN.md", mechanism=MECH,
+        publication="shipped", sealed_by="sean")
+    print(f"  shipped guarantee: {store.rationale()[0].answer}")
+    print(f"  its mechanism:     {store.rationale()[0].mechanism}")
+
+    store.amend_rationale(
+        "why-no-health",
+        "Because L4 is served as a derived instruction and never as the fact,"
+        " and no role reaches it.", mechanism=MECH)
+    stub = store.corrections(publication="draft")[0]
+    print("\n  the answer was amended. what it used to say was kept, by trigger:")
+    print(f"    superseded: {stub.superseded_answer}")
+    print(f"    stub:       {stub.what_was_wrong}")
+    print(f"  and it does not ship yet — shipped corrections: {store.corrections()}")
+
+    store.seal_correction(
+        stub.id, "sean",
+        what_was_wrong="the roles clause was true and unstated, and the test that"
+                       " was supposed to force it could not fail",
+        mechanism="tests/test_auth.py::"
+                  "test_a_role_still_buys_nothing_in_the_default_policy")
+    disclosed = store.corrections()[0]
+    print(f"\n  a human sealed it. now:")
+    print(f"    what was wrong: {disclosed.what_was_wrong}")
+    print(f"    what fixed it:  {disclosed.mechanism}")
+    print(f"  guarantees that have ever been wrong: {store.corrected_topics()}")
+    print("\n  \033[2mThe last line is the point. \"We disclose what we got wrong\" is a")
+    print("  guarantee like any other, so it needs a mechanism or it is a wish — and")
+    print("  a claim nobody can enumerate is not checkable. Migration 005 shipped a")
+    print("  table that could not do this: topic was UNIQUE with no supersedes, so a")
+    print("  correction overwrote what it corrected. 007 splits current state from")
+    print("  history, and a trigger does the keeping so a careless writer cannot")
+    print("  skip it. What may SHIP is a human decision, signed by name.\033[0m")
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
