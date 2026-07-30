@@ -29,6 +29,7 @@ import sqlite3
 from dataclasses import dataclass
 
 from . import schema
+from .auth import Authenticator
 from .policy import Policy, Principal
 from .rules import compile_rules
 
@@ -74,11 +75,20 @@ class Store:
     """
 
     def __init__(self, conn: "sqlite3.Connection | str" = ":memory:",
-                 policy: "Policy | None" = None) -> None:
+                 policy: "Policy | None" = None,
+                 authenticator=None) -> None:
         self._conn = sqlite3.connect(conn) if isinstance(conn, str) else conn
         self._conn.execute("PRAGMA foreign_keys = ON")
         self.policy = policy or Policy()
         schema.apply(self._conn)
+        # Constructed after schema.apply, because the authenticator reads the
+        # arming latch and migration 006 is what creates it.
+        #: Credential enrolment, authentication, and the verifier every read
+        #: consults. Built here on the connection the store already holds, so a
+        #: caller never has to construct an authenticator before the store it
+        #: verifies for. Its signing key is per-process and never written down.
+        self.auth = (authenticator if authenticator is not None
+                     else Authenticator(self._conn))
 
     @property
     def connection(self) -> sqlite3.Connection:
@@ -94,7 +104,31 @@ class Store:
         The caller's filter is a further narrowing and is parenthesised so its
         internal ORs cannot escape into the authorization predicate. There is no
         argument that widens the result set; that is not an omission.
+
+        **This is also where a principal's proof is checked**, and it is here
+        rather than in :meth:`visible` because every read in this class funnels
+        through this method — ``visible``, ``count`` and ``subjects`` all call it,
+        so one check covers all three and a fourth read added later inherits it
+        for free. Putting the check in a login function instead would leave the
+        caller who never logs in unchecked, which is exactly the failure this
+        replaces.
+
+        The check runs only on a database that has ever enrolled a credential
+        (:attr:`marching_arts.auth.Authenticator.required`). A demo or empty
+        database resolves unproven principals as it always did — and the moment a
+        corps enrols one credential, unproven claims stop resolving for everyone,
+        permanently. Migration 006 explains why arming is a latch and not a flag.
+
+        Raises :class:`~marching_arts.auth.AuthError` rather than returning an
+        empty set. The empty-state rule — a subject you may not see must be
+        indistinguishable from one who does not exist — is about *subjects* and
+        does not reach here: the only thing this tells the caller is the state of
+        their own credential, which they already know. Silence would let an
+        unauthenticated read look like an empty roster, and that is how a
+        resolver bug ships.
         """
+        if self.auth.required:
+            self.auth.verify(principal)
         sql, params = compile_rules(self.policy.rules(principal))
         if extra:
             sql = f"({sql}) AND ({extra})"
