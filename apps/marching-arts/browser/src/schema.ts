@@ -450,12 +450,131 @@ const MIGRATION_005 = `
         END;
         `;
 
+/**
+ * Migration 006 — who is asking, and the proof that they are.
+ *
+ * Port of marching_arts/schema.py MIGRATIONS[5]. Emitted mechanically, not
+ * retyped, for the same reason 005 was: the constants tier compares this string
+ * to the Python byte for byte, whitespace artefacts included. The only
+ * transformation is escaping the backticks a template literal requires.
+ *
+ * **The DDL is ported; the gate is not, yet.** `marching_arts/auth.py` verifies a
+ * principal's proof inside `Store.predicate`, and this port has no equivalent —
+ * so a browser tab reading an ARMED database resolves unproven principals that
+ * the Python would refuse. That asymmetry is deliberate for exactly one bite and
+ * is asserted by `test/gate.mjs` rather than left to be discovered: the schema
+ * has to land first so a browser-created file is the same file as a
+ * Python-created one, and the verifier needs a decision this port has not made —
+ * WebCrypto's HMAC is async, so verifying inside `predicate()` makes the whole
+ * read path async. Recorded here because an implementation that silently enforces
+ * less than its twin is the exact failure this differential exists to catch.
+ */
+const MIGRATION_006 = `
+        -- WHO IS ASKING, AND THE PROOF THAT THEY ARE.
+        --
+        -- Until this migration, \`Principal("delacroix")\` was an unverified
+        -- string. The predicate compiled from it was correct, per-record and
+        -- mutation-tested, and a perfect predicate over an unauthenticated
+        -- principal is theatre: anything that can construct a Principal can
+        -- construct any Principal. marching_arts/auth.py is the mechanism; this
+        -- is where its state lives.
+        --
+        -- ON THE SAME CONNECTION as the grants, the chain and the roster, for
+        -- the reason every other table here is: a corps that backed up one file
+        -- backed up its logins with it, or backed up none of them. A credential
+        -- store restorable out of step with the grants it gates is one that will
+        -- eventually admit somebody who was removed.
+        --
+        -- WHAT THIS DOES NOT DO. It does not make the file confidential. Anyone
+        -- holding it opens it with sqlite3 and reads every row, with no
+        -- credential and no proof. These tables gate the application's
+        -- RESOLVER; they do not gate the FILE. Encryption at rest is a separate
+        -- mechanism needing a cipher that exists nowhere in reach -- P3's
+        -- stolen-device gate in docs/BUILD_PLAN.md. Recorded here because a
+        -- table named \`credentials\` invites the stronger reading.
+        --
+        -- NO SIGNING KEY IS STORED. The HMAC key that makes a proof unforgeable
+        -- is generated per process and held in memory only, so there is nothing
+        -- at rest to steal and a token minted by one process is meaningless in
+        -- another. That is why this migration has no \`secrets\` table, and the
+        -- absence is the design rather than an omission.
+        CREATE TABLE IF NOT EXISTS credentials (
+            -- PRIMARY KEY, so a person cannot acquire a SECOND credential
+            -- alongside their first. Rotation is an update that
+            -- Authenticator.enroll refuses without proof of the old secret -- a
+            -- rule that module holds and this schema cannot, because verifying
+            -- PBKDF2 is not something stock SQLite can do inside a trigger.
+            -- Same asymmetry migration 004 records about its partition check,
+            -- written down for the same reason: it is weaker than every other
+            -- rule here and pretending otherwise is how it gets relied on.
+            person_id  TEXT PRIMARY KEY
+                       CHECK (length(trim(person_id)) > 0),
+            -- The derivation, named in the row rather than assumed by whoever
+            -- reads it next. A future migration adds a second KDF by name and
+            -- the rows already on file keep working; a schema that left this
+            -- implicit would have to choose a default for every existing
+            -- credential, and whatever it chose would be wrong for some.
+            kdf        TEXT NOT NULL
+                       CHECK (kdf IN ('pbkdf2_hmac_sha256')),
+            -- Stored per row, so the cost can be raised for new enrolments
+            -- without invalidating the ones already here.
+            iterations INTEGER NOT NULL CHECK (iterations >= 100000),
+            salt       BLOB NOT NULL CHECK (length(salt) >= 16),
+            verifier   BLOB NOT NULL CHECK (length(verifier) >= 32),
+            source     TEXT NOT NULL CHECK (length(trim(source)) > 0),
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        -- ── the arming latch, and why it is its own table ───────────────────
+        -- Whether proofs are required is derived from the data, not from a
+        -- constructor flag: a flag is a second copy of the truth and it is wrong
+        -- the first time somebody opens the file without setting it, which is
+        -- the objection migration 002 raised against an \`is_minor\` column.
+        --
+        -- The obvious phrasing is "require proofs if any credential exists",
+        -- and it is WRONG IN THE DANGEROUS DIRECTION -- deleting the credential
+        -- rows would reopen the database to unproven principals, making
+        -- \`DELETE FROM credentials\` a privilege escalation. So arming is
+        -- recorded here instead, and it is one-way. Delete every credential
+        -- from an armed database and nobody can authenticate at all. That is
+        -- the correct way to fail.
+        CREATE TABLE IF NOT EXISTS auth_policy (
+            id       INTEGER PRIMARY KEY CHECK (id = 1),
+            required INTEGER NOT NULL CHECK (required IN (0, 1))
+        );
+
+        -- A latch, in SQL. Not a convention and not a comment on the update
+        -- statement: no writer disarms this, including one that has never heard
+        -- of auth.py.
+        CREATE TRIGGER IF NOT EXISTS trg_auth_policy_never_disarms
+        BEFORE UPDATE ON auth_policy
+        WHEN old.required = 1 AND new.required = 0
+        BEGIN
+            SELECT RAISE(ABORT,
+                'authentication cannot be turned off once it is on: delete the credentials instead and lock everyone out');
+        END;
+
+        -- Deleting the latch row is disarming it by another name, so the same
+        -- refusal covers it. The recovery path for a corps that genuinely wants
+        -- an open database is a new file, which is also the only honest one: an
+        -- armed database holds records written on the understanding that reads
+        -- were gated.
+        CREATE TRIGGER IF NOT EXISTS trg_auth_policy_is_not_deletable
+        BEFORE DELETE ON auth_policy
+        WHEN old.required = 1
+        BEGIN
+            SELECT RAISE(ABORT,
+                'authentication cannot be turned off once it is on: this row is a latch');
+        END;
+        `;
+
 export const MIGRATIONS: readonly (readonly [string, string])[] = [
   ['001_facts_and_grants', MIGRATION_001],
   ['002_people_guardianship_and_consent_chain', MIGRATION_002],
   ['003_minor_use_consent_is_a_guardians_to_give', MIGRATION_003],
   ['004_consent_chain_is_per_subject', MIGRATION_004],
   ['005_rationale', MIGRATION_005],
+  ['006_credentials_and_the_arming_latch', MIGRATION_006],
 ];
 
 /** Run every migration not yet applied. Returns the names that ran. */
