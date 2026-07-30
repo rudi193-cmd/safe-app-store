@@ -6,6 +6,12 @@ depends on it — including the sync spine, which is this same component wearing
 a different hat. A device receives only what its holder may see, so the filter
 that decides a query is the filter that decides a sync, and it is built once.
 
+Authentication is the ``auth`` submodule, and it *is* imported here: it is
+stdlib-only, and :class:`~marching_arts.store.Store` depends on it because a
+principal's proof is verified inside the one predicate every read goes through.
+Before it existed, ``Principal("delacroix")`` was an unverified string and every
+guarantee below was conditional on a claim nothing checked.
+
 P2 — identity, roles and consent — is the ``consent`` submodule, which binds
 ``libs/subject-consent`` onto the very connection this store opens, so grants,
 the hash-chained disclosure log and the domain data are one file.
@@ -24,12 +30,15 @@ AST rather than by trusting this sentence.
 """
 from __future__ import annotations
 
+from .auth import AuthError, Authenticator
 from .bands import Band
 from .policy import MAJORITY_AGE, GrantState, GrantVia, Policy, Principal
 from .rules import Effect, Rule, compile_rules
 from .store import Fact, Store
 
 __all__ = [
+    "AuthError",
+    "Authenticator",
     "Band",
     "Effect",
     "Fact",

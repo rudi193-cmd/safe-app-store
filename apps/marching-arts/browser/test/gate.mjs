@@ -844,6 +844,59 @@ test('rationale · it is not gated by the authorization predicate', async () => 
   eq((await store.rationale()).length, 1);
 });
 
+// ── migration 006: the schema is ported, the gate is not ─────────────────────
+//
+// `marching_arts/auth.py` verifies a principal's proof inside `Store.predicate`,
+// and this port has no equivalent yet. So a browser tab reading an ARMED
+// database resolves unproven principals that the Python refuses. That is a real
+// asymmetry between two implementations a differential is supposed to keep
+// identical, and the differential cannot see it — it compares the resolver, and
+// the gate sits in front of the resolver.
+//
+// These tests exist so the gap is a recorded value rather than a discovery. When
+// the port grows an Authenticator they will fail, and the fix is to invert them,
+// not to delete them.
+//
+// The open question the port has to answer first: WebCrypto's HMAC is async, so
+// verifying inside `predicate()` makes the entire read path async.
+
+test('006 · the credential tables exist in a browser-created database', async () => {
+  // The schema has to land ahead of the verifier, or a file created here is not
+  // the file Python creates and the two stop being the same database.
+  const store = await withRationale();
+  const tables = (await store.connection.all(
+    "SELECT name FROM sqlite_master WHERE type='table'" +
+    " AND name IN ('credentials', 'auth_policy') ORDER BY name")).map((r) => String(r[0]));
+  eq(tables, ['auth_policy', 'credentials']);
+});
+
+test('006 · the arming latch refuses to disarm, even here', async () => {
+  // The one half of 006 this port DOES enforce, because it is a trigger and
+  // therefore lives in the database rather than in either implementation.
+  const store = await withRationale();
+  await store.connection.run(
+    'INSERT INTO auth_policy(id, required) VALUES (1, 1)');
+  await rejects(
+    () => store.connection.run('UPDATE auth_policy SET required = 0'),
+    'the latch should refuse to disarm');
+  await rejects(
+    () => store.connection.run('DELETE FROM auth_policy'),
+    'the latch row should not be deletable');
+});
+
+test('006 · KNOWN GAP · this port does not yet refuse an unproven principal', async () => {
+  // Asserting the gap, not the guarantee. On an armed database the Python raises
+  // AuthError for a principal with no proof; here the read succeeds. Written as
+  // a passing test so the asymmetry is visible in a green suite instead of
+  // living only in a docstring somebody has to find.
+  const { store } = await fixture();
+  await store.connection.run(
+    'INSERT INTO auth_policy(id, required) VALUES (1, 1)');
+  const armedCount = await store.count(principal('visible-member'));
+  assert(armedCount > 0,
+    'if this now returns 0 or throws, the port has grown a verifier — invert this test');
+});
+
 for (const [name, fn] of pending) {
   try {
     await fn();
