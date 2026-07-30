@@ -568,6 +568,164 @@ const MIGRATION_006 = `
         END;
         `;
 
+/**
+ * Migration 007 — corrections land beside the record, never on top of it.
+ *
+ * Port of marching_arts/schema.py MIGRATIONS[6]. Emitted mechanically, not
+ * retyped: the constants tier compares this string to the Python byte for byte.
+ *
+ * Migration 005 shipped a table that could not keep this project's own correction
+ * rule — `rationale.topic` is UNIQUE with no supersedes column, so a correction
+ * could not be a second row and amending one OVERWROTE the text it replaced. 007
+ * splits current state from history and, more importantly, makes the keeping a
+ * trigger: rewriting a shipped answer records the text being replaced whether or
+ * not the writer has heard of the rule. That half holds identically here, because
+ * it is in the database rather than in either implementation.
+ */
+const MIGRATION_007 = `
+        -- CORRECTIONS LAND BESIDE THE RECORD, NEVER ON TOP OF IT.
+        --
+        -- That is one of this project's own rules, and migration 005 shipped a
+        -- table that structurally cannot keep it. \`rationale.topic\` is UNIQUE and
+        -- there is no supersedes column, so a correction cannot be a second row
+        -- -- and amending the existing one OVERWRITES the text it replaces. A log
+        -- that quietly overwrites its own mistakes can confirm the current answer
+        -- and cannot be used to check whether the reasoning was sound. 005 was
+        -- built to ship reasoning and made exactly that mistake.
+        --
+        -- THE SPLIT. \`rationale\` stays one row per topic: it is the CURRENT
+        -- guarantee, deep-linkable by slug, and the existing API and every
+        -- existing test are unchanged. This table is the HISTORY: append-only,
+        -- many rows per topic, because a guarantee can be wrong more than once.
+        --
+        -- WHY THIS IS A TABLE AND NOT PROSE IN \`answer\`. "We disclose what we got
+        -- wrong" is a guarantee like any other, so by this project's first rule it
+        -- needs a mechanism or it is a wish. Buried in prose, nothing separates a
+        -- guarantee with a clean history from one that was wrong for six months --
+        -- and the query that makes the claim checkable, \`SELECT DISTINCT topic
+        -- FROM rationale_correction\`, does not exist. Now it does.
+        --
+        -- WHAT SHIPS, AND THE DISCRIMINATOR. Not "is it embarrassing" but: does
+        -- the mistake change what a reader should believe about a current
+        -- guarantee? A tripwire that could not fail means the guarantee was
+        -- unprotected for its whole life -- that ships. A contaminated test
+        -- baseline or a stale count in a README is a fact about how the work is
+        -- done -- internal, where a maintainer finds it and a customer does not.
+        -- A LIVE defect stays internal in every case, which is 005's rule
+        -- unchanged: a disclosed live hole is a disclosed live hole.
+        CREATE TABLE IF NOT EXISTS rationale_correction (
+            id        INTEGER PRIMARY KEY,
+            -- The guarantee this corrects. A foreign key, so a correction to
+            -- nothing cannot be filed -- and deliberately NOT unique, because a
+            -- guarantee that was wrong twice has two corrections and collapsing
+            -- them would be the overwrite bug again one level down.
+            topic     TEXT    NOT NULL
+                      REFERENCES rationale(topic) ON UPDATE CASCADE,
+            -- What the record said before. Captured by trigger rather than
+            -- copied by hand: the whole failure this migration exists to fix is
+            -- prior text disappearing, and a human asked to paste it is a human
+            -- who will eventually paste the new version.
+            superseded_answer    TEXT,
+            superseded_mechanism TEXT,
+            -- What was wrong, in the words somebody would say it in.
+            what_was_wrong TEXT NOT NULL
+                      CHECK (length(trim(what_was_wrong)) > 0),
+            -- What makes the guarantee true NOW. Required to ship, which is
+            -- 005's trigger pointed at a different noun: for a guarantee the
+            -- mechanism is what makes the answer true, and for a correction it is
+            -- what stopped it being false. An internal note may be prose because
+            -- its subject may still be open; a shipped correction may not,
+            -- because "we fixed it" is not checkable and a named test is.
+            mechanism TEXT,
+            source    TEXT    NOT NULL CHECK (length(trim(source)) > 0),
+            publication TEXT  NOT NULL DEFAULT 'draft'
+                      CHECK (publication IN ('draft', 'internal', 'shipped')),
+            sealed_by TEXT,
+            created_at TEXT   NOT NULL DEFAULT (datetime('now')),
+            CHECK (publication != 'shipped' OR (sealed_by IS NOT NULL
+                                                AND length(trim(sealed_by)) > 0))
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_rationale_correction_topic
+            ON rationale_correction(topic, publication);
+
+        -- A shipped correction names its mechanism. 005's thesis, unchanged.
+        CREATE TRIGGER IF NOT EXISTS trg_correction_shipped_names_a_mechanism_ins
+        BEFORE INSERT ON rationale_correction
+        WHEN new.publication = 'shipped'
+         AND (new.mechanism IS NULL OR length(trim(new.mechanism)) = 0)
+        BEGIN
+            SELECT RAISE(ABORT,
+                'a shipped correction must name what makes the guarantee true now: "we fixed it" is not a mechanism');
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_correction_shipped_names_a_mechanism_upd
+        BEFORE UPDATE ON rationale_correction
+        WHEN new.publication = 'shipped'
+         AND (new.mechanism IS NULL OR length(trim(new.mechanism)) = 0)
+        BEGIN
+            SELECT RAISE(ABORT,
+                'a shipped correction must name what makes the guarantee true now: "we fixed it" is not a mechanism');
+        END;
+
+        -- A correction may not be more published than the guarantee it corrects.
+        -- Shipping a correction to something that never shipped discloses a
+        -- defect in work nobody has seen, which is disclosure with none of the
+        -- benefit. Fail-closed direction: the correction is held back, not the
+        -- guarantee pushed out.
+        CREATE TRIGGER IF NOT EXISTS trg_correction_not_ahead_of_its_subject_ins
+        BEFORE INSERT ON rationale_correction
+        WHEN new.publication = 'shipped'
+         AND NOT EXISTS (SELECT 1 FROM rationale r
+                         WHERE r.topic = new.topic AND r.publication = 'shipped')
+        BEGIN
+            SELECT RAISE(ABORT,
+                'a correction cannot ship ahead of the guarantee it corrects');
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_correction_not_ahead_of_its_subject_upd
+        BEFORE UPDATE ON rationale_correction
+        WHEN new.publication = 'shipped'
+         AND NOT EXISTS (SELECT 1 FROM rationale r
+                         WHERE r.topic = new.topic AND r.publication = 'shipped')
+        BEGIN
+            SELECT RAISE(ABORT,
+                'a correction cannot ship ahead of the guarantee it corrects');
+        END;
+
+        -- ── the mechanism that actually fixes 005's overwrite ───────────────
+        -- The table above is where history CAN live. This trigger is what makes
+        -- it live there: rewriting a shipped answer or mechanism records the text
+        -- being replaced, automatically, in the same transaction, whether or not
+        -- the writer has ever heard of this rule. A convention would be enough
+        -- for a careful caller, and a careful caller was never the problem.
+        --
+        -- It lands as \`draft\` carrying a stub, and that is the design: the
+        -- machine can see THAT something changed and cannot know WHAT WAS WRONG.
+        -- So the stub cannot ship -- 005's default does that work -- and a human
+        -- fills in the reason and seals it. Recording the change is mechanical;
+        -- explaining it is not, and pretending otherwise would fill the box with
+        -- rows that say "this was amended" and mean nothing.
+        --
+        -- Fires only when the TEXT changes. Sealing a draft, or withdrawing a row
+        -- to internal, leaves the answer alone and writes no correction: those
+        -- are publication decisions, not amendments, and a correction for every
+        -- seal would bury the real ones.
+        CREATE TRIGGER IF NOT EXISTS trg_amending_a_shipped_answer_keeps_the_old_one
+        BEFORE UPDATE ON rationale
+        WHEN old.publication = 'shipped'
+         AND (new.answer IS NOT old.answer OR new.mechanism IS NOT old.mechanism)
+        BEGIN
+            INSERT INTO rationale_correction
+                (topic, superseded_answer, superseded_mechanism, what_was_wrong,
+                 source, publication)
+            VALUES
+                (old.topic, old.answer, old.mechanism,
+                 'a shipped answer was amended; say what was wrong and seal it',
+                 'trg_amending_a_shipped_answer_keeps_the_old_one', 'draft');
+        END;
+        `;
+
 export const MIGRATIONS: readonly (readonly [string, string])[] = [
   ['001_facts_and_grants', MIGRATION_001],
   ['002_people_guardianship_and_consent_chain', MIGRATION_002],
@@ -575,6 +733,7 @@ export const MIGRATIONS: readonly (readonly [string, string])[] = [
   ['004_consent_chain_is_per_subject', MIGRATION_004],
   ['005_rationale', MIGRATION_005],
   ['006_credentials_and_the_arming_latch', MIGRATION_006],
+  ['007_corrections_land_beside_the_record', MIGRATION_007],
 ];
 
 /** Run every migration not yet applied. Returns the names that ran. */
