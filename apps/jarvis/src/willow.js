@@ -17,10 +17,12 @@
 // What this file structurally cannot prove, stated the way this app's other
 // external-service surfaces are: no test here talks to a real willow-mcp
 // instance or a real Google/Apple sign-in. The pure helpers (PKCE, the
-// authorize URL, SSE framing) are unit-tested; the network round-trips are
-// exercised only by hand. Treat every network path below as `assumed`
-// against the MCP Authorization spec and willow-mcp's own route names, not
-// `measured`, until it has actually completed a sign-in.
+// authorize URL, SSE framing) are unit-tested, and discoverMetadata /
+// registerClient are tested against a mocked fetch — but the popup round
+// trip, a real discovery document, and token refresh are exercised only by
+// hand. Treat every network path below as `assumed` against the MCP
+// Authorization spec and willow-mcp's own route names, not `measured`, until
+// it has actually completed a sign-in against a running instance.
 
 const CLIENT_NAME = 'jarvis';
 const MCP_PROTOCOL_VERSION = '2025-06-18';
@@ -88,7 +90,7 @@ export function parseSseJsonRpc(text) {
 
 // --- discovery + dynamic client registration ---------------------------------
 
-async function discoverMetadata(baseUrl) {
+export async function discoverMetadata(baseUrl) {
   const res = await fetch(`${baseUrl}/.well-known/oauth-authorization-server`);
   if (res.ok) return res.json();
   // Fallback to the MCP SDK's conventional route names. Not verified against
@@ -100,7 +102,7 @@ async function discoverMetadata(baseUrl) {
   };
 }
 
-async function registerClient(meta, redirectUri) {
+export async function registerClient(meta, redirectUri) {
   const res = await fetch(meta.registration_endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

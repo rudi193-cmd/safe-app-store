@@ -256,4 +256,91 @@ export const MUTATIONS = [
     replace: "            : 'app-private preferences: unavailable',",
     expect: 'BRIDGE key storage falls back to localStorage and says the key is exposed',
   },
+  {
+    name: 'pkce-challenge-not-hashed',
+    file: 'src/willow.js',
+    describe: 'the challenge sent to the server is the raw verifier instead of its SHA-256 digest',
+    find: "  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));",
+    replace: '  const digest = new TextEncoder().encode(verifier);',
+    // PKCE only protects the code exchange if the challenge is a one-way
+    // function of the verifier. Sending the verifier itself (unhashed) as the
+    // "challenge" defeats the whole point silently — the flow still runs.
+    expect: 'WILLOW PKCE challenge is the S256 hash of the verifier, base64url with no padding',
+  },
+  {
+    name: 'authorize-url-claims-plain-pkce',
+    file: 'src/willow.js',
+    describe: 'the authorize URL advertises "plain" PKCE instead of the S256 method actually used',
+    find: "  url.searchParams.set('code_challenge_method', 'S256');",
+    replace: "  url.searchParams.set('code_challenge_method', 'plain');",
+    expect: 'WILLOW buildAuthorizeUrl carries every parameter the server needs, and nothing it was not given',
+  },
+  {
+    name: 'sse-parser-takes-first-message',
+    file: 'src/willow.js',
+    describe: 'the first JSON-RPC message in the stream is kept instead of the last',
+    find: '      last = JSON.parse(line.slice(5).trim());',
+    replace: '      if (last === null) last = JSON.parse(line.slice(5).trim());',
+    expect: 'WILLOW parseSseJsonRpc takes the last complete JSON-RPC message in the stream',
+  },
+  {
+    name: 'sse-parser-silently-empty',
+    file: 'src/willow.js',
+    describe: 'a stream with no JSON-RPC message returns an empty object instead of failing loudly',
+    find: "  if (!last) throw new Error('willow-mcp: no JSON-RPC message found in event stream');",
+    replace: '  if (!last) return {};',
+    expect: 'WILLOW parseSseJsonRpc refuses a stream with no JSON-RPC message rather than returning nothing',
+  },
+  {
+    name: 'discover-metadata-trusts-a-404-body',
+    file: 'src/willow.js',
+    describe: 'the .well-known lookup stops checking res.ok, so a 404 is parsed as if it were the metadata document',
+    find: '  if (res.ok) return res.json();',
+    replace: '  return res.json();',
+    expect: 'WILLOW discoverMetadata falls back to conventional endpoint names when there is no well-known document',
+  },
+  {
+    name: 'register-client-keeps-a-client-secret',
+    file: 'src/willow.js',
+    describe: 'registration asks for a confidential client instead of a public one, which this static page cannot honor',
+    find: "      token_endpoint_auth_method: 'none',",
+    replace: "      token_endpoint_auth_method: 'client_secret_basic',",
+    expect: 'WILLOW registerClient registers as a public client bound to the given redirect URI',
+  },
+  {
+    name: 'register-client-swallows-the-error-body',
+    file: 'src/willow.js',
+    describe: 'a failed registration is treated as success instead of surfacing the server\'s reason',
+    find: '  if (!res.ok) throw new Error(`willow-mcp: client registration failed (${res.status}): ${await res.text()}`);',
+    replace: '  if (!res.ok) return { client_id: undefined };',
+    expect: "WILLOW registerClient surfaces the server's own error body on a failed registration",
+  },
+  {
+    name: 'willow-denial-not-recognized',
+    file: 'src/tools.js',
+    describe: 'a {error: ...} result from willow-mcp is treated as a normal answer instead of a denial',
+    find: "  if (result.data && typeof result.data === 'object' && result.data.error) {",
+    replace: '  if (false) {',
+    expect: 'WILLOW a willow-mcp denial surfaces as an error to the model, verbatim, not swallowed',
+  },
+  {
+    name: 'willow-whoami-skips-connection-guard',
+    file: 'src/tools.js',
+    describe: 'willow_whoami calls the session even when nothing is connected, instead of saying so',
+    find: `    async willow_whoami() {
+      if (!willow?.connected) {`,
+    replace: `    async willow_whoami() {
+      if (false) {`,
+    expect: 'WILLOW willow_whoami reports disconnected honestly before any sign-in',
+  },
+  {
+    name: 'willow-dispatch-send-skips-connection-guard',
+    file: 'src/tools.js',
+    describe: 'a write tool attempts the call even when nothing is connected, instead of refusing locally',
+    find: `    async willow_dispatch_send(input) {
+      if (!willow?.connected) {`,
+    replace: `    async willow_dispatch_send(input) {
+      if (false) {`,
+    expect: 'WILLOW a write tool refuses locally when disconnected, the same way a read tool does',
+  },
 ];
