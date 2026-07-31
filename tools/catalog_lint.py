@@ -6,15 +6,18 @@ Checks that catalog.json and apps/ tell the same story:
 
   parse        — catalog.json is valid JSON with a top-level "apps" list.
   fields       — every entry has id, name, description, status; status is one
-                 of stable | beta | coming_soon | archived; ids are unique.
+                 of seeded | building | gated | stalled | archived; ids are
+                 unique. (Pre-migration this was stable | beta | coming_soon |
+                 archived — see "status-vocabulary migration" below.)
   path         — if an entry has a path, the directory exists and its basename
                  equals the id (rule 8: app_id = directory name).
   presence     — an entry may omit path only when it is archived (rule 4:
                  archive, don't delete) or lives in an external repository.
   coverage     — every apps/<dir> has a catalog entry. Unregistered apps are
                  invisible to the store; register or archive them.
-  manifest     — beta/stable local apps carry safe-app-manifest.json, and the
-                 manifest's app_id matches the directory (rule 8 again).
+  manifest     — building/gated/stalled local apps carry safe-app-manifest.json
+                 (seeded apps only warn), and the manifest's app_id matches
+                 the directory (rule 8 again).
 
 Also the store refit's P1 gate (docs/store_refit_plan.md), over the keeping
 records at stores/{major}/stored/<app_id>.json:
@@ -35,16 +38,31 @@ records at stores/{major}/stored/<app_id>.json:
                  stalled, archived) — never invented, same discipline as
                  status above.
 
-Also the store refit's P3 gate: a catalog entry's `tier`/`majors`/`state` must
-agree with what stores/ actually holds. In scope only for entries with a path
-that are not `status: archived` — pathless loose-repo entries and archived
-entries are unchanged, per docs/store_refit_plan.md's own scoping. This is
-what makes the catalog **generated**: nobody hand-types these three fields
+Also the store refit's P3 gate: a catalog entry's `tier`/`majors`/`status`
+must agree with what stores/ actually holds. In scope only for entries with a
+path that are not `status: archived` — pathless loose-repo entries and
+archived entries are unchanged, per docs/store_refit_plan.md's own scoping.
+This is what makes the catalog **generated**: nobody hand-types these fields
 correctly, because nothing but the keeping record can make them agree with it.
+
+Also the status-vocabulary migration: `status` used to carry its own shop
+vocabulary (stable/beta/coming_soon, plus archived) alongside a keeping
+record's separate `state` (seeded/building/gated/stalled, plus archived) —
+two words for the same axis, tracked in two places, and the whole reason P3
+kept them apart at first was to avoid deciding this in the same change. Full
+replacement, decided afterward: `status` now *is* the state enum, and a
+stored entry's `status` must equal its record's `state` (no separate `state`
+key on catalog entries anymore). Two shapes without a record to check against
+have a manually-set status instead of a generated one, and are not compared
+to anything — a pending entry (`the-binder`, `utety-chat`) whose relation is
+unresolved, and a `tier: "promoted"` entry, since no promoted record carries a
+`state`-shaped field at all. Both are documented in
+docs/store_refit_plan.md's "status-vocabulary migration" note rather than
+silently exempted.
 
 Verdicts:
   ERROR — the catalog and the tree disagree; the store is lying to someone.
-  WARN  — coming_soon app without a manifest, or similar rough edge.
+  WARN  — seeded app without a manifest, or similar rough edge.
 
 Usage:
   tools/catalog_lint.py            # report
@@ -59,10 +77,20 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-VALID_STATUSES = {"stable", "beta", "coming_soon", "archived"}
+
+# The status-vocabulary migration (docs/store_refit_plan.md, the bite after
+# P3): status used to carry its own shop vocabulary (stable/beta/coming_soon,
+# plus archived) — a separate word set from state's becoming vocabulary. Full
+# replacement: status now *is* the state enum. The two were never actually
+# independent facts for a maker to track, and keeping both invited exactly the
+# drift-vs-record split P3 exists to close — just one field later.
+VALID_STATUSES = {"seeded", "building", "gated", "stalled", "archived"}
 REQUIRED_FIELDS = ("id", "name", "description", "status")
 
-# P1 — the keeping record (docs/store_refit_plan.md)
+# P1 — the keeping record (docs/store_refit_plan.md). Same five words as
+# VALID_STATUSES above on purpose: state is a keeping record's own field, and
+# after the status-vocabulary migration a stored record's catalog entry must
+# show exactly this value as its status (lint_generated_fields() checks it).
 VALID_STATES = {"seeded", "building", "gated", "stalled", "archived"}
 VALID_RELATIONS = {
     "differential-paired", "sidecar", "runtime-fallback",
@@ -126,9 +154,9 @@ def lint() -> tuple[list[str], list[str]]:
                             f"{app_id}: manifest app_id "
                             f"{manifest.get('app_id')!r} != directory (rule 8)"
                         )
-            elif status in ("beta", "stable"):
+            elif status in ("building", "gated", "stalled"):
                 errors.append(f"{app_id}: {status} app without safe-app-manifest.json")
-            elif status == "coming_soon":
+            elif status == "seeded":
                 warnings.append(f"{app_id}: no safe-app-manifest.json yet ({status})")
 
     cataloged_dirs = {
@@ -296,18 +324,35 @@ def _load_promoted_records() -> dict[str, tuple[str, dict]]:
 
 
 def lint_generated_fields(apps: list[dict]) -> tuple[list[str], list[str]]:
-    """P3's gate (docs/store_refit_plan.md): a catalog entry's `tier`,
-    `majors`, and `state` must agree with what stores/ actually holds.
+    """P3's gate, extended by the status-vocabulary migration
+    (docs/store_refit_plan.md): a catalog entry's `tier`, `majors`, and
+    `status` must agree with what stores/ actually holds. There is no separate
+    `state` field on a catalog entry any more — `status` carries that value
+    directly, so a stray leftover `state` key is itself an error.
 
     Scope, deliberately narrow: only entries that have a `path` and are not
-    `status: archived` are checked. Archived entries keep the old shop
-    vocabulary and nothing else (rule 4: archive, don't delete — some have no
-    apps/ directory left to derive anything from). Pathless, non-archived
-    entries (loose external repos like `grove`/`willow-grove`) are also out of
-    scope here for the same reason P1 left them out of the keeping record: a
-    build the house cannot reach cannot have its majors or state measured from
-    the tree, and docs/store_refit_plan.md's own "Open gates" section already
-    names this as unresolved rather than something to guess at here.
+    `status: archived` are checked. Archived entries keep `archived` and
+    nothing else (rule 4: archive, don't delete — some have no apps/
+    directory left to derive anything from). Pathless, non-archived entries
+    (loose external repos like `grove`/`willow-grove`) are also out of scope
+    here for the same reason P1 left them out of the keeping record: a build
+    the house cannot reach cannot have its majors or state measured from the
+    tree, and docs/store_refit_plan.md's own "Open gates" section already
+    names this as unresolved rather than something to guess at here. Their
+    `status` is still required to be a valid enum member (checked in `lint()`
+    already) — just not checked *against* anything, since nothing to check
+    against exists.
+
+    Two more shapes get the same treatment, for the same reason — a status
+    with no record to verify it against:
+    - a pending entry (`the-binder`, `utety-chat`): `tier` must still be
+      `"playground"`, but `status` is manually set rather than generated,
+      since there is no keeping record to read a state from.
+    - a `tier: "promoted"` entry: `majors` is still checked against the
+      promoted record's `major`, but no promoted record carries a
+      `state`-shaped field at all (see #133's schema), so `status` is
+      likewise manual, not generated. No promoted catalog entry exists today,
+      so this path is implemented and unit-tested but unexercised for real.
 
     This function checks *consistency*, not existence: by the time an entry
     reaches here, P1's `lint_records()` has already guaranteed every apps/
@@ -324,6 +369,12 @@ def lint_generated_fields(apps: list[dict]) -> tuple[list[str], list[str]]:
 
     for entry in apps:
         app_id = entry.get("id")
+        if "state" in entry:
+            errors.append(
+                f"{app_id}: catalog entry still has a separate 'state' field — "
+                f"status carries this value directly since the status-vocabulary "
+                f"migration, so a leftover 'state' key means the two have drifted apart"
+            )
         if not app_id or not entry.get("path") or entry.get("status") == "archived":
             continue
 
@@ -346,10 +397,10 @@ def lint_generated_fields(apps: list[dict]) -> tuple[list[str], list[str]]:
                     f"{app_id}: catalog majors {entry.get('majors')!r} != "
                     f"keeping record's {rec.get('majors')!r}"
                 )
-            if entry.get("state") != rec.get("state"):
+            if entry.get("status") != rec.get("state"):
                 errors.append(
-                    f"{app_id}: catalog state {entry.get('state')!r} != "
-                    f"keeping record's {rec.get('state')!r}"
+                    f"{app_id}: catalog status {entry.get('status')!r} != "
+                    f"keeping record's state {rec.get('state')!r}"
                 )
             continue
 
