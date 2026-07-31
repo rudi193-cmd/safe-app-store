@@ -1,0 +1,13 @@
+{
+  "app_id": "oakenscrolls-office",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/oakenscrolls-office",
+  "maker": "USER",
+  "lane": null,
+  "state": "building",
+  "notes": "The loose-repo case, live: its own README calls this in-tree copy non-canonical against an external repo, with a stated \"keep in sync\" obligation and no mechanism enforcing it (docs/store_refit_survey.md). location below is the measured in-tree copy, per that doc's rule that location is measured, never transcribed from a claim the house can't verify."
+}

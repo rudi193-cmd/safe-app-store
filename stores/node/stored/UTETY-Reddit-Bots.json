@@ -1,0 +1,13 @@
+{
+  "app_id": "UTETY-Reddit-Bots",
+  "majors": [
+    "node"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/UTETY-Reddit-Bots",
+  "maker": "USER",
+  "lane": null,
+  "state": "building",
+  "notes": "One stray safe_integration.py stub alongside 38 node files — boilerplate, not a second implementation; not counted as a major. Gerald live, Hanz/Oak ready per docs/app_store_vision_and_gaps.md."
+}

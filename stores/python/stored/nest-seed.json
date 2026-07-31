@@ -1,0 +1,13 @@
+{
+  "app_id": "nest-seed",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/nest-seed",
+  "maker": "USER",
+  "lane": null,
+  "state": "stalled",
+  "notes": "Entry point imports nest_pipeline/vault_paths from libs/, neither on sys.path via any Makefile path — fails at import, per docs/store_refit_survey.md."
+}
