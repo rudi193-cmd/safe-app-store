@@ -298,6 +298,49 @@ from what the records produce fails CI. After this the catalog **cannot** drift,
 because nobody writes it. That closes #78–#82 structurally rather than one
 correction at a time.
 
+**Done 2026-07-31, with the `status` vocabulary migration deliberately not
+included:**
+
+- **`tier`, `majors`, and `state` are now real fields** on every non-archived
+  catalog entry that has a `path`: 27 entries generated from their
+  `stores/{major}/stored/` record (`tier: "playground"`, that record's
+  `majors` and `state`, verbatim); 2 pending entries (`the-binder`,
+  `utety-chat`) get `tier: "playground"` only, since there's no record to read
+  `majors`/`state` from yet. No promoted entries exist in this catalog today,
+  so the `tier: "promoted"` path is implemented and tested against synthetics
+  but has never run against a real one — named here rather than left quiet,
+  same treatment P2 gave the Nestor/Jeles deferral.
+- **`tools/catalog_lint.py`'s `lint_generated_fields()`** is the gate: for
+  every in-scope entry, `tier`/`majors`/`state` must equal what the matching
+  keeping record (or promoted record, or pending entry) says. 12 unit tests
+  against a synthetic repo, plus verified against the real one: temporarily
+  set `field-acoustics`'s catalog `majors` to `["rust"]` (its record says
+  `["python", "node"]`), watched `catalog_lint.py --strict` catch exactly that
+  mismatch, restored it.
+- **The catalog moved to `.willow/store/catalog.json`** per rule 9. The root
+  `catalog.json` is now a pointer (`{"$pointer": ".willow/store/catalog.json"}`),
+  not a second copy — `tools/catalog_lint.py`, `tui.py`, and the `Makefile`'s
+  `list` target were the three real consumers (checked; `store_mcp.py` does
+  not touch the path directly), all repointed. `tests/test_catalog_location.py`
+  guards against the pointer growing back into a duplicate.
+- **What this pass deliberately did *not* do: split `status`.** The plan's own
+  wording — "shop vocabulary gives way to the `state` enum; `archived` stays"
+  — would mean rewriting the value of a field every existing consumer already
+  reads (`tui.py`'s status column, `catalog_lint.py`'s `VALID_STATUSES`, this
+  repo's own README prose, and whatever a human currently means by "beta" in
+  the shop sense). That is a consumer-facing vocabulary change in its own
+  right, not a mechanical consequence of the records existing — the same
+  reasoning P0 used to keep the tier-vocabulary fix "deliberately separate"
+  and reviewable on its own. `tier`/`majors`/`state` are additive: nothing
+  that read `status` before reads anything different now. Splitting `status`
+  itself is a distinct next bite, not folded in here.
+- **`grove` and `willow-grove` (loose external repos) still have no keeping
+  record and get no generated fields**, same gap `docs/store_refit_plan.md`'s
+  own "Open gates" section already named before this phase started — P3
+  didn't resolve it, only confirmed it's still open and left both entries
+  untouched rather than guessing at a record for a build the house cannot
+  measure.
+
 ### P4 — Discovery is not the house's job · independent
 
 `discovery_sources` is the last purely-market organ: a curated directory of
