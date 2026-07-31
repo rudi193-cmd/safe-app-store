@@ -44,6 +44,7 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -280,6 +281,21 @@ def check(cand: Path) -> list[Result]:
 
 # ── P2: promotion leaves a record ─────────────────────────────────────────────
 
+# app_id comes straight from promotion.json — human-authored, but external to
+# this script, and it is used to build a filesystem path. A value like
+# "../../../tmp/evil" would resolve outside stores/ entirely if trusted as-is.
+# No "/" or "\" in the allowed set is what actually closes this: without a
+# separator there is no way to address a parent directory at all, whatever
+# dots or hyphens appear in the rest of the string.
+_APP_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
+
+
+def _gates_payload(results: list[Result]) -> list[dict]:
+    """The shape both --json's payload and a promotion record use for the gate
+    list, in one place so the two can't quietly drift apart."""
+    return [{"gate": g, "ok": ok, "detail": d} for g, ok, d in results]
+
+
 def _real_majors(stores_root: Path) -> set[str]:
     """A real major is a stores/<name>/ with *both* tiers on disk. Discovered,
     never hardcoded — the same rule tools/catalog_lint.py's `_real_majors()`
@@ -352,6 +368,9 @@ def record_promotion(cand: Path, results: list[Result],
       ever reordered, renamed, or made skippable, the record is still the thing
       that cannot be minted by one hand;
     * the major does not resolve to a real store (see `resolve_major`);
+    * `app_id` is not a plain identifier (see `_APP_ID_PATTERN`) — an attested
+      field is still an external input, and this is the one field on the
+      write path nothing else checks the shape of;
     * a record already exists — a promoted record is a witnessed decision, and
       silently overwriting one destroys the evidence that it was ever made
       differently. Re-minting is a deliberate act: remove the old record first.
@@ -373,7 +392,12 @@ def record_promotion(cand: Path, results: list[Result],
     if major is None:
         return None, f"refusing to record: {why}"
 
-    out = stores_root / major / "promoted" / f"{app_id}.json"
+    promoted_dir = stores_root / major / "promoted"
+    if not _APP_ID_PATTERN.match(app_id):
+        return None, (f"refusing to record: app_id {app_id!r} is not a plain "
+                      f"identifier (fail-closed) — a path component in an "
+                      f"attested field is not verified anywhere else on this path")
+    out = promoted_dir / f"{app_id}.json"
     if out.exists():
         return None, (f"refusing to record: {out} already exists — a promotion record "
                       f"is not overwritten; remove it deliberately to re-mint")
@@ -395,7 +419,7 @@ def record_promotion(cand: Path, results: list[Result],
         # check() emits nine today, because the B13 audit added vault_leak
         # after #88. Storing what the gate actually returned is what keeps this
         # record from carrying a stale invariant count the way a README does.
-        "gates": [{"gate": g, "ok": ok, "detail": d} for g, ok, d in results],
+        "gates": _gates_payload(results),
     }
     out.write_text(json.dumps(record, indent=2) + "\n")
     return out, f"recorded at {out}"
@@ -420,7 +444,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.json:
         payload = {"candidate": str(cand), "promoted": promoted,
-                   "gates": [{"gate": g, "ok": ok, "detail": d} for g, ok, d in results]}
+                   "gates": _gates_payload(results)}
         if args.record:
             payload["record"] = {"written": str(written) if written else None,
                                  "reason": reason}

@@ -241,14 +241,23 @@ leaves the directory untouched. Fail-closed on both edges.
 - **An existing record is not overwritten.** A promoted record is a witnessed
   decision; silently replacing one destroys the evidence that it was ever made
   differently. Re-minting means removing the old record deliberately.
-- `tests/test_promote_check_record.py` (16 tests) is the gate, wired into
-  `store-ci.yml`'s Drift-guards step. **Verified it can fail:** five mutations
+- **`app_id` is checked before it becomes a path.** Review on #133 caught that
+  `att.get("app_id")` — an attested, external field — went straight into
+  `stores_root / major / "promoted" / f"{app_id}.json"` with nothing rejecting
+  something like `"../../../tmp/evil"`. `_APP_ID_PATTERN` now requires a plain
+  identifier (no `/`, no `\`); without a separator there is no path component
+  left to address a parent directory with, so a single check closes the whole
+  class rather than needing a second resolve-and-compare pass — the reviewer's
+  own suggested fix, not a broader one.
+- `tests/test_promote_check_record.py` (19 tests) is the gate, wired into
+  `store-ci.yml`'s Drift-guards step. **Verified it can fail:** six mutations
   of `promote_check.py`, each reverted after —
   dropping the `verified_by == author` refusal reddens 2 tests; dropping the
   all-gates-pass refusal reddens 4; creating the target directory *before* the
   checks (a partial write) reddens 7, every "untouched" assertion at once;
   overwriting an existing record reddens 1; accepting any declared major
-  reddens 1.
+  reddens 1; dropping the `app_id` shape check reddens the 2 path-traversal
+  tests and nothing else.
 - **Nestor and Jeles were not re-run, and no record was minted for either.**
   Neither extracted candidate directory exists in this repository, and neither
   is reachable from this environment — they are external, already-promoted

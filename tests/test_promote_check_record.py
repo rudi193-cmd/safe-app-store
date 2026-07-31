@@ -248,6 +248,45 @@ def test_undeclared_major_defaults_to_python_with_a_stated_reason(tmp_path):
     assert "Python-shaped" in why, "the default must carry its own reasoning"
 
 
+# ── app_id is an external field too: it must not become a path ────────────────
+
+def test_path_traversal_app_id_is_refused(tmp_path, monkeypatch):
+    """app_id comes from the attestation, not from anywhere already validated —
+    review on #133 flagged that nothing stopped it from escaping stores/ via
+    '../'. The write path builds stores_root/major/promoted/{app_id}.json
+    directly from it."""
+    stores = _stores(tmp_path)
+    cand = _candidate(tmp_path, app_id="../../../../tmp/evil")
+    monkeypatch.setattr(promote_check, "STORES", stores)
+    before = _snapshot(stores)
+    escape_target = tmp_path / "tmp" / "evil.json"
+
+    assert promote_check.main([str(cand), "--record"]) != 0
+    assert _snapshot(stores) == before, "a bad app_id must leave stores/ untouched"
+    assert not escape_target.exists(), "must not have written outside stores/ either"
+
+
+def test_app_id_with_a_slash_is_refused(tmp_path, monkeypatch):
+    stores = _stores(tmp_path)
+    cand = _candidate(tmp_path, app_id="sub/dir")
+    monkeypatch.setattr(promote_check, "STORES", stores)
+    before = _snapshot(stores)
+
+    assert promote_check.main([str(cand), "--record"]) != 0
+    assert _snapshot(stores) == before
+
+
+def test_ordinary_app_ids_with_dots_and_hyphens_still_work(tmp_path, monkeypatch):
+    """The guard must not overreach: real app_ids in this store use hyphens
+    (UTETY-Reddit-Bots) and the field is otherwise free text."""
+    stores = _stores(tmp_path)
+    cand = _candidate(tmp_path, app_id="my-cool.app_v2")
+    monkeypatch.setattr(promote_check, "STORES", stores)
+
+    assert promote_check.main([str(cand), "--record"]) == 0
+    assert (stores / "python" / "promoted" / "my-cool.app_v2.json").is_file()
+
+
 # ── a promoted record is not overwritten ──────────────────────────────────────
 
 def test_existing_record_is_not_silently_overwritten(tmp_path, monkeypatch):
