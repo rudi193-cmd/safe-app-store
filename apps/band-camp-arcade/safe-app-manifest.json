@@ -1,0 +1,49 @@
+{
+  "app_id": "band-camp-arcade",
+  "name": "Band Camp Arcade",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "agent_type": "tool",
+  "description": "Five small, silly, entirely local browser toys for marching band kids: a tuning-drone endurance timer, a pit-crew drag game, a uniform-misery tracker, a shuffled sectional bingo card, and a satirical caption-score roast generator. No accounts, no build step, no network calls.",
+  "author": "USER",
+  "data_streams": [
+    {
+      "id": "tuning_best_time",
+      "purpose": "Personal best time surviving the tuning drone",
+      "retention": "until the user clears the browser origin's storage — there is no server copy to clear",
+      "description": "localStorage key tuning-purgatory-best. A single number."
+    },
+    {
+      "id": "pit_crew_best_score",
+      "purpose": "Personal best score across Pit Crew Simulator runs",
+      "retention": "until the user clears the browser origin's storage",
+      "description": "localStorage key pit-crew-best-score. A single number."
+    },
+    {
+      "id": "uniform_sweat_entries",
+      "purpose": "Per-game suffering log the user chooses to keep — date, event name, felt-like temperature, a 1-10 score, and a free-text complaint",
+      "retention": "until the user deletes an entry or clears the browser origin's storage",
+      "description": "localStorage key uniform-sweat-entries, a JSON array. The complaint field is free text the user writes about their own experience; nothing here is fetched, inferred, or shared."
+    },
+    {
+      "id": "sectional_bingo_card_and_pool",
+      "purpose": "The current bingo card and marks, plus any custom squares the user added to the shuffle pool",
+      "retention": "until the user clears marks/generates a new card, or clears the browser origin's storage",
+      "description": "localStorage keys sectional-bingo-card and sectional-bingo-custom-pool. Custom squares are free text the user writes (typically section inside jokes); nothing here is fetched, inferred, or shared."
+    }
+  ],
+  "permissions": [],
+  "store_scope": [],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "network": "none",
+  "entry_point": "index.html",
+  "license": "Apache-2.0",
+  "notes": {
+    "status": "Prototype, re-landed from the quick-stupids playground. It runs and it is gated (18 assertions across five suites, plus a mutation pass proving each of five gates can actually fail); it has not been used by anyone but its author.",
+    "ge_score_roast_has_no_storage": "Four of the five games persist a small amount of state; GE Score Roast does not — it is a stateless generator, entered and left with nothing written to storage. Listed here so the data_streams above are read as a full account of what this app touches, not an abbreviated one.",
+    "store_scope": "Deliberately empty, same reasoning as jarvis: this app touches neither SOIL nor the vault. Its only persistence is browser localStorage, on the user's own machine.",
+    "ci_blind_spots": "This is the second app in the store with no Python in it (after jarvis), so the four drift-guard suites and tools/vault_leak_lint.py all skip it (they glob *.py) — vault_leak_lint reports UNKNOWN for this app, not PASS, per docs/ci.md. Its own workflow (.github/workflows/band-camp-arcade.yml) is the actual gate: Node, real Chromium, one suite per game, and a mutation pass.",
+    "re_landing": "Rebuilt against this store's manifest/catalog/CI conventions rather than copied — see README.md for what specifically changed from the quick-stupids originals (a favicon fix to stop a spurious console 404, a nav link tying the five pages into one bundle, and a pit-crew retry-on-miss behavior change that predates this re-land)."
+  }
+}

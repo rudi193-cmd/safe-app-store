@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+<title>GE Score Roast</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #1a1a1e;
+    --fg: #f0f0f0;
+    --accent: #e0a640;
+    --muted: #8a8a92;
+    --card: #232328;
+    --border: #333338;
+    --brutal: #c94f4f;
+    --backhanded: #d9c24a;
+    --solid: #4a9fd9;
+    --suspicious: #5db56a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding: 1.5rem 1rem 3rem;
+  }
+  .arcade-nav {
+    max-width: 520px;
+    margin: 0 auto 1rem;
+    font-size: 0.8rem;
+  }
+  .arcade-nav a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .arcade-nav a:hover { color: var(--accent); }
+  main { max-width: 520px; margin: 0 auto; }
+  h1 { font-size: 1.4rem; font-weight: 600; margin: 0 0 0.25rem; text-align: center; }
+  p.tagline { color: var(--muted); margin: 0 0 1rem; font-size: 0.9rem; text-align: center; }
+
+  .disclaimer {
+    background: #2a2216;
+    border: 1px solid #4a3c1f;
+    color: #e0c98a;
+    font-size: 0.78rem;
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    margin-bottom: 1.2rem;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem 1.2rem;
+    margin-bottom: 1.2rem;
+  }
+  label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 0.7rem 0 0.3rem;
+  }
+  label:first-of-type { margin-top: 0; }
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    background: #17171a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--fg);
+    padding: 0.55rem 0.7rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+  }
+
+  .persona-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .persona-btn {
+    background: #17171a;
+    border: 1px solid var(--border);
+    color: var(--fg);
+    border-radius: 8px;
+    padding: 0.5rem 0.4rem;
+    font-size: 0.78rem;
+    cursor: pointer;
+    text-align: center;
+  }
+  .persona-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: #2a2116;
+  }
+
+  .sound-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .action-row {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 1.1rem;
+  }
+  .action-row button {
+    flex: 1;
+    padding: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: var(--accent);
+    color: #1a1200;
+  }
+  .action-row button.secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--fg);
+  }
+  .action-row button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .output-card {
+    min-height: 4.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  .band-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+  }
+  .roast-line {
+    font-size: 1.05rem;
+    font-style: italic;
+    line-height: 1.5;
+  }
+  .placeholder { color: var(--muted); font-size: 0.9rem; font-style: normal; }
+</style>
+</head>
+<body>
+<nav class="arcade-nav"><a href="../../index.html">&larr; Band Camp Arcade</a></nav>
+<main>
+  <h1>GE Score Roast</h1>
+  <p class="tagline">Feed it a fictional score. Get a dramatically petty imaginary judge's comment back.</p>
+
+  <div class="disclaimer">
+    Satire generator only. Every roast is fictional — this does not judge,
+    reference, or represent any real band, judge, caption sheet, or event.
+  </div>
+
+  <div class="card">
+    <label for="scoreInput">Score (0-100)</label>
+    <input type="number" id="scoreInput" placeholder="e.g. 72.4" min="0" max="100" step="0.1">
+
+    <label for="captionInput">Caption (optional)</label>
+    <input type="text" id="captionInput" placeholder="GE1, GE2, Visual, Music...">
+
+    <label for="bandInput">Band name (optional, made up is best)</label>
+    <input type="text" id="bandInput" placeholder="e.g. the Fictional Falcons">
+
+    <label>Judge persona</label>
+    <div class="persona-grid" id="personaGrid"></div>
+
+    <div class="sound-row">
+      <input type="checkbox" id="soundToggle" checked>
+      <label for="soundToggle" style="margin:0;">Play judge's verdict sound</label>
+    </div>
+
+    <div class="action-row">
+      <button id="roastBtn">Roast it</button>
+      <button id="regenBtn" class="secondary" disabled>Regenerate</button>
+    </div>
+  </div>
+
+  <div class="card output-card" id="outputCard">
+    <div class="placeholder">Enter a score and hit "Roast it."</div>
+  </div>
+</main>
+
+<script>
+(() => {
+  const PERSONAS = [
+    { id: "softie", label: "The Softie" },
+    { id: "bar-raiser", label: "The Bar-Raiser" },
+    { id: "drumline-only", label: "Only Watches Drumline" },
+    { id: "traditionalist", label: "The Traditionalist" },
+  ];
+
+  const BANDS = [
+    { key: "brutal", name: "Brutal", color: "var(--brutal)", max: 40 },
+    { key: "backhanded", name: "Backhanded", color: "var(--backhanded)", max: 60 },
+    { key: "solid", name: "Solid, With A Catch", color: "var(--solid)", max: 80 },
+    { key: "suspicious", name: "Suspiciously Glowing", color: "var(--suspicious)", max: Infinity },
+  ];
+
+  const TEMPLATES = {
+    softie: {
+      brutal: [
+        "Well, {band} certainly showed up. Bless their hearts, every one of them, for {caption}.",
+        "I could tell they tried on {caption}, and honestly, isn't trying the real prize?",
+      ],
+      backhanded: [
+        "{band} really found *a* interpretation of {caption}. Bold choice, truly.",
+        "Not everyone's cup of tea, but who am I to say what tea is, really, on {caption}.",
+      ],
+      solid: [
+        "{band} did {caption} proud, in the sense that nothing exploded. Progress!",
+        "A lovely {caption}, all things considered, and I do mean all things.",
+      ],
+      suspicious: [
+        "Stunning {caption}. I've simply never seen anything like it, and I mean that in every possible way.",
+        "{band} should be so proud — this is easily the {caption} I'll be talking about for years, for reasons.",
+      ],
+    },
+    "bar-raiser": {
+      brutal: [
+        "{caption} at this level? I've seen middle school pep bands with more ambition.",
+        "{band}, the bar was on the floor and you still tripped over it during {caption}.",
+      ],
+      backhanded: [
+        "Competent. Competent is a word. It's the word I'm using for {caption}.",
+        "{band} hit the notes. Whether they hit the *point* of {caption} is a different sheet.",
+      ],
+      solid: [
+        "Solid {caption}. Not the best I've seen this weekend, but top five in this gym.",
+        "{band}, you're close to something on {caption}. I won't say what, but you're close.",
+      ],
+      suspicious: [
+        "Fine, {caption} was genuinely strong. I'm as surprised as you are.",
+        "{band} nearly made me reconsider my entire scoring philosophy. Nearly.",
+      ],
+    },
+    "drumline-only": {
+      brutal: [
+        "Didn't really catch the {caption}, but that snare line was doing something back there.",
+        "{bandPoss} battery had a rough day. Everyone else — no comment, wasn't watching.",
+      ],
+      backhanded: [
+        "The bass drums locked in around measure 40. As for {caption}, ask someone else.",
+        "{bandPoss} pit was fine I guess. I was mostly tracking the tenor line the whole {caption}.",
+      ],
+      solid: [
+        "Snares were crisp all the way through. {caption}? Sure, why not.",
+        "{bandPoss} drumline earned this {caption} score basically by themselves.",
+      ],
+      suspicious: [
+        "Best battery I've heard all season. {caption} apparently happened too, congrats.",
+        "{band}, your drumline could win this {caption} alone. The rest of you were also present.",
+      ],
+    },
+    traditionalist: {
+      brutal: [
+        "Back in my day, {caption} meant something. {band}, it clearly still doesn't to you.",
+        "This isn't drum corps, {band}. Whatever this {caption} was, it's something else entirely.",
+      ],
+      backhanded: [
+        "{band} tried something modern with {caption}. We'll see if it ages well. (It won't.)",
+        "Not how we used to do {caption}, but I suppose times change. Regrettably.",
+      ],
+      solid: [
+        "{band} respected the tradition of {caption}, mostly. I'll allow it.",
+        "A solid, if slightly modern, {caption}. Your section instructors did their jobs.",
+      ],
+      suspicious: [
+        "{band}, this is the first {caption} in years that reminded me why I still do this.",
+        "Genuinely classic {caption}. Somewhere, a drum corps legend is nodding.",
+      ],
+    },
+  };
+
+  const personaGrid = document.getElementById("personaGrid");
+  const scoreInput = document.getElementById("scoreInput");
+  const captionInput = document.getElementById("captionInput");
+  const bandInput = document.getElementById("bandInput");
+  const soundToggle = document.getElementById("soundToggle");
+  const roastBtn = document.getElementById("roastBtn");
+  const regenBtn = document.getElementById("regenBtn");
+  const outputCard = document.getElementById("outputCard");
+
+  let activePersona = PERSONAS[0].id;
+  let lastBandKey = null;
+  let audioCtx = null;
+
+  PERSONAS.forEach((p, i) => {
+    const btn = document.createElement("button");
+    btn.className = "persona-btn" + (i === 0 ? " active" : "");
+    btn.textContent = p.label;
+    btn.dataset.persona = p.id;
+    btn.addEventListener("click", () => {
+      activePersona = p.id;
+      personaGrid.querySelectorAll(".persona-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+    personaGrid.appendChild(btn);
+  });
+
+  function bandForScore(score) {
+    return BANDS.find(b => score <= b.max);
+  }
+
+  function possessive(name) {
+    return name.endsWith("s") ? name + "'" : name + "'s";
+  }
+
+  function fillTemplate(str, band, caption) {
+    return str
+      .replaceAll("{bandPoss}", possessive(band))
+      .replaceAll("{band}", band)
+      .replaceAll("{caption}", caption);
+  }
+
+  function playPhrase(bandKey) {
+    if (!soundToggle.checked) return;
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = audioCtx.currentTime;
+    const phrases = {
+      brutal: [{ f: 300, d: 0.18 }, { f: 220, d: 0.18 }, { f: 150, d: 0.32 }],
+      backhanded: [{ f: 330, d: 0.14 }, { f: 300, d: 0.22 }],
+      solid: [{ f: 392, d: 0.14 }, { f: 494, d: 0.24 }],
+      suspicious: [{ f: 392, d: 0.12 }, { f: 494, d: 0.12 }, { f: 587, d: 0.12 }, { f: 554, d: 0.3 }],
+    };
+    let t = now;
+    phrases[bandKey].forEach(note => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = note.f;
+      gain.gain.value = 0.0001;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      gain.gain.exponentialRampToValueAtTime(0.15, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + note.d);
+      osc.start(t);
+      osc.stop(t + note.d + 0.02);
+      t += note.d;
+    });
+  }
+
+  function generate(pickNew) {
+    const rawScore = parseFloat(scoreInput.value);
+    if (Number.isNaN(rawScore)) {
+      outputCard.innerHTML = '<div class="placeholder">Enter a numeric score first — that\'s the whole bit.</div>';
+      regenBtn.disabled = true;
+      return;
+    }
+    const score = Math.max(0, Math.min(100, rawScore));
+    const band = bandForScore(score);
+    const caption = captionInput.value.trim() || "this caption";
+    const band_name = bandInput.value.trim() || "this ensemble";
+
+    const pool = TEMPLATES[activePersona][band.key];
+    const line = pool[Math.floor(Math.random() * pool.length)];
+    const filled = fillTemplate(line, band_name, caption);
+
+    outputCard.innerHTML = `
+      <div class="band-label" style="background:${band.color}; color:#17171a;">${band.name}</div>
+      <div class="roast-line">${escapeHtml(filled)}</div>
+    `;
+    regenBtn.disabled = false;
+    lastBandKey = band.key;
+    playPhrase(band.key);
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  roastBtn.addEventListener("click", () => generate(true));
+  regenBtn.addEventListener("click", () => generate(true));
+})();
+</script>
+</body>
+</html>

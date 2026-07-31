@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+<title>Sectional Bingo</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #1a1a1e;
+    --fg: #f0f0f0;
+    --accent: #e0a640;
+    --muted: #8a8a92;
+    --card: #232328;
+    --border: #333338;
+    --marked: #5db56a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding: 1.5rem 1rem 3rem;
+    overflow-x: hidden;
+  }
+  .arcade-nav {
+    max-width: 520px;
+    margin: 0 auto 1rem;
+    font-size: 0.8rem;
+  }
+  .arcade-nav a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .arcade-nav a:hover { color: var(--accent); }
+  main {
+    max-width: 520px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  h1 { font-size: 1.4rem; font-weight: 600; margin: 0 0 0.25rem; }
+  p.tagline { color: var(--muted); margin: 0 0 1.2rem; font-size: 0.9rem; }
+
+  .toolbar {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  .toolbar button {
+    flex: 1;
+    padding: 0.6rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: var(--accent);
+    color: #1a1200;
+  }
+  .toolbar button.secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--fg);
+  }
+
+  .banner {
+    min-height: 1.8rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 0.6rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    position: relative;
+  }
+  .square {
+    aspect-ratio: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem;
+    font-size: 0.68rem;
+    line-height: 1.2;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .square:active { transform: scale(0.96); }
+  .square.marked {
+    background: var(--marked);
+    color: #10240f;
+    font-weight: 600;
+  }
+  .square.free {
+    background: var(--accent);
+    color: #1a1200;
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .custom-pool {
+    margin-top: 1.5rem;
+    text-align: left;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+  }
+  .custom-pool h2 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin: 0 0 0.7rem;
+  }
+  .add-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .add-row input {
+    flex: 1;
+    background: #17171a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--fg);
+    padding: 0.5rem 0.6rem;
+    font-size: 0.9rem;
+  }
+  .add-row button {
+    padding: 0.5rem 0.9rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #1a1200;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .custom-list {
+    margin-top: 0.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-height: 8rem;
+    overflow-y: auto;
+  }
+  .custom-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    background: #17171a;
+    border-radius: 6px;
+    padding: 0.35rem 0.6rem;
+  }
+  .custom-item button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .custom-item button:hover { color: #c94f4f; }
+  .empty-custom { color: var(--muted); font-size: 0.85rem; }
+
+  .confetti-piece {
+    position: fixed;
+    top: -20px;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    pointer-events: none;
+    animation: fall linear forwards;
+    z-index: 50;
+  }
+  @keyframes fall {
+    to { transform: translateY(105vh) rotate(360deg); opacity: 0.4; }
+  }
+</style>
+</head>
+<body>
+<nav class="arcade-nav"><a href="../../index.html">&larr; Band Camp Arcade</a></nav>
+<main>
+  <h1>Sectional Bingo</h1>
+  <p class="tagline">Everyone gets their own shuffle. Mark it, don't announce it (unless you win).</p>
+
+  <div class="toolbar">
+    <button id="newCardBtn">New card</button>
+    <button id="resetMarksBtn" class="secondary">Clear marks</button>
+  </div>
+
+  <div class="banner" id="banner"></div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="custom-pool">
+    <h2>Add your own inside jokes</h2>
+    <div class="add-row">
+      <input type="text" id="customInput" placeholder="e.g. someone brings the wrong mute">
+      <button id="addCustomBtn">Add</button>
+    </div>
+    <div class="custom-list" id="customList"></div>
+  </div>
+</main>
+
+<script>
+(() => {
+  const DEFAULT_POOL = [
+    "Someone loses their music",
+    "Director says “one more time” (4th time)",
+    "A reed cracks mid-run",
+    "A phone goes off during a fermata",
+    "Someone asks what a mellophone is",
+    "An argument about the metronome tempo",
+    "A water bottle gets knocked over",
+    "Someone's slide oil goes missing",
+    "A first-year forgot their valve oil",
+    "Sectional runs 20+ minutes over",
+    "Someone hums the wrong part confidently",
+    "A snack wrapper crinkles during a solo",
+    "Someone plays in the completely wrong key",
+    "A duct-taped instrument case shows up",
+    "Someone's stand collapses mid-piece",
+    "Tuning drags past 5 minutes",
+    "A parent walks in mid-rehearsal",
+    "Someone's music is upside down",
+    "A kazoo appears from nowhere",
+    "Someone practices scales too loud on a break",
+    "The room is either freezing or a sauna",
+    "Someone's reed goes flying across the room",
+    "A debate over whether it's sharp or flat",
+    "Someone brings the wrong folder entirely",
+    "A last-minute fingering chart correction",
+    "Someone's chair squeaks the entire rehearsal",
+    "A debate over 6/8 vs. 3/4 feel",
+    "Someone's mute rolls under the risers",
+    "A whispered rumor about the setlist",
+    "Someone counts out loud and gets it wrong",
+    "A missed pickup note blamed on timing",
+    "Someone's valve or slide sticks",
+    "A debate over snack rotation duties",
+    "Someone asks to repeat the measure number",
+    "A stand-partner disagreement over dynamics",
+    "Someone brings a pit instrument by mistake",
+    "A director sigh followed by dead silence",
+    "Someone insists they were “basically” in tune",
+    "A late arrival tiptoes in during a solo",
+    "Someone's binder explodes open",
+    "“We don't have time for this” from the section leader",
+    "Someone hums along instead of playing a rest",
+    "A phone flashlight used to read music in the dark",
+    "Someone's ligature falls apart mid-note",
+    "A pencil goes missing and three people blame each other",
+    "Someone shows up in full uniform by accident",
+  ];
+  const CUSTOM_KEY = "sectional-bingo-custom-pool";
+  const CARD_KEY = "sectional-bingo-card";
+  const FREE_INDEX = 12; // center of a 5x5 grid
+
+  const grid = document.getElementById("grid");
+  const bannerEl = document.getElementById("banner");
+  const newCardBtn = document.getElementById("newCardBtn");
+  const resetMarksBtn = document.getElementById("resetMarksBtn");
+  const customInput = document.getElementById("customInput");
+  const addCustomBtn = document.getElementById("addCustomBtn");
+  const customList = document.getElementById("customList");
+
+  function loadCustomPool() {
+    try {
+      return JSON.parse(localStorage.getItem(CUSTOM_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+  function saveCustomPool(pool) {
+    localStorage.setItem(CUSTOM_KEY, JSON.stringify(pool));
+  }
+
+  function fullPool() {
+    return [...DEFAULT_POOL, ...loadCustomPool()];
+  }
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function loadCard() {
+    try {
+      return JSON.parse(localStorage.getItem(CARD_KEY));
+    } catch {
+      return null;
+    }
+  }
+  function saveCard(card) {
+    localStorage.setItem(CARD_KEY, JSON.stringify(card));
+  }
+
+  function newCard() {
+    const pool = fullPool();
+    const picks = shuffle(pool).slice(0, 24);
+    const squares = [...picks];
+    squares.splice(FREE_INDEX, 0, "FREE");
+    const marked = squares.map((_, i) => i === FREE_INDEX);
+    const card = { squares, marked, bingoShown: false };
+    saveCard(card);
+    bannerEl.textContent = "";
+    return card;
+  }
+
+  function checkBingo(marked) {
+    const lines = [];
+    for (let r = 0; r < 5; r++) lines.push([0, 1, 2, 3, 4].map(c => r * 5 + c));
+    for (let c = 0; c < 5; c++) lines.push([0, 1, 2, 3, 4].map(r => r * 5 + c));
+    lines.push([0, 6, 12, 18, 24]);
+    lines.push([4, 8, 12, 16, 20]);
+    return lines.some(line => line.every(i => marked[i]));
+  }
+
+  function spawnConfetti() {
+    const colors = ["#e0a640", "#5db56a", "#c94f4f", "#4a9fd9", "#d9c24a"];
+    for (let i = 0; i < 60; i++) {
+      const piece = document.createElement("div");
+      piece.className = "confetti-piece";
+      piece.style.left = Math.random() * 100 + "vw";
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      const duration = 1.6 + Math.random() * 1.2;
+      piece.style.animationDuration = duration + "s";
+      piece.style.animationDelay = (Math.random() * 0.4) + "s";
+      document.body.appendChild(piece);
+      setTimeout(() => piece.remove(), (duration + 0.5) * 1000);
+    }
+  }
+
+  function renderGrid(card) {
+    grid.innerHTML = "";
+    card.squares.forEach((text, i) => {
+      const el = document.createElement("div");
+      el.className = "square" + (i === FREE_INDEX ? " free" : "") + (card.marked[i] ? " marked" : "");
+      el.textContent = text;
+      el.dataset.index = i;
+      if (i !== FREE_INDEX) {
+        el.addEventListener("click", () => toggleSquare(i));
+      }
+      grid.appendChild(el);
+    });
+  }
+
+  function toggleSquare(i) {
+    const card = loadCard();
+    card.marked[i] = !card.marked[i];
+    const hasBingo = checkBingo(card.marked);
+    if (hasBingo && !card.bingoShown) {
+      card.bingoShown = true;
+      bannerEl.textContent = "BINGO!";
+      spawnConfetti();
+    } else if (!hasBingo) {
+      card.bingoShown = false;
+      bannerEl.textContent = "";
+    }
+    saveCard(card);
+    renderGrid(card);
+  }
+
+  function renderCustomList() {
+    const pool = loadCustomPool();
+    if (pool.length === 0) {
+      customList.innerHTML = '<div class="empty-custom">No custom squares yet.</div>';
+      return;
+    }
+    customList.innerHTML = pool.map((text, i) => `
+      <div class="custom-item">
+        <span>${escapeHtml(text)}</span>
+        <button data-remove="${i}">&times;</button>
+      </div>
+    `).join("");
+    customList.querySelectorAll("[data-remove]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.dataset.remove, 10);
+        const updated = loadCustomPool();
+        updated.splice(idx, 1);
+        saveCustomPool(updated);
+        renderCustomList();
+      });
+    });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  newCardBtn.addEventListener("click", () => {
+    const card = newCard();
+    renderGrid(card);
+  });
+
+  resetMarksBtn.addEventListener("click", () => {
+    const card = loadCard();
+    if (!card) return;
+    card.marked = card.squares.map((_, i) => i === FREE_INDEX);
+    card.bingoShown = false;
+    bannerEl.textContent = "";
+    saveCard(card);
+    renderGrid(card);
+  });
+
+  addCustomBtn.addEventListener("click", () => {
+    const text = customInput.value.trim();
+    if (!text) return;
+    const pool = loadCustomPool();
+    pool.push(text);
+    saveCustomPool(pool);
+    customInput.value = "";
+    renderCustomList();
+  });
+  customInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addCustomBtn.click();
+  });
+
+  let card = loadCard();
+  if (!card || !Array.isArray(card.squares) || card.squares.length !== 25) {
+    card = newCard();
+  }
+  renderGrid(card);
+  renderCustomList();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+<title>Uniform Sweat Tracker</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #1a1a1e;
+    --fg: #f0f0f0;
+    --accent: #e0a640;
+    --muted: #8a8a92;
+    --card: #232328;
+    --border: #333338;
+    --mild: #5db56a;
+    --uncomfortable: #d9c24a;
+    --brutal: #e0872f;
+    --catastrophic: #c94f4f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding: 1.5rem 1rem 3rem;
+  }
+  .arcade-nav {
+    max-width: 640px;
+    margin: 0 auto 1rem;
+    font-size: 0.8rem;
+  }
+  .arcade-nav a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .arcade-nav a:hover { color: var(--accent); }
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 1.4rem; font-weight: 600; margin: 0 0 0.25rem; text-align: center; }
+  p.tagline { color: var(--muted); margin: 0 0 1.5rem; font-size: 0.9rem; text-align: center; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem 1.2rem;
+    margin-bottom: 1.2rem;
+  }
+  .card h2 {
+    font-size: 1rem;
+    margin: 0 0 0.9rem;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  form label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 0.7rem 0 0.3rem;
+  }
+  form label:first-of-type { margin-top: 0; }
+  input[type="date"], input[type="text"], input[type="number"], textarea {
+    width: 100%;
+    background: #17171a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--fg);
+    padding: 0.55rem 0.7rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+  }
+  textarea { resize: vertical; min-height: 3.2rem; }
+
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .score-row input[type="range"] { flex: 1; }
+  .score-badge {
+    min-width: 2.4rem;
+    text-align: center;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.9rem;
+  }
+
+  .submit-button {
+    margin-top: 1rem;
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: var(--accent);
+    color: #1a1200;
+  }
+
+  .reaction {
+    min-height: 1.3rem;
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--accent);
+    text-align: center;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+  }
+  .summary-item {
+    background: #17171a;
+    border-radius: 8px;
+    padding: 0.7rem 0.8rem;
+  }
+  .summary-item .label { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  .summary-item .value { font-size: 1.05rem; font-weight: 700; margin-top: 0.2rem; }
+  .summary-item .sub { color: var(--muted); font-size: 0.8rem; margin-top: 0.15rem; }
+  .hall-of-fame {
+    grid-column: 1 / -1;
+    font-style: italic;
+    color: var(--fg);
+  }
+
+  .entry {
+    display: flex;
+    gap: 0.8rem;
+    align-items: flex-start;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .entry:last-child { border-bottom: none; }
+  .entry .score-badge { flex-shrink: 0; margin-top: 0.1rem; }
+  .entry .details { flex: 1; }
+  .entry .event-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  .entry .meta { color: var(--muted); font-size: 0.8rem; margin-top: 0.1rem; }
+  .entry .complaint { margin-top: 0.3rem; font-size: 0.9rem; }
+  .entry .delete-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0.1rem 0.3rem;
+  }
+  .entry .delete-btn:hover { color: var(--catastrophic); }
+
+  .empty-state { color: var(--muted); font-size: 0.9rem; text-align: center; padding: 1rem 0; }
+</style>
+</head>
+<body>
+<nav class="arcade-nav"><a href="../../index.html">&larr; Band Camp Arcade</a></nav>
+<main>
+  <h1>Uniform Sweat Tracker</h1>
+  <p class="tagline">Log the misery. Crown the champion at season's end.</p>
+
+  <div class="card">
+    <h2>Log an event</h2>
+    <form id="entryForm">
+      <label for="date">Date</label>
+      <input type="date" id="date" required>
+
+      <label for="event">Game / competition</label>
+      <input type="text" id="event" placeholder="e.g. Homecoming vs. Central" required>
+
+      <label for="temp">Felt-like temperature (°F, optional)</label>
+      <input type="number" id="temp" placeholder="e.g. 94">
+
+      <label for="score">Suffering score</label>
+      <div class="score-row">
+        <input type="range" id="score" min="1" max="10" value="5">
+        <span class="score-badge" id="scoreBadge">5</span>
+      </div>
+
+      <label for="complaint">Complaint (optional, but encouraged)</label>
+      <textarea id="complaint" placeholder="What exactly happened to you out there"></textarea>
+
+      <button type="submit" class="submit-button">Log the suffering</button>
+      <div class="reaction" id="reaction"></div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Season summary</h2>
+    <div id="summary"></div>
+  </div>
+
+  <div class="card">
+    <h2>Entries</h2>
+    <div id="entries"></div>
+  </div>
+</main>
+
+<script>
+(() => {
+  const STORAGE_KEY = "uniform-sweat-entries";
+
+  const SCORE_BANDS = [
+    { max: 3, name: "mild", color: "var(--mild)" },
+    { max: 6, name: "uncomfortable", color: "var(--uncomfortable)" },
+    { max: 8, name: "brutal", color: "var(--brutal)" },
+    { max: 10, name: "catastrophic", color: "var(--catastrophic)" },
+  ];
+
+  const REACTIONS = {
+    mild: ["Barely broke a sweat. Suspicious.", "A good day for polyester."],
+    uncomfortable: ["Damp but dignified.", "The march home was the real event."],
+    brutal: ["A 9? Name a more iconic duo than polyester and heat.", "Somebody get the section a hose."],
+    catastrophic: ["Uniform filed a formal complaint.", "This one's going in the hall of fame."],
+  };
+
+  const form = document.getElementById("entryForm");
+  const dateInput = document.getElementById("date");
+  const eventInput = document.getElementById("event");
+  const tempInput = document.getElementById("temp");
+  const scoreInput = document.getElementById("score");
+  const scoreBadge = document.getElementById("scoreBadge");
+  const complaintInput = document.getElementById("complaint");
+  const reactionEl = document.getElementById("reaction");
+  const summaryEl = document.getElementById("summary");
+  const entriesEl = document.getElementById("entries");
+
+  function bandFor(score) {
+    return SCORE_BANDS.find(b => score <= b.max);
+  }
+
+  function updateScoreBadge() {
+    const score = parseInt(scoreInput.value, 10);
+    const band = bandFor(score);
+    scoreBadge.textContent = score;
+    scoreBadge.style.background = band.color;
+    scoreBadge.style.color = "#17171a";
+  }
+  scoreInput.addEventListener("input", updateScoreBadge);
+
+  function loadEntries() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+  function saveEntries(entries) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso + "T00:00:00");
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  }
+
+  function render() {
+    const entries = loadEntries();
+    renderSummary(entries);
+    renderEntries(entries);
+  }
+
+  function renderSummary(entries) {
+    if (entries.length === 0) {
+      summaryEl.innerHTML = '<div class="empty-state">Log a few games to see the champion of suffering emerge.</div>';
+      return;
+    }
+    const sorted = [...entries].sort((a, b) => b.score - a.score || b.createdAt - a.createdAt);
+    const worst = sorted[0];
+    const best = sorted[sorted.length - 1];
+    const avg = (entries.reduce((sum, e) => sum + e.score, 0) / entries.length).toFixed(1);
+    const quote = worst.complaint && worst.complaint.trim()
+      ? `"${worst.complaint.trim()}"`
+      : "(no comment — they were speechless)";
+
+    summaryEl.innerHTML = `
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="label">Worst day</div>
+          <div class="value">${escapeHtml(worst.event)}</div>
+          <div class="sub">${formatDate(worst.date)} · score ${worst.score}</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">Best day</div>
+          <div class="value">${escapeHtml(best.event)}</div>
+          <div class="sub">${formatDate(best.date)} · score ${best.score}</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">Average suffering</div>
+          <div class="value">${avg} / 10</div>
+          <div class="sub">${entries.length} event${entries.length === 1 ? "" : "s"} logged</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">Hall of fame quote</div>
+        </div>
+        <div class="summary-item hall-of-fame">${escapeHtml(quote)}</div>
+      </div>
+    `;
+  }
+
+  function renderEntries(entries) {
+    if (entries.length === 0) {
+      entriesEl.innerHTML = '<div class="empty-state">No entries yet. Suffer, then log it.</div>';
+      return;
+    }
+    const sorted = [...entries].sort((a, b) => b.createdAt - a.createdAt);
+    entriesEl.innerHTML = sorted.map(e => {
+      const band = bandFor(e.score);
+      const tempStr = (e.temp !== null && e.temp !== undefined && e.temp !== "")
+        ? `${e.temp}°F felt-like`
+        : "temp not logged";
+      return `
+        <div class="entry" data-id="${e.id}">
+          <div class="score-badge" style="background:${band.color}; color:#17171a;">${e.score}</div>
+          <div class="details">
+            <div class="event-line">
+              <span>${escapeHtml(e.event)}</span>
+              <button class="delete-btn" data-delete="${e.id}" title="Delete entry">&times;</button>
+            </div>
+            <div class="meta">${formatDate(e.date)} · ${tempStr}</div>
+            ${e.complaint ? `<div class="complaint">"${escapeHtml(e.complaint)}"</div>` : ""}
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    entriesEl.querySelectorAll("[data-delete]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.delete;
+        const remaining = loadEntries().filter(e => String(e.id) !== String(id));
+        saveEntries(remaining);
+        render();
+      });
+    });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str == null ? "" : str;
+    return div.innerHTML;
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const score = parseInt(scoreInput.value, 10);
+    const entry = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      createdAt: Date.now(),
+      date: dateInput.value,
+      event: eventInput.value.trim(),
+      temp: tempInput.value === "" ? null : Number(tempInput.value),
+      score,
+      complaint: complaintInput.value.trim(),
+    };
+    const entries = loadEntries();
+    entries.push(entry);
+    saveEntries(entries);
+
+    const band = bandFor(score);
+    const lines = REACTIONS[band.name];
+    reactionEl.textContent = lines[Math.floor(Math.random() * lines.length)];
+
+    eventInput.value = "";
+    tempInput.value = "";
+    complaintInput.value = "";
+    scoreInput.value = 5;
+    updateScoreBadge();
+
+    render();
+  });
+
+  dateInput.value = new Date().toISOString().slice(0, 10);
+  updateScoreBadge();
+  render();
+})();
+</script>
+</body>
+</html>
