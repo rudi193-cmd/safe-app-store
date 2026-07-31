@@ -351,6 +351,44 @@ needs.
   inspiration only, not a candidate dependency, as already noted in
   `VISION.md`.
 
+## Adopted dependencies (2026-07-31)
+
+Decisions made against the sweep above — recorded as decisions, not just
+survey notes, since each one commits this design to a real external
+dependency.
+
+- **D2 → Kart + nsjail, nothing further for now.** nsjail (Apache-2.0)
+  closes Kart's acknowledged seccomp gap directly. gVisor / Kata Containers /
+  Firecracker / E2B stay noted as a future higher-trust tier (D6) —
+  deliberately not adopted yet, since App Forge has no real multi-tenant
+  traffic yet to justify the added infrastructure (E2B's self-hosted floor
+  alone is real money: ~$1,250/mo).
+- **D4 → Sigstore, static-keypair mode.** Real audited signing
+  (`sign-blob`/`verify-blob`), the rotate-vs-compromise semantics D4 wants,
+  no new infrastructure dependency — explicitly *not* keyless mode, which
+  would pull in Fulcio/Rekor. Replaces the hand-rolled HMAC pattern borrowed
+  from Nestor; `stores/sap_gate.py` becomes a thin wrapper over cosign's
+  static-key flow rather than a fresh crypto implementation.
+- **D1/D5 → Casbin, in-process.** Matches D1's "lightweight in-repo gate"
+  framing exactly — no sidecar, no daemon. OPA and Cedar stay noted as an
+  escalation path if the policy shape outgrows what Casbin's model/policy DSL
+  can express; not a decision to revisit until that pressure actually shows
+  up.
+- **D5 (connector) → build the minimal version in-repo, no dependency
+  adopted.** Nothing in the sweep does D5's actual shape-based classification
+  (read/propose vs. write/grant, decided by the gate, not by the server's own
+  claims). `mcp-gateway-registry`'s admission-gate is worth reading for
+  structure, not worth depending on for a feature it doesn't have.
+- **D7 → vLLM** as the local engine, not Ollama — chosen specifically because
+  D6 already commits to multi-tenant from day one, and vLLM is built for real
+  concurrent throughput where Ollama is shaped around single-user local use.
+  LiteLLM stays the routing/proxy layer on top (per the sweep), with the
+  manifest-driven fallback gate remaining this repo's own code either way.
+- **D9 → py-fsrs.** The real algorithm the Nestor-shaped sketch was
+  approximating by hand; `sm-2`/`py-irt`/`openskill.py` stay unadopted (sm-2
+  strictly weaker, py-irt's PyTorch dependency too heavy, openskill missing
+  the interval-scheduling piece D9's "resurface later" actually depends on).
+
 ## Open / next
 
 - **Where exactly "a decision" starts** (D8) — the line between "ask first"
@@ -364,11 +402,13 @@ needs.
   choose" is a legitimate answer that still seals *as a taught decision*
   (builder saw the tradeoff, deferred deliberately) versus something that
   should block progress.
-- **Whether Nestor becomes an actual dependency, not just D4's pattern
-  reference** — D9's checkpoint ledger is much closer to Nestor's actual
-  domain (matching a query against a memory of confirmed answers) than D4's
-  gate is. Stronger case here for `pip install nestor` and a real
-  `EntityResolver`-shaped recipe than for D4's borrow-the-shape approach.
+- **Whether Nestor becomes an actual dependency for the ledger/storage half
+  of D9** — py-fsrs (adopted above) settles *scheduling*; it doesn't touch
+  *storage*. D9's checkpoint ledger (matching a decision against a memory of
+  sealed answers, per builder) is still much closer to Nestor's actual domain
+  than D4's gate ever was — `pip install nestor` and a real
+  `EntityResolver`-shaped recipe, with py-fsrs supplying the interval math
+  Nestor doesn't have, is the live option worth deciding on next.
 - **Multi-user auth is the actual prerequisite for D6**, and isn't sketched
   yet. Does the store issue its own session tokens with a tenant claim, or
   extend `willow-mcp`'s OAuth provider to carry one? Given D1 (store owns
@@ -384,11 +424,6 @@ needs.
   MCP tool call or a file write actually serializes as. `seam_install.py`'s
   placement-plan shape (`safe-app-installer.md` D3) is the starting reference,
   not yet adapted.
-- **Whether Nestor becomes an actual pip dependency** for `sap_gate.py`, or
-  just the design reference its signing/keyring modules get reimplemented
-  from — Nestor's domain (translation-memory verification) is far from
-  manifest-signing; its primitives are generic, but pulling the whole package
-  in for two modules' worth of pattern is a separate call.
 - **terpsi-music** was brought in as a worked example, not a dependency — its
   three-zone privacy design (`docs/ARCHITECTURE.md` §1: on-prem hub / untrusted
   relay / edge replicas) may be worth a closer read once D6's tenant-isolation
