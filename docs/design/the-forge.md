@@ -120,22 +120,31 @@ on `nestor.signing` / `nestor.keyring`:
 This is the first time "signed → allowed, tampered → denied" is actually true
 of this repo, rather than asserted by it.
 
-### D5 — One capability contract, for every MCP server registered
+### D5 — One capability contract, for every MCP server registered, enforced by an explicit allowlist
 
 A thin connector (`the_forge/mcp_connector.py`, name tbd) generalizes
 `store_mcp.py`'s existing stdio-launch pattern beyond "willow" specifically:
 
 - Register any MCP server by name + launch command.
-- The builder/agent only ever sees that server's **read** and **propose**-
-  shaped tools. Anything shaped like a write, grant, seal, or promote gets
-  intercepted at the connector and routed through the seam (D3) + gate (D4)
-  instead of executing directly — regardless of what the server itself
-  advertises. A server that ships a `frank_append`-style write tool doesn't
-  get to call it straight through; the plan it represents still crosses the
-  seam.
-- This is the same enforcement point for `willow-mcp`, `Nestor`, or anything
-  registered next — the store doesn't special-case any one server's trust
-  level, because none of them have one to begin with (D1).
+- **Default-deny, not shape-classification.** The connector holds an
+  explicit, per-server tool allowlist — reviewed once when a server is
+  registered, never inferred at call time from what a tool's name or schema
+  suggests. A tool not on the allowlist is refused by name, full stop. This
+  replaces the earlier "anything shaped like read/propose passes through"
+  framing, which the 2026-07-31 review correctly flagged as fail-open:
+  classifying by a server's own claimed shape trusts exactly the thing D1
+  says can't be trusted.
+- **`nestor.serve.Server` is the reference implementation, not an
+  inspiration** — see "Nestor inventory" below for its actual tool list and
+  `WITHHELD` set. It already does default-deny-by-name, not shape-inference.
+  Every other registered server needs the same explicit-list treatment
+  authored for it; none of them get to self-classify.
+- Anything not on a server's allowlist — including a write/grant/promote
+  call from a server that *is* registered — still routes through the seam
+  (D3) + gate (D4) rather than executing directly.
+- Same enforcement point for `willow-mcp`, `Nestor`, or anything registered
+  next — the store doesn't special-case any one server's trust level,
+  because none of them have one to begin with (D1).
 
 ### D6 — Tenancy lives in the store, because nothing else has it
 
@@ -577,17 +586,22 @@ Pin Nestor at promotion time the way terpsi's `FLEET-READS.md` pins Nestor SHA.
 
 ## Open / next
 
-- **The four critical gaps from the 2026-07-31 review are still open** and
-  take priority over anything below: D11 currently makes GitHub the root of
-  the identity namespace, which D1 rules out (fix: mint a store-local
-  principal at first login, bind GitHub to it as one authenticator, not the
-  identity itself); D4's static-keypair Sigstore mode doesn't deliver the
-  rotate-vs-compromise duality it was adopted for, and key custody is
-  undesigned; D5's read/propose-vs-write/grant classification is fail-open
-  since it classifies by the server's own claimed tool shape (needs
-  default-deny with an explicit per-server allowlist instead); D3's seam
-  validates *where* a build may write, not *what* — generated source code
-  that will later execute still crosses it unvalidated.
+- **Three of the four critical gaps from the 2026-07-31 review are still
+  fully open**, and take priority over anything below: D11 currently makes
+  GitHub the root of the identity namespace, which D1 rules out (fix: mint a
+  store-local principal at first login, bind GitHub to it as one
+  authenticator, not the identity itself); D4's static-keypair Sigstore mode
+  doesn't deliver the rotate-vs-compromise duality it was adopted for, and
+  key custody is undesigned; D3's seam validates *where* a build may write,
+  not *what* — generated source code that will later execute still crosses
+  it unvalidated.
+- **The fourth (D5's fail-open classification) now has a concrete mechanism**
+  — default-deny via an explicit per-server allowlist, modeled directly on
+  `nestor.serve.Server`'s closed tool list + `WITHHELD` set (D5, updated
+  2026-07-31, per the Nestor inventory below). Not fully resolved: Nestor
+  ships its own allowlist, but every other server registered with the
+  connector — `willow-mcp` first — still needs one *authored*, and nothing
+  yet stops a server from being registered without one.
 - **Where exactly "a decision" starts** (D8) — the line between "ask first"
   and "just write it" is asserted, not drawn. Needs a working pass over real
   build sessions to find where it actually falls before this is more than a
