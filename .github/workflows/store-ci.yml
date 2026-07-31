@@ -106,10 +106,16 @@ jobs:
         # now that discovery_sources moved to docs/discovery_sources.md.
         # Proves an unknown key — discovery_sources growing back, or any
         # other new organ — actually fails instead of passing silently.
+        #
+        # test_loose_repos.py resolves one of docs/store_refit_plan.md's
+        # "Open gates": a catalog entry naming a repository but no local
+        # path (code the house can't reach, like grove/willow-grove) must
+        # be named in stores/pending.json with a reason, same as an
+        # unresolved apps/ build.
         run: |
           python -m pip install --upgrade pip
           pip install pytest
-          python -m pytest tests/test_no_raw_soil_reads.py tests/test_no_fstring_schema_sql.py tests/test_no_inline_vault_root.py tests/test_no_unauthenticated_bind.py tests/test_promote_check.py tests/test_promote_check_record.py tests/test_vault_lint_vacuous_scan.py tests/test_tier_vocabulary.py tests/test_p1_keeping_records.py tests/test_p3_generated_catalog_fields.py tests/test_catalog_location.py tests/test_status_vocabulary_migration.py tests/test_catalog_top_level_keys.py -q
+          python -m pytest tests/test_no_raw_soil_reads.py tests/test_no_fstring_schema_sql.py tests/test_no_inline_vault_root.py tests/test_no_unauthenticated_bind.py tests/test_promote_check.py tests/test_promote_check_record.py tests/test_vault_lint_vacuous_scan.py tests/test_tier_vocabulary.py tests/test_p1_keeping_records.py tests/test_p3_generated_catalog_fields.py tests/test_catalog_location.py tests/test_status_vocabulary_migration.py tests/test_catalog_top_level_keys.py tests/test_loose_repos.py -q
 
   app-tests:
     runs-on: ubuntu-latest

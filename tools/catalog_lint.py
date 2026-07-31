@@ -68,6 +68,12 @@ not its market research. The closed key set is what stops a new organ like it
 growing back in silently: adding one now requires updating VALID_TOP_LEVEL_KEYS
 (and this docstring), which is a decision, not a drift.
 
+Also the "loose repos" gate (`lint_loose_repos()`), resolving one of
+docs/store_refit_plan.md's "Open gates" (decided 2026-07-31): a catalog entry
+with a `repository` but no local `path` — code the house cannot reach, like
+`grove`/`willow-grove` — must be named in stores/pending.json with a reason,
+same as an unresolved apps/ build. Archived loose entries are exempt.
+
 Verdicts:
   ERROR — the catalog and the tree disagree; the store is lying to someone.
   WARN  — seeded app without a manifest, or similar rough edge.
@@ -197,6 +203,10 @@ def lint() -> tuple[list[str], list[str]]:
     generated_errors, generated_warnings = lint_generated_fields(apps)
     errors.extend(generated_errors)
     warnings.extend(generated_warnings)
+
+    loose_repo_errors, loose_repo_warnings = lint_loose_repos(apps)
+    errors.extend(loose_repo_errors)
+    warnings.extend(loose_repo_warnings)
 
     return errors, warnings
 
@@ -357,13 +367,13 @@ def lint_generated_fields(apps: list[dict]) -> tuple[list[str], list[str]]:
     nothing else (rule 4: archive, don't delete — some have no apps/
     directory left to derive anything from). Pathless, non-archived entries
     (loose external repos like `grove`/`willow-grove`) are also out of scope
-    here for the same reason P1 left them out of the keeping record: a build
-    the house cannot reach cannot have its majors or state measured from the
-    tree, and docs/store_refit_plan.md's own "Open gates" section already
-    names this as unresolved rather than something to guess at here. Their
-    `status` is still required to be a valid enum member (checked in `lint()`
-    already) — just not checked *against* anything, since nothing to check
-    against exists.
+    here: a build the house cannot reach cannot have its majors or state
+    measured from the tree, so there is nothing to check their `status`
+    *against* — it's still required to be a valid enum member (checked in
+    `lint()` already). They are not exempt from every check, though:
+    `lint_loose_repos()` requires each one to be named in
+    `stores/pending.json` with a reason, resolving what used to be an open
+    question in docs/store_refit_plan.md's "Open gates" section.
 
     Two more shapes get the same treatment, for the same reason — a status
     with no record to verify it against:
@@ -443,6 +453,38 @@ def lint_generated_fields(apps: list[dict]) -> tuple[list[str], list[str]]:
             f"{app_id}: has a path but no keeping record, no promoted record, "
             f"and is not in stores/pending.json — lint_records() should have "
             f"already caught this; investigate before trusting either gate"
+        )
+
+    return errors, warnings
+
+
+def lint_loose_repos(apps: list[dict]) -> tuple[list[str], list[str]]:
+    """The "loose repos" resolution (docs/store_refit_plan.md, "Open gates",
+    decided 2026-07-31): a catalog entry naming a `repository` but no local
+    `path` — code the house cannot reach, like `grove`/`willow-grove` — must
+    be named in `stores/pending.json` with a reason, the same way P1 required
+    of an `apps/` build with no principled relation. A keeping record for code
+    the house cannot verify would be a claim, not a fact; leaving it
+    unrecorded entirely would be exactly the kind of gap `pending.json` exists
+    to refuse. Archived loose entries are exempt, same as archived apps/
+    entries (rule 4).
+    """
+    errors: list[str] = []
+    warnings: list[str] = []
+    pending_ids = _load_pending_ids()
+    stored = _load_stored_records()
+
+    for entry in apps:
+        app_id = entry.get("id")
+        if not app_id or entry.get("path") or not entry.get("repository"):
+            continue
+        if entry.get("status") == "archived":
+            continue
+        if app_id in stored or app_id in pending_ids:
+            continue
+        errors.append(
+            f"{app_id}: loose external repo ({entry['repository']}) has no "
+            f"keeping record and is not listed in stores/pending.json"
         )
 
     return errors, warnings
