@@ -14,11 +14,11 @@
 //     Listener is probed but never driven.
 //   * Anything about a closed tab. Reminder delivery after the page is gone
 //     is not implemented and not tested; see the durability probe.
-//   * Any call to a real willow-mcp server. Discovery, dynamic client
-//     registration, the OAuth popup round trip, and token refresh are
-//     exercised only by hand against a running instance. What runs here is
-//     the pure PKCE/URL/framing logic and the tool-runner's mapping of a
-//     willow-mcp result onto {data, text, isError}, against a fake session.
+//   * Any call to a real willow-mcp server. The popup OAuth round trip and
+//     token refresh are exercised only by hand against a running instance.
+//     What runs here: the pure PKCE/URL/framing logic, discoverMetadata and
+//     registerClient against a mocked fetch, and the tool-runner's mapping of
+//     a willow-mcp result onto {data, text, isError} against a fake session.
 
 import { Memory, weakestProvenance, normalizeSubject, deleteDatabase } from '../src/memory.js';
 import { tokenize, stem, tokensFor } from '../src/text.js';
@@ -27,7 +27,7 @@ import { buildMemoryContext } from '../src/claude.js';
 import { sentences } from '../src/voice.js';
 import { probeReminderDurability, probeSpeechInput } from '../src/capability.js';
 import { isNative, platformName, hasPlugin, Reminders, KeyStore } from '../src/platform.js';
-import { generatePkce, buildAuthorizeUrl, parseSseJsonRpc } from '../src/willow.js';
+import { generatePkce, buildAuthorizeUrl, parseSseJsonRpc, discoverMetadata, registerClient } from '../src/willow.js';
 
 class Assert extends Error {}
 
@@ -809,6 +809,85 @@ test('WILLOW parseSseJsonRpc refuses a stream with no JSON-RPC message rather th
     threw = true;
   }
   ok(threw, 'a stream with no data: JSON must be an error, not a silent null result the caller mistakes for an empty answer');
+});
+
+// --- willow: discovery + registration against a mocked fetch ---------------
+//
+// These stub globalThis.fetch for the duration of one test, the same pattern
+// the BRIDGE tests use for globalThis.Capacitor: save the original, install a
+// stand-in, restore it in `finally` so one test's stub can never leak into
+// the next.
+
+test('WILLOW discoverMetadata falls back to conventional endpoint names when there is no well-known document', async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    eq(String(url), 'http://127.0.0.1:8765/.well-known/oauth-authorization-server', 'must probe RFC 8414 discovery first');
+    return { ok: false, status: 404 };
+  };
+  try {
+    const meta = await discoverMetadata('http://127.0.0.1:8765');
+    eq(meta.authorization_endpoint, 'http://127.0.0.1:8765/authorize');
+    eq(meta.token_endpoint, 'http://127.0.0.1:8765/token');
+    eq(meta.registration_endpoint, 'http://127.0.0.1:8765/register');
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("WILLOW discoverMetadata trusts the server's own metadata document when it publishes one", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => ({
+      authorization_endpoint: 'https://example.com/custom/authorize',
+      token_endpoint: 'https://example.com/custom/token',
+      registration_endpoint: 'https://example.com/custom/register',
+    }),
+  });
+  try {
+    const meta = await discoverMetadata('https://example.com');
+    eq(meta.authorization_endpoint, 'https://example.com/custom/authorize', "a published document must win over the conventional guess");
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test('WILLOW registerClient registers as a public client bound to the given redirect URI', async () => {
+  const original = globalThis.fetch;
+  let sentBody = null;
+  globalThis.fetch = async (url, init) => {
+    eq(url, 'http://127.0.0.1:8765/register', 'must POST to the discovered registration endpoint');
+    sentBody = JSON.parse(init.body);
+    return { ok: true, json: async () => ({ client_id: 'issued-client-id' }) };
+  };
+  try {
+    const registration = await registerClient(
+      { registration_endpoint: 'http://127.0.0.1:8765/register' },
+      'http://localhost:8080/index.html',
+    );
+    eq(registration.client_id, 'issued-client-id');
+    eq(sentBody.token_endpoint_auth_method, 'none', 'a static page with no build step cannot keep a client_secret — this must register as public');
+    eq(sentBody.redirect_uris, ['http://localhost:8080/index.html'], 'the redirect URI given must be the one registered');
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("WILLOW registerClient surfaces the server's own error body on a failed registration", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: false, status: 400, text: async () => 'redirect_uri not allowed' });
+  try {
+    let thrown = null;
+    try {
+      await registerClient({ registration_endpoint: 'http://127.0.0.1:8765/register' }, 'http://localhost:8080/index.html');
+    } catch (err) {
+      thrown = err;
+    }
+    ok(thrown, 'a failed registration must throw, not return something the caller mistakes for a client_id');
+    ok(thrown.message.includes('redirect_uri not allowed'), "the server's own reason must reach the caller, not a generic failure");
+  } finally {
+    globalThis.fetch = original;
+  }
 });
 
 // --- willow: the tool-runner mapping onto a fake session --------------------
