@@ -26,11 +26,47 @@ See [`.willow/store/catalog.json`](.willow/store/catalog.json) for the full
 catalog — the root [`catalog.json`](catalog.json) is a pointer to it, not a
 copy (`docs/store_refit_plan.md` P3).
 
+## How the store works
+
+Two tiers, and the difference isn't "tested" vs. "untested" — it's who's
+answerable for the code:
+
+- **Playground** — where every app above actually lives right now:
+  `apps/<app>/`. Contested by default (`CLAUDE.md` §5), not yet a standing
+  app. The house's only record of it is a **keeping record** at
+  `stores/<major>/stored/<app_id>.json` — `majors`, `relation` (if it spans
+  more than one craft), `location`, `maker`, `lane`, and `state` (the same
+  five-word enum as the `Status` column above). The record is not a second
+  copy of the code: **the code is not duplicated, the record is what
+  `stores/` stores.**
+- **Promoted** — a full SAFE app, in its own repo, held to the bar in
+  `stores/promote_check.py`: every gate passing *and* verified by a hand
+  other than the author's (proposing and ratifying never rest in the same
+  hand). A promotion writes a record at
+  `stores/<major>/promoted/<app_id>.json` — the verdict, every individual
+  gate result, who verified it, and when. Nothing in `apps/` has cleared this
+  bar yet.
+
+`stores/` is organized **per major** — one home per craft: `python`, `node`,
+`rust`, `go`, `cpp`, `obsidian`, `browser`. See
+[`stores/README.md`](stores/README.md) for what each covers. A build that
+spans more than one craft names all of them plus the `relation` holding them
+together, so two implementations of one thing are never mistaken for an
+unrelated pair (or the reverse).
+
+Full reasoning, the migration history, and every open question:
+[`docs/store_refit_plan.md`](docs/store_refit_plan.md).
+
 ## Run any app
 
 ```bash
 make run app=story-timeline
 ```
+
+`make run` does `cd apps/<app> && python app.py` — it works for any app whose
+entry point is a top-level `app.py` (most of them). A few declare a different
+`entry_point` in their manifest (e.g. `utety-chat`, `private-ledger`); check
+`safe-app-manifest.json` for those and run them accordingly.
 
 For local development with the existing dev environment:
 
