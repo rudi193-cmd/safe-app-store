@@ -16,10 +16,17 @@ it stays yours until it's promoted.
 
 ## The two tiers
 
-Every store holds work at one of two stages:
+Every store holds work at one of two stages, and both tiers share one
+vocabulary with [`CLAUDE.md`](../CLAUDE.md) §5/§8 — the law and the map name
+these the same way on purpose, after the two used to disagree.
 
-- **Stored** — provisional, incubating. A held piece: local, or a loose repo.
-  Low bar. Not yet established.
+- **Playground** — provisional, incubating, contested. The code itself lives
+  in `apps/` (or a local/loose repo, per [`CLAUDE.md`](../CLAUDE.md) §7);
+  `stores/{major}/stored/` holds only the **keeping record** of it — an entry
+  describing the build, not a copy of it. A storehouse keeps a ledger of its
+  stock; it does not keep two copies of the stock. **The code is not
+  duplicated. The record is what `stores/` stores.** Low bar. Not yet
+  established.
 - **Promoted** — a full SAFE app: **its own repo · injected seams (host imports
   it, never the reverse) · its own tests green · a manifest · a
   dependency-light / import-pure core · MCP-shaped or library-clean · a
@@ -48,7 +55,7 @@ guidance for the terminal ones (Go/Rust/Python/TS).
 ## The Almanac — a branch, not a store
 
 One node here is a different kind: [`almanac/`](almanac/) is **not** a code
-store and holds no `stored/`/`promoted/` tiers. It is the fleet's public record —
+store and holds neither the playground nor the promoted tier. It is the fleet's public record —
 an **auto-updated list** — and the whole point is that *the store does not store
 it.* A self-renewing list needs no keeping; a frozen copy only goes stale. So the
 Almanac is a **pointer to a live feed**, injected the same way a corpus is. It is

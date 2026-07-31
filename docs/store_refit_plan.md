@@ -70,7 +70,7 @@ builds.
 Sequenced by dependency. Each phase ships the gate that makes its promise
 checkable — **a phase without a gate is not done.**
 
-### P0 — Settle the tier vocabulary · unblocked
+### P0 — Settle the tier vocabulary · done
 
 One name per tier, in both documents, with the collision above resolved
 explicitly rather than quietly. `stores/README.md` adopts *playground* for the
@@ -84,6 +84,12 @@ it is deliberately separate so the vocabulary change is reviewable on its own.
 **Gate.** A doc test asserting the two files use one vocabulary: no occurrence
 of `stored/` as a *code location* in either, and the tier names match a single
 canonical list. Cheap, and it stops the collision reopening.
+
+**Done 2026-07-31:** `stores/README.md`'s "Stored" tier renamed to
+"Playground"; both files now state, verbatim, "The code is not duplicated. The
+record is what `stores/` stores." — `tests/test_tier_vocabulary.py`, wired into
+`store-ci.yml`'s `gates` job, is the gate. Verified it can fail: reverting
+`stores/README.md` to its pre-P0 wording reddens all four assertions.
 
 ### P1 — The keeping record · needs P0
 
