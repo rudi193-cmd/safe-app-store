@@ -410,6 +410,18 @@ sensitive data. It is research input, and it belongs in `docs/`.
 **Gate.** The catalog schema rejects unknown top-level keys, so the shelf cannot
 grow a new organ without someone deciding to add one.
 
+**Done 2026-07-31:** both `discovery_sources` entries (`public.tools`,
+`public-apis-live`) moved verbatim — every field, including `highlighted_tools`,
+`consumers`, `local_mirror`, and `willow_refs` — to
+[`docs/discovery_sources.md`](discovery_sources.md); nothing dropped, only
+reformatted from JSON to prose. `catalog.json` (`.willow/store/`) no longer has
+the key. `tools/catalog_lint.py` gained `VALID_TOP_LEVEL_KEYS = {"version",
+"store", "description", "apps"}` and a check that rejects anything else —
+`tests/test_catalog_top_level_keys.py` proves both a `discovery_sources` regrowth
+and an arbitrary new key are actually caught, not just the currently-clean state.
+Nothing else in the repo read `discovery_sources` (checked before moving it), so
+this was a pure extraction: no consumer to update.
+
 ---
 
 ## Not doing — and why that is the point
