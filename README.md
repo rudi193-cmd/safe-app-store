@@ -63,6 +63,11 @@ Full reasoning, the migration history, and every open question:
 make run app=story-timeline
 ```
 
+`make run` does `cd apps/<app> && python app.py` — it works for any app whose
+entry point is a top-level `app.py` (most of them). A few declare a different
+`entry_point` in their manifest (e.g. `utety-chat`, `private-ledger`); check
+`safe-app-manifest.json` for those and run them accordingly.
+
 For local development with the existing dev environment:
 
 ```bash

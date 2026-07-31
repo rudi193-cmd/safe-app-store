@@ -72,12 +72,19 @@ nest.py (consent layer + orchestrator)
 
 ## catalog.json Entry (safe-app-store)
 
+The real catalog now lives at `.willow/store/catalog.json`, not repo-root
+`catalog.json` (a pointer stub since `docs/store_refit_plan.md` P3), and
+`status` is the closed `seeded`/`building`/`gated`/`stalled`/`archived` enum,
+not the old `stable`/`beta`/`coming_soon` vocabulary (status-vocabulary
+migration) — a new entry needs `tier`/`majors` too, generated from a keeping
+record at `stores/<major>/stored/willow-nest.json` (P1), not hand-typed.
+
 ```json
 {
   "id": "willow-nest",
   "name": "Willow Nest",
   "description": "File intake pipeline. Classifies, routes, and processes documents from drop zones into canonical storage. Compost, scrub, promote, archive.",
-  "status": "beta",
+  "status": "seeded",
   "path": "../willow-nest",
   "tags": ["pipeline", "files", "intake", "local"]
 }
@@ -115,7 +122,7 @@ One test file exists: `tests/test_classify.py` (covers the pure classifier).
 
 ## Open Items
 
-- [ ] Add willow-nest catalog entry to `safe-app-store/catalog.json`
+- [ ] Add willow-nest catalog entry to `safe-app-store/.willow/store/catalog.json`, plus a keeping record at `safe-app-store/stores/<major>/stored/willow-nest.json`
 - [ ] Verify `router.py` destination paths are correct for Linux layout
 - [ ] Confirm compost LLM fleet config: `~/github/willow-1.9/credentials.json` — must have Groq, Cerebras, or Anthropic keys present
 - [ ] Write tests for router.py, store_bridge.py, and pipeline stages before running on real files

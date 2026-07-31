@@ -3,7 +3,7 @@ b17: STOR1
 title: Security Audit — safe-app-store (Multi-App Repository)
 date: 2026-05-06
 auditor: Heimdallr (Claude Code, Haiku 4.5)
-status: open (tracking doc)
+status: mostly remediated (tracking doc) — see Remediation Log; only ST-RACE-01/ST-DEP-01 remain open
 ---
 
 # Security Audit — safe-app-store
@@ -35,6 +35,12 @@ This PR is the tracking doc. No patches here — patches go in separate PRs.
 | public-ledger | 6 | ✅ Scanned |
 | other (bt-controller, etc.) | ~36 | ✅ Scanned |
 | **Total** | 167 | 100% |
+
+*This table is a snapshot of the repo at scan time (2026-05-06). `apps/genealogy`
+no longer exists — it was merged into `apps/the-squirrel` and now lives only as
+an archived catalog entry (`.willow/store/catalog.json`). Left as-is rather
+than edited out: it is an accurate record of what was scanned, not a claim
+about the current tree.*
 
 ---
 
@@ -271,13 +277,21 @@ requests==2.31.0
 
 ## Summary
 
-| Priority | Count | Items |
-|---|---|---|
-| P0 | 1 | ST-PATH-01 (hardcoded paths — blocks execution) |
-| P1 | 2 | ST-INT-01 (safe_integration import failures), ST-SQL-01 (schema injection risk) |
-| P2 | 4 | ST-EXC-01, ST-HTTP-01, ST-RACE-01, ST-DEP-01 |
+**This table is a snapshot of the initial 2026-05-06 scan.** Every P0 and P1
+item, and 2 of 4 P2 items, were closed in the 2026-07-17 remediation passes
+below — see each finding's own `**Status:**` line for the fix and evidence.
+Only ST-RACE-01 and ST-DEP-01 (both P2) are still open, as of this doc's
+current state.
 
-**CRITICAL BLOCKER:** ST-PATH-01 (hardcoded paths) must be fixed before any safe-app-store app can run on a non-USER system. This affects 12+ apps.
+| Priority | Count at initial scan | Items | Still open today |
+|---|---|---|---|
+| P0 | 1 | ST-PATH-01 (hardcoded paths — blocks execution) | **0** — remediated |
+| P1 | 2 | ST-INT-01 (safe_integration import failures), ST-SQL-01 (schema injection risk) | **0** — remediated |
+| P2 | 4 | ST-EXC-01, ST-HTTP-01, ST-RACE-01, ST-DEP-01 | **2** — ST-RACE-01, ST-DEP-01 |
+
+ST-PATH-01 (hardcoded paths), the only P0, was fixed fleet-wide in the
+2026-07-17 sweep (validated env-override discovery replacing blind
+`sys.path` inserts everywhere) — it is **not** a current blocker.
 
 ---
 
@@ -316,7 +330,7 @@ XSS review for story-timeline: `web.py` frontend uses `textContent` for all node
 | the-binder (0.1.1) | Removed the unused willow-1.9 `sys.path` insert entirely (only `psycopg2` was imported after it) |
 | source-trail (1.0.1) | Fixed check/insert mismatch in `_get_source_trail` (checked `core_path`, inserted root); validates `core/source_trail.py` exists with a clear error. SCHEMA guard in `sources_db.py`. |
 | ratatosk (1.0.1) | `start()` validates `sap_mcp.py` exists with a clear `RATATOSK_MCP_PATH` error instead of a 30s timeout |
-| the-squirrel (2.1.1) | GEDCOM export honors `SQUIRREL_EXPORT_DIR` (was hardcoded `~/Desktop`); SCHEMA guard in `db/__init__.py`. The audit's `person.py` field interpolation was already allowlist-guarded (`EDITABLE_FIELDS`) — stale finding. |
+| the-squirrel (2.1.0 — corrected here from a stated 2.1.1, which was never a real released version; `pyproject.toml`'s version history goes 1.0.0 → 2.1.0-dev → 2.1.0) | GEDCOM export honors `SQUIRREL_EXPORT_DIR` (was hardcoded `~/Desktop`); SCHEMA guard in `db/__init__.py`. The audit's `person.py` field interpolation was already allowlist-guarded (`EDITABLE_FIELDS`) — stale finding. |
 | law-gazelle (1.0.2) | `get_connection(schema=...)` validates the schema identifier before `CREATE SCHEMA` / `SET search_path` interpolation. ST-EXC-01's bare excepts all live in `_archived/gazelle_engine.py` — dead code, resolved by archival; live code has zero bare excepts. |
 
 Not changed, reviewed as acceptable: ask-jeles / semantic-translator `mcp_client.py` discovery (already validates `unified_mcp.sh` before use); the-squirrel `vault.py` (`SQUIRREL_HOME` override already present); `~/.willow` / `~/.mcp.json` style fixed home paths (legitimate config locations, "fragility, not data" per vault lint). utety-chat `chat_db.py` already used `psycopg2.sql.Identifier` — the reference pattern. ST-RACE-01 stays open (accepted for single-user deployment); ST-DEP-01 mitigated by dependabot floors fleet-wide, exact pins only where CVE floors matter (nasa-archive).

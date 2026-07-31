@@ -16,7 +16,7 @@ about repo integrity, not portability.
 | catalog | `tools/catalog_lint.py --strict` | `catalog.json` and `apps/` agree: valid statuses (the state enum — seeded/building/gated/stalled/archived, per `docs/store_refit_plan.md`'s status-vocabulary migration), `app_id` = directory name (rule 8), no unregistered app dirs, no dangling paths (archived and external-repo entries exempt, rule 4), building/gated/stalled apps carry a matching `safe-app-manifest.json` (seeded only warns) — plus P1/P3's keeping-record and generated-field checks (`tier`/`majors`/`status` must agree with `stores/`) |
 | vault-clean | `tools/vault_leak_lint.py --strict` | No app persists user *data* to a fixed home path (D8); config/cache in home is classified, not flagged (D8.1). An app with no Python reports `UNKNOWN`, not `PASS` — the checker reads `*.py` and a vacuous scan is not a clean one |
 | compile | `python -m compileall` | Every `.py` in `apps/`, `tools/`, `scripts/`, and the repo root byte-compiles |
-| app-tests | `pytest`, one matrix leg per app | Suites that have no dedicated workflow: civics-check, law-gazelle, the-squirrel, utety-chat |
+| app-tests | `pytest`, one matrix leg per app | Suites that have no dedicated workflow: civics-check, field-acoustics, law-gazelle, marching-arts, the-squirrel, utety-chat |
 
 ## Tier 2 — per-app workflows
 
@@ -59,5 +59,9 @@ share nothing at runtime.
 - `tools/receipt_gate.py` — its `install_verified`/`launch_verified` gates are
   PENDING (unimplemented), so in strict mode it can only report, not gate.
   Wire it in when the seam installer proofs land.
-- `.willow/store/` sync (rule 5) — that directory is not in the repo yet;
-  there is nothing in-tree to compare against `catalog.json`.
+
+**No longer a non-gate:** `.willow/store/` sync (rule 5) used to be listed
+here because the directory didn't exist in-tree yet. It does now — the real
+catalog lives at `.willow/store/catalog.json` (`docs/store_refit_plan.md` P3)
+— and the "catalog" row above is exactly this gate: P1/P3's keeping-record and
+generated-field checks compare `catalog.json` against `stores/` on every run.
