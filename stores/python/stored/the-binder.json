@@ -1,0 +1,14 @@
+{
+  "app_id": "the-binder",
+  "majors": [
+    "python",
+    "browser"
+  ],
+  "relation": "unrelated-bundled",
+  "anchor": null,
+  "location": "apps/the-binder",
+  "maker": "USER",
+  "lane": null,
+  "state": "stalled",
+  "notes": "Filed under python (5 py files vs. 2 in web/+functions/). Caveat: 'unrelated-bundled' is the closest closed-vocabulary term, not an accurate one — web/ is not a second unrelated product, it's the live Cloudflare Pages deploy surface (calling Gemini/Groq directly, storage in browser IndexedDB), while the python side's entry_point (willow.server:app) resolves nowhere in this repo and its README puts the real backend on an external machine (docs/store_refit_survey.md, confirmed by issue #79). No term in VALID_RELATIONS names 'alternate deploy surface, not a competing implementation, no anchor' — recorded here per the operator's explicit choice to accept this mischaracterization rather than grow the vocabulary or add a special-case rule for two builds. See docs/store_refit_survey.md's 'Open gates' section and the now-resolved entry this replaces in stores/pending.json."
+}
