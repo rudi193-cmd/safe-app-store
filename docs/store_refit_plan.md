@@ -194,7 +194,7 @@ existing `gates` job:
   or non-functional finding from one of the two survey docs; everything else
   defaults to `building`. Each record's `notes` cites its evidence.
 
-### P2 — Promotion leaves a record · needs P1
+### P2 — Promotion leaves a record · done, with the first real records deferred
 
 `promote_check.py` gains `--record`, and on a PASS writes
 `stores/{major}/promoted/<app_id>.json`: the verdict, the eight gate results
@@ -211,6 +211,58 @@ mark* instead of scrolling past in a terminal.
 **Gate.** A test that a PASS with `verified_by == author` writes nothing and
 exits non-zero, and that a `--record` run on a candidate that fails any gate
 leaves the directory untouched. Fail-closed on both edges.
+
+**Done 2026-07-31, and the two real records are deferred, not minted:**
+
+- `stores/promote_check.py` gains `--record`. On a candidate that clears every
+  gate it writes `stores/{major}/promoted/<app_id>.json` carrying the verdict,
+  the promoted `repo_url`, `author` and `verified_by`, the major with the
+  reason it was chosen, and **every gate result individually**.
+- **The gate emits nine results, not eight.** The paragraph above says "the
+  eight gate results" and was written against #88; `vault_leak [M]` was added
+  afterwards by box audit B13. The record serialises whatever `check()`
+  returned rather than a fixed eight, so it cannot carry a stale invariant
+  count — the same failure mode as quoting a test count from a README.
+- **§0.2 is now a mechanism.** `record_promotion()` re-checks
+  `verified_by ≠ author` itself instead of trusting the `witnessed [M]` gate it
+  was handed. Deliberate duplication: if that gate is ever reordered, renamed
+  or made skippable, the *record* still cannot be minted by one hand. Every
+  refusal returns before the first filesystem call, so a denied run leaves
+  `stores/` byte-identical — no partial file, no directory created and
+  abandoned.
+- **Which store it files under** is the attestation's `major` when declared,
+  checked against the stores actually on disk (discovered, not hardcoded — the
+  P0 review fix), and otherwise `python`. The default is mechanical rather than
+  a preference: every gate a candidate can *pass* is Python-shaped (`ast.parse`
+  over `*.py`, Python top-level imports, a `module:symbol` seam resolved to a
+  `.py`, pytest), so on this gate PASS implies python. Reasoning is in
+  `resolve_major()`'s docstring, where it stops being true the day
+  promote_check grows a non-Python path.
+- **An existing record is not overwritten.** A promoted record is a witnessed
+  decision; silently replacing one destroys the evidence that it was ever made
+  differently. Re-minting means removing the old record deliberately.
+- `tests/test_promote_check_record.py` (16 tests) is the gate, wired into
+  `store-ci.yml`'s Drift-guards step. **Verified it can fail:** five mutations
+  of `promote_check.py`, each reverted after —
+  dropping the `verified_by == author` refusal reddens 2 tests; dropping the
+  all-gates-pass refusal reddens 4; creating the target directory *before* the
+  checks (a partial write) reddens 7, every "untouched" assertion at once;
+  overwriting an existing record reddens 1; accepting any declared major
+  reddens 1.
+- **Nestor and Jeles were not re-run, and no record was minted for either.**
+  Neither extracted candidate directory exists in this repository, and neither
+  is reachable from this environment — they are external, already-promoted
+  repos (`grep -rl promotion.json` finds only `promote_check.py` itself and a
+  `BUILD_PLAN.md` reference; there is no `promotion.json` anywhere on disk).
+  Writing their records would have meant inventing the attestations they are
+  supposed to be recording, which is precisely the falsehood the gate exists to
+  refuse. **Absence is a value, not a gap** — same treatment `llmphysics`'s
+  missing manifest got in P1. `stores/*/promoted/` therefore still holds only
+  `.gitkeep`, and the first real minting is an operator's run against the real
+  extractions: `python stores/promote_check.py <nestor-checkout> --record`.
+  The mechanism is proven on synthetic candidates that clear all nine gates for
+  real — real pytest subprocess, real vault-leak lint, real AST scans — not on
+  stubs.
 
 ### P3 — The catalog becomes an index · needs P1, P2
 
