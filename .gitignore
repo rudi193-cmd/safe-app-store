@@ -39,3 +39,11 @@ stores/.principals/
 # expiry/revocation state. Same reason: dev-only stand-in for a real backing
 # store, and session rows are not repo content.
 stores/.sessions/
+
+# checkpoint_memory.py's dev-only Nestor checkpoint stores (D9/D12) — one
+# SqliteStore file per builder_id, plus the shared pedagogy ledger. Same
+# reason as .principals/.sessions above: dev-only stand-in, and a builder's
+# checkpoint-memory rows are not repo content. (*.db and /data/ above already
+# cover pieces of this; listed explicitly for the same reason .principals/
+# and .sessions/ are, rather than relying on the broader globs.)
+stores/.checkpoints/

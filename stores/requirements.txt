@@ -3,3 +3,25 @@
 # this is the first exception, and it's a deliberate one — not something
 # to work around with a hand-rolled scheme in a trust-boundary module.
 cryptography>=41.0
+
+# stores/checkpoint_memory.py (D9/D12, docs/design/the-forge.md) needs
+# Nestor. Nestor is NOT on PyPI — `pip index versions nestor` returns "No
+# matching distribution found" — so this is a git dependency, the same
+# pattern apps/semantic-translator/pyproject.toml already uses for the same
+# package in this repo. Left commented out on purpose: the SHA is not
+# pinned yet (this is playground-tier code — stores/checkpoint_memory.py
+# has not gone through stores/promote_check.py — and the design doc's own
+# "Pin Nestor at promotion time the way terpsi's FLEET-READS.md pins Nestor
+# SHA" line says the real pin happens at D13 promotion, not before), and an
+# uncommented line with a literal `<PIN-THIS-AT-PROMOTION>` placeholder
+# instead of a real ref would break `pip install -r` for everyone who runs
+# it today — exactly the class of bug this comment exists to avoid, not
+# reproduce. Whoever promotes this: uncomment the line below with a real
+# commit SHA in place of the placeholder.
+#   nestor @ git+https://github.com/rudi193-cmd/Nestor@<PIN-THIS-AT-PROMOTION> ; python_version >= "3.10"
+#
+# For local dev/testing against stores/checkpoint_memory.py right now,
+# install Nestor editable from the sibling checkout instead:
+#   pip install -e /workspace/nestor
+# (verify that path in your own environment first — `ls /workspace/nestor`
+# — it is not guaranteed to be there or at that path).

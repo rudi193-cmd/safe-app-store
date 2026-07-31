@@ -612,12 +612,24 @@ moving.
 ### D12 — D9's storage/ledger half: adopt Nestor as a real dependency
 
 Unlike D4 (which borrowed Sigstore instead of Nestor's HMAC pattern), this one
-adopts Nestor itself — `pip install nestor`, not a pattern reference. This is
-Nestor's actual domain (matching a query against a memory of confirmed
-answers), the core package has zero runtime dependencies, and — unlike the
-arm's-length OSS elsewhere in this stack — it's a sibling repo CLAUDE.md
-already treats as the worked standard for exactly this kind of promoted
-dependency.
+adopts Nestor itself — not a pattern reference. This is Nestor's actual domain
+(matching a query against a memory of confirmed answers), the core package
+has zero runtime dependencies, and — unlike the arm's-length OSS elsewhere in
+this stack — it's a sibling repo CLAUDE.md already treats as the worked
+standard for exactly this kind of promoted dependency.
+
+**"`pip install nestor`," corrected 2026-08-02 (`stores/checkpoint_memory.py`
+build):** that phrasing does not hold up — `pip index versions nestor`
+returns "No matching distribution found for nestor," because Nestor is not
+published to PyPI at all. It is consumed as a git dependency, the same
+convention `apps/semantic-translator/pyproject.toml` already uses in this
+repo (`nestor @ git+https://github.com/rudi193-cmd/Nestor@master`) and the
+one this section's own later line already names for the general case ("Pin
+Nestor at promotion time the way terpsi's `FLEET-READS.md` pins Nestor SHA")
+— that line was already right; only the "`pip install nestor`" phrasing
+above it overclaimed a PyPI listing that doesn't exist. The underlying
+architecture decision — adopt Nestor itself, not a pattern reference — is
+unaffected; only the installation mechanism was mis-stated.
 
 Concrete recipe: `EntityResolver(store, domain=f"builder:{builder_id}")`.
 A decision description resolves against canonical decision-types this
