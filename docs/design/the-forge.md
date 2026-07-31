@@ -1,18 +1,22 @@
-# App Forge — Design Decision Log
+# The Forge — Design Decision Log
 
 > Status: **design / talk-through** (no implementation yet).
 > A living record of decisions for a SAFE-native, multi-tenant app-building
 > playground — the "10,000 other app-building sites" pitch, wearing the store's
-> consent/gate/promotion mentality instead of instant deploy. Append as
-> decisions land.
+> consent/gate/promotion mentality instead of instant deploy. Named **The
+> Forge**: built inside `safe-app-store` first, designed from day one to clear
+> the same promotion bar Nestor and Jeles already did (D13) and leave as its
+> own repo under that name. Append as decisions land.
 
 ## Purpose
 
 Let anyone describe an app and have it scaffolded, built, and iterated on
 inside `apps/<tenant>/<name>/` — model-driven (local default, cloud fallback),
 sandboxed per build, gated by a trust boundary the store owns outright. Not a
-new product bolted alongside the store: a new flagship-shaped app *inside* it,
-using the playground → promotion pipeline that already exists.
+new product bolted alongside the store: a new flagship-shaped app *inside* it
+at first, using the playground → promotion pipeline that already exists — and,
+per D13, built to actually leave through that pipeline as its own repo,
+**The Forge**, rather than staying embedded indefinitely.
 
 Multi-tenant from day one — real, unknown users building real apps on shared
 infrastructure. That premise is what makes every decision below load-bearing
@@ -38,7 +42,7 @@ An earlier audit (2026-07-31) of `safe-app-store`, `willow-mcp`, and
 - **The installer design already solved the shape of this problem once**
   (`docs/design/safe-app-installer.md`, D3–D5): dangerous work happens inside
   Kart's sandbox; only a verified, declarative plan crosses a **seam** to a
-  more-privileged host-side process, gated by consent + ledger. App Forge
+  more-privileged host-side process, gated by consent + ledger. The Forge
   reuses that seam, applied to build-time and MCP-call-time instead of
   install-time.
 - **Nestor** (`rudi193-cmd/Nestor`) is the closest existing prior art for the
@@ -118,7 +122,7 @@ of this repo, rather than asserted by it.
 
 ### D5 — One capability contract, for every MCP server registered
 
-A thin connector (`app_forge/mcp_connector.py`, name tbd) generalizes
+A thin connector (`the_forge/mcp_connector.py`, name tbd) generalizes
 `store_mcp.py`'s existing stdio-launch pattern beyond "willow" specifically:
 
 - Register any MCP server by name + launch command.
@@ -183,12 +187,12 @@ explained after.
 
 `VISION.md`'s Pattern 2 already runs through six apps: every human verification
 event (approve a translation, confirm a citation, rate a flashcard) both
-improves the corpus and fires an SRS review for the verifier. App Forge adds a
+improves the corpus and fires an SRS review for the verifier. The Forge adds a
 seventh row rather than inventing a parallel mechanism:
 
 | App | Verification event | What gets learned |
 |-----|--------------------|--------------------|
-| App Forge | Confirm a design/implementation decision (D8) | This builder's grasp of the pattern; a personal decision ledger; calibration weight for future checkpoints |
+| The Forge | Confirm a design/implementation decision (D8) | This builder's grasp of the pattern; a personal decision ledger; calibration weight for future checkpoints |
 
 Concretely, this is Nestor's mechanic (not just its signing/keyring modules —
 its actual cascade), applied to a new recipe:
@@ -360,7 +364,7 @@ dependency.
 - **D2 → Kart + nsjail, nothing further for now.** nsjail (Apache-2.0)
   closes Kart's acknowledged seccomp gap directly. gVisor / Kata Containers /
   Firecracker / E2B stay noted as a future higher-trust tier (D6) —
-  deliberately not adopted yet, since App Forge has no real multi-tenant
+  deliberately not adopted yet, since The Forge has no real multi-tenant
   traffic yet to justify the added infrastructure (E2B's self-hosted floor
   alone is real money: ~$1,250/mo).
 - **D4 → Sigstore, static-keypair mode.** Real audited signing
@@ -444,8 +448,42 @@ needing to work out that distinction itself.
 (memory). py-fsrs (D9's earlier adoption) answers "is it due for review"
 (schedule). No overlap between the two dependencies.
 
+### D13 — Build for promotion from day one; the promoted repo is named **The Forge**
+
+This won't stay embedded in `apps/`. It's designed to eventually clear the
+same bar Nestor and Jeles already did (`CLAUDE.md` §8, the worked standard):
+injected storage, a dependency-light/import-pure core, its own tests,
+`stores/promote_check.py`'s gates passing, the host (`safe-app-store`)
+repointed as a consumer rather than an owner. The promoted repo's name is
+**The Forge** — Vishwakarma forges; this is where things get forged.
+
+Practically, this is a day-one constraint, not a later refactor:
+- The core never imports `safe-app-store` internals directly — everything it
+  needs (the gate, the seam, the catalog, tenant/session state) comes in
+  through an injected interface, the same shape as `nestor.storage.Storage`.
+- `stores/promote_check.py`'s inversion check ("core doesn't import its
+  host") has to pass from the first commit, not get retrofitted right before
+  promotion.
+- This is also a partial answer to the open scope concern raised in review: a
+  core that has to stand alone, with its own tests, resists dependency creep
+  more than code written to live permanently inside the monorepo. Each of
+  D2/D4/D5/D7/D9/D12's adopted dependencies has to earn a place in something
+  that will ship standalone, not just something convenient to reach for
+  inside a shared repo.
+
 ## Open / next
 
+- **The four critical gaps from the 2026-07-31 review are still open** and
+  take priority over anything below: D11 currently makes GitHub the root of
+  the identity namespace, which D1 rules out (fix: mint a store-local
+  principal at first login, bind GitHub to it as one authenticator, not the
+  identity itself); D4's static-keypair Sigstore mode doesn't deliver the
+  rotate-vs-compromise duality it was adopted for, and key custody is
+  undesigned; D5's read/propose-vs-write/grant classification is fail-open
+  since it classifies by the server's own claimed tool shape (needs
+  default-deny with an explicit per-server allowlist instead); D3's seam
+  validates *where* a build may write, not *what* — generated source code
+  that will later execute still crosses it unvalidated.
 - **Where exactly "a decision" starts** (D8) — the line between "ask first"
   and "just write it" is asserted, not drawn. Needs a working pass over real
   build sessions to find where it actually falls before this is more than a
@@ -478,6 +516,26 @@ needing to work out that distinction itself.
   MCP tool call or a file write actually serializes as. `seam_install.py`'s
   placement-plan shape (`safe-app-installer.md` D3) is the starting reference,
   not yet adapted.
+- **Scope cut proposed in review, not yet decided**: whether to build a
+  minimal single-tenant slice first — no auth (D11), no signing (D4), no
+  Casbin (D1/D5), just the seam with a real plan schema (D3) + Kart + LiteLLM
+  — and treat D9/D10/D12 (the learning layer) as a fully separable follow-on
+  with zero security weight, cut from v1 entirely.
+- **Spend/abuse metering is undesigned.** D7 gates *permission* to use cloud
+  fallback, never *cost* — nothing here bounds what a tenant can actually
+  spend once cloud fallback is on.
+- **Prompt injection isn't in the threat model yet.** Third-party content
+  (KB documents, MCP tool results) reaches the model that authors the seam's
+  plan; D2/D3 treat that model as trusted-but-sandboxed, not as something an
+  attacker could steer.
+- **`apps/<tenant>/<name>/` vs. CLAUDE.md rule 10** — rule 10 hardcodes
+  `app_id = directory name` for playground apps; D6's nested tenant directory
+  breaks that assumption for every existing consumer (`promote_check.py`,
+  the catalog, `make run`). Unaddressed.
+- **`kartikeya` isn't actually wired into this repo yet** — it's a sibling
+  repo, not a declared dependency of `safe-app-store` today. `tools/seam_install.py`
+  currently shells to `bwrap` "when available" and proceeds silently without
+  it if not — the opposite of what D2/D3 assume holds.
 - **terpsi-music** was brought in as a worked example, not a dependency — its
   three-zone privacy design (`docs/ARCHITECTURE.md` §1: on-prem hub / untrusted
   relay / edge replicas) may be worth a closer read once D6's tenant-isolation
