@@ -248,6 +248,109 @@ when it exists.
 - **`store_mcp.py`'s stdio launch** — the base the generic connector (D5)
   generalizes from.
 
+## Candidate building blocks (open internet sweep, 2026-07-31)
+
+A broad sweep for real, currently-maintained, license-compatible prior art per
+decision — this repo is Apache-2.0, so results are filtered to
+Apache-2.0/MIT/BSD. Two real candidates were found and **excluded** on license
+grounds: Daytona (moved off Apache-2.0 to AGPL-3.0) and Firejail (GPL-2.0).
+Excluding them here rather than silently skipping them, since both are
+otherwise-reasonable fits for D2.
+
+**D2 — sandboxing, especially Kart's acknowledged seccomp gap**
+- **nsjail** (Apache-2.0, Google) — namespaces + cgroups + rlimits + real
+  seccomp-bpf filtering. The direct fix for the specific gap Kart names in its
+  own code: could sit alongside Kart's bwrap invocation rather than replacing
+  it.
+- **gVisor** (Apache-2.0, Google) and **Kata Containers** / **Firecracker**
+  (both Apache-2.0) — stronger isolation than namespaces (userspace kernel,
+  or microVM per build). Candidates for a higher-trust-boundary tier under
+  D6's tenancy model, not a wholesale Kart replacement.
+- **Wasmtime** (Apache-2.0 + LLVM exception) — a different axis: capability-
+  based sandboxing if generated code can run as Wasm, layerable on top of
+  Kart rather than instead of it.
+- **E2B** (Apache-2.0, self-hostable) — a complete open-source multi-tenant
+  AI-sandbox platform. Worth evaluating end-to-end as an alternative to
+  assembling primitives, with the caveat that self-hosting has real
+  infrastructure cost (Terraform/Nomad/Consul, reported ~$1,250/mo GCP floor).
+
+**D4 — the manifest-signing gate**
+- **Sigstore (cosign)** (Apache-2.0) — closest drop-in replacement for the
+  hand-rolled HMAC approach borrowed from Nestor. `sign-blob`/`verify-blob`
+  works directly on a small JSON manifest; keyless identity mode maps onto
+  per-maker identity; already distinguishes rotation from compromise, the
+  exact duality D4 wants. Static-keypair mode avoids the OIDC/Fulcio/Rekor
+  infrastructure dependency if that's unwanted.
+- **TUF** (MIT/Apache-2.0 dual) — the most rigorous existing model of
+  rotate-vs-compromise specifically (root-key-signed role rotation, threshold
+  signing), but shaped for a repository-of-updates, not one manifest. Worth
+  reading for the rotation model even if not adopted whole.
+- **in-toto** (Apache-2.0) and **Notary/notation** (Apache-2.0) — real, but
+  poorer fits: in-toto's multi-step chain verification is more machinery than
+  one manifest needs; Notary is OCI-registry-shaped specifically.
+
+**D1 / D5 — centralized policy decision, independent of the calling MCP server**
+- **Casbin / pycasbin** (Apache-2.0) — the only candidate with true in-process
+  Python embedding (`pip install casbin`, no sidecar). Least infra, less
+  expressive for complex context-dependent policy than the two below.
+- **OPA/Rego** (Apache-2.0) — closest conceptual match (arbitrary JSON input,
+  so a tool call maps in as `{server, tool, args, caller}`), but Python means
+  a sidecar/REST call to the `opa` binary or WASM bindings — no native
+  in-process embedding.
+- **Cedar** (Apache-2.0, AWS) — cleanest semantic fit
+  (`principal/action/resource/context` ≈ `caller/tool/target/args`), formally
+  verified core, but Python bindings (`cedarpy`) are community-maintained,
+  not AWS-official.
+- **OpenFGA** and **Topaz** (both Apache-2.0) — real, but lean toward
+  relationship-graph or full-PDP-service shapes further from D5's "one
+  lightweight in-repo gate" framing.
+
+**D5 — MCP gateway/connector prior art**
+No project already does D5's exact shape-based interception (classify by
+read/propose vs. write/grant, not by trusting what the server itself claims)
+— every real option leans on OAuth scopes or static allow/deny instead.
+Closest adoption candidates: **mcp-gateway-registry**
+(`agentic-community`, Apache-2.0) already has per-tool scoping and a
+fail-closed admission gate for newly registered servers — adaptable, not a
+rewrite. **mcp-filter** (MIT) has a usable tool-list-filtering technique as a
+building block, though its own author calls it "a schema reducer, not a
+security boundary." **Pomerium** and **IBM/mcp-context-forge** (both
+Apache-2.0) are real but general-purpose/federation-shaped, heavier than D5
+needs.
+
+**D7 — local-default, gated cloud-fallback model routing**
+- **Ollama** (MIT) or **vLLM** (Apache-2.0) as the local engine.
+- **LiteLLM** (MIT core — the `enterprise/` subdirectory carries a different
+  license, avoid pulling that path in) as the routing layer: its `fallbacks`
+  config is the closest real mechanism to "local first, cloud on signal," but
+  the trigger is error/failure-based, not an explicit declared permission.
+  The manifest-driven gating D7 actually wants still has to be this repo's
+  own code, wrapping LiteLLM's routing rather than inherited from it.
+- **RouteLLM** (Apache-2.0) auto-routes by predicted quality, not explicit
+  signal — weaker fit than LiteLLM for D7's "declared, not ambient"
+  requirement.
+
+**D9 — the checkpoint-ledger's calibration mechanic**
+- **py-fsrs** (MIT) — the actual algorithm Nestor's seal/serve mechanic was
+  only loosely imitating. A real `Scheduler`/`Card` pair keyed on
+  `(builder_id, decision_type)` gives a principled `difficulty`/`stability`
+  calibration signal in place of a hand-rolled weight — this is the strongest
+  single upgrade available to the current sketch.
+- **sm-2** (MIT, same maintainer org as py-fsrs) — a lighter classic-SM-2
+  fallback with the same `Scheduler`/`Card`/`ReviewLog` shape, if FSRS's
+  parameter count is more than D9 needs.
+- **py-irt** (MIT) — Bayesian Item Response Theory; would give a statistically
+  grounded per-builder ability estimate instead of an ad-hoc weight, at the
+  cost of a PyTorch dependency — weigh against D9's implicit
+  dependency-light preference.
+- **openskill.py** (MIT) — simplest option: one `(mu, sigma)` pair per
+  `(builder_id, decision_type)`, updated per checkpoint outcome, no batch fit
+  or memory model required.
+- No reusable **iNaturalist-style** calibration package exists — its
+  confidence mechanism is bespoke, unpublished as a library. Design
+  inspiration only, not a candidate dependency, as already noted in
+  `VISION.md`.
+
 ## Open / next
 
 - **Where exactly "a decision" starts** (D8) — the line between "ask first"
