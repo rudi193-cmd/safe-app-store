@@ -39,10 +39,20 @@ pre-crossing content scan (scan.py), D4's signing gate (stores/sap_gate.py,
 store-side per D1), D5's MCP allowlist (mcp_registry.py) — all four run as
 one real pipeline in `stores/seam.py cross`: verify the signed manifest,
 validate the plan's scope against that verified identity, scan its content,
-check every mcp_call against a supplied registry, then apply. Not yet done:
-real MCP client/stdio execution (an allowed call is still not executed, only
-permitted), tenancy/auth (D6/D11), model routing (D7), checkpoints (D8/D9),
-Nestor wiring (D12).
+check every mcp_call against a supplied registry, then apply.
+
+Also implemented: D2's sandbox invocation (sandbox_runner.py) — a build
+command runs inside kartikeya's bwrap sandbox and its stdout is parsed into
+a plan for that pipeline to consume. Kart is trusted for isolation, never
+for policy; the runner decides nothing and writes nothing. On a host with
+no bubblewrap it refuses by default, and an explicit dev opt-out is
+reported as unisolated rather than passed off as sandboxed.
+
+Not yet done: real MCP client/stdio execution (an allowed call is still not
+executed, only permitted), D6's per-build mount boundary (Kart's binds come
+from its own mount policy, not from a build's working directory), tenancy/
+auth (D6/D11), model routing and code generation (D7 — nothing yet produces
+a build command), checkpoints (D8/D9), Nestor wiring (D12).
 
 This CLI (`the-forge`) only ever runs the in-package subset — `plan-check`
 covers D3 alone. The gate and the allowlist are store-side authority by

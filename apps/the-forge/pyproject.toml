@@ -7,10 +7,16 @@ name = "safe-app-the-forge"
 version = "0.1.0"
 description = "SAFE-native, multi-tenant app-building playground. Design-phase scaffold — see docs/design/the-forge.md."
 requires-python = ">=3.10"
-# Core is stdlib only. Everything in the design's "Adopted dependencies"
-# (Kart, Sigstore, Casbin, vLLM, LiteLLM, py-fsrs, Nestor) is a future extra,
-# not a core dependency — none of it is wired in yet (D13: import-pure core).
-dependencies = []
+# Kart is the one adopted dependency that is actually wired in (D2 —
+# `the_forge/sandbox_runner.py` runs a build inside `kartikeya.sandbox.run_shell`).
+# It is imported lazily, inside the function that needs it, so the plan schema
+# and the pre-crossing scan still work with nothing installed — `stores/seam.py`
+# loads this package straight off sys.path with no pip install.
+#
+# The rest of the design's "Adopted dependencies" (Sigstore, Casbin, vLLM,
+# LiteLLM, py-fsrs, Nestor) are still future extras, not core dependencies —
+# none of them are wired in yet (D13: dependency-light, import-pure core).
+dependencies = ["kartikeya>=0.0.7"]
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0"]

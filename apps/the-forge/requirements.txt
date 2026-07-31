@@ -1,6 +1,13 @@
-# The Forge core is stdlib only — nothing required to run `the-forge status`
-# or the test suite.
+# D2's sandbox — kartikeya (Kart) is invoked per build by
+# the_forge/sandbox_runner.py. Trusted for isolation, never for policy
+# (docs/design/the-forge.md D2): it answers "did this run contained," never
+# "is this allowed."
 #
-# Nothing from docs/design/the-forge.md's "Adopted dependencies" (Kart,
-# Sigstore, Casbin, vLLM, LiteLLM, py-fsrs, Nestor) is wired in yet. Each
+# Imported lazily, so `the-forge status`, the plan schema (plan.py) and the
+# pre-crossing scan (scan.py) all still run with nothing installed —
+# stores/seam.py loads this package straight off sys.path.
+kartikeya>=0.0.7
+
+# Nothing else from docs/design/the-forge.md's "Adopted dependencies"
+# (Sigstore, Casbin, vLLM, LiteLLM, py-fsrs, Nestor) is wired in yet. Each
 # lands here when the decision it belongs to gets real code, not before.

@@ -34,8 +34,25 @@ or, via the store's own convention:
 make run app=the-forge
 ```
 
-`status` is the only real thing here right now — it says what's designed
-vs. what's actually implemented (nothing beyond this skeleton, yet).
+`the-forge status` is the honest inventory — what's designed vs. what's
+actually implemented. `the-forge plan-check` validates a plan against D3's
+schema and content scan.
+
+## D2 — running a build inside Kart
+
+`src/the_forge/sandbox_runner.py` is the one piece that *executes* anything:
+it runs a build command inside [kartikeya](https://pypi.org/project/kartikeya/)'s
+bubblewrap sandbox and parses one plan-shaped JSON object off its stdout,
+producing a `Plan` for `stores/seam.py cross` to judge. Per D2, Kart is
+trusted for isolation and never for policy — the runner decides nothing,
+writes nothing, and does not import the gate or the seam.
+
+**It requires bubblewrap.** With no `bwrap` on the host it refuses by
+default rather than running a build unsandboxed; `require_isolation=False`
+is an explicit dev opt-out whose result is marked unisolated and logged as
+such. Nothing yet *produces* a build command — D7's model routing and code
+generation don't exist, so a build task is currently something a caller
+writes by hand.
 
 ## Tests
 
@@ -44,3 +61,9 @@ cd apps/the-forge
 python -m pip install -e ".[dev]"
 pytest -q
 ```
+
+The sandbox-runner tests make real (unmocked) kartikeya calls. On a host
+without bubblewrap they exercise Kart's documented **plain** fallback — real
+subprocesses, real timeouts, but **no isolation** — and the one test that
+needs genuine bwrap containment skips itself rather than pretending. See
+`tests/test_sandbox_runner.py`'s module docstring.
