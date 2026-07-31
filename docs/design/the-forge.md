@@ -789,11 +789,30 @@ Pin Nestor at promotion time the way terpsi's `FLEET-READS.md` pins Nestor SHA.
   builder's own GitHub), callback/session-token lifetime, and whether this
   reuses any existing GitHub App this org already has registered or needs its
   own.
-- **Whether `willow-mcp`'s existing single-user OAuth gets touched at all.**
-  D11 is additive — a new store-native layer, not a replacement — since
-  `willow-mcp`'s provider presumably still serves its own single-operator use
-  elsewhere in the fleet. Worth confirming that stays true rather than
-  assuming it.
+- ~~Whether `willow-mcp`'s existing single-user OAuth gets touched at all~~
+  — **confirmed, 2026-08-01, checked against the real code at
+  `/workspace/willow-mcp`, not assumed.** `GroveOAuthProvider`
+  (`src/willow_mcp/oauth.py`) authenticates against **Google/Apple**, not
+  GitHub — zero identity-provider overlap with D11's plan, and it keeps its
+  own state at a caller-supplied `token_path`, independent of anything
+  safe-app-store would build. D11 is additive, confirmed, not assumed.
+
+  Found something more useful than the answer to this question along the
+  way: `src/willow_mcp/identity_binding.py` already implements almost
+  exactly D11's shape — `propose_binding(idp, subject_id, email)` creates
+  an *unconfirmed* record on first sign-in, `resolve_app_id` only returns
+  standing for a **confirmed** one, and confirmation is deliberately **not**
+  reachable from any MCP tool — operator-only, local CLI, so a remote caller
+  can never confirm their own binding. That's a materially more conservative
+  posture than D11's "mint and bind in one operation on first login" (still
+  correct per what D11 actually says, but worth naming as a real design
+  tension, not resolving unilaterally here): should first login grant
+  standing immediately, or only after an operator confirms it, the way this
+  sibling component already does? Also worth reusing regardless of that
+  call: `identity_binding.py`'s filename-safety charset
+  (`^[A-Za-z0-9_.\-:]{1,256}$`) and its atomic write (temp file + `os.replace`)
+  are both patterns this codebase's own `sap_gate.py`/`plan.py` arrived at
+  independently but don't yet use the atomic-write half of.
 - **The KB (docs from major software companies) lives locally, not in a
   repo** — no integration shape sketched yet. Whatever plugs it in should go
   through D5's same connector contract once it's reachable at all (local
