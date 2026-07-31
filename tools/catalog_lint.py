@@ -134,7 +134,7 @@ def lint() -> tuple[list[str], list[str]]:
 
     apps = catalog.get("apps")
     if not isinstance(apps, list):
-        return ['catalog.json has no "apps" list'], warnings
+        return errors + ['catalog.json has no "apps" list'], warnings
 
     seen_ids: set[str] = set()
     for entry in apps:

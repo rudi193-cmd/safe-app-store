@@ -73,3 +73,24 @@ def test_an_arbitrary_unknown_key_is_rejected(tmp_path, monkeypatch):
         "unknown top-level key" in e and "'some_new_organ'" in e
         for e in errors
     ), errors
+
+
+def test_unknown_key_survives_a_missing_apps_list(tmp_path, monkeypatch):
+    """A catalog broken two ways at once (unknown top-level key *and* a
+    missing/malformed apps list) must report both — the early return for a
+    missing apps list must not discard findings already collected, or the
+    top-level-key gate goes quiet exactly when the catalog is at its most
+    broken."""
+    repo = _minimal_repo(tmp_path, {"some_new_organ": {}})
+    catalog_path = repo / ".willow" / "store" / "catalog.json"
+    catalog = json.loads(catalog_path.read_text())
+    del catalog["apps"]
+    catalog_path.write_text(json.dumps(catalog, indent=2))
+
+    monkeypatch.setattr(catalog_lint, "REPO", repo)
+    errors, _ = catalog_lint.lint()
+    assert any(
+        "unknown top-level key" in e and "'some_new_organ'" in e
+        for e in errors
+    ), errors
+    assert any('no "apps" list' in e for e in errors), errors
