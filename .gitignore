@@ -47,3 +47,10 @@ stores/.sessions/
 # cover pieces of this; listed explicitly for the same reason .principals/
 # and .sessions/ are, rather than relying on the broader globs.)
 stores/.checkpoints/
+
+# quota.py's dev-only per-builder fairness state (D6) — active lease rows
+# and recorded sandbox-seconds. Same reason as the three stores above:
+# dev-only stand-in for a real backing store, not repo content. (Found
+# missing in review, 2026-08-02 — every sibling store in this family has
+# this entry; this one didn't.)
+stores/.quotas/

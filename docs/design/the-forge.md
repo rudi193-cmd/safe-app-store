@@ -233,6 +233,48 @@ audit, not assumed). Rather than retrofitting multi-tenancy into either,
   mem, 512 PIDs already enforced) — concurrent builds, sandbox-seconds
   budget — so the isolation Kart already gives one task extends to fairness
   across many builders sharing the host.
+
+**This bullet's quota half now exists in code, 2026-08-02 — `stores/quota.py`.**
+A lease-based accounting layer, store-side (D1), same directory and trust
+level as `principal.py`/`session.py`/`checkpoint_memory.py`:
+`acquire_build_slot`/`release_build_slot` enforce a per-builder ceiling on
+concurrently-running builds (counting only non-expired leases, checked at
+acquire time against a real clock — no background reaper), and
+`record_build_duration`/`sandbox_seconds_used` track cumulative sandboxed
+execution time so an optional per-call budget can be enforced against it.
+Every lease carries a TTL (`DEFAULT_LEASE_TTL_SECONDS = 300`, chosen to
+comfortably exceed `sandbox_runner.py`'s own `DEFAULT_TIMEOUT_S = 120`) so a
+build that crashes, gets OOM-killed, or dies with a host restart — without
+ever calling `release_build_slot` — cannot permanently steal a concurrency
+slot; the slot is simply not counted once the TTL elapses. The cumulative
+sandbox-seconds budget is a real rolling window when a caller asks for one
+(`window_seconds=`, summed over real per-event timestamps), not a deferred
+placeholder — a running total (`window_seconds=None`, the default) is the
+simpler primitive built on the same records. Storage is one JSON file per
+`builder_id` under one coarse store-wide `flock`, matching this module
+family's existing locking discipline; see the module's own docstring for
+why that combination (rather than a single shared index file, or a
+per-builder lock) was chosen. 38 new tests in `tests/test_quota.py`, including
+threaded tests that hammer the check-then-increment race on
+`acquire_build_slot` and confirm an expired-but-unreleased lease is
+recovered while a live one still blocks — pass together with
+`test_principal.py`/`test_session.py`/`test_checkpoint_memory.py` (157
+passed total), confirming the `principal.py` import didn't regress anything
+else in this module family.
+
+**Stated honestly, what this does NOT close:** nothing calls
+`acquire_build_slot`, `release_build_slot`, or `record_build_duration` from
+a real build path yet — `sandbox_runner.py` and `mount_policy.py` are
+untouched, and neither is anything under `apps/the-forge/`; wiring an actual
+call site was explicitly out of scope for this pass, the same way D11's
+session layer shipped mint/verify/revoke without the OAuth handshake that
+would call it. `DEFAULT_MAX_CONCURRENT_BUILDS = 2` and the fact that no
+sandbox-seconds budget is enforced by default (a caller must opt in via
+`sandbox_seconds_budget=`) are placeholder numbers picked to have *something*
+sane to test against — not a considered capacity/product decision; a real
+number depends on host sizing this module has no visibility into. The
+per-builder collection namespace enforcement this D6 bullet's sibling
+bullet describes is still untouched by this change, same as before.
 - Real multi-user auth is a prerequisite here, not a follow-on — resolved by
   D11's store-native session layer (`builder_id` is D11's canonical
   identity; see there for the fix and why GitHub isn't the identity root).
