@@ -1,4 +1,17 @@
 {
   "_comment": "Apps deliberately left without a P1 keeping record. Not a gap the coverage gate should paper over — each entry names the open question blocking the record and where it's discussed, per 'absence is a value, not a gap' (docs/store_refit_plan.md P1). Resolve by adding the app's real record to stores/{major}/stored/ and removing its entry here, not by editing this file to make the question disappear.",
-  "pending": []
+  "pending": [
+    {
+      "app_id": "grove",
+      "reason": "Points at https://github.com/rudi193-cmd/safe-app-grove, which does not appear in this account's reachable repo list — the house cannot verify or record what it can't reach, and a keeping record would be a claim, not a fact.",
+      "blocked_on": "the repo becomes reachable from this account, or the operator decides unreachable loose repos should instead be marked archived.",
+      "recorded_by": "docs/store_refit_plan.md 'Open gates' — loose repos, resolved 2026-07-31"
+    },
+    {
+      "app_id": "willow-grove",
+      "reason": "Points at https://github.com/rudi193-cmd/safe-app-willow-grove, which does not appear in this account's reachable repo list — same shape as grove.",
+      "blocked_on": "the repo becomes reachable from this account, or the operator decides unreachable loose repos should instead be marked archived.",
+      "recorded_by": "docs/store_refit_plan.md 'Open gates' — loose repos, resolved 2026-07-31"
+    }
+  ]
 }
