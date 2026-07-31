@@ -1,0 +1,611 @@
+{
+  "version": "1.0",
+  "store": "SAFE App Store",
+  "description": "Local-first apps built on the SAFE framework. No ports. No servers. Yours to keep.",
+  "apps": [
+    {
+      "id": "story-timeline",
+      "name": "Story Timeline",
+      "description": "Track events, characters, and locations across a narrative timeline. Free alternative to $70 timeline tools.",
+      "author": "Professor Oakenscroll",
+      "status": "beta",
+      "path": "apps/story-timeline",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "gated",
+      "tags": [
+        "writing",
+        "fiction",
+        "timeline",
+        "characters"
+      ]
+    },
+    {
+      "id": "vision-board",
+      "name": "Vision Board",
+      "description": "AI-powered goal visualization. 96% client-side. First Willow app.",
+      "status": "stable",
+      "path": "apps/vision-board",
+      "tier": "playground",
+      "majors": [
+        "python",
+        "node"
+      ],
+      "state": "building",
+      "tags": [
+        "productivity",
+        "goals",
+        "ai"
+      ]
+    },
+    {
+      "id": "utety-chat",
+      "name": "UTETY Chat",
+      "description": "Chat with 11 AI faculty members including Gerald (a headless rotisserie chicken) and Copenhagen (an orange). Built on Cloudflare Pages + Workers.",
+      "status": "stable",
+      "version": "1.0.1",
+      "path": "apps/utety-chat",
+      "tier": "playground",
+      "tags": [
+        "chat",
+        "ai",
+        "utety",
+        "professors"
+      ]
+    },
+    {
+      "id": "nasa-archive",
+      "name": "NASA Archive",
+      "description": "Browse and preserve memories archived from scoot.net.",
+      "status": "stable",
+      "path": "apps/nasa-archive",
+      "tier": "playground",
+      "majors": [
+        "python",
+        "node"
+      ],
+      "state": "stalled",
+      "tags": [
+        "archive",
+        "memories"
+      ]
+    },
+    {
+      "id": "field-notes",
+      "name": "Field Notes",
+      "description": "Local-first field notes and observations. Plain text. Yours forever.",
+      "status": "beta",
+      "path": "apps/field-notes",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "building",
+      "tags": [
+        "notes",
+        "local"
+      ]
+    },
+    {
+      "id": "private-ledger",
+      "name": "Private Ledger",
+      "description": "Local-first private financial ledger. No cloud. No subscriptions.",
+      "status": "beta",
+      "path": "apps/private-ledger",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "gated",
+      "tags": [
+        "ledger",
+        "finance",
+        "private"
+      ]
+    },
+    {
+      "id": "njord",
+      "name": "Njord",
+      "description": "Local-only, stdio-driven equities analysis + recommendation engine. Verified public sources only, first-class provenance. Recommend-only — no live trading, no broker orders.",
+      "author": "USER",
+      "status": "coming_soon",
+      "path": "apps/njord",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "building",
+      "tags": [
+        "finance",
+        "equities",
+        "analysis",
+        "provenance",
+        "local"
+      ]
+    },
+    {
+      "id": "the-binder",
+      "name": "The Binder",
+      "description": "Local-first knowledge browser. Jeles at the desk. The Binder files everything.",
+      "status": "beta",
+      "path": "apps/the-binder",
+      "tier": "playground",
+      "tags": [
+        "knowledge",
+        "search",
+        "local"
+      ]
+    },
+    {
+      "id": "ask-jeles",
+      "name": "Ask Jeles",
+      "description": "SAFE search engine. Local stacks first. Verified sources when you need the world.",
+      "status": "coming_soon",
+      "path": "apps/ask-jeles",
+      "tier": "playground",
+      "majors": [
+        "python",
+        "node"
+      ],
+      "state": "gated",
+      "tags": [
+        "search",
+        "jeles",
+        "local"
+      ]
+    },
+    {
+      "id": "law-gazelle",
+      "name": "Law Gazelle",
+      "description": "Legal case management and document analysis.",
+      "status": "coming_soon",
+      "path": "apps/law-gazelle",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "gated",
+      "tags": [
+        "legal",
+        "documents"
+      ]
+    },
+    {
+      "id": "the-squirrel",
+      "name": "The Squirrel",
+      "description": "Genealogy companion with a sense of humor. Collect fragments, build the tree, reunite the branches everyone forgot about on purpose. Local-first: your tree stays in your tree.",
+      "status": "beta",
+      "path": "apps/the-squirrel",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "gated",
+      "tags": [
+        "family",
+        "history",
+        "genealogy",
+        "local"
+      ]
+    },
+    {
+      "id": "llmphysics",
+      "name": "LLMPhysics JAC Judge",
+      "description": "r/LLMPhysics Journal Ambitions Contest records and judge prompts. Content archive, not an app.",
+      "status": "archived",
+      "path": "apps/llmphysics",
+      "tags": [
+        "physics",
+        "reddit",
+        "evaluation"
+      ]
+    },
+    {
+      "id": "llmphysics-bot",
+      "name": "LLMPhysics Bot",
+      "description": "Reddit bot for r/LLMPhysics community. Handed off — the project maintainer now runs it himself.",
+      "status": "archived",
+      "path": "apps/llmphysics-bot",
+      "tags": [
+        "reddit",
+        "bot",
+        "physics"
+      ]
+    },
+    {
+      "id": "UTETY-Reddit-Bots",
+      "name": "UTETY Reddit Bots",
+      "description": "Reddit bots for the UTETY University faculty.",
+      "status": "coming_soon",
+      "path": "apps/UTETY-Reddit-Bots",
+      "tier": "playground",
+      "majors": [
+        "node"
+      ],
+      "state": "building",
+      "tags": [
+        "reddit",
+        "bot",
+        "utety"
+      ]
+    },
+    {
+      "id": "game",
+      "name": "SAFE Game",
+      "description": "SAFE framework game app.",
+      "status": "coming_soon",
+      "path": "apps/game",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "stalled",
+      "tags": [
+        "game"
+      ]
+    },
+    {
+      "id": "dating-wellbeing",
+      "name": "Dating Wellbeing",
+      "description": "Privacy-first dating profile analysis for SAFE framework.",
+      "status": "coming_soon",
+      "path": "apps/dating-wellbeing",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "stalled",
+      "tags": [
+        "privacy",
+        "dating",
+        "wellbeing"
+      ]
+    },
+    {
+      "id": "bt-controller",
+      "name": "BT Controller",
+      "description": "Direct HCI Bluetooth control — claims the USB adapter beneath the flaky OS stack via WSL, with a self-healing daemon and web UI.",
+      "status": "beta",
+      "version": "0.2.0",
+      "path": "apps/bt-controller",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "building",
+      "tags": [
+        "bluetooth",
+        "hardware"
+      ]
+    },
+    {
+      "id": "source-trail",
+      "name": "Source Trail",
+      "description": "Track and audit data sources.",
+      "status": "coming_soon",
+      "path": "apps/source-trail",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "gated",
+      "tags": [
+        "audit",
+        "data",
+        "sources"
+      ]
+    },
+    {
+      "id": "public-ledger",
+      "name": "Public Ledger",
+      "description": "Transparent public transaction ledger.",
+      "status": "coming_soon",
+      "path": "apps/public-ledger",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "stalled",
+      "tags": [
+        "ledger",
+        "transparency"
+      ]
+    },
+    {
+      "id": "ratatosk",
+      "name": "Ratatosk",
+      "description": "Sovereign Claude Code replacement. Direct Anthropic API, full tool loop, JSONL sessions, MCP client, Grove-wired. Yours to run. Yours to keep.",
+      "author": "USER",
+      "status": "beta",
+      "path": "apps/ratatosk",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "building",
+      "repository": "https://github.com/rudi193-cmd/safe-app-store",
+      "tags": [
+        "agent",
+        "cli",
+        "llm",
+        "mcp",
+        "sovereign"
+      ]
+    },
+    {
+      "id": "grove",
+      "name": "Grove",
+      "description": "Sovereign p2p messaging. Chat directly with USER and other users over an encrypted peer-to-peer connection (u2u). Each user runs their own local node — no central server.",
+      "author": "USER",
+      "status": "beta",
+      "repository": "https://github.com/rudi193-cmd/safe-app-grove",
+      "tags": [
+        "messaging",
+        "p2p",
+        "chat",
+        "u2u",
+        "encrypted"
+      ]
+    },
+    {
+      "id": "willow-grove",
+      "name": "Willow Grove",
+      "description": "Canonical Textual TUI dashboard for the Willow fleet. Unified human and agent surface: Grove channel chat, agent presence and message routing, task queue, knowledge base browsing, model switching, live vitals reading Postgres Ollama SAFE manifests and the Kart queue, plus encrypted u2u human-to-human direct messages. No web server, no ports — local-first. This is the one canonical Grove dashboard TUI; earlier scattered dashboard attempts across the fleet (willow-2.0 grove/, apps/pigeon, scripts/grove_standalone) are superseded by it.",
+      "author": "USER",
+      "status": "beta",
+      "repository": "https://github.com/rudi193-cmd/safe-app-willow-grove",
+      "canonical": true,
+      "tags": [
+        "tui",
+        "dashboard",
+        "textual",
+        "fleet",
+        "grove",
+        "agents",
+        "vitals",
+        "canonical",
+        "local-first"
+      ]
+    },
+    {
+      "id": "civics-check",
+      "name": "Civics Check",
+      "description": "America's 250th civics quiz — naturalization test, state matchups, timeline sort, quote matching, and more. Pure Python, offline, no dependencies.",
+      "author": "USER",
+      "status": "beta",
+      "path": "apps/civics-check",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "gated",
+      "tags": [
+        "civics",
+        "history",
+        "quiz",
+        "americas250",
+        "offline"
+      ]
+    },
+    {
+      "id": "genealogy",
+      "name": "Genealogy",
+      "description": "Local-first family tree and genealogy research. Merged into the-squirrel.",
+      "status": "archived",
+      "tags": [
+        "family",
+        "history",
+        "local"
+      ]
+    },
+    {
+      "id": "nest-seed",
+      "name": "Nest Seed",
+      "description": "Portable Nest bootstrap. Walks a folder of personal files, extracts text (OCR/PDF/docx), classifies fragments (regex or local AI via Ollama), and writes a canonical SQLite Nest DB.",
+      "author": "USER",
+      "status": "beta",
+      "path": "apps/nest-seed",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "stalled",
+      "tags": [
+        "nest",
+        "extraction",
+        "ocr",
+        "local-ai",
+        "sqlite"
+      ]
+    },
+    {
+      "id": "semantic-translator",
+      "name": "Semantic Translator",
+      "description": "Semantic translation memory for lesson curricula. Scrapes lessons from GitHub or a local clone, ingests into Jeles, and surfaces meaning-matched prior translations across languages.",
+      "author": "USER",
+      "status": "coming_soon",
+      "path": "apps/semantic-translator",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "building",
+      "tags": [
+        "translation",
+        "semantic-search",
+        "curriculum",
+        "jeles"
+      ]
+    },
+    {
+      "id": "the-nightstand",
+      "name": "The Nightstand",
+      "description": "Set heavy things down at night; pick up one bite in the morning. Local-first load triage. One thing in hand, ever.",
+      "status": "beta",
+      "path": "apps/the-nightstand",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "building",
+      "tags": [
+        "triage",
+        "focus",
+        "load",
+        "local"
+      ]
+    },
+    {
+      "id": "oakenscrolls-office",
+      "name": "Oakenscroll's Office",
+      "description": "Personal calibration ledger — state claims with confidence, grade them when the world weighs in, see whether your 70% means 70%. Cites almanac-data sources as resolution evidence.",
+      "status": "beta",
+      "version": "0.2.0",
+      "path": "apps/oakenscrolls-office",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "state": "building",
+      "tags": [
+        "calibration",
+        "predictions",
+        "epistemics",
+        "local"
+      ]
+    },
+    {
+      "id": "marching-arts",
+      "name": "Marching Arts (placeholder)",
+      "description": "Authorization core for a marching-program platform. Per-record classification bands, sealed grants, and a resolver that compiles to one SQL predicate. Name not chosen yet.",
+      "status": "beta",
+      "version": "0.1.0",
+      "path": "apps/marching-arts",
+      "tier": "playground",
+      "majors": [
+        "python",
+        "node"
+      ],
+      "state": "gated",
+      "tags": [
+        "marching",
+        "authorization",
+        "consent",
+        "privacy",
+        "local-first"
+      ]
+    },
+    {
+      "id": "field-acoustics",
+      "name": "Field Acoustics",
+      "description": "Design-time acoustic model for marching drill — what the audience actually hears when the form turns in. Python model plus a dependency-free TypeScript kernel, held together by a five-tier differential suite. Nothing else in the category models acoustics.",
+      "status": "beta",
+      "version": "0.1.0",
+      "path": "apps/field-acoustics",
+      "tier": "playground",
+      "majors": [
+        "python",
+        "node"
+      ],
+      "state": "gated",
+      "tags": [
+        "marching",
+        "acoustics",
+        "simulation",
+        "drill-design",
+        "local-first"
+      ]
+    },
+    {
+      "id": "jarvis",
+      "name": "Jarvis",
+      "description": "Voice-first browser assistant with an indexed fact store. Hold to talk, replies read back, facts remembered between sessions: corrections filed beside the record, absence stored as a value, provenance propagated by min(). Bring-your-own-key, and the conversation goes to Anthropic.",
+      "status": "beta",
+      "version": "0.1.0",
+      "path": "apps/jarvis",
+      "tier": "playground",
+      "majors": [
+        "browser"
+      ],
+      "state": "gated",
+      "tags": [
+        "assistant",
+        "voice",
+        "memory",
+        "browser",
+        "prototype"
+      ]
+    },
+    {
+      "id": "band-camp-arcade",
+      "name": "Band Camp Arcade",
+      "description": "Five small, silly, entirely local browser toys for marching band kids: a tuning-drone endurance timer, a pit-crew drag game, a uniform-misery tracker, a shuffled sectional bingo card, and a satirical caption-score roast generator. No accounts, no network calls.",
+      "status": "beta",
+      "version": "0.1.0",
+      "path": "apps/band-camp-arcade",
+      "tier": "playground",
+      "majors": [
+        "browser"
+      ],
+      "state": "gated",
+      "tags": [
+        "marching",
+        "band",
+        "games",
+        "browser",
+        "prototype",
+        "local-first"
+      ]
+    }
+  ],
+  "discovery_sources": [
+    {
+      "id": "public-tools",
+      "name": "public.tools",
+      "url": "https://public.tools/",
+      "type": "external-directory",
+      "description": "Curated directory of free, no-login, browser-based tools (image/graphics, transcription, text-diff, encrypted notes, converters, code playgrounds). Mine for catalog ideas, gap-spotting, and 'does a free tool for X already exist' lookups.",
+      "added": "2026-06-19",
+      "added_by": "vishwakarma",
+      "caveats": "Not a SAFE app — third-party hosted tools the store does not control. Do NOT route sensitive/PII/evidentiary data through listed tools (esp. Mailinator, whose inboxes are public). 403-blocks automated fetch (Cloudflare); enumerate via web search or manual browse.",
+      "highlighted_tools": [
+        {
+          "name": "OTranscribe",
+          "url": "https://public.tools/tool/otranscribe",
+          "use": "manual audio/video transcription"
+        },
+        {
+          "name": "DiffNow",
+          "url": "https://public.tools/tool/diffnow",
+          "use": "text/file comparison"
+        },
+        {
+          "name": "ProtectedText",
+          "url": "https://public.tools/tool/protectedtext",
+          "use": "browser-encrypted notepad"
+        }
+      ]
+    },
+    {
+      "id": "public-apis-live",
+      "name": "public-apis-live",
+      "url": "https://manavarya09.github.io/public-apis-live/",
+      "data_url": "https://raw.githubusercontent.com/Manavarya09/public-apis-live/main/data/apis.json",
+      "type": "external-directory",
+      "description": "Live-verified directory of 4,281 public APIs across 126 categories, deduped from existing public-API lists and auto-checked daily for reachability (status up/down/unknown, httpCode, responseMs, uptimePct, lastChecked). Structured JSON dataset — Jeles/retrieval can filter to reachable + no-auth endpoints. Categories incl. Open_data (290), Government (110), Geocoding (117), Finance (82), Science & Math, Health, Weather.",
+      "added": "2026-06-19",
+      "added_by": "vishwakarma",
+      "consumers": [
+        "jeles"
+      ],
+      "caveats": "Reachability only — does NOT functionally test endpoints; ~1,032 entries have unknown status. Third-party listings; verify auth/terms before use. Also available as npm 'public-apis-live' and a Claude plugin.",
+      "local_mirror": "~/Desktop/Nest/jeles/sources/public-apis-live/ (apis.json, apis.jsonl, SUMMARY.json)",
+      "willow_refs": {
+        "jeles_atom": "701AD460",
+        "kb_atom": "0F649830"
+      }
+    }
+  ]
+}
