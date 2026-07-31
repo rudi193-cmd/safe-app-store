@@ -33,9 +33,19 @@ CANONICAL_SENTENCE = (
     "The code is not duplicated. The record is what `stores/` stores."
 )
 
-_MAJORS = ("python", "node", "rust", "go", "cpp", "obsidian")
+def _real_majors() -> list[str]:
+    """Discovered, not hardcoded — same pattern as catalog_lint.py's
+    _real_majors(), so a future major (like P1's `browser`) doesn't leave this
+    gate silently stale."""
+    stores_dir = REPO / "stores"
+    return sorted(
+        d.name for d in stores_dir.iterdir()
+        if d.is_dir() and (d / "stored").is_dir() and (d / "promoted").is_dir()
+    )
+
+
 _FULL_STORED_PATH = re.compile(
-    r"stores/(?:\{major\}|" + "|".join(_MAJORS) + r")/stored/"
+    r"stores/(?:\{major\}|" + "|".join(_real_majors()) + r")/stored/"
 )
 _BARE_STORED = re.compile(r"stored/")
 
