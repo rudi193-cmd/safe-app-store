@@ -1,0 +1,14 @@
+{
+  "app_id": "nasa-archive",
+  "majors": [
+    "python",
+    "node"
+  ],
+  "relation": "unrelated-bundled",
+  "anchor": null,
+  "location": "apps/nasa-archive",
+  "maker": "USER",
+  "lane": null,
+  "state": "stalled",
+  "notes": "Broken entry point (pipeline.main:app) and a manifest describing literal NASA datasets for what is actually a scooter-rally archive (deliberate backronym) — both confirmed by docs/store_refit_survey.md. Filed under python (15 vs 6)."
+}

@@ -1,0 +1,13 @@
+{
+  "app_id": "ratatosk",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/ratatosk",
+  "maker": "USER",
+  "lane": null,
+  "state": "building",
+  "notes": null
+}

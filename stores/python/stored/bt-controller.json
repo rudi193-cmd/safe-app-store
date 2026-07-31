@@ -1,0 +1,13 @@
+{
+  "app_id": "bt-controller",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/bt-controller",
+  "maker": "USER",
+  "lane": null,
+  "state": "building",
+  "notes": "Declares safe_consent (not store_scope) — a fourth manifest dialect per docs/store_refit_survey.md."
+}
