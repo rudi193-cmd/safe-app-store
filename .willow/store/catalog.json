@@ -46,6 +46,11 @@
       "version": "1.0.1",
       "path": "apps/utety-chat",
       "tier": "playground",
+      "majors": [
+        "python",
+        "rust",
+        "browser"
+      ],
       "tags": [
         "chat",
         "ai",
@@ -126,6 +131,10 @@
       "status": "stalled",
       "path": "apps/the-binder",
       "tier": "playground",
+      "majors": [
+        "python",
+        "browser"
+      ],
       "tags": [
         "knowledge",
         "search",
