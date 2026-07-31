@@ -410,6 +410,22 @@
         "browser",
         "prototype"
       ]
+    },
+    {
+      "id": "band-camp-arcade",
+      "name": "Band Camp Arcade",
+      "description": "Five small, silly, entirely local browser toys for marching band kids: a tuning-drone endurance timer, a pit-crew drag game, a uniform-misery tracker, a shuffled sectional bingo card, and a satirical caption-score roast generator. No accounts, no network calls.",
+      "status": "beta",
+      "version": "0.1.0",
+      "path": "apps/band-camp-arcade",
+      "tags": [
+        "marching",
+        "band",
+        "games",
+        "browser",
+        "prototype",
+        "local-first"
+      ]
     }
   ],
   "discovery_sources": [
