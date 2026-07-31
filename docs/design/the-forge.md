@@ -99,6 +99,31 @@ acts. Same seam-holder role the installer design already assigns to the
 more-privileged process; same reason (no vendor/generated code runs at host
 privilege, ever).
 
+**The seam validates *where*, not *what* — fixed 2026-07-31.** The plan
+schema above checks destination paths against `store_scope`; it says nothing
+about what's actually inside a generated file, and that file will later
+execute (inside Kart, at minimum — D2). Two additions close the gap the
+review found, without pretending the seam becomes a full security review:
+
+- **A pre-crossing static scan, reusing a pattern this repo already has.**
+  `tools/vault_leak_lint.py` already AST-scans candidate code for dangerous
+  patterns (fixed-path data leaks) without ever executing it — the seam gets
+  the same treatment for a broader rule set (raw network calls,
+  `subprocess`/`os.system`, `eval`/`exec`, writes outside the declared path)
+  before a file is allowed to cross. This is a floor, not a proof — it
+  catches the obvious/accidental case, not a determined adversary; Kart's
+  sandbox (D2) is still what actually contains execution, not this scan.
+- **Generated code is never executed host-side, for any purpose — now a
+  stated requirement, not an accident.** Checked against the real repo:
+  `stores/promote_check.py`'s "dynamic" import-purity check
+  (`_toplevel_dynamic_net`) is itself AST-only — it looks for
+  `__import__`/`importlib.import_module` *call expressions* in the source
+  text and never imports the candidate module to find out. The one live
+  `importlib` call in that file loads the repo's own trusted
+  `vault_leak_lint.py`, not tenant code. That's already the right norm; D3
+  makes it explicit so nothing added later (a catalog tool, a review UI)
+  quietly breaks it by actually importing a build to introspect it.
+
 ### D4 — Rebuild `sap-gate` inside `safe-app-store`, modeled on Nestor's signing stack
 
 Not in `willow-mcp` — CLAUDE.md's claim that it lives there is exactly the gap
@@ -119,6 +144,34 @@ on `nestor.signing` / `nestor.keyring`:
 
 This is the first time "signed → allowed, tampered → denied" is actually true
 of this repo, rather than asserted by it.
+
+**Key custody and the rotate/compromise gap — fixed 2026-07-31.** The adopted
+static-keypair Sigstore mode (Adopted dependencies, below) doesn't by itself
+give the rotate-vs-compromise duality this decision wants — that lives in
+Fulcio/Rekor, which static mode deliberately avoids. Two things were missing:
+
+- **Custody is store-held, and that's named honestly rather than implied to
+  be stronger.** One Ed25519 keypair per `builder_id` (D11), generated and
+  held by the store's own signing service, not the builder. The signature's
+  job is tamper-evidence and a stable audit binding, not non-repudiation
+  against the store itself — consistent with D1 (the store *is* the trust
+  boundary by design), but the original "signed → allowed" framing implied
+  builder-authored attestation it doesn't actually deliver. Key material
+  lives in the vault this ecosystem already built for exactly this problem —
+  `safe-app-installer.md` D7's Fernet-keyed secrets vault (`vault.py`,
+  `vault.key` at 0600, never touches git) — not a fresh secrets-management
+  design.
+- **Rotate vs. compromise gets real teeth from a signing-event ledger, not
+  from Sigstore mode.** Every signing operation appends to a small,
+  append-only, hash-chained log — `(builder_id, key_id, manifest_hash,
+  timestamp)` — modeled on Nestor's `ledger.py` (refuses to extend a broken
+  chain, verified before first append, symlink/regular-file check), but its
+  **own instance**, not the ledger D12 uses for pedagogy — keeping D10's
+  "distinct ledgers, not one conflated system" boundary intact. `rotate`
+  retires a key going forward while every past ledger entry for it stays
+  trusted; `compromise` records a timestamp, and any ledger entry for that
+  key after it stops being trusted — Nestor's rotated-vs-compromised table,
+  given real timing to work from instead of assuming Sigstore supplies it.
 
 ### D5 — One capability contract, for every MCP server registered, enforced by an explicit allowlist
 
@@ -402,7 +455,7 @@ dependency.
   strictly weaker, py-irt's PyTorch dependency too heavy, openskill missing
   the interval-scheduling piece D9's "resurface later" actually depends on).
 
-### D11 — Multi-user auth: store-native session layer, GitHub OAuth only
+### D11 — Multi-user auth: store-native session layer, GitHub OAuth only, store-minted identity
 
 Not an extension of `willow-mcp`'s OAuth — that provider is explicitly
 single-user PKCE, and stretching it for multi-tenancy is real surgery on code
@@ -415,15 +468,31 @@ already leans on — Kart, Nestor, willow-mcp — lives there, so a builder
 plausibly already has an account, and it's where they'd be pulling this down
 from anyway.
 
-**`builder_id`, derived from the GitHub account's stable ID, is the identity
-every other decision has been hand-waving with a placeholder.** Making this
-canonical now retroactively resolves loose terminology: D6's `tenant_id` and
-D9's `builder_id` are the same value. It threads through:
-- D4's signing keyring (one Sigstore keypair per `builder_id`)
-- D6's collection/working-directory scoping (`apps/<builder_id>/<name>/`,
-  `saps1/builder-<builder_id>/...`)
-- D9/D12's Nestor domain (`domain=f"builder:{builder_id}"`)
-- every Casbin (D1/D5) policy check's `caller` field
+**`builder_id` is store-minted, not GitHub's account ID — fixed 2026-07-31.**
+The original shape derived `builder_id` directly from GitHub's stable user
+ID, which makes GitHub the root of the store's identity namespace — exactly
+what D1 rules out. Corrected:
+
+- At first successful GitHub OAuth login, the store mints a new internal
+  `builder_id` (store-generated, not derived from anything GitHub returns)
+  and records one row binding it to an **authenticator**:
+  `{provider: "github", external_id: <github user id>, linked_at}`.
+- Every downstream system keys off the store-minted `builder_id`, never off
+  the GitHub ID directly — this part of the original design still holds:
+  - D4's signing keyring (one Sigstore keypair per `builder_id`)
+  - D6's collection/working-directory scoping (`apps/<builder_id>/<name>/`,
+    `saps1/builder-<builder_id>/...`)
+  - D9/D12's Nestor domain (`domain=f"builder:{builder_id}"`)
+  - every Casbin (D1/D5) policy check's `caller` field
+- GitHub becomes what D1 already says every external system should be — a
+  **capability provider** ("this session belongs to GitHub account X"), not
+  an authority over identity. A renamed, deleted, or reused GitHub account
+  never moves the authorization graph; only the authenticator-binding row
+  changes. A second authenticator (another provider, later) could bind to
+  the same `builder_id` without touching anything D4/D6/D9/D12 already built.
+- v1 scope: one authenticator per `builder_id`, minted once, no re-linking
+  flow yet — a real gap (see Open/next), but it doesn't undermine the
+  identity model itself.
 
 **Rollout is a separate call from architecture.** D6 already committed to
 supporting real strangers; whether self-serve signup is literally open on day
@@ -586,22 +655,32 @@ Pin Nestor at promotion time the way terpsi's `FLEET-READS.md` pins Nestor SHA.
 
 ## Open / next
 
-- **Three of the four critical gaps from the 2026-07-31 review are still
-  fully open**, and take priority over anything below: D11 currently makes
-  GitHub the root of the identity namespace, which D1 rules out (fix: mint a
-  store-local principal at first login, bind GitHub to it as one
-  authenticator, not the identity itself); D4's static-keypair Sigstore mode
-  doesn't deliver the rotate-vs-compromise duality it was adopted for, and
-  key custody is undesigned; D3's seam validates *where* a build may write,
-  not *what* — generated source code that will later execute still crosses
-  it unvalidated.
-- **The fourth (D5's fail-open classification) now has a concrete mechanism**
-  — default-deny via an explicit per-server allowlist, modeled directly on
-  `nestor.serve.Server`'s closed tool list + `WITHHELD` set (D5, updated
-  2026-07-31, per the Nestor inventory below). Not fully resolved: Nestor
-  ships its own allowlist, but every other server registered with the
-  connector — `willow-mcp` first — still needs one *authored*, and nothing
-  yet stops a server from being registered without one.
+- **All four critical gaps from the 2026-07-31 review now have a concrete
+  mechanism — none are implemented, this is still pure design.**
+  - **D11** (GitHub was the root of the identity namespace): fixed by a
+    store-minted `builder_id` with GitHub bound as one authenticator, not
+    the identity itself.
+  - **D4** (no key custody, rotate/compromise unearned by static Sigstore):
+    fixed by naming custody as store-held (living in the existing
+    `safe-app-installer.md` D7 Fernet vault) and a dedicated signing-event
+    ledger, modeled on Nestor's `ledger.py`, giving rotate/compromise real
+    timing to work from.
+  - **D5** (fail-open shape classification): fixed by default-deny via an
+    explicit per-server allowlist, modeled on `nestor.serve.Server`'s closed
+    tool list + `WITHHELD` set.
+  - **D3** (seam validated *where*, not *what*): fixed by a pre-crossing AST
+    scan (same pattern as `tools/vault_leak_lint.py`) plus an explicit rule,
+    checked against the real repo, that generated code is never executed
+    host-side for any purpose.
+  - What each fix still needs before it's more than design: D11 has no
+    authenticator re-linking flow (one GitHub account per `builder_id`,
+    permanently, for v1); D4 hasn't decided whether `sap_gate.py` gets its
+    own namespace inside the existing vault or a new one, and the
+    signing-ledger's storage/ops story is unspecified; D5 still needs an
+    allowlist authored for every server besides Nestor, and nothing yet
+    stops a server from being registered without one; D3's dangerous-pattern
+    list for the pre-crossing scan is unenumerated, same open-ended shape as
+    D8's "where exactly a decision starts."
 - **Where exactly "a decision" starts** (D8) — the line between "ask first"
   and "just write it" is asserted, not drawn. Needs a working pass over real
   build sessions to find where it actually falls before this is more than a
