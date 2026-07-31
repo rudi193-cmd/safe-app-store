@@ -1,0 +1,14 @@
+{
+  "app_id": "vision-board",
+  "majors": [
+    "python",
+    "node"
+  ],
+  "relation": "runtime-fallback",
+  "anchor": null,
+  "location": "apps/vision-board",
+  "maker": "USER",
+  "lane": null,
+  "state": "building",
+  "notes": "FastAPI/Ollama backend vs. an in-browser TF.js classifier, selected at runtime by whichever is reachable, with different CATEGORY_MAP vocabularies and no test asserting they agree — docs/store_refit_survey.md's central example of why relation is load-bearing, not decorative. catalog.json says \"stable\" but this app has no CI-verified suite (not in app-tests matrix, no dedicated workflow) — state and catalog status are different axes on purpose. Filed under node (15 vs 2)."
+}

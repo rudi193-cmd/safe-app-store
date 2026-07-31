@@ -1,0 +1,13 @@
+{
+  "app_id": "private-ledger",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/private-ledger",
+  "maker": "USER",
+  "lane": null,
+  "state": "gated",
+  "notes": null
+}

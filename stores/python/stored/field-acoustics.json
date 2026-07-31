@@ -1,0 +1,16 @@
+{
+  "app_id": "field-acoustics",
+  "majors": [
+    "python",
+    "node"
+  ],
+  "relation": "differential-paired",
+  "anchor": "python",
+  "location": "apps/field-acoustics",
+  "maker": "USER",
+  "lane": [
+    "field_acoustics_*"
+  ],
+  "state": "gated",
+  "notes": "kernel/README.md: \"the reference is the Python.\" TypeScript kernel held to it by a five-tier differential suite."
+}

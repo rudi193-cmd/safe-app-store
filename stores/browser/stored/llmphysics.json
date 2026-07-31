@@ -1,0 +1,13 @@
+{
+  "app_id": "llmphysics",
+  "majors": [
+    "browser"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/llmphysics",
+  "maker": null,
+  "lane": null,
+  "state": "archived",
+  "notes": "Manifest is safe-app-manifest.js, not .json — a dialect this app introduced (store_refit_survey.md), not truly missing. jac_cli.py is an internal scoring tool alongside the deployed static site; not modeled as a second major since docs/store_refit_survey.md's spanning-builds survey did not flag this app as spanning crafts."
+}

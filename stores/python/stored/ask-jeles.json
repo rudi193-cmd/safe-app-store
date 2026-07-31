@@ -1,0 +1,14 @@
+{
+  "app_id": "ask-jeles",
+  "majors": [
+    "python",
+    "node"
+  ],
+  "relation": "unrelated-bundled",
+  "anchor": null,
+  "location": "apps/ask-jeles",
+  "maker": "USER",
+  "lane": null,
+  "state": "gated",
+  "notes": "Textual TUI (python) + a web mode stub (node); grouped with the-binder/nasa-archive as unrelated-bundled per docs/store_refit_survey.md. Filed under python (43 files vs 33) — no anchor is defined for this relation type."
+}
