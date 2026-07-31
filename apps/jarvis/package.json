@@ -1,0 +1,28 @@
+{
+  "name": "jarvis",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Voice-first browser assistant with an indexed memory. Prototype.",
+  "scripts": {
+    "serve": "node test/serve.js",
+    "build:www": "node scripts/build-www.js",
+    "sync": "npm run build:www && cap sync",
+    "android": "npm run sync && cap open android",
+    "test": "node test/run.js",
+    "test:mutations": "node test/run.js --mutations",
+    "bundle": "esbuild vendor/entry.js --bundle --format=esm --platform=browser --minify --alias:node:fs=./vendor/stub-node.js --alias:node:path=./vendor/stub-node.js --outfile=vendor/anthropic.js"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.115.0",
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/cli": "^8.4.2",
+    "@capacitor/core": "^8.4.2",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/local-notifications": "^8.2.1",
+    "@capacitor/preferences": "^8.0.1",
+    "esbuild": "^0.25.0",
+    "playwright": "^1.56.0"
+  }
+}

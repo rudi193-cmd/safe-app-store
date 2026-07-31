@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Jarvis — suite</title>
+  </head>
+  <body>
+    <pre id="out">running…</pre>
+    <script type="module">
+      import { runAll } from './suite.js';
+
+      runAll()
+        .then((results) => {
+          window.__results = results;
+          document.getElementById('out').textContent = results
+            .map((r) => `${r.pass ? 'PASS' : 'FAIL'}  ${r.name}${r.error ? `\n      ${r.error}` : ''}`)
+            .join('\n');
+          document.body.dataset.done = '1';
+        })
+        .catch((err) => {
+          // A module-level throw (a syntax error from a mutation, a bad
+          // import) must not look like a clean empty run.
+          window.__results = [{ name: '<suite failed to load>', pass: false, error: `${err.name}: ${err.message}` }];
+          document.body.dataset.done = '1';
+        });
+    </script>
+  </body>
+</html>

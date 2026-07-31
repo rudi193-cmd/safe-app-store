@@ -1,0 +1,14 @@
+node_modules/
+
+# Built by scripts/build-www.js from index.html, styles.css, src/ and vendor/.
+# Not committed: it is a copy of files that are already here, and a stale copy
+# of the app is worse than no copy — it boots, and it is not the app.
+www/
+
+# Gradle and CocoaPods build output. The Android project itself IS committed
+# (see README: it has never been compiled, and dropping it would hide that
+# rather than fix it).
+android/app/build/
+android/build/
+android/.gradle/
+ios/App/Pods/
