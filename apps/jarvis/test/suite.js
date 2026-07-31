@@ -14,6 +14,11 @@
 //     Listener is probed but never driven.
 //   * Anything about a closed tab. Reminder delivery after the page is gone
 //     is not implemented and not tested; see the durability probe.
+//   * Any call to a real willow-mcp server. Discovery, dynamic client
+//     registration, the OAuth popup round trip, and token refresh are
+//     exercised only by hand against a running instance. What runs here is
+//     the pure PKCE/URL/framing logic and the tool-runner's mapping of a
+//     willow-mcp result onto {data, text, isError}, against a fake session.
 
 import { Memory, weakestProvenance, normalizeSubject, deleteDatabase } from '../src/memory.js';
 import { tokenize, stem, tokensFor } from '../src/text.js';
@@ -22,6 +27,7 @@ import { buildMemoryContext } from '../src/claude.js';
 import { sentences } from '../src/voice.js';
 import { probeReminderDurability, probeSpeechInput } from '../src/capability.js';
 import { isNative, platformName, hasPlugin, Reminders, KeyStore } from '../src/platform.js';
+import { generatePkce, buildAuthorizeUrl, parseSseJsonRpc } from '../src/willow.js';
 
 class Assert extends Error {}
 
@@ -742,6 +748,124 @@ test('BRIDGE the reminder confirmation tracks the rung that will actually delive
     !/only while this page is open/i.test(nativeResult.text),
     'and must not carry the web caveat, which would understate what it can do',
   );
+  memory.close();
+});
+
+// --- willow: PKCE, URL building, and SSE framing (pure logic, no network) ---
+
+test('WILLOW PKCE challenge is the S256 hash of the verifier, base64url with no padding', async () => {
+  const { verifier, challenge, method } = await generatePkce();
+  eq(method, 'S256', 'method must be S256');
+  ok(/^[A-Za-z0-9_-]+$/.test(verifier), 'verifier must be base64url with no +, / or = padding');
+  ok(/^[A-Za-z0-9_-]+$/.test(challenge), 'challenge must be base64url with no +, / or = padding');
+
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+  const expected = btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+  eq(challenge, expected, 'challenge must be the base64url SHA-256 digest of the verifier, independently recomputed');
+});
+
+test('WILLOW PKCE never reuses a verifier across calls', async () => {
+  const a = await generatePkce();
+  const b = await generatePkce();
+  ok(a.verifier !== b.verifier, 'two calls must not produce the same verifier');
+});
+
+test('WILLOW buildAuthorizeUrl carries every parameter the server needs, and nothing it was not given', () => {
+  const url = new URL(
+    buildAuthorizeUrl({
+      authorizationEndpoint: 'http://127.0.0.1:8765/authorize',
+      clientId: 'client-123',
+      redirectUri: 'http://localhost:8080/index.html',
+      challenge: 'chal-value',
+      state: 'state-value',
+    }),
+  );
+  eq(url.origin + url.pathname, 'http://127.0.0.1:8765/authorize', 'must redirect to the discovered authorization endpoint');
+  eq(url.searchParams.get('response_type'), 'code', 'must request the authorization_code flow, not implicit');
+  eq(url.searchParams.get('client_id'), 'client-123');
+  eq(url.searchParams.get('redirect_uri'), 'http://localhost:8080/index.html');
+  eq(url.searchParams.get('code_challenge'), 'chal-value');
+  eq(url.searchParams.get('code_challenge_method'), 'S256');
+  eq(url.searchParams.get('state'), 'state-value');
+});
+
+test('WILLOW parseSseJsonRpc takes the last complete JSON-RPC message in the stream', () => {
+  const text = [
+    'event: message\ndata: {"jsonrpc":"2.0","id":1,"result":{"stale":true}}',
+    'data: {"jsonrpc":"2.0","id":1,"result":{"stale":false}}',
+  ].join('\n\n');
+  const msg = parseSseJsonRpc(text);
+  eq(msg.result, { stale: false }, 'must take the final data: block, not the first');
+});
+
+test('WILLOW parseSseJsonRpc refuses a stream with no JSON-RPC message rather than returning nothing', () => {
+  let threw = false;
+  try {
+    parseSseJsonRpc('event: ping\n\n');
+  } catch {
+    threw = true;
+  }
+  ok(threw, 'a stream with no data: JSON must be an error, not a silent null result the caller mistakes for an empty answer');
+});
+
+// --- willow: the tool-runner mapping onto a fake session --------------------
+//
+// These stand in a plain object with `connected` and `callTool`, not a real
+// WillowSession — the thing worth testing here is tools.js's own mapping from
+// a willow-mcp result onto {data, text, isError}, which is real logic in this
+// repo. Whether a real WillowSession ever reaches that state is a live-network
+// question this suite cannot answer; see the file-level note above.
+
+test('WILLOW willow_whoami reports disconnected honestly before any sign-in', async () => {
+  const { memory } = await fresh();
+  const run = createToolRunner({ memory, session: 'test', willow: null });
+  const result = await run('willow_whoami', {});
+  eq(result.isError, false, 'having no willow-mcp connection is a known state, not a tool failure');
+  ok(/not connected/i.test(result.text), 'must say it is not connected rather than throwing or staying silent');
+  memory.close();
+});
+
+test('WILLOW a write tool refuses locally when disconnected, the same way a read tool does', async () => {
+  const { memory } = await fresh();
+  const run = createToolRunner({ memory, session: 'test', willow: null });
+  const result = await run('willow_dispatch_send', { to_app: 'hanuman', assignment_md: 'do the thing' });
+  ok(/not connected/i.test(result.text), 'willow_dispatch_send must not attempt a call with nothing to call');
+  memory.close();
+});
+
+test('WILLOW a willow-mcp denial surfaces as an error to the model, verbatim, not swallowed', async () => {
+  const { memory } = await fresh();
+  const fakeWillow = {
+    connected: true,
+    async callTool(name) {
+      eq(name, 'agent_clear', 'must call the underlying willow-mcp tool name, not the local jarvis-side wrapper name');
+      return { text: '{"error":"signed in but not yet bound"}', data: { error: 'signed in but not yet bound' }, isError: false };
+    },
+  };
+  const run = createToolRunner({ memory, session: 'test', willow: fakeWillow });
+  const result = await run('willow_agent_clear', { target_app: 'hanuman', dispatch_id: 'd-1' });
+  eq(result.isError, true, 'a {error: ...} result from willow-mcp is a denial and must be reported as one');
+  ok(result.text.includes('signed in but not yet bound'), "the server's own denial reason must reach the model unparaphrased");
+  memory.close();
+});
+
+test('WILLOW a successful willow-mcp read passes its filters through and surfaces the data', async () => {
+  const { memory } = await fresh();
+  const fakeWillow = {
+    connected: true,
+    async callTool(name, args) {
+      eq(name, 'dispatch_list', 'wrong underlying tool called');
+      eq(args.status, 'pending', 'a filter given to willow_dispatch_list must reach the underlying call');
+      return { text: '{"dispatches":[],"total":0}', data: { dispatches: [], total: 0 }, isError: false };
+    },
+  };
+  const run = createToolRunner({ memory, session: 'test', willow: fakeWillow });
+  const result = await run('willow_dispatch_list', { status: 'pending' });
+  eq(result.isError, false, 'a clean read must not be reported as an error');
+  eq(result.data.total, 0, 'the underlying result data must reach the caller, not just its text');
   memory.close();
 });
 
