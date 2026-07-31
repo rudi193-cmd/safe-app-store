@@ -60,6 +60,14 @@ unresolved, and a `tier: "promoted"` entry, since no promoted record carries a
 docs/store_refit_plan.md's "status-vocabulary migration" note rather than
 silently exempted.
 
+Also the store refit's P4 gate: catalog.json's top-level keys are a closed
+set (version, store, description, apps). discovery_sources — a curated
+directory of third-party hosted tools, never kept, provisioned, or promoted —
+moved to docs/discovery_sources.md, because the catalog is the shelf's stock,
+not its market research. The closed key set is what stops a new organ like it
+growing back in silently: adding one now requires updating VALID_TOP_LEVEL_KEYS
+(and this docstring), which is a decision, not a drift.
+
 Verdicts:
   ERROR — the catalog and the tree disagree; the store is lying to someone.
   WARN  — seeded app without a manifest, or similar rough edge.
@@ -97,6 +105,13 @@ VALID_RELATIONS = {
     "alternate-deploy-targets", "unrelated-bundled",
 }
 
+# P4 (docs/store_refit_plan.md): the catalog is a shelf's stock, not its
+# market research — discovery_sources moved to docs/discovery_sources.md.
+# A closed top-level key set is the gate that keeps a new organ like it from
+# growing back in without someone deciding to update this set (and this
+# docstring) to allow it.
+VALID_TOP_LEVEL_KEYS = {"version", "store", "description", "apps"}
+
 
 def lint() -> tuple[list[str], list[str]]:
     errors: list[str] = []
@@ -110,9 +125,16 @@ def lint() -> tuple[list[str], list[str]]:
     except (OSError, json.JSONDecodeError) as exc:
         return [f"catalog.json unreadable: {exc}"], warnings
 
+    for key in catalog:
+        if key not in VALID_TOP_LEVEL_KEYS:
+            errors.append(
+                f"catalog.json: unknown top-level key {key!r} — the catalog "
+                "holds apps, not a new organ; see docs/store_refit_plan.md P4"
+            )
+
     apps = catalog.get("apps")
     if not isinstance(apps, list):
-        return ['catalog.json has no "apps" list'], warnings
+        return errors + ['catalog.json has no "apps" list'], warnings
 
     seen_ids: set[str] = set()
     for entry in apps:
