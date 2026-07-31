@@ -1,17 +1,4 @@
 {
   "_comment": "Apps deliberately left without a P1 keeping record. Not a gap the coverage gate should paper over — each entry names the open question blocking the record and where it's discussed, per 'absence is a value, not a gap' (docs/store_refit_plan.md P1). Resolve by adding the app's real record to stores/{major}/stored/ and removing its entry here, not by editing this file to make the question disappear.",
-  "pending": [
-    {
-      "app_id": "the-binder",
-      "reason": "Spans python + a Cloudflare Pages static slice with no reference implementation defining correct — anchor has no principled answer for this build, per docs/store_refit_survey.md's 'Open gates' section. Recording it with an invented anchor would state something false; recording it with no anchor would misrepresent it as a differential pair.",
-      "blocked_on": "Either the relation vocabulary grows a term for this shape (a spanning build with no anchor and no differential), or this build gets a rule of its own. docs/store_refit_survey.md, section 'Open gates'.",
-      "recorded_by": "docs/store_refit_plan.md P1"
-    },
-    {
-      "app_id": "utety-chat",
-      "reason": "Spans python + rust (sidecar relation, well-defined) *and* a Cloudflare Pages web/ slice that is a legitimate deploy surface for the same product, not a second implementation of anything — a third axis the closed five-term relation vocabulary has no name for. Forcing it into 'unrelated-bundled' would misdescribe a deployed front-end as an unrelated product.",
-      "blocked_on": "Same open question as the-binder: docs/store_refit_survey.md's 'Open gates' section names both explicitly.",
-      "recorded_by": "docs/store_refit_plan.md P1"
-    }
-  ]
+  "pending": []
 }

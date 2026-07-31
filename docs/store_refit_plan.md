@@ -400,6 +400,52 @@ rest were staying two fields) pointed at merging in the first place.
   "gated means a CI-verified suite exists, not feature-complete" caveat now
   match the real values instead of the old shop words.
 
+#### The spanning-relation gap — `the-binder` and `utety-chat` · done 2026-07-31
+
+`stores/pending.json` named the open question, and `docs/store_refit_survey.md`
+("Open gates") named the two ways out: grow the relation vocabulary a sixth
+term, or give these two builds a rule of their own. **Decided explicitly: do
+neither.** Both are now recorded with `relation: "unrelated-bundled"` — the
+closest existing term, not an accurate one — and the mismatch is written into
+each record's `notes` rather than papered over:
+
+- `the-binder`: `python` + `browser`. The python side's `entry_point`
+  (`willow.server:app`) resolves nowhere in this repo, and its own README puts
+  the real backend on an external machine — confirmed by
+  `docs/store_refit_survey.md` and issue #79. The `web/` Cloudflare Pages slice
+  is the actual live product (calling Gemini/Groq, storing in browser
+  IndexedDB). `unrelated-bundled` says "two separate products bundled under one
+  `app_id`," which is close enough to describe a functioning frontend sitting
+  next to a backend that doesn't run here, without inventing an anchor or
+  claiming an equivalence ("alternate-deploy-targets") that was never verified.
+  `state: stalled`, matching the broken entry point.
+- `utety-chat`: `python` + `rust` + `browser`. The `python`/`rust` half is a
+  verified `sidecar` (the `campus/` ratatui crate spawns `campus_consult.py` as
+  a subprocess) — that fact isn't lost, it's stated plainly in the record's
+  `notes` even though the record's single `relation` field can't carry two
+  relations at once. The `browser` third axis (`web/`, a Cloudflare Pages
+  deploy) is not a competing implementation of anything, just an alternate way
+  to reach the same chat product — the shape neither `sidecar` nor
+  `alternate-deploy-targets` names. `state: gated`: it's the one of the two with
+  a real CI-verified suite (`store-ci.yml`'s `app-tests` matrix), independent of
+  the relation question.
+
+Both entries removed from `stores/pending.json` (now empty) and given real
+records at `stores/python/stored/the-binder.json` and
+`stores/python/stored/utety-chat.json` — filed under `python` on file count
+(the-binder: 5 `.py` vs. 2 in `web/`+`functions/`; utety-chat: 23 `.py` vs. 5
+`.rs` vs. ~13 in `web/`). Catalog entries for both gained a `majors` field to
+match. Verified the gates that now cover these two aren't vacuous: dropped
+`browser` from `utety-chat`'s catalog `majors`, confirmed
+`catalog_lint.py --strict` reddens with the majors-mismatch error, restored it;
+removed `the-binder`'s keeping record entirely, confirmed both the
+coverage-gap error and the lint-invariant-violation error fire, restored it.
+
+Left alone deliberately: `VALID_RELATIONS` still has five terms, not six. This
+was the operator's call, made explicit rather than assumed — the two-builds
+case didn't clear the bar for growing a vocabulary that every future spanning
+build has to live inside.
+
 ### P4 — Discovery is not the house's job · independent
 
 `discovery_sources` is the last purely-market organ: a curated directory of
@@ -461,11 +507,6 @@ have made this unrepresentable; it is corrected above.
 
 ## Open gates
 
-- **`utety-chat` and `the-binder` are not differential pairs.** The settled rule
-  covers a build whose halves check each other. A web front with a Python shim,
-  or a Pages shell, spans crafts *without* a reference implementation defining
-  correct — so `anchor` has no principled answer there, and either the relation
-  vocabulary grows a second term or those builds get a rule of their own.
 - **`llmphysics` has no manifest.** Held, unmanifested, and in the catalog. The
   record can say so; whether it stays held or is archived (§4) is the operator's.
 - **Loose repos.** `stores/README.md` admits work kept *"local, or a loose repo"*
