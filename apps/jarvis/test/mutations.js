@@ -1,0 +1,259 @@
+// Deliberate breakages, each paired with the test that must catch it.
+//
+// A gate that cannot fail is not a gate. Every claim this project makes in
+// prose — corrections land beside the record, absence is a value, provenance
+// is the weakest link, an alias makes a fact reachable — is only worth
+// something if breaking the mechanism turns a specific test red.
+//
+// `npm run test:mutations` applies each of these to the served source in turn
+// and checks the result in both directions: every gate named in `expect` must
+// fail, and no gate outside it may. The second half is what keeps the suite
+// honest — a mutation that reddens tests it did not declare means those tests
+// are entangled rather than sharp.
+//
+// `expect` is a list because some mechanisms are legitimately load-bearing for
+// several distinct behaviours. Aliases are the clear case: five separate
+// claims depend on them, so breaking aliases *should* redden five gates.
+// Forcing every mutation down to a single gate would push you to write
+// breakages so narrow they no longer correspond to a real way the code fails.
+//
+// `find` must match the source byte for byte. Applicability is checked before
+// the browser launches, because a `find` that no longer matches used to break
+// the module import and redden everything, which is indistinguishable from a
+// mutation that simply was not caught. A silently inapplicable mutation is a
+// gate that quietly stopped existing, and it is reported as a failure.
+
+export const MUTATIONS = [
+  {
+    name: 'corrections-overwrite',
+    file: 'src/memory.js',
+    describe: 'superseding deletes the prior fact instead of marking it not-live',
+    find: '        await req(store.put(retire(prior)));',
+    replace: '        await req(store.delete(row.supersedes));',
+    // Destroying the prior record breaks both the history trail and the
+    // guarantee that a corrected fact survives its own correction.
+    expect: [
+      'INVARIANT corrections land beside the record, never on top of it',
+      'search excludes retired facts and survives correction',
+    ],
+  },
+  {
+    name: 'provenance-strongest',
+    file: 'src/memory.js',
+    describe: 'a set is rated by its best-grounded fact rather than its worst',
+    find: `  return facts.reduce(
+    (worst, f) => (provenanceRank(f.provenance) < provenanceRank(worst) ? f.provenance : worst),
+    'stated',
+  );`,
+    replace: `  return facts.reduce(
+    (best, f) => (provenanceRank(f.provenance) > provenanceRank(best) ? f.provenance : best),
+    'assumed',
+  );`,
+    expect: 'INVARIANT provenance is the weakest link, not an average',
+  },
+  {
+    name: 'absence-not-stored',
+    file: 'src/memory.js',
+    describe: 'a recorded absence is written but never surfaces, collapsing it into "no record"',
+    find: '      live: 1,',
+    replace: "      live: kind === 'absence' ? 0 : 1,",
+    expect: 'INVARIANT absence is a recorded value, distinct from no record',
+  },
+  {
+    name: 'recall-ignores-limit',
+    file: 'src/memory.js',
+    describe: 'the cursor reads the whole range regardless of limit',
+    find: '          if (!cursor || out.length >= limit) return resolve();',
+    replace: '          if (!cursor) return resolve();',
+    expect: 'recall returns newest first and respects limit',
+  },
+  {
+    name: 'subject-not-normalized',
+    file: 'src/memory.js',
+    describe: 'reads use the raw subject while writes normalise it, so keys stop matching',
+    find: '      const s = normalizeSubject(subject);',
+    replace: '      const s = subject;',
+    expect: 'subject lookup is normalized on both write and read',
+  },
+  {
+    name: 'empty-recall-reads-as-denial',
+    file: 'src/tools.js',
+    describe: 'an empty recall reports a bare "none" the model can read as a denial',
+    find: `          text:
+            'No live facts matched. Note this means nothing has been recorded for that query — it is not evidence that the thing is untrue. ' +
+            'Matching is lexical, so if you expected something, try recall again with different wording before concluding it is not there.',`,
+    replace: "          text: 'No facts found.',",
+    expect: 'an empty recall tells the model it means no record, not no truth',
+  },
+  {
+    name: 'tool-errors-throw',
+    file: 'src/tools.js',
+    describe: 'a failing tool throws instead of returning a result the model can recover from',
+    find: `    try {
+      const out = await handler(input || {});
+      return { isError: false, ...out };
+    } catch (err) {
+      return { text: \`Tool "\${name}" failed: \${err.message}\`, isError: true, data: null };
+    }`,
+    replace: `    const out = await handler(input || {});
+    return { isError: false, ...out };`,
+    expect: 'tool failures come back as results, not exceptions',
+  },
+  {
+    name: 'reminder-caveat-dropped',
+    file: 'src/tools.js',
+    describe: 'the model is not told that reminders die with the tab',
+    find: "            : 'It fires only while this page is open; if the tab is closed it will be delivered when reopened.'",
+    replace: "            : ''",
+    expect: [
+      'set_reminder schedules and list_reminders sees it',
+      'BRIDGE the reminder confirmation tracks the rung that will actually deliver it',
+    ],
+  },
+  {
+    name: 'durability-claimed',
+    file: 'src/capability.js',
+    describe: 'reminders report themselves as durable when they are not',
+    find: '    durable: false,',
+    replace: '    durable: true,',
+    expect: 'an unavailable capability records why, rather than going quiet',
+  },
+  {
+    name: 'sentence-tail-dropped',
+    file: 'src/voice.js',
+    describe: 'the incomplete tail is discarded instead of carried into the next chunk',
+    find: '  return { spoken: out.filter(Boolean), rest };',
+    replace: "  return { spoken: out.filter(Boolean), rest: '' };",
+    expect: 'streamed text splits into speakable sentences and keeps the tail',
+  },
+  {
+    name: 'aliases-dropped-on-write',
+    file: 'src/text.js',
+    describe: 'aliases are accepted but never indexed, so the fact is only findable under its own words',
+    find: "  const strong = new Set([...tokenize(subject), ...aliases.flatMap((a) => tokenize(a))]);",
+    replace: '  const strong = new Set([...tokenize(subject)]);',
+    expect: [
+      'SEMANTIC search finds a fact through an alias the subject never mentions',
+      'SEMANTIC search matches across singular and plural',
+      'the write path and the read path agree on tokens',
+      'search excludes retired facts and survives correction',
+      'memory context ranks matches and labels unmatched background',
+    ],
+  },
+  {
+    name: 'ranking-ignores-rarity',
+    file: 'src/memory.js',
+    describe: 'every token scores the same, so a word in every fact outweighs a word in one',
+    find: '        const idf = Math.log(1 + total / df);',
+    replace: '        const idf = 1;',
+    expect: 'SEMANTIC a rare word outranks two common ones',
+  },
+  {
+    name: 'subject-hits-not-weighted',
+    file: 'src/memory.js',
+    describe: 'a passing mention in body text counts as much as the subject the fact is filed under',
+    find: '          entry.score += idf * (strong ? 2.5 : 1);',
+    replace: '          entry.score += idf;',
+    expect: 'SEMANTIC ranking prefers a subject hit over a passing mention',
+  },
+  {
+    name: 'ranking-not-length-normalized',
+    file: 'src/memory.js',
+    describe: 'score stays a raw sum, so a fact with many aliases wins by being large',
+    find: '        entry.score /= Math.sqrt(2.5 * strongCount + weakCount) || 1;',
+    replace: '        entry.score /= 1;',
+    expect: 'SEMANTIC a short precise fact outranks a bloated one',
+  },
+  {
+    name: 'length-normalization-over-punishes',
+    file: 'src/memory.js',
+    describe: 'divide by length instead of its square root — the opposite bias, not no bias',
+    find: '        entry.score /= Math.sqrt(2.5 * strongCount + weakCount) || 1;',
+    replace: '        entry.score /= (2.5 * strongCount + weakCount) || 1;',
+    expect: 'SEMANTIC length normalization does not punish a richly-aliased fact',
+  },
+  {
+    name: 'retired-facts-stay-searchable',
+    file: 'src/memory.js',
+    describe: 'a corrected fact keeps its index entries and keeps surfacing alongside its replacement',
+    find: '  return { ...row, live: 0, liveTokens: [] };',
+    replace: '  return { ...row, live: 0 };',
+    expect: 'search excludes retired facts and survives correction',
+  },
+  {
+    name: 'migration-backfill-skipped',
+    file: 'src/memory.js',
+    describe: 'the upgrade adds the index but never populates it, orphaning every fact already on the device',
+    find: '          cursor.update(withTokens(cursor.value));',
+    replace: '          void cursor;',
+    expect: 'MIGRATION facts written before search shipped stay findable',
+  },
+  {
+    name: 'stemmer-overreaches',
+    file: 'src/text.js',
+    describe: 'verb endings are stripped with no floor, collapsing "string" into "str"',
+    find: "  w = stripSuffix(w, 'ing', 4) ?? stripSuffix(w, 'edly', 4) ?? stripSuffix(w, 'ed', 4) ?? stripSuffix(w, 'ly', 4) ?? w;",
+    replace: "  w = stripSuffix(w, 'ing', 1) ?? stripSuffix(w, 'edly', 1) ?? stripSuffix(w, 'ed', 1) ?? stripSuffix(w, 'ly', 1) ?? w;",
+    expect: 'the stemmer refuses to collapse unrelated words',
+  },
+  {
+    name: 'read-path-skips-stemming',
+    file: 'src/memory.js',
+    describe: 'the read path inlines its own tokenizer instead of sharing the write path\'s',
+    find: '    const queryTokens = tokenize(query);',
+    replace: "    const queryTokens = String(query).toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length > 1);",
+    // Stemming and stopword removal both live in the shared tokenizer, so
+    // bypassing it costs both at once. That is the realistic shape of this
+    // mistake — someone inlines "just a quick split" on one side — and
+    // pretending it breaks only stemming would be a tidier lie.
+    expect: [
+      'SEMANTIC search matches across singular and plural',
+      'search on an all-stopword query returns nothing rather than everything',
+    ],
+  },
+  {
+    name: 'background-facts-unlabelled',
+    file: 'src/claude.js',
+    describe: 'unmatched recent facts are presented identically to ranked matches',
+    find: "    ...extra.map((f) => line(f, ' (recent)')),",
+    replace: '    ...extra.map((f) => line(f, ` (matched: ${f.subject})`)),',
+    expect: 'memory context ranks matches and labels unmatched background',
+  },
+  {
+    name: 'memory-never-injected',
+    file: 'src/claude.js',
+    describe: 'retrieval always returns nothing, so the model runs blind every turn',
+    find: '  if (!facts.length) return null;',
+    replace: '  return null;',
+    expect: 'memory context ranks matches and labels unmatched background',
+  },
+  {
+    name: 'bridge-assumes-plugin-present',
+    file: 'src/platform.js',
+    describe: 'the bridge trusts that a native shell means the plugin is there, skipping the availability check',
+    find: '  if (!isNative() || !hasPlugin(name)) return null;',
+    replace: '  if (!isNative()) return null;',
+    expect: 'BRIDGE GUARD ONLY: a plugin the shell lacks is refused even when the platform is native',
+  },
+  {
+    name: 'bridge-claims-durable-on-web',
+    file: 'src/platform.js',
+    describe: 'reminders start out claiming durability, so a browser session promises delivery it cannot make',
+    find: `    this.rung = 'in-page timer';
+    this.durable = false;`,
+    replace: `    this.rung = 'in-page timer';
+    this.durable = true;`,
+    expect: [
+      'BRIDGE reminders report themselves undurable on the web rung, with a reason',
+      'BRIDGE GUARD ONLY: a plugin the shell lacks is refused even when the platform is native',
+    ],
+  },
+  {
+    name: 'keystore-hides-web-exposure',
+    file: 'src/platform.js',
+    describe: 'the web key rung stops saying the key is readable by any script on the page',
+    find: "            : 'app-private preferences: not a native shell — any script on this page can read the key',",
+    replace: "            : 'app-private preferences: unavailable',",
+    expect: 'BRIDGE key storage falls back to localStorage and says the key is exposed',
+  },
+];
