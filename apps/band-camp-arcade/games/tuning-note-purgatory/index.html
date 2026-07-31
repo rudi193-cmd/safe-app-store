@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+<title>Tuning Note Purgatory</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #1a1a1e;
+    --fg: #f0f0f0;
+    --accent: #e0a640;
+    --muted: #8a8a92;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  .arcade-nav {
+    position: fixed;
+    top: 0.9rem;
+    left: 0.9rem;
+    font-size: 0.8rem;
+  }
+  .arcade-nav a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .arcade-nav a:hover { color: var(--accent); }
+  main {
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+  }
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem;
+  }
+  p.tagline {
+    color: var(--muted);
+    margin: 0 0 2rem;
+    font-size: 0.95rem;
+  }
+  .timer {
+    font-size: 3.2rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    margin: 1rem 0 1.5rem;
+    letter-spacing: 0.02em;
+  }
+  .instrument-picker {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .instrument-picker button {
+    background: transparent;
+    border: 1px solid var(--muted);
+    color: var(--fg);
+    border-radius: 999px;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .instrument-picker button.active {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .main-button {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    background: var(--accent);
+    color: #1a1200;
+  }
+  .main-button.playing {
+    background: #c94f4f;
+    color: #fff;
+  }
+  .glance {
+    min-height: 1.4rem;
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .glance.show { opacity: 1; }
+  .stats {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #333;
+    display: flex;
+    justify-content: space-around;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .stats strong {
+    display: block;
+    color: var(--fg);
+    font-size: 1.3rem;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+</head>
+<body>
+<nav class="arcade-nav"><a href="../../index.html">&larr; Band Camp Arcade</a></nav>
+<main>
+  <h1>Tuning Note Purgatory</h1>
+  <p class="tagline">Hit start. The note plays forever. See how long you last.</p>
+
+  <div class="instrument-picker" id="instrumentPicker">
+    <button data-wave="sine" class="active">Clarinet-ish</button>
+    <button data-wave="sawtooth">Trumpet-ish</button>
+    <button data-wave="square">Reed-ish</button>
+    <button data-wave="triangle">Flute-ish</button>
+  </div>
+
+  <div class="timer" id="timer">0:00.0</div>
+  <div class="glance" id="glance"></div>
+
+  <button class="main-button" id="mainButton">Start</button>
+
+  <div class="stats">
+    <div>Personal best<strong id="bestTime">--</strong></div>
+    <div>Last run<strong id="lastTime">--</strong></div>
+  </div>
+</main>
+
+<script>
+(() => {
+  const BB4_HZ = 466.16; // concert Bb, standard tuning note
+  const STORAGE_KEY = "tuning-purgatory-best";
+  const GLANCE_LINES = [
+    "the director is looking at you",
+    "someone in the back is definitely flat",
+    "eye contact. hold the note.",
+    "the director just tapped the stand",
+    "\"again\" energy is building",
+  ];
+
+  let audioCtx = null;
+  let oscillator = null;
+  let gainNode = null;
+  let waveType = "sine";
+  let running = false;
+  let startTime = 0;
+  let rafId = null;
+  let glanceTimeoutId = null;
+
+  const timerEl = document.getElementById("timer");
+  const mainButton = document.getElementById("mainButton");
+  const bestTimeEl = document.getElementById("bestTime");
+  const lastTimeEl = document.getElementById("lastTime");
+  const glanceEl = document.getElementById("glance");
+  const instrumentPicker = document.getElementById("instrumentPicker");
+
+  function formatTime(ms) {
+    const totalTenths = Math.floor(ms / 100);
+    const minutes = Math.floor(totalTenths / 600);
+    const seconds = Math.floor((totalTenths % 600) / 10);
+    const tenths = totalTenths % 10;
+    return `${minutes}:${String(seconds).padStart(2, "0")}.${tenths}`;
+  }
+
+  function loadBest() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const best = raw ? parseFloat(raw) : 0;
+    bestTimeEl.textContent = best > 0 ? formatTime(best) : "--";
+    return best;
+  }
+
+  function saveBestIfBetter(ms) {
+    const best = loadBest();
+    if (ms > best) {
+      localStorage.setItem(STORAGE_KEY, String(ms));
+      bestTimeEl.textContent = formatTime(ms);
+    }
+  }
+
+  function tick() {
+    const elapsed = performance.now() - startTime;
+    timerEl.textContent = formatTime(elapsed);
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function scheduleGlance() {
+    const delay = 4000 + Math.random() * 6000;
+    glanceTimeoutId = setTimeout(() => {
+      if (!running) return;
+      glanceEl.textContent = GLANCE_LINES[Math.floor(Math.random() * GLANCE_LINES.length)];
+      glanceEl.classList.add("show");
+      setTimeout(() => glanceEl.classList.remove("show"), 2200);
+      scheduleGlance();
+    }, delay);
+  }
+
+  function start() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    oscillator = audioCtx.createOscillator();
+    gainNode = audioCtx.createGain();
+    oscillator.type = waveType;
+    oscillator.frequency.value = BB4_HZ;
+    gainNode.gain.value = 0.0001;
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    oscillator.start();
+    // quick fade-in so it doesn't click
+    gainNode.gain.exponentialRampToValueAtTime(0.18, audioCtx.currentTime + 0.05);
+
+    running = true;
+    startTime = performance.now();
+    mainButton.textContent = "Stop";
+    mainButton.classList.add("playing");
+    instrumentPicker.querySelectorAll("button").forEach(b => b.disabled = true);
+    tick();
+    scheduleGlance();
+  }
+
+  function stop() {
+    if (!running) return;
+    const elapsed = performance.now() - startTime;
+    running = false;
+    cancelAnimationFrame(rafId);
+    clearTimeout(glanceTimeoutId);
+    glanceEl.classList.remove("show");
+
+    const now = audioCtx.currentTime;
+    gainNode.gain.cancelScheduledValues(now);
+    gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+    oscillator.stop(now + 0.1);
+
+    mainButton.textContent = "Start";
+    mainButton.classList.remove("playing");
+    instrumentPicker.querySelectorAll("button").forEach(b => b.disabled = false);
+
+    lastTimeEl.textContent = formatTime(elapsed);
+    saveBestIfBetter(elapsed);
+    timerEl.textContent = formatTime(elapsed);
+  }
+
+  mainButton.addEventListener("click", () => {
+    if (running) stop(); else start();
+  });
+
+  instrumentPicker.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn || running) return;
+    waveType = btn.dataset.wave;
+    instrumentPicker.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  });
+
+  loadBest();
+})();
+</script>
+</body>
+</html>

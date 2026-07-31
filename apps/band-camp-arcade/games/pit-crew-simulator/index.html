@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+<title>Pit Crew Simulator</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #1a1a1e;
+    --fg: #f0f0f0;
+    --accent: #e0a640;
+    --muted: #8a8a92;
+    --field: #1e4d2b;
+    --field-line: rgba(255,255,255,0.25);
+    --bad: #c94f4f;
+    --good: #5db56a;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  .arcade-nav {
+    position: fixed;
+    top: 0.9rem;
+    left: 0.9rem;
+    font-size: 0.8rem;
+  }
+  .arcade-nav a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .arcade-nav a:hover { color: var(--accent); }
+  main {
+    width: 100%;
+    max-width: 620px;
+    text-align: center;
+  }
+  h1 { font-size: 1.4rem; font-weight: 600; margin: 0 0 0.25rem; }
+  p.tagline { color: var(--muted); margin: 0 0 1rem; font-size: 0.9rem; }
+
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+    padding: 0 0.2rem;
+  }
+  .hud strong { color: var(--fg); font-size: 1.1rem; }
+
+  .count {
+    font-size: 2.4rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 0.6rem;
+    height: 2.6rem;
+  }
+  .count.urgent { color: var(--bad); }
+
+  .field {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 560 / 340;
+    max-width: 560px;
+    margin: 0 auto;
+    background:
+      repeating-linear-gradient(
+        90deg,
+        var(--field-line),
+        var(--field-line) 2px,
+        transparent 2px,
+        transparent 56px
+      ),
+      var(--field);
+    border: 3px solid #e8e8e8;
+    border-radius: 6px;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .target {
+    position: absolute;
+    width: 58px;
+    height: 58px;
+    margin-left: -29px;
+    margin-top: -29px;
+    border: 2px dashed rgba(255,255,255,0.55);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 0.03em;
+  }
+  .target.hit {
+    border-color: var(--good);
+    color: var(--good);
+    border-style: solid;
+  }
+
+  .instrument {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    margin-left: -25px;
+    margin-top: -25px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #1a1200;
+    background: var(--accent);
+    cursor: grab;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    transition: box-shadow 0.15s;
+  }
+  .instrument:active { cursor: grabbing; }
+  .instrument.dragging { box-shadow: 0 4px 14px rgba(0,0,0,0.6); z-index: 5; }
+  .instrument.success {
+    background: var(--good);
+    animation: pulse 0.4s ease;
+  }
+  .instrument.chaos {
+    background: var(--bad);
+    animation: flyoff 0.6s ease forwards;
+    pointer-events: none;
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+  }
+  @keyframes flyoff {
+    0% { transform: rotate(0deg) translate(0,0); opacity: 1; }
+    100% { transform: rotate(340deg) translate(80px, -120px); opacity: 0; }
+  }
+
+  .banner {
+    min-height: 1.6rem;
+    margin-top: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .banner.good { color: var(--good); }
+  .banner.bad { color: var(--bad); }
+
+  .main-button {
+    margin-top: 1rem;
+    width: 100%;
+    padding: 0.9rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    background: var(--accent);
+    color: #1a1200;
+  }
+
+  .stats {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #333;
+    display: flex;
+    justify-content: space-around;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .stats strong {
+    display: block;
+    color: var(--fg);
+    font-size: 1.3rem;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+</head>
+<body>
+<nav class="arcade-nav"><a href="../../index.html">&larr; Band Camp Arcade</a></nav>
+<main>
+  <h1>Pit Crew Simulator</h1>
+  <p class="tagline">Drag every instrument onto its spot before the count runs out.</p>
+
+  <div class="hud">
+    <div>Level <strong id="levelNum">1</strong></div>
+    <div>Score <strong id="scoreNum">0</strong></div>
+    <div>Lives <strong id="livesNum">3</strong></div>
+  </div>
+
+  <div class="count" id="countDisplay">8</div>
+
+  <div class="field" id="field"></div>
+
+  <div class="banner" id="banner"></div>
+
+  <button class="main-button" id="mainButton">Start</button>
+
+  <div class="stats">
+    <div>Best score<strong id="bestScore">0</strong></div>
+  </div>
+</main>
+
+<script>
+(() => {
+  const STORAGE_KEY = "pit-crew-best-score";
+  const INSTRUMENT_NAMES = ["MAR", "VIB", "GONG", "AUX", "SNR"];
+  const FIELD_W = 560, FIELD_H = 340;
+  const HALF_SIZE = 25;
+  const COUNTS_PER_LEVEL = 8;
+
+  const field = document.getElementById("field");
+  const countDisplay = document.getElementById("countDisplay");
+  const levelNumEl = document.getElementById("levelNum");
+  const scoreNumEl = document.getElementById("scoreNum");
+  const livesNumEl = document.getElementById("livesNum");
+  const bannerEl = document.getElementById("banner");
+  const mainButton = document.getElementById("mainButton");
+  const bestScoreEl = document.getElementById("bestScore");
+
+  let level = 1;
+  let score = 0;
+  let lives = 3;
+  let running = false;
+  let instruments = []; // { id, x, y, targetX, targetY, el, targetEl, placed }
+  let countTimer = null;
+  let countsLeft = 0;
+  let dragState = null;
+
+  function loadBest() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const best = raw ? parseInt(raw, 10) : 0;
+    bestScoreEl.textContent = best;
+    return best;
+  }
+
+  function saveBestIfBetter(finalScore) {
+    const best = loadBest();
+    if (finalScore > best) {
+      localStorage.setItem(STORAGE_KEY, String(finalScore));
+      bestScoreEl.textContent = finalScore;
+    }
+  }
+
+  function levelConfig(n) {
+    return {
+      instrumentCount: Math.min(5, n),
+      countDurationMs: Math.max(320, 620 - (n - 1) * 40),
+      snapRadius: Math.max(28, 55 - (n - 1) * 4),
+    };
+  }
+
+  function randomPoint(margin) {
+    return {
+      x: margin + Math.random() * (FIELD_W - margin * 2),
+      y: margin + Math.random() * (FIELD_H - margin * 2),
+    };
+  }
+
+  function dist(a, b) {
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+
+  function tooClose(points, candidate, minDist) {
+    return points.some(p => dist(p, candidate) < minDist);
+  }
+
+  function placeRandom(existing, minDist, margin) {
+    for (let attempt = 0; attempt < 40; attempt++) {
+      const p = randomPoint(margin);
+      if (!tooClose(existing, p, minDist)) return p;
+    }
+    return randomPoint(margin);
+  }
+
+  function clearField() {
+    field.innerHTML = "";
+    instruments = [];
+  }
+
+  function buildLevel() {
+    clearField();
+    bannerEl.textContent = "";
+    bannerEl.className = "banner";
+    const cfg = levelConfig(level);
+
+    const targetPoints = [];
+    const startPoints = [];
+
+    for (let i = 0; i < cfg.instrumentCount; i++) {
+      const target = placeRandom(targetPoints, 90, HALF_SIZE + 10);
+      targetPoints.push(target);
+      let start;
+      for (let attempt = 0; attempt < 40; attempt++) {
+        const candidate = placeRandom(startPoints, 70, HALF_SIZE + 10);
+        if (dist(candidate, target) > cfg.snapRadius + 60) { start = candidate; break; }
+      }
+      if (!start) start = placeRandom(startPoints, 70, HALF_SIZE + 10);
+      startPoints.push(start);
+
+      const name = INSTRUMENT_NAMES[i % INSTRUMENT_NAMES.length];
+
+      const targetEl = document.createElement("div");
+      targetEl.className = "target";
+      targetEl.style.left = target.x + "px";
+      targetEl.style.top = target.y + "px";
+      targetEl.textContent = name;
+      field.appendChild(targetEl);
+
+      const el = document.createElement("div");
+      el.className = "instrument";
+      el.style.left = start.x + "px";
+      el.style.top = start.y + "px";
+      el.textContent = name;
+      field.appendChild(el);
+
+      const inst = {
+        id: i, x: start.x, y: start.y,
+        targetX: target.x, targetY: target.y,
+        el, targetEl, placed: false, snapRadius: cfg.snapRadius,
+      };
+      instruments.push(inst);
+      wireDrag(inst);
+    }
+
+    countsLeft = COUNTS_PER_LEVEL;
+    countDisplay.textContent = String(countsLeft);
+    countDisplay.classList.remove("urgent");
+    levelNumEl.textContent = String(level);
+
+    return cfg;
+  }
+
+  function wireDrag(inst) {
+    inst.el.addEventListener("pointerdown", (e) => {
+      if (!running) return;
+      e.preventDefault();
+      inst.el.setPointerCapture(e.pointerId);
+      inst.el.classList.add("dragging");
+      const rect = field.getBoundingClientRect();
+      const scaleX = FIELD_W / rect.width;
+      const scaleY = FIELD_H / rect.height;
+      dragState = { inst, pointerId: e.pointerId, rect, scaleX, scaleY };
+    });
+    inst.el.addEventListener("pointermove", (e) => {
+      if (!dragState || dragState.inst !== inst || dragState.pointerId !== e.pointerId) return;
+      const { rect, scaleX, scaleY } = dragState;
+      let x = (e.clientX - rect.left) * scaleX;
+      let y = (e.clientY - rect.top) * scaleY;
+      x = Math.max(HALF_SIZE, Math.min(FIELD_W - HALF_SIZE, x));
+      y = Math.max(HALF_SIZE, Math.min(FIELD_H - HALF_SIZE, y));
+      inst.x = x; inst.y = y;
+      inst.el.style.left = x + "px";
+      inst.el.style.top = y + "px";
+    });
+    const endDrag = (e) => {
+      if (!dragState || dragState.inst !== inst) return;
+      inst.el.classList.remove("dragging");
+      dragState = null;
+    };
+    inst.el.addEventListener("pointerup", endDrag);
+    inst.el.addEventListener("pointercancel", endDrag);
+  }
+
+  function tickCount() {
+    countsLeft -= 1;
+    if (countsLeft <= 2) countDisplay.classList.add("urgent");
+    if (countsLeft <= 0) {
+      countDisplay.textContent = "SET";
+      resolveLevel();
+      return;
+    }
+    countDisplay.textContent = String(countsLeft);
+    const cfg = levelConfig(level);
+    countTimer = setTimeout(tickCount, cfg.countDurationMs);
+  }
+
+  function resolveLevel() {
+    clearTimeout(countTimer);
+    let allHit = true;
+    instruments.forEach(inst => {
+      const d = dist({ x: inst.x, y: inst.y }, { x: inst.targetX, y: inst.targetY });
+      if (d <= inst.snapRadius) {
+        inst.el.classList.add("success");
+        inst.targetEl.classList.add("hit");
+      } else {
+        inst.el.classList.add("chaos");
+        allHit = false;
+      }
+    });
+
+    if (!allHit) {
+      lives -= 1;
+      livesNumEl.textContent = String(lives);
+      bannerEl.textContent = "Something went flying — reset the spot.";
+      bannerEl.className = "banner bad";
+    } else {
+      score += 100 * instruments.length;
+      scoreNumEl.textContent = String(score);
+      bannerEl.textContent = "SET! Nice.";
+      bannerEl.className = "banner good";
+    }
+
+    running = false;
+    mainButton.disabled = false;
+
+    setTimeout(() => {
+      if (lives <= 0) {
+        gameOver();
+      } else if (allHit) {
+        level += 1;
+        mainButton.textContent = "Next level";
+      } else {
+        mainButton.textContent = "Retry level";
+      }
+    }, 900);
+  }
+
+  function gameOver() {
+    saveBestIfBetter(score);
+    bannerEl.textContent = `Game over — final score ${score}.`;
+    bannerEl.className = "banner bad";
+    mainButton.textContent = "Play again";
+    level = 1;
+    score = 0;
+    lives = 3;
+    scoreNumEl.textContent = "0";
+    livesNumEl.textContent = "3";
+  }
+
+  function startLevel() {
+    mainButton.disabled = true;
+    buildLevel();
+    running = true;
+    const cfg = levelConfig(level);
+    countTimer = setTimeout(tickCount, cfg.countDurationMs);
+    mainButton.textContent = "Placing...";
+  }
+
+  mainButton.addEventListener("click", () => {
+    startLevel();
+  });
+
+  loadBest();
+})();
+</script>
+</body>
+</html>
