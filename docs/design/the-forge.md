@@ -376,6 +376,71 @@ its actual cascade), applied to a new recipe:
   "remember choosing X here? here's what that cost" — same shape as
   `Curator.unverifiable()` surfacing something that needs a second look.
 
+**Oakenscroll's Office as a concrete mechanism for "calibration weight" —
+found 2026-08-02, proposed, not yet adopted.** The table above has named the
+thing this decision wants ever since it was first written — "calibration
+weight for future checkpoints" — without ever building a mechanism for it.
+A sibling repo already builds exactly that shape, for a different domain:
+`rudi193-cmd/oakenscrolls-office` ("Oakenscroll's Office," own design log at
+`docs/design/the-almanac.md` in this repo, written before its D1 rename) is a
+local-first calibration ledger — state a claim with a confidence (`P(true)`
+in 50–99%, direction-of-belief enforced, hedged-backwards entries refused),
+resolve it later (true / false / void), score it. `calibration.py` (stdlib
+only, dependency-free, inside the app's own no-egress zone) gives Brier
+score, log score, five-band reliability bins, and an overconfidence metric
+(mean stated confidence minus actual hit rate) — the exact shape "calibration
+weight" has been naming without a mechanism this whole time.
+
+This would be a third, distinct axis alongside D12's two already-adopted
+ones, not a replacement for either — extending the same "no overlap between
+the dependencies" division of labor D12 already states for its own two:
+
+| Question | Mechanism |
+|----------|-----------|
+| Has this builder sealed this decision-type before? | Nestor (D12) — memory |
+| Is it due for review? | py-fsrs (D9, above) — schedule |
+| When this builder claims they understood something, how well does that confidence actually track reality? | Oakenscroll's Office's `calibration.py` — calibration |
+
+The fit is closer than a surface resemblance: this section's own
+"Resurfacing" bullet, directly above, already describes the
+state-a-claim → wait → resolve → learn loop Oakenscroll's Office implements
+end to end ("when a past decision's consequence becomes visible later...
+that's a natural point to resurface the original checkpoint"). The app
+already has the ledger shape this needs (immutable `predictions` +
+append-only `events`, current state derived rather than stored — the same
+"verify, don't assert" ethic this repo's own stores already follow), the
+resolution mechanic (`t`/`f`/`o` grading, optional evidence citation), and
+the scoring math this design has so far only gestured at.
+
+**What adopting this would actually require deciding — not something this
+finding hands over for free:**
+- **What resolves a checkpoint claim as true or false.** A world prediction
+  resolves against an external event; a design decision has no equally
+  obvious "the world weighed in" moment. The candidates already named
+  elsewhere in this section — a bug later traced to the choice, a security
+  review flagging what the checkpoint should have caught, `reject_pair`/
+  `reject_match` firing on the sealed decision (D12) — are the plausible
+  resolution triggers, but which one(s) actually resolve a claim, and
+  whether that happens automatically or needs a human grading action (the
+  same keypress Oakenscroll's Office itself requires), is undecided.
+- **What "confidence" even means for a checkpoint**, as opposed to a world
+  claim. Oakenscroll's Office's confidence is the builder's own stated
+  `P(true)`, typed in directly. A checkpoint's calibration signal is more
+  likely something derived — how thorough the follow-up answer was, whether
+  a lighter-touch confirm or a full Socratic pass was needed — not a number
+  a builder states the way a prediction's confidence is. This needs its own
+  shape, not a direct transplant of Oakenscroll's Office's claim model.
+- **Vendored inference math, or an adopted dependency.** `calibration.py` is
+  roughly 70 lines, stdlib-only, dependency-free — closer to "vendor the
+  inference path," the precedent `utety/core/mastery.py` already sets for
+  vendoring ~40 lines of BKT inference out of a sibling repo, than to "adopt
+  the whole app" the way D12 adopted Nestor. Oakenscroll's Office's ledger,
+  TUI, and web mirror are a separate, standalone product; only the scoring
+  math is obviously reusable here.
+
+Not resolved here — a real finding worth a real design pass, not a decision
+to make unilaterally mid-audit-session. See Open/next.
+
 ### D10 — Three audit trails, not one conflated system
 
 The count crept from two to three across fixes without ever being written
@@ -531,6 +596,14 @@ general-purpose/federation-shaped, heavier than D5 needs.
   confidence mechanism is bespoke, unpublished as a library. Design
   inspiration only, not a candidate dependency, as already noted in
   `VISION.md`.
+- **Oakenscroll's Office** (`rudi193-cmd/oakenscrolls-office`, in-house, not
+  an OSS package) — found 2026-08-02. Its `calibration.py` (Brier score, log
+  score, reliability bins, an overconfidence metric) is the strongest
+  concrete match found for "calibration weight" specifically, as opposed to
+  py-fsrs/sm-2/py-irt/openskill's shared focus on scheduling and ability
+  estimation. See D9's own dated addendum, above, for the fit, the
+  division-of-labor alongside D12's Nestor and this section's own py-fsrs,
+  and what adopting it would still require deciding. Not yet adopted.
 
 ## Adopted dependencies (2026-07-31)
 
@@ -879,6 +952,13 @@ Pin Nestor at promotion time the way terpsi's `FLEET-READS.md` pins Nestor SHA.
   and "just write it" is asserted, not drawn. Needs a working pass over real
   build sessions to find where it actually falls before this is more than a
   guess.
+- **Whether to adopt Oakenscroll's Office's `calibration.py` for D9's
+  "calibration weight"** (found 2026-08-02, see D9's own dated addendum) — a
+  real, concrete candidate now identified where none existed before, but
+  what actually *resolves* a checkpoint claim as true/false, and what
+  "confidence" even means for a design decision rather than a world
+  prediction, are both undecided. Not something to guess at blind — the same
+  reason D8's own UX and the D7 routing shape stayed undelegated this round.
 - **Checkpoint fatigue has no escape hatch yet.** D8 is deliberately pure
   Socratic per the call that shaped it, but a genuine beginner facing their
   first unsealed checkpoint on every decision-type in a session could stall
