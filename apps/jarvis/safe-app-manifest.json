@@ -30,6 +30,12 @@
       "purpose": "The user's Anthropic key",
       "retention": "until cleared in the app or by clearing site data",
       "description": "localStorage, which is readable by any script on the page. The capability ladder reports this rung by name rather than calling it secure storage; the Capacitor build can reach a better rung and has not been run."
+    },
+    {
+      "id": "willow_session",
+      "purpose": "An optional connection to a willow-mcp orchestrator instance the user points this app at",
+      "retention": "until disconnected in settings or cleared by clearing site data",
+      "description": "The willow-mcp base URL, the dynamically-registered OAuth client_id, and the discovered authorize/token endpoints are non-secret and sit in localStorage. The OAuth access and refresh tokens go through the same key-storage rung the Anthropic key uses (app-private preferences natively, localStorage on the web). Nothing here is present until the user opens settings and signs in; see notes.willow."
     }
   ],
   "permissions": [
@@ -39,7 +45,7 @@
   ],
   "privacy_tier": "mixed",
   "local_processing": 0.0,
-  "network": "outbound: api.anthropic.com (model inference), plus the browser's own speech-recognition service — see notes.speech",
+  "network": "outbound: api.anthropic.com (model inference), the browser's own speech-recognition service — see notes.speech — and, only if the user configures one in settings, a willow-mcp instance's HTTP+OAuth serve endpoint at a URL the user supplies — see notes.willow",
   "entry_point": "index.html",
   "license": "Apache-2.0",
   "notes": {
@@ -49,6 +55,7 @@
     "speech": "Chrome and Safari implement SpeechRecognition against a SERVER-SIDE recognition service, so holding to talk sends audio off the device to the browser vendor as well as sending the transcript to Anthropic. This is documented engine behaviour rather than something measured here — provenance: assumed — and jarvis's own README did not mention it before this re-land. Firefox has no SpeechRecognition at all, so on Firefox there is no speech egress and no speech input.",
     "store_scope": "Deliberately absent. field-acoustics and marching-arts declare a store_scope because they read and write the shared SOIL store. This app touches neither SOIL nor the vault — its storage is browser IndexedDB and localStorage, on the user's own machine. Declaring an empty or unused scope would be a claim about a surface that does not exist.",
     "android": "apps/jarvis/android/ is a real Capacitor project and has NEVER BEEN COMPILED. No APK exists. The bridge is checked statically against the installed plugin definitions — 37 checks — which proves the symbols exist and proves nothing about the device. Committed rather than dropped, because dropping it would hide the gap instead of closing it.",
-    "ci_blind_spots": "This is the first app in the store with no Python in it, and every store-floor scanner globs *.py. The four drift-guard suites therefore skip it. tools/vault_leak_lint.py did something worse: it enumerated the app, opened none of its files, found no findings, and printed PASS jarvis (no local persistence) -- a green line whose second half is flatly false, since this app persists facts, reminders and an API key. That now reports UNKNOWN instead, with tests/test_vault_lint_vacuous_scan.py holding it. The floor still reads no line of this app's JavaScript; the difference is that it no longer claims to have."
+    "ci_blind_spots": "This is the first app in the store with no Python in it, and every store-floor scanner globs *.py. The four drift-guard suites therefore skip it. tools/vault_leak_lint.py did something worse: it enumerated the app, opened none of its files, found no findings, and printed PASS jarvis (no local persistence) -- a green line whose second half is flatly false, since this app persists facts, reminders and an API key. That now reports UNKNOWN instead, with tests/test_vault_lint_vacuous_scan.py holding it. The floor still reads no line of this app's JavaScript; the difference is that it no longer claims to have.",
+    "willow": "src/willow.js is an OAuth 2.1 + PKCE + dynamic-client-registration client for willow-mcp's --serve mode, plus a minimal MCP JSON-RPC caller over its streamable-http transport. It is unconfigured and inert until the user enters a willow-mcp URL in settings and signs in. What is measured: the PKCE generation, the authorize-URL construction, and the SSE/JSON-RPC framing, by the suite. What is assumed, not measured: the discovered or guessed endpoint paths, the popup OAuth round trip, and token refresh — none of this has run against a live willow-mcp instance from this environment, which has no Google/Apple credentials and no willow-mcp process to test against. willow-mcp's own docs/design/human-orchestrator.md establishes that a signed-in, operator-bound session is gated entirely server-side (identity comes from the OAuth binding, never from anything this app asserts), so a bug in this client can misbehave or fail loudly but cannot grant itself standing it was not bound to."
   }
 }

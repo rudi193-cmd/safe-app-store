@@ -63,6 +63,20 @@
           <span>Speak replies aloud</span>
         </label>
 
+        <h3>Willow orchestrator</h3>
+        <label for="willow-base-url">willow-mcp serve URL</label>
+        <input id="willow-base-url" type="text" placeholder="http://127.0.0.1:8765" autocomplete="off" spellcheck="false" />
+        <p class="fine" id="willow-status">Not connected.</p>
+        <p class="fine">
+          Signs in with your own Google/Apple account against a willow-mcp instance running with <code>--serve</code>.
+          This session acts only as whatever identity the operator has bound it to on the host
+          (<code>willow-mcp confirm-binding</code>) — Jarvis cannot grant itself any standing.
+        </p>
+        <menu>
+          <button type="button" id="willow-connect" class="ghost">Sign in</button>
+          <button type="button" id="willow-disconnect" class="ghost">Disconnect</button>
+        </menu>
+
         <h3>Capabilities</h3>
         <ul id="capabilities" class="caps"></ul>
 

@@ -6,6 +6,20 @@ import { Listener, Speaker, sentences } from './voice.js';
 import { TOOL_DEFS, QUIET_TOOLS, createToolRunner } from './tools.js';
 import { Assistant, buildMemoryContext } from './claude.js';
 import { createPlatform } from './platform.js';
+import { WillowSession, handleOAuthRedirect } from './willow.js';
+
+// A sign-in popup reloads this same page with `?code=...` in the query
+// string. Its only job is to hand that back to the window that opened it and
+// close — running the rest of boot() in the popup would stand up a second
+// Memory/IndexedDB connection and UI for a window that is about to
+// disappear.
+if (handleOAuthRedirect()) {
+  // The popup already handed its result to window.opener and called
+  // window.close() inside handleOAuthRedirect(). Throwing here stops the
+  // rest of this module — mic binding, a second Memory connection, boot() —
+  // from running in a window that is already on its way out.
+  throw new Error('willow-mcp sign-in popup: handed off to opener, closing');
+}
 
 const $ = (id) => document.getElementById(id);
 const KEY_STORE = 'jarvis.apiKey';
@@ -29,6 +43,10 @@ const els = {
   memoryList: $('memory-list'),
   memoryProvenance: $('memory-provenance'),
   wipe: $('wipe'),
+  willowBaseUrl: $('willow-base-url'),
+  willowStatus: $('willow-status'),
+  willowConnect: $('willow-connect'),
+  willowDisconnect: $('willow-disconnect'),
 };
 
 const caps = probeAll();
@@ -36,6 +54,9 @@ const memory = new Memory();
 // Resolved at boot. Every rung is decided once and then reported, so the app
 // never has to guess whether it is running in a tab or a native shell.
 let platform = null;
+// Resolved at boot, once platform.keys exists — see boot(). null until then,
+// same pattern as platform itself.
+let willow = null;
 const speaker = new Speaker();
 const session = `s-${Date.now().toString(36)}`;
 
@@ -105,6 +126,12 @@ function renderCapabilities() {
     }
     els.capabilities.append(li);
   }
+}
+
+function renderWillowStatus() {
+  els.willowStatus.textContent = willow?.connected
+    ? `Signed in to ${willow.baseUrl}. This only proves a token was stored, not that it still works — ask "who are you connected as" to check.`
+    : 'Not connected.';
 }
 
 async function renderMemory() {
@@ -191,6 +218,7 @@ async function ask(userText) {
   const runTool = createToolRunner({
     memory,
     session,
+    willow,
     remindersDurable: Boolean(platform?.reminders.durable),
     onReminderScheduled: async (row) => {
       // Hand it to the OS when we can. `schedule` returns false on the web
@@ -302,8 +330,35 @@ els.settingsToggle.addEventListener('click', () => {
   els.apiKey.value = cachedKey || '';
   els.effort.value = localStorage.getItem(EFFORT_STORE) || 'low';
   els.speakToggle.checked = localStorage.getItem(SPEAK_STORE) !== 'off';
+  els.willowBaseUrl.value = willow?.baseUrl || '';
+  renderWillowStatus();
   renderCapabilities();
   els.settings.showModal();
+});
+
+els.willowConnect.addEventListener('click', async () => {
+  if (!willow) {
+    els.willowStatus.textContent = 'Still starting up — try again in a moment.';
+    return;
+  }
+  const baseUrl = els.willowBaseUrl.value.trim();
+  if (!baseUrl) {
+    els.willowStatus.textContent = 'Enter a willow-mcp serve URL first.';
+    return;
+  }
+  els.willowStatus.textContent = 'Opening sign-in…';
+  try {
+    await willow.signIn(baseUrl);
+    renderWillowStatus();
+  } catch (err) {
+    els.willowStatus.textContent = `Sign-in failed: ${err.message}`;
+  }
+});
+
+els.willowDisconnect.addEventListener('click', async () => {
+  if (!willow) return;
+  await willow.signOut();
+  renderWillowStatus();
 });
 
 els.settings.addEventListener('close', async () => {
@@ -354,6 +409,10 @@ async function boot() {
     notes: platform.keys.notes,
   };
   cachedKey = await platform.keys.get(KEY_STORE);
+  // Loads any config + tokens saved from a previous sign-in. A missing or
+  // expired token surfaces the first time a willow_ tool is actually called,
+  // not here — this just restores what was stored.
+  willow = await new WillowSession({ keys: platform.keys }).load();
   speaker.enabled = localStorage.getItem(SPEAK_STORE) !== 'off';
   bindMic();
   renderCapabilities();
@@ -372,7 +431,7 @@ async function boot() {
   // transactions, index cursors) have no Node equivalent, so a Node-only
   // suite would be asserting against a stand-in that never runs in
   // production. See test/README notes in jarvis/README.md.
-  window.__jarvis = { memory, caps, ask, history, createToolRunner, session, buildMemoryContext, platform };
+  window.__jarvis = { memory, caps, ask, history, createToolRunner, session, buildMemoryContext, platform, willow };
   document.body.dataset.ready = '1';
 }
 
