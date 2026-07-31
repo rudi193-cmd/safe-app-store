@@ -111,10 +111,104 @@ export const TOOL_DEFS = [
       },
     },
   },
+  {
+    name: 'willow_whoami',
+    description:
+      'Report the fleet identity this session is signed in as: the resolved app_id, permissions, and whether this is the human-only orchestrator seat. Call this when the user asks what account Jarvis is connected as, or before any other willow_ tool call if you are not sure the connection is live. If not signed in, the result says so — that is not an error to route around.',
+    input_schema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'willow_dispatch_list',
+    description:
+      'List fleet dispatch packets (work assigned between agents), newest first. Call this when the user asks what work is in flight, what is pending, or what a given agent is working on. Read-only.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        to_app: { type: 'string', description: 'Filter to packets assigned to this agent. Omit for no filter.' },
+        from_app: { type: 'string', description: 'Filter to packets sent by this agent. Omit for no filter.' },
+        status: { type: 'string', description: 'Filter by status, e.g. "pending", "working", "complete". Omit for no filter.' },
+        limit: { type: 'integer', description: 'Max packets to return. Defaults to 20.' },
+      },
+    },
+  },
+  {
+    name: 'willow_dispatch_read',
+    description:
+      'Read one dispatch packet in full: who assigned it, to whom, its phase and priority, current status, and the complete assignment brief. Call this when the user asks about a specific dispatch by id, or after willow_dispatch_list surfaces one worth reading in full. Read-only.',
+    input_schema: {
+      type: 'object',
+      properties: { dispatch_id: { type: 'string', description: 'The dispatch packet id, as returned by willow_dispatch_list.' } },
+      required: ['dispatch_id'],
+    },
+  },
+  {
+    name: 'willow_verify_handoff',
+    description:
+      'Check a completed dispatch\'s handoff: whether its closeout exists and its declarations actually hold (checklist resolved, envelope clean, findings present). Call this when the user asks whether an agent\'s work is actually done, before considering willow_agent_clear. Read-only — it checks, it does not release anything.',
+    input_schema: {
+      type: 'object',
+      properties: { dispatch_id: { type: 'string', description: 'The dispatch packet id to verify.' } },
+      required: ['dispatch_id'],
+    },
+  },
+  {
+    name: 'willow_dispatch_send',
+    description:
+      'Assign a work packet to another agent in the fleet. This is a write against the orchestrator seat — call it only when the user has explicitly directed you to send this specific assignment, never on your own initiative. willow-mcp gates who may actually complete this: if this session is not bound to the human-orchestrator identity, expect and report the denial rather than retrying.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        to_app: { type: 'string', description: 'The agent this work is assigned to.' },
+        assignment_md: { type: 'string', description: 'The full assignment brief the specialist will read, in markdown.' },
+        role: { type: 'string', description: 'The role the specialist should take for this packet, if the fleet distinguishes one.' },
+        summary: { type: 'string', description: 'One-line summary of the assignment, for listings.' },
+        phase: { type: 'string', description: 'Defaults to "operate" if omitted.' },
+        priority: { type: 'string', description: 'Defaults to "normal" if omitted.' },
+      },
+      required: ['to_app', 'assignment_md'],
+    },
+  },
+  {
+    name: 'willow_agent_clear',
+    description:
+      'Release a specialist agent after its handoff has been verified, clearing it for its next packet. This is a write against the orchestrator seat — call it only when the user has explicitly asked to clear this specific agent for this specific dispatch, and only after willow_verify_handoff, never on your own judgement that work "looks done". willow-mcp gates who may actually complete this and will report a denial rather than a fabricated success if this session lacks the standing.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        target_app: { type: 'string', description: 'The agent being cleared.' },
+        dispatch_id: { type: 'string', description: 'The dispatch packet id being closed out.' },
+      },
+      required: ['target_app', 'dispatch_id'],
+    },
+  },
 ];
 
 /** Tool names whose results should never be spoken aloud verbatim. */
-export const QUIET_TOOLS = new Set(['recall', 'list_reminders', 'get_context']);
+export const QUIET_TOOLS = new Set([
+  'recall',
+  'list_reminders',
+  'get_context',
+  'willow_whoami',
+  'willow_dispatch_list',
+  'willow_dispatch_read',
+  'willow_verify_handoff',
+]);
+
+// The app_id argument every willow-mcp tool call requires. In serve mode
+// (which is the only mode a browser tab can reach — see src/willow.js) the
+// server ignores this and resolves the real identity from the signed-in
+// session's operator-confirmed binding instead, so this is a placeholder to
+// satisfy the schema, not a claim about who the call runs as.
+const WILLOW_CALL_APP_ID = 'jarvis';
+
+/** Normalizes a WillowSession#callTool result into the {data, text, isError} shape the UI expects. */
+function fromWillowResult(result) {
+  if (result.isError) return { data: result.data, text: result.text, isError: true };
+  if (result.data && typeof result.data === 'object' && result.data.error) {
+    return { data: result.data, text: `willow-mcp: ${result.data.error}`, isError: true };
+  }
+  return { data: result.data ?? result.text, text: result.data ? JSON.stringify(result.data, null, 2) : result.text };
+}
 
 async function readContext({ include_location = false } = {}) {
   const now = new Date();
@@ -194,6 +288,11 @@ export function createToolRunner({
   // the opposite depending on the answer, and the model can only get that
   // right if it is told which one is true right now.
   remindersDurable = false,
+  // The WillowSession from src/willow.js, or null/undefined when the user
+  // has never connected one. Optional because everything above this
+  // parameter predates willow-mcp integration and must keep working with no
+  // fleet connection at all.
+  willow = null,
 }) {
   const handlers = {
     async remember(input) {
@@ -270,6 +369,54 @@ export function createToolRunner({
     async get_context(input) {
       const ctx = await readContext(input || {});
       return { data: ctx, text: JSON.stringify(ctx, null, 2) };
+    },
+
+    async willow_whoami() {
+      if (!willow?.connected) {
+        return { data: null, text: 'Not connected to willow-mcp. Tell the user to open settings and sign in.' };
+      }
+      const result = await willow.callTool('whoami', { app_id: WILLOW_CALL_APP_ID });
+      return fromWillowResult(result);
+    },
+
+    async willow_dispatch_list(input = {}) {
+      if (!willow?.connected) {
+        return { data: null, text: 'Not connected to willow-mcp. Tell the user to open settings and sign in.' };
+      }
+      const result = await willow.callTool('dispatch_list', { app_id: WILLOW_CALL_APP_ID, ...input });
+      return fromWillowResult(result);
+    },
+
+    async willow_dispatch_read(input) {
+      if (!willow?.connected) {
+        return { data: null, text: 'Not connected to willow-mcp. Tell the user to open settings and sign in.' };
+      }
+      const result = await willow.callTool('dispatch_read', { app_id: WILLOW_CALL_APP_ID, ...input });
+      return fromWillowResult(result);
+    },
+
+    async willow_verify_handoff(input) {
+      if (!willow?.connected) {
+        return { data: null, text: 'Not connected to willow-mcp. Tell the user to open settings and sign in.' };
+      }
+      const result = await willow.callTool('verify_handoff', { app_id: WILLOW_CALL_APP_ID, ...input });
+      return fromWillowResult(result);
+    },
+
+    async willow_dispatch_send(input) {
+      if (!willow?.connected) {
+        return { data: null, text: 'Not connected to willow-mcp. Tell the user to open settings and sign in.' };
+      }
+      const result = await willow.callTool('dispatch_send', { app_id: WILLOW_CALL_APP_ID, ...input });
+      return fromWillowResult(result);
+    },
+
+    async willow_agent_clear(input) {
+      if (!willow?.connected) {
+        return { data: null, text: 'Not connected to willow-mcp. Tell the user to open settings and sign in.' };
+      }
+      const result = await willow.callTool('agent_clear', { app_id: WILLOW_CALL_APP_ID, ...input });
+      return fromWillowResult(result);
     },
   };
 

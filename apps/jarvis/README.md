@@ -5,7 +5,7 @@ talk, get an answer read back. It remembers things about you between sessions,
 and it can act — set reminders, read the device clock and battery, look things
 up in its own memory.
 
-No backend, no build step, no accounts. One HTML file, eight modules, and a
+No backend, no build step, no accounts. One HTML file, nine modules, and a
 vendored copy of the Anthropic SDK. Wraps as a native app with Capacitor
 without a rewrite — same source, one bridge module.
 
@@ -99,12 +99,56 @@ recall, and the memory sheet colour-codes it.
 | `forget` | Retire a fact from live results. The record survives. |
 | `set_reminder` / `list_reminders` | Schedule and list. See the durability caveat below. |
 | `get_context` | Local time and timezone, network, battery, and — only on request, only after a permission prompt — location rounded to ~1km. |
+| `willow_whoami`, `willow_dispatch_list`, `willow_dispatch_read`, `willow_verify_handoff`, `willow_dispatch_send`, `willow_agent_clear` | Only live once the user signs in to a willow-mcp orchestrator in settings. See "The willow orchestrator connection" below. |
 
 Relevant memory is injected on every turn as a mid-conversation `role: "system"`
 message rather than being spliced into the system prompt. Two reasons: editing
 the system prompt each turn would change the front of the prompt prefix and
 throw away the cache, and memory arriving through the operator channel cannot be
 spoofed by anything that reaches the transcript.
+
+## The willow orchestrator connection (optional)
+
+`src/willow.js` lets this app act as a client of a
+[willow-mcp](https://github.com/rudi193-cmd/willow-mcp) instance running with
+`--serve` — the fleet's HTTP + OAuth 2.1 transport for its orchestrator seat,
+as opposed to the stdio transport every other willow-mcp client speaks. Unset
+until the user enters a URL in settings and signs in; nothing here changes
+behaviour otherwise.
+
+**Why a browser tab can reach this at all.** The other integration this store
+documents for driving a SAFE app — `docs/conventions/web-serve-flags.md`'s
+`--serve` stdio JSON — needs a process host with a filesystem and a shell,
+which a browser tab structurally does not have. willow-mcp's `--serve` mode is
+a different thing: an OAuth 2.1 resource server with dynamic client
+registration (RFC 7591) and PKCE, reachable over plain HTTP. This app
+registers itself as a public client, sends the user through a sign-in popup
+against the operator's own Google or Apple account, and calls the fleet's MCP
+tools over its `streamable-http` transport with a bearer token — no stdio, no
+process host, nothing beyond what any browser can already do.
+
+**Why signing in does not hand this app orchestrator authority on its own.**
+willow-mcp's `docs/design/human-orchestrator.md` (LOCKED) restricts the
+orchestrator seat's write tools to a human operator, specifically to close off
+a prompt-injection path where a specialist agent could self-declare `app_id`
+and act as `willow`. In serve mode the effective identity is resolved
+**server-side**, from the signed-in session's identity binding — a record only
+the operator can create, on the host, by running `willow-mcp confirm-binding`,
+which is deliberately not exposed as an MCP tool at all. Signing in here only
+proves this browser session is the same Google/Apple account the operator
+used; whether that grants nothing, read access, or the orchestrator seat's own
+authority is entirely the operator's call, made once, out of band. This app
+cannot request, negotiate, or widen that — it can only report what the server
+says, including its denials, verbatim.
+
+**What is measured versus assumed.** The suite tests the parts that do not
+need a network: PKCE generation, the authorize-URL shape, the SSE/JSON-RPC
+framing, and how a willow-mcp result (including a denial) maps onto a tool
+result. What it cannot test, because this environment has no willow-mcp
+process and no Google/Apple credentials to sign in with: endpoint discovery
+against a real server, the popup round trip, and token refresh. Treat every
+network path in `src/willow.js` as unverified until it has actually completed
+a sign-in against a running instance.
 
 ## Deliberate choices worth knowing about
 
@@ -282,11 +326,15 @@ there is no speech input at all.
   only when missing would be worse than not building: a stale directory passes
   the packaging checks forever, which is indistinguishable from the packaging
   step working.
-- **suite** — 36 tests, covering the claims this README makes. Three are named
-  `INVARIANT`, four `SEMANTIC`, and one `MIGRATION` — that last one builds a
-  store in the old schema by hand and opens it at the current version, because
-  the upgrade path is the only place where a mistake destroys data already on
-  someone's device rather than just failing loudly.
+- **suite** — 45 tests, covering the claims this README makes. Three are named
+  `INVARIANT`, four `SEMANTIC`, one `MIGRATION`, and nine `WILLOW` — that last
+  group is the pure PKCE/URL/framing logic in `src/willow.js` plus the
+  tool-runner's mapping of a willow-mcp result, against a fake session; see
+  "The willow orchestrator connection" above for what it does not cover. The
+  `MIGRATION` test builds a store in the old schema by hand and opens it at
+  the current version, because the upgrade path is the only place where a
+  mistake destroys data already on someone's device rather than just failing
+  loudly.
 
 The suite runs in a browser rather than Node because a Node run would need an
 IndexedDB shim, and the shim would then be the thing under test while the real
@@ -302,7 +350,10 @@ asserts two things per mutation: the matching test goes red, **and no other test
 does**. The second half is the interesting one. A mutation that reddens half the
 suite means the tests are entangled, not that they are sharp.
 
-All 24 mutations are caught, cleanly. The list is in `test/mutations.js`.
+All 24 mutations are caught, cleanly. The list is in `test/mutations.js`. None
+of them touch `src/willow.js` or the `willow_*` tool handlers — those nine
+`WILLOW` tests are unmutated, so this suite has not proven they can fail the
+way the rest of it has. Recorded here rather than left to be discovered.
 
 **These three figures went stale between a change and its README**, which is
 the ordinary way it happens: length normalization added two tests and two
@@ -352,6 +403,7 @@ src/tools.js          tool definitions + client-side handlers
 src/capability.js     ladders with notes[]
 src/voice.js          speech in/out, sentence chunking
 src/platform.js       the Capacitor bridge — the whole of the native wrap
+src/willow.js         willow-mcp orchestrator client: OAuth PKCE + DCR, MCP over streamable-http
 src/app.js            wiring
 vendor/anthropic.js   Anthropic SDK, bundled for the browser (npm run bundle)
 test/                 Playwright driver, suite, mutations, conformance, static server
@@ -403,13 +455,19 @@ and `--strict` still gates on `FAIL` alone so no build outcome moved.
 The floor still reads none of this app's JavaScript. The difference is that it
 no longer claims to have.
 
-The app's own suite has three holes, unchanged by the move and listed above in
-full: **no test sends an Anthropic request**, **no test drives speech
-recognition**, and **no APK has ever been built** — `android/` is committed and
-has never been compiled. The mutation pass proves the gates that exist can fail.
-It says nothing about the three surfaces that have no gates at all.
+The app's own suite has four holes, listed above in full: **no test sends an
+Anthropic request**, **no test drives speech recognition**, **no APK has ever
+been built** — `android/` is committed and has never been compiled — and **no
+test signs in to a real willow-mcp instance**, so discovery, dynamic client
+registration, the OAuth popup, and token refresh are all unverified by
+anything that runs in CI. The mutation pass proves the gates that exist can
+fail. It says nothing about the four surfaces that have no gates at all, and
+the willow-mcp path additionally has no mutation coverage even for the parts
+that are tested — see "The gates" above.
 
-Provenance, since this app makes claims about propagating it: the CI numbers are
-`measured`, the speech egress is `assumed` from documented engine behaviour, and
-the native half is neither — it is `assumed` in the weaker sense of never having
-run. By `min()`, the app is worth its weakest input.
+Provenance, since this app makes claims about propagating it: the CI numbers
+are `measured`, the speech egress is `assumed` from documented engine
+behaviour, the native half is `assumed` in the weaker sense of never having
+run, and the willow-mcp network paths are the same — `assumed` against the MCP
+Authorization spec and willow-mcp's own route names, never `measured` against
+a live server. By `min()`, the app is worth its weakest input.
