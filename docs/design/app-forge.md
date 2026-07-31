@@ -161,6 +161,78 @@ decision that shows up in the manifest like any other permission, and only
 default). No silent egress; a build that never declares cloud fallback never
 gets network, sandboxed or not.
 
+### D8 — Decisions are Socratic checkpoints, not silent choices
+
+Every time the model is about to make a design/implementation decision on the
+builder's behalf — a schema shape, a library choice, an auth flow, an
+error-handling strategy, an algorithm — it stops and poses the decision as a
+question with real options and their tradeoffs, before writing anything. The
+builder answers; the code that gets written matches their answer, not the
+model's default. This is deliberately slower than "write it and explain
+after" — the point is that the builder is making the call, not rubber-stamping
+one made for them.
+
+Scope note, so this doesn't collapse into asking about every variable name: a
+"decision" here is anything with a real design consequence — the kind of
+choice a domain expert would have an opinion about, not syntax. Where exactly
+that line sits is unresolved (see Open/next) but the interaction *mode* isn't:
+once something is identified as a decision, it's always asked first, not
+explained after.
+
+### D9 — Checkpoints wire into the ecosystem's existing verification-as-learning loop
+
+`VISION.md`'s Pattern 2 already runs through six apps: every human verification
+event (approve a translation, confirm a citation, rate a flashcard) both
+improves the corpus and fires an SRS review for the verifier. App Forge adds a
+seventh row rather than inventing a parallel mechanism:
+
+| App | Verification event | What gets learned |
+|-----|--------------------|--------------------|
+| App Forge | Confirm a design/implementation decision (D8) | This builder's grasp of the pattern; a personal decision ledger; calibration weight for future checkpoints |
+
+Concretely, this is Nestor's mechanic (not just its signing/keyring modules —
+its actual cascade), applied to a new recipe:
+
+- **Matcher**: `normalize(decision)` → a canonical decision-type key (e.g.
+  `"auth-flow-for-user-facing-form"`, `"schema-normalization-tradeoff"`).
+  Wording varies more than intent here, so this likely wants
+  `SemanticMatcher`, not `StringMatcher`.
+- **Seal**: once a builder has answered a checkpoint and demonstrated they
+  understood the tradeoff (not just picked an option — explained why, or
+  answered a follow-up), that decision-type is sealed **for that builder**.
+- **Serve**: the next time a similar decision recurs *for that same builder*,
+  Nestor's tier-1 hit fires — the checkpoint gets lighter (a confirm-only:
+  "you've handled this before, going with X, say so if not") instead of a
+  fresh full Socratic pass. A builder who hasn't sealed that decision-type yet
+  still gets the full question. This is the SRS-spacing effect, for free, from
+  a mechanism this ecosystem already trusts.
+- **Domain scoping matters**: the seal domain must be `(builder_id,
+  decision_type)`, never just `decision_type` globally. A global seal would
+  mean one builder's learning silently skips teaching for everyone else — the
+  opposite of the point. Each builder's calibration is their own.
+- **Resurfacing**: when a past decision's consequence becomes visible later
+  (a bug traced to a schema choice, a security review flags a skipped
+  validation), that's a natural point to resurface the original checkpoint —
+  "remember choosing X here? here's what that cost" — same shape as
+  `Curator.unverifiable()` surfacing something that needs a second look.
+
+### D10 — The pedagogy ledger and the trust gate (D4) are related but distinct
+
+Two different ledgers, not one conflated system:
+
+- **D4's gate** answers "is this manifest signed by who it claims, unaltered
+  since." Authorization.
+- **D9's checkpoint ledger** answers "did this builder actually engage with
+  the decisions in their own build." Pedagogy / attribution quality.
+
+They meet at one point worth naming: D4's manifest signature binds
+`(app_id, permissions, store_scope, maker)` — a maker signs off on what their
+build does. D9's ledger is what makes that attestation *mean* something
+rather than being a nominal click-through: a maker who sealed the checkpoints
+behind their own manifest actually reasoned through what they're vouching for.
+Not a hard dependency between the two systems, but the gate is more honest
+when it exists.
+
 ## Reused patterns (not reinvented)
 
 - **The seam** (`safe-app-installer.md` D3–D5) — sandbox does the dangerous
@@ -178,6 +250,22 @@ gets network, sandboxed or not.
 
 ## Open / next
 
+- **Where exactly "a decision" starts** (D8) — the line between "ask first"
+  and "just write it" is asserted, not drawn. Needs a working pass over real
+  build sessions to find where it actually falls before this is more than a
+  guess.
+- **Checkpoint fatigue has no escape hatch yet.** D8 is deliberately pure
+  Socratic per the call that shaped it, but a genuine beginner facing their
+  first unsealed checkpoint on every decision-type in a session could stall
+  out before anything ships. Worth deciding whether "I don't know, you
+  choose" is a legitimate answer that still seals *as a taught decision*
+  (builder saw the tradeoff, deferred deliberately) versus something that
+  should block progress.
+- **Whether Nestor becomes an actual dependency, not just D4's pattern
+  reference** — D9's checkpoint ledger is much closer to Nestor's actual
+  domain (matching a query against a memory of confirmed answers) than D4's
+  gate is. Stronger case here for `pip install nestor` and a real
+  `EntityResolver`-shaped recipe than for D4's borrow-the-shape approach.
 - **Multi-user auth is the actual prerequisite for D6**, and isn't sketched
   yet. Does the store issue its own session tokens with a tenant claim, or
   extend `willow-mcp`'s OAuth provider to carry one? Given D1 (store owns
