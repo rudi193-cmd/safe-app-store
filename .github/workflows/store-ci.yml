@@ -85,10 +85,18 @@ jobs:
         # refusal. Nothing else in the repo exercises --record — no promotion
         # record has been minted yet — so without this step the entire write
         # path would ship having never run anywhere.
+        #
+        # test_p3_generated_catalog_fields.py is P3's gate: a catalog entry's
+        # tier/majors/state must agree with what stores/ actually holds, so
+        # the catalog stops being hand-authorable for those three fields.
+        #
+        # test_catalog_location.py guards P3's other half: the real catalog
+        # lives at .willow/store/catalog.json now: the root catalog.json is a
+        # pointer, and must never grow back into a second copy of the data.
         run: |
           python -m pip install --upgrade pip
           pip install pytest
-          python -m pytest tests/test_no_raw_soil_reads.py tests/test_no_fstring_schema_sql.py tests/test_no_inline_vault_root.py tests/test_no_unauthenticated_bind.py tests/test_promote_check.py tests/test_promote_check_record.py tests/test_vault_lint_vacuous_scan.py tests/test_tier_vocabulary.py tests/test_p1_keeping_records.py -q
+          python -m pytest tests/test_no_raw_soil_reads.py tests/test_no_fstring_schema_sql.py tests/test_no_inline_vault_root.py tests/test_no_unauthenticated_bind.py tests/test_promote_check.py tests/test_promote_check_record.py tests/test_vault_lint_vacuous_scan.py tests/test_tier_vocabulary.py tests/test_p1_keeping_records.py tests/test_p3_generated_catalog_fields.py tests/test_catalog_location.py -q
 
   app-tests:
     runs-on: ubuntu-latest

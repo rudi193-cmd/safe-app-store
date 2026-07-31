@@ -35,6 +35,13 @@ records at stores/{major}/stored/<app_id>.json:
                  stalled, archived) — never invented, same discipline as
                  status above.
 
+Also the store refit's P3 gate: a catalog entry's `tier`/`majors`/`state` must
+agree with what stores/ actually holds. In scope only for entries with a path
+that are not `status: archived` — pathless loose-repo entries and archived
+entries are unchanged, per docs/store_refit_plan.md's own scoping. This is
+what makes the catalog **generated**: nobody hand-types these three fields
+correctly, because nothing but the keeping record can make them agree with it.
+
 Verdicts:
   ERROR — the catalog and the tree disagree; the store is lying to someone.
   WARN  — coming_soon app without a manifest, or similar rough edge.
@@ -67,7 +74,9 @@ def lint() -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
 
-    catalog_path = REPO / "catalog.json"
+    # P3 (docs/store_refit_plan.md, rule 9): the real catalog lives in
+    # .willow/store/; the root catalog.json is a pointer, not a stale copy.
+    catalog_path = REPO / ".willow" / "store" / "catalog.json"
     try:
         catalog = json.loads(catalog_path.read_text())
     except (OSError, json.JSONDecodeError) as exc:
@@ -134,6 +143,10 @@ def lint() -> tuple[list[str], list[str]]:
     record_errors, record_warnings = lint_records()
     errors.extend(record_errors)
     warnings.extend(record_warnings)
+
+    generated_errors, generated_warnings = lint_generated_fields(apps)
+    errors.extend(generated_errors)
+    warnings.extend(generated_warnings)
 
     return errors, warnings
 
@@ -241,6 +254,123 @@ def lint_records() -> tuple[list[str], list[str]]:
             errors.append(
                 f"{app_id}: no keeping record and not listed in stores/pending.json"
             )
+
+    return errors, warnings
+
+
+def _load_pending_ids() -> set[str]:
+    p = REPO / "stores" / "pending.json"
+    if not p.is_file():
+        return set()
+    try:
+        data = json.loads(p.read_text())
+    except json.JSONDecodeError:
+        return set()
+    return {e.get("app_id") for e in data.get("pending", []) if e.get("app_id")}
+
+
+def _load_stored_records() -> dict[str, dict]:
+    out: dict[str, dict] = {}
+    for major in sorted(_real_majors()):
+        for record_path in sorted((REPO / "stores" / major / "stored").glob("*.json")):
+            try:
+                rec = json.loads(record_path.read_text())
+            except json.JSONDecodeError:
+                continue
+            if rec.get("app_id"):
+                out[rec["app_id"]] = rec
+    return out
+
+
+def _load_promoted_records() -> dict[str, tuple[str, dict]]:
+    out: dict[str, tuple[str, dict]] = {}
+    for major in sorted(_real_majors()):
+        for record_path in sorted((REPO / "stores" / major / "promoted").glob("*.json")):
+            try:
+                rec = json.loads(record_path.read_text())
+            except json.JSONDecodeError:
+                continue
+            if rec.get("app_id"):
+                out[rec["app_id"]] = (major, rec)
+    return out
+
+
+def lint_generated_fields(apps: list[dict]) -> tuple[list[str], list[str]]:
+    """P3's gate (docs/store_refit_plan.md): a catalog entry's `tier`,
+    `majors`, and `state` must agree with what stores/ actually holds.
+
+    Scope, deliberately narrow: only entries that have a `path` and are not
+    `status: archived` are checked. Archived entries keep the old shop
+    vocabulary and nothing else (rule 4: archive, don't delete — some have no
+    apps/ directory left to derive anything from). Pathless, non-archived
+    entries (loose external repos like `grove`/`willow-grove`) are also out of
+    scope here for the same reason P1 left them out of the keeping record: a
+    build the house cannot reach cannot have its majors or state measured from
+    the tree, and docs/store_refit_plan.md's own "Open gates" section already
+    names this as unresolved rather than something to guess at here.
+
+    This function checks *consistency*, not existence: by the time an entry
+    reaches here, P1's `lint_records()` has already guaranteed every apps/
+    build has exactly one keeping record or a reasoned pending entry — the
+    branch below that fires when neither is found should be unreachable, and
+    it errors loudly rather than silently if it ever isn't.
+    """
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    pending_ids = _load_pending_ids()
+    stored = _load_stored_records()
+    promoted = _load_promoted_records()
+
+    for entry in apps:
+        app_id = entry.get("id")
+        if not app_id or not entry.get("path") or entry.get("status") == "archived":
+            continue
+
+        if app_id in pending_ids:
+            if entry.get("tier") != "playground":
+                errors.append(
+                    f"{app_id}: tier should be 'playground' (pending keeping "
+                    f"record) but is {entry.get('tier')!r}"
+                )
+            continue
+
+        if app_id in stored:
+            rec = stored[app_id]
+            if entry.get("tier") != "playground":
+                errors.append(
+                    f"{app_id}: tier should be 'playground' but is {entry.get('tier')!r}"
+                )
+            if entry.get("majors") != rec.get("majors"):
+                errors.append(
+                    f"{app_id}: catalog majors {entry.get('majors')!r} != "
+                    f"keeping record's {rec.get('majors')!r}"
+                )
+            if entry.get("state") != rec.get("state"):
+                errors.append(
+                    f"{app_id}: catalog state {entry.get('state')!r} != "
+                    f"keeping record's {rec.get('state')!r}"
+                )
+            continue
+
+        if app_id in promoted:
+            major, _rec = promoted[app_id]
+            if entry.get("tier") != "promoted":
+                errors.append(
+                    f"{app_id}: tier should be 'promoted' but is {entry.get('tier')!r}"
+                )
+            if entry.get("majors") != [major]:
+                errors.append(
+                    f"{app_id}: catalog majors {entry.get('majors')!r} != "
+                    f"[{major!r}] from its promoted record"
+                )
+            continue
+
+        errors.append(
+            f"{app_id}: has a path but no keeping record, no promoted record, "
+            f"and is not in stores/pending.json — lint_records() should have "
+            f"already caught this; investigate before trusting either gate"
+        )
 
     return errors, warnings
 
