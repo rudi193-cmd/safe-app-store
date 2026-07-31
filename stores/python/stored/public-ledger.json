@@ -1,0 +1,13 @@
+{
+  "app_id": "public-ledger",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/public-ledger",
+  "maker": "USER",
+  "lane": null,
+  "state": "stalled",
+  "notes": "Entry point (safe_integration:status) resolves only into _archived/ — dead code its own README says nothing imports, per docs/store_refit_survey.md."
+}

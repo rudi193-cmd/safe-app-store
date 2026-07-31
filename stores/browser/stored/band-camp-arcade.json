@@ -1,0 +1,13 @@
+{
+  "app_id": "band-camp-arcade",
+  "majors": [
+    "browser"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/band-camp-arcade",
+  "maker": "USER",
+  "lane": null,
+  "state": "gated",
+  "notes": "Five static HTML/JS games, no backend, no build step."
+}

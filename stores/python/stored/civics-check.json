@@ -1,0 +1,13 @@
+{
+  "app_id": "civics-check",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/civics-check",
+  "maker": "USER",
+  "lane": null,
+  "state": "gated",
+  "notes": null
+}

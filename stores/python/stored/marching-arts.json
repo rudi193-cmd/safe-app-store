@@ -1,0 +1,16 @@
+{
+  "app_id": "marching-arts",
+  "majors": [
+    "python",
+    "node"
+  ],
+  "relation": "differential-paired",
+  "anchor": "python",
+  "location": "apps/marching-arts",
+  "maker": "USER",
+  "lane": [
+    "marching_arts_*"
+  ],
+  "state": "gated",
+  "notes": "browser/test/gen_reference.py: \"if the two disagree, Python is right by construction.\" 27,528+ differential comparisons."
+}
