@@ -1,0 +1,13 @@
+{
+  "app_id": "story-timeline",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/story-timeline",
+  "maker": "Professor Oakenscroll / Vishwakarma",
+  "lane": "user-{uuid}/story-timeline/**",
+  "state": "gated",
+  "notes": "Declares reach as sap_scope, a legacy key, not store_scope — a real declared lane a store_scope-only reader would miss entirely, per docs/store_refit_survey.md."
+}

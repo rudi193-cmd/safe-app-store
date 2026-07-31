@@ -1,0 +1,13 @@
+{
+  "app_id": "source-trail",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/source-trail",
+  "maker": "USER",
+  "lane": null,
+  "state": "gated",
+  "notes": "Has a dedicated, passing CI workflow (gated = a real CI-verified suite exists) but docs/app_store_vision_and_gaps.md describes the product itself as Postgres-only and non-functional offline as of 2026-06-08 — gated is not a claim of feature completeness."
+}

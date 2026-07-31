@@ -1,0 +1,13 @@
+{
+  "app_id": "law-gazelle",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/law-gazelle",
+  "maker": "SAFE App Store",
+  "lane": null,
+  "state": "gated",
+  "notes": null
+}
