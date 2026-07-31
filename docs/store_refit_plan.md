@@ -517,18 +517,40 @@ Resolved as record-both, plus the relation, filed under the anchor major. The
 first draft of P1's gate asserted *"no build appears under two majors"* and would
 have made this unrepresentable; it is corrected above.
 
-## Open gates
+## Open gates — all three resolved
 
-- **`llmphysics` has no manifest.** Held, unmanifested, and in the catalog. The
-  record can say so; whether it stays held or is archived (§4) is the operator's.
-- **Loose repos.** `stores/README.md` admits work kept *"local, or a loose repo"*
-  — outside this tree. `grove` points at `safe-app-grove`, which does not appear
-  in the account's repo list. A keeping record for something the house cannot
-  reach is a claim; decide whether unreachable means *archived* or *pending*.
-- **Who witnesses?** P2 makes `verified_by ≠ author` mechanical, which is only
-  meaningful if there is a second hand. Single-operator fleets have exactly the
-  problem that auto-approve had in grove #29 — worth deciding deliberately
-  rather than discovering when the first promotion is refused.
+- **`llmphysics` has no manifest.** — **Already resolved, doc was just stale.**
+  This bullet described a decision that had, in fact, already been made: P1
+  gave `llmphysics` a real keeping record (`stores/browser/stored/llmphysics.json`,
+  `state: archived`) noting the manifest is in the wrong dialect
+  (`safe-app-manifest.js`, not missing), and the status-vocabulary migration
+  left its catalog `status: archived` unchanged. Caught during the
+  documentation-accuracy pass (2026-07-31): this section itself had drifted
+  from the tree — the exact class of problem the rest of that pass fixed
+  elsewhere.
+- **Loose repos.** — **Resolved 2026-07-31: pending, not archived.** `grove`
+  and `willow-grove` are named in `stores/pending.json` with a reason
+  (unreachable from this account) and a `blocked_on` (repo becomes reachable,
+  or the operator later decides unreachable should mean archived instead).
+  New gate: `tools/catalog_lint.py`'s `lint_loose_repos()` requires every
+  pathless, non-archived, `repository`-bearing catalog entry to be named in
+  `stores/pending.json` or have a real keeping record — a claim about code the
+  house cannot reach is worse than an explicit, reasoned absence.
+  `tests/test_loose_repos.py` proves it; verified against the real repo by
+  removing `grove`'s pending entry and watching the gate redden, then
+  restoring it.
+- **Who witnesses?** — **Resolved 2026-07-31, documented rather than
+  mechanized.** `promote_check.py`'s `verified_by ≠ author` check is exactly
+  what it looks like: a string-inequality convention, satisfiable by typing
+  any second name into the field — not proof of independent review. The
+  operator's explicit call: leave it as-is rather than gate it against an
+  allowlist of recognized reviewers, because the alternative (blocking every
+  promotion until a second real reviewer is configured) stops a
+  single-operator fleet from ever promoting anything. Stated plainly here so
+  the gap is a known, accepted trade-off rather than something discovered the
+  first time a promotion is refused: for a single operator, this check forces
+  a deliberate second pass, and that is what it verifies — not that a
+  different person made it.
 
 ---
 
