@@ -17,7 +17,9 @@ Local-first apps built on the SAFE framework. No ports. No servers. No subscript
 | [law-gazelle](apps/law-gazelle/) | coming soon | Legal case management and document analysis |
 | [civics-check](apps/civics-check/) | beta | America's 250th civics fair — naturalization test, pavilion quizzes, offline Python TUI |
 
-See [`catalog.json`](catalog.json) for the full catalog.
+See [`.willow/store/catalog.json`](.willow/store/catalog.json) for the full
+catalog — the root [`catalog.json`](catalog.json) is a pointer to it, not a
+copy (`docs/store_refit_plan.md` P3).
 
 ## Run any app
 
@@ -34,9 +36,11 @@ cd apps/story-timeline
 
 ## Add an app to the store
 
-1. Create `apps/<your-app>/` with `app.py`, `requirements.txt`, `safe-app-manifest.json`
-2. Add entry to `catalog.json`
-3. PR or push
+1. Create `apps/<your-app>/` with `app.py`, `requirements.txt`, `safe-app-manifest.json` — this is the playground (`CLAUDE.md` §5), a contested tier, not yet a standing app.
+2. Add a catalog entry: `id`, `name`, `description`, `status`, `path`, `tags` in [`.willow/store/catalog.json`](.willow/store/catalog.json). Don't hand-write `tier`, `majors`, or `state` — those are generated from step 3 and `catalog_lint.py --strict` will reject them if they disagree with it.
+3. Add a keeping record at `stores/<major>/stored/<your-app>.json` (`docs/store_refit_plan.md` P1) — `app_id`, `majors`, `location`, `maker`, `lane`, `state`. See any existing record under `stores/*/stored/` for the shape.
+4. Run `python tools/catalog_lint.py --strict` before pushing — it checks steps 2 and 3 agree with each other and with `apps/`.
+5. PR or push
 
 ## Architecture
 

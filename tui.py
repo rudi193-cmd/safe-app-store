@@ -28,7 +28,9 @@ logging.basicConfig(
 _log = logging.getLogger("store_tui")
 
 _REPO_ROOT = pathlib.Path(__file__).resolve().parent
-_CATALOG_PATH = _REPO_ROOT / "catalog.json"
+# P3 (docs/store_refit_plan.md, rule 9): the real catalog lives in
+# .willow/store/; the root catalog.json is a pointer, not a stale copy.
+_CATALOG_PATH = _REPO_ROOT / ".willow" / "store" / "catalog.json"
 _CONSENT_PATH = _DATA_DIR / "store_consent.json"
 _SAFE_APPS_ROOT = pathlib.Path.home() / "github" / "SAFE" / "Applications"
 
