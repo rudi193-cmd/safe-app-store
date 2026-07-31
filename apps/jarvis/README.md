@@ -142,11 +142,13 @@ cannot request, negotiate, or widen that — it can only report what the server
 says, including its denials, verbatim.
 
 **What is measured versus assumed.** The suite tests the parts that do not
-need a network: PKCE generation, the authorize-URL shape, the SSE/JSON-RPC
-framing, and how a willow-mcp result (including a denial) maps onto a tool
-result. What it cannot test, because this environment has no willow-mcp
-process and no Google/Apple credentials to sign in with: endpoint discovery
-against a real server, the popup round trip, and token refresh. Treat every
+need a real network: PKCE generation, the authorize-URL shape, the
+SSE/JSON-RPC framing, discovery and dynamic client registration against a
+mocked `fetch`, and how a willow-mcp result (including a denial) maps onto a
+tool result — all with mutation coverage proving those checks can actually
+fail. What it cannot test, because this environment has no willow-mcp process
+and no Google/Apple credentials to sign in with: a real discovery document,
+the popup round trip, and token refresh. Treat every
 network path in `src/willow.js` as unverified until it has actually completed
 a sign-in against a running instance.
 
@@ -326,15 +328,16 @@ there is no speech input at all.
   only when missing would be worse than not building: a stale directory passes
   the packaging checks forever, which is indistinguishable from the packaging
   step working.
-- **suite** — 45 tests, covering the claims this README makes. Three are named
-  `INVARIANT`, four `SEMANTIC`, one `MIGRATION`, and nine `WILLOW` — that last
-  group is the pure PKCE/URL/framing logic in `src/willow.js` plus the
-  tool-runner's mapping of a willow-mcp result, against a fake session; see
-  "The willow orchestrator connection" above for what it does not cover. The
-  `MIGRATION` test builds a store in the old schema by hand and opens it at
-  the current version, because the upgrade path is the only place where a
-  mistake destroys data already on someone's device rather than just failing
-  loudly.
+- **suite** — 49 tests, covering the claims this README makes. Three are named
+  `INVARIANT`, four `SEMANTIC`, one `MIGRATION`, and thirteen `WILLOW` — that
+  last group is the pure PKCE/URL/framing logic in `src/willow.js`,
+  `discoverMetadata`/`registerClient` against a mocked `fetch`, and the
+  tool-runner's mapping of a willow-mcp result against a fake session; see
+  "The willow orchestrator connection" above for what it still does not
+  cover. The `MIGRATION` test builds a store in the old schema by hand and
+  opens it at the current version, because the upgrade path is the only
+  place where a mistake destroys data already on someone's device rather
+  than just failing loudly.
 
 The suite runs in a browser rather than Node because a Node run would need an
 IndexedDB shim, and the shim would then be the thing under test while the real
@@ -350,10 +353,14 @@ asserts two things per mutation: the matching test goes red, **and no other test
 does**. The second half is the interesting one. A mutation that reddens half the
 suite means the tests are entangled, not that they are sharp.
 
-All 24 mutations are caught, cleanly. The list is in `test/mutations.js`. None
-of them touch `src/willow.js` or the `willow_*` tool handlers — those nine
-`WILLOW` tests are unmutated, so this suite has not proven they can fail the
-way the rest of it has. Recorded here rather than left to be discovered.
+All 34 mutations are caught, cleanly. The list is in `test/mutations.js`. Ten
+of them are `WILLOW`-tagged — PKCE hashing, the authorize URL's advertised
+method, which end of the SSE stream wins, the discovery fallback's `res.ok`
+check, dynamic client registration's public-client claim and its handling of
+a failed registration, and three of the tool-runner's own guard/mapping
+mechanisms. What is still unmutated is exactly what is still untested against
+a live server: the popup round trip and token refresh — see "The willow
+orchestrator connection" above.
 
 **These three figures went stale between a change and its README**, which is
 the ordinary way it happens: length normalization added two tests and two
@@ -458,12 +465,12 @@ no longer claims to have.
 The app's own suite has four holes, listed above in full: **no test sends an
 Anthropic request**, **no test drives speech recognition**, **no APK has ever
 been built** — `android/` is committed and has never been compiled — and **no
-test signs in to a real willow-mcp instance**, so discovery, dynamic client
-registration, the OAuth popup, and token refresh are all unverified by
-anything that runs in CI. The mutation pass proves the gates that exist can
-fail. It says nothing about the four surfaces that have no gates at all, and
-the willow-mcp path additionally has no mutation coverage even for the parts
-that are tested — see "The gates" above.
+test signs in to a real willow-mcp instance**, so a real discovery document,
+the OAuth popup, and token refresh are all unverified by anything that runs in
+CI (discovery's *fallback* path and dynamic client registration are mutation-tested
+against a mocked `fetch`, which is a different and weaker claim than a live
+server exercising them). The mutation pass proves the gates that exist can
+fail. It says nothing about the four surfaces that have no gates at all.
 
 Provenance, since this app makes claims about propagating it: the CI numbers
 are `measured`, the speech egress is `assumed` from documented engine
