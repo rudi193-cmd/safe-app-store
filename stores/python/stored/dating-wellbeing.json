@@ -1,0 +1,13 @@
+{
+  "app_id": "dating-wellbeing",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/dating-wellbeing",
+  "maker": "USER",
+  "lane": null,
+  "state": "stalled",
+  "notes": "Postgres-only, no working UI, broken entry point (dating_wellbeing.main:app resolves nowhere) per both survey docs."
+}

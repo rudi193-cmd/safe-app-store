@@ -70,10 +70,17 @@ jobs:
         # keep naming the lower tier the same way ("playground") and keep
         # stating, verbatim, that stores/{major}/stored/ holds a keeping
         # record rather than a second copy of the code.
+        #
+        # test_p1_keeping_records.py unit-tests catalog_lint.py's
+        # lint_records() (P1's gate) against a synthetic repo, proving each
+        # check — coverage, duplicates, majors, relation/anchor, location,
+        # state — can actually catch its violation. The "Catalog gate" step
+        # above only proves the real repo is currently clean; this proves the
+        # checks aren't vacuous.
         run: |
           python -m pip install --upgrade pip
           pip install pytest
-          python -m pytest tests/test_no_raw_soil_reads.py tests/test_no_fstring_schema_sql.py tests/test_no_inline_vault_root.py tests/test_no_unauthenticated_bind.py tests/test_promote_check.py tests/test_vault_lint_vacuous_scan.py tests/test_tier_vocabulary.py -q
+          python -m pytest tests/test_no_raw_soil_reads.py tests/test_no_fstring_schema_sql.py tests/test_no_inline_vault_root.py tests/test_no_unauthenticated_bind.py tests/test_promote_check.py tests/test_vault_lint_vacuous_scan.py tests/test_tier_vocabulary.py tests/test_p1_keeping_records.py -q
 
   app-tests:
     runs-on: ubuntu-latest

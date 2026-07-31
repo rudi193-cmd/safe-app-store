@@ -1,0 +1,14 @@
+{
+  "app_id": "llmphysics-bot",
+  "majors": [
+    "python",
+    "node"
+  ],
+  "relation": "alternate-deploy-targets",
+  "anchor": null,
+  "location": "apps/llmphysics-bot",
+  "maker": "USER",
+  "lane": null,
+  "state": "archived",
+  "notes": "PRAW-Python vs Devvit-Node, \"pick one — they do the same thing\" per docs/store_refit_survey.md. Contains gerald-bot, a self-described untested scaffold under an archived app_id — see survey for the one-record-two-things finding. Filed under node (18 files vs 6)."
+}

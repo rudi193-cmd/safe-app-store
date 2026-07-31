@@ -47,6 +47,14 @@ in each store is the enrollment; those two are the graduation.
 | [`go/`](go/) | Bubble Tea · Charm | — |
 | [`cpp/`](cpp/) | C++ tools & apps | — |
 | [`obsidian/`](obsidian/) | Obsidian plugins & vaults | — |
+| [`browser/`](browser/) | Static HTML/JS, client-only, no backend | — |
+
+`browser` was added in the store refit's P1 (`docs/store_refit_plan.md`):
+`docs/store_refit_survey.md` measured that forcing jarvis, `band-camp-arcade`,
+and the Cloudflare Pages slices of a few other builds into `node` would state
+something false — a bundler-built Node CLI and a single self-contained HTML
+file with no build step are not the same craft. *"The majors list has a gap,
+not these builds."*
 
 The list is open — a store is added when someone brings a craft to build in. The
 `tui-design` skill (`.agents/skills/tui-design`) already carries per-ecosystem
