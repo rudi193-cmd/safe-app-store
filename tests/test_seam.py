@@ -21,6 +21,7 @@ sap_gate = seam.sap_gate
 Plan = seam.Plan
 FileWrite = seam.FileWrite
 McpCall = seam.McpCall
+McpRegistry = seam.McpRegistry
 
 
 def _manifest(**overrides):
@@ -51,7 +52,7 @@ def test_full_pipeline_writes_the_file(tmp_path):
     written_path = Path(report["written"][0])
     assert written_path == (apps_root / "alice" / "widget" / "app.py").resolve()
     assert written_path.read_text() == "print(1)\n"
-    assert report["deferred_mcp_calls"] == []
+    assert report["allowed_mcp_calls"] == []
 
 
 def test_executable_flag_sets_the_mode(tmp_path):
@@ -64,7 +65,24 @@ def test_executable_flag_sets_the_mode(tmp_path):
     assert mode & 0o111  # at least one execute bit set
 
 
-def test_mcp_call_entries_are_deferred_not_executed(tmp_path):
+def _nestor_registry():
+    reg = McpRegistry()
+    reg.register("nestor", launch_command=["nestor", "serve"], allowed_tools=["nestor_ask", "nestor_propose"])
+    return reg
+
+
+def test_mcp_call_with_no_registry_supplied_is_denied_by_default(tmp_path):
+    """D5's default-deny holds at the seam's own boundary, not just inside
+    a registry that happens to exist — no registry means nothing crosses."""
+    ks, ledger, apps_root = _rig(tmp_path)
+    signed = sap_gate.sign_manifest(_manifest(), builder_id="alice", keystore=ks, ledger=ledger)
+    plan = Plan(app_name="widget", entries=(McpCall(server="nestor", tool="nestor_ask", args={}),))
+
+    with pytest.raises(seam.SeamError, match="no registry was supplied"):
+        seam.cross(signed_manifest=signed, plan=plan, keystore=ks, ledger=ledger, apps_root=apps_root)
+
+
+def test_allowlisted_mcp_call_is_allowed_but_not_executed(tmp_path):
     ks, ledger, apps_root = _rig(tmp_path)
     signed = sap_gate.sign_manifest(_manifest(), builder_id="alice", keystore=ks, ledger=ledger)
     plan = Plan(app_name="widget", entries=(
@@ -72,10 +90,39 @@ def test_mcp_call_entries_are_deferred_not_executed(tmp_path):
         McpCall(server="nestor", tool="nestor_ask", args={"q": "hi"}),
     ))
 
-    report = seam.cross(signed_manifest=signed, plan=plan, keystore=ks, ledger=ledger, apps_root=apps_root)
+    report = seam.cross(signed_manifest=signed, plan=plan, keystore=ks, ledger=ledger,
+                         apps_root=apps_root, mcp_registry=_nestor_registry())
 
-    assert len(report["written"]) == 1  # only the file_write crossed
-    assert report["deferred_mcp_calls"] == [{"server": "nestor", "tool": "nestor_ask"}]
+    assert len(report["written"]) == 1  # only the file_write actually crosses
+    assert report["allowed_mcp_calls"] == [{"server": "nestor", "tool": "nestor_ask"}]
+
+
+def test_mcp_call_for_a_withheld_tool_denies_the_whole_plan(tmp_path):
+    """nestor_seal is never on the registry's allowlist — same shape as
+    nestor.serve.Server's own WITHHELD set. A FileWrite entry alongside it
+    must NOT cross either: one bad entry denies the whole plan, same
+    all-or-nothing posture as the scope check and the scan."""
+    ks, ledger, apps_root = _rig(tmp_path)
+    signed = sap_gate.sign_manifest(_manifest(), builder_id="alice", keystore=ks, ledger=ledger)
+    plan = Plan(app_name="widget", entries=(
+        FileWrite(dest_path="app.py", content="x = 1\n"),
+        McpCall(server="nestor", tool="nestor_seal", args={}),
+    ))
+
+    with pytest.raises(seam.SeamError, match="not on server"):
+        seam.cross(signed_manifest=signed, plan=plan, keystore=ks, ledger=ledger,
+                    apps_root=apps_root, mcp_registry=_nestor_registry())
+    assert not (apps_root / "alice" / "widget" / "app.py").exists()
+
+
+def test_mcp_call_to_an_unregistered_server_is_denied(tmp_path):
+    ks, ledger, apps_root = _rig(tmp_path)
+    signed = sap_gate.sign_manifest(_manifest(), builder_id="alice", keystore=ks, ledger=ledger)
+    plan = Plan(app_name="widget", entries=(McpCall(server="some-other-server", tool="anything", args={}),))
+
+    with pytest.raises(seam.SeamError, match="not registered"):
+        seam.cross(signed_manifest=signed, plan=plan, keystore=ks, ledger=ledger,
+                    apps_root=apps_root, mcp_registry=_nestor_registry())
 
 
 def test_unsigned_manifest_is_denied_before_anything_crosses(tmp_path):
