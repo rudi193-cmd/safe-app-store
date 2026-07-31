@@ -70,12 +70,17 @@ def test_a_real_leak_still_fails(tmp_path):
     assert got["verdict"] == "FAIL", got
 
 
-def test_the_store_has_exactly_one_unknown_and_it_is_jarvis():
-    """Named rather than counted loosely: if a second non-Python app lands, this
-    fails and someone reads the sentence above instead of adding a row."""
+def test_the_store_has_exactly_two_unknowns_band_camp_arcade_and_jarvis():
+    """Named rather than counted loosely: if a third non-Python app lands, this
+    fails and someone reads the sentence above instead of adding a row.
+
+    band-camp-arcade joined jarvis as the store's second Python-free app —
+    five static HTML/JS games, no backend. Same reasoning as jarvis: this
+    checker reads *.py and nothing else, so it correctly has nothing to read
+    here, and UNKNOWN says so rather than a vacuous PASS."""
     apps = sorted(d for d in (REPO / "apps").iterdir() if d.is_dir())
     unknown = [d.name for d in apps if lint.lint_app(d)["verdict"] == "UNKNOWN"]
-    assert unknown == ["jarvis"], unknown
+    assert unknown == ["band-camp-arcade", "jarvis"], unknown
 
 
 def test_the_module_is_not_broken_shut(tmp_path):

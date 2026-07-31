@@ -1,0 +1,64 @@
+name: band-camp-arcade
+
+# Tier 2, per docs/ci.md: this app is not Python (five static HTML/JS pages,
+# no backend), so it cannot join the app-tests matrix in store-ci.yml — that
+# matrix installs requirements.txt and runs pytest, and this app has neither.
+# jarvis.yml is the worked example for this exact case.
+#
+# Single OS. The suite drives real Web Audio and Pointer Events in Chromium;
+# running the same Chromium on three operating systems would triple the cost
+# to re-test the same engine.
+
+on:
+  push:
+    paths:
+      - "apps/band-camp-arcade/**"
+      - ".github/workflows/band-camp-arcade.yml"
+  pull_request:
+    paths:
+      - "apps/band-camp-arcade/**"
+      - ".github/workflows/band-camp-arcade.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/band-camp-arcade/package-lock.json
+
+      - name: Install
+        working-directory: apps/band-camp-arcade
+        env:
+          # The browser is installed by the next step from the pinned
+          # playwright, not by npm's postinstall. Same reasoning as
+          # store-ci.yml's browser jobs and jarvis.yml.
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+        run: npm ci
+
+      - name: Install Chromium
+        working-directory: apps/band-camp-arcade
+        run: npx playwright install --with-deps chromium
+
+      - name: Suite
+        working-directory: apps/band-camp-arcade
+        # Five suites, one per game, 18 assertions total, in a real Chromium
+        # against a real static server (test/serve.js's mutation-aware twin).
+        run: npm test
+
+      - name: Mutation test
+        working-directory: apps/band-camp-arcade
+        # A gate that cannot fail is not a gate. Breaks one mechanism per game
+        # on purpose and requires the suite to catch it — see
+        # test/mutations.js and the README's "Proving the gates can fail".
+        run: npm run test:mutations

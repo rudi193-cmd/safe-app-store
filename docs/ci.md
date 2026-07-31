@@ -30,6 +30,11 @@ different language. jarvis is the store's first app with no Python in it, so it
 needs Node and a real Chromium and cannot join an `app-tests` matrix that
 installs `requirements.txt` and runs `pytest`.
 
+`band-camp-arcade.yml` is the same case again: five static HTML/JS games, no
+Python, no backend. Its suite is five independent per-game checks (one file
+each under `test/suites/`) rather than one integrated suite, since the games
+share nothing at runtime.
+
 ## Where a new app's tests go
 
 - Tests exist, plain `requirements.txt`, no OS-specific surface → add the app
@@ -43,7 +48,8 @@ installs `requirements.txt` and runs `pytest`.
 - **App is not Python** → its own workflow, and read the floor honestly while
   you are there: `vault_leak_lint.py` and the four drift-guard suites all glob
   `*.py`, so for such an app the store floor is the catalog gate and nothing
-  else. `jarvis.yml` is the worked example.
+  else. `jarvis.yml` is the worked example; `band-camp-arcade.yml` is the
+  second.
 - No tests yet → the app is still covered by the catalog, vault-clean, and
   compile gates. (`dating-wellbeing`'s suite is a placeholder — add it to the
   matrix when real tests land.)

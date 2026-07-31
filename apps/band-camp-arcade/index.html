@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+<title>Band Camp Arcade</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #1a1a1e;
+    --fg: #f0f0f0;
+    --accent: #e0a640;
+    --muted: #8a8a92;
+    --card: #232328;
+    --border: #333338;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding: 2rem 1rem 3rem;
+  }
+  main { max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.35rem; text-align: center; }
+  p.tagline {
+    color: var(--muted);
+    margin: 0 0 2rem;
+    font-size: 0.95rem;
+    text-align: center;
+  }
+  .games {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+  }
+  .game-card {
+    display: block;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem 1.3rem;
+    text-decoration: none;
+    color: var(--fg);
+    transition: border-color 0.15s;
+  }
+  .game-card:hover { border-color: var(--accent); }
+  .game-card h2 {
+    margin: 0 0 0.3rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .game-card p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .provenance {
+    margin-top: 2.5rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Band Camp Arcade</h1>
+  <p class="tagline">Five small, silly, entirely local things for marching band kids. No accounts, no network calls — everything stays in this browser tab.</p>
+
+  <div class="games">
+    <a class="game-card" href="games/tuning-note-purgatory/index.html">
+      <h2>Tuning Note Purgatory</h2>
+      <p>Hit start. A concert Bb plays forever. See how long you last before you hit stop.</p>
+    </a>
+    <a class="game-card" href="games/pit-crew-simulator/index.html">
+      <h2>Pit Crew Simulator</h2>
+      <p>Drag every front-ensemble instrument onto its spot before the count runs out. Miss and you retry.</p>
+    </a>
+    <a class="game-card" href="games/uniform-sweat-tracker/index.html">
+      <h2>Uniform Sweat Tracker</h2>
+      <p>Log the misery of every game and competition. Crowns a champion of suffering at season's end.</p>
+    </a>
+    <a class="game-card" href="games/sectional-bingo/index.html">
+      <h2>Sectional Bingo</h2>
+      <p>A shuffled bingo card of stock sectional disasters. Add your own inside jokes to the pool.</p>
+    </a>
+    <a class="game-card" href="games/ge-score-roast/index.html">
+      <h2>GE Score Roast</h2>
+      <p>Feed it a fictional score and get a dramatically petty imaginary judge's comment back. Satire only.</p>
+    </a>
+  </div>
+
+  <p class="provenance">
+    Re-landed from the <code>quick-stupids</code> playground, rebuilt against
+    this store's conventions rather than copied. See README.md for what
+    changed in the rebuild.
+  </p>
+</main>
+</body>
+</html>
