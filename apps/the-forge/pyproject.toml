@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-the-forge"
+version = "0.1.0"
+description = "SAFE-native, multi-tenant app-building playground. Design-phase scaffold — see docs/design/the-forge.md."
+requires-python = ">=3.10"
+# Core is stdlib only. Everything in the design's "Adopted dependencies"
+# (Kart, Sigstore, Casbin, vLLM, LiteLLM, py-fsrs, Nestor) is a future extra,
+# not a core dependency — none of it is wired in yet (D13: import-pure core).
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+the-forge = "the_forge.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

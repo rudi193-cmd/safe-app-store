@@ -1,0 +1,16 @@
+{
+  "app_id": "the-forge",
+  "name": "the-forge",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "agent_type": "tool",
+  "description": "SAFE-native, multi-tenant app-building playground. Design-phase scaffold — see docs/design/the-forge.md (D1-D13) for the architecture. No builder functionality implemented yet.",
+  "author": "USER",
+  "data_streams": [],
+  "permissions": [],
+  "privacy_tier": "local_first",
+  "local_processing": 1.0,
+  "entry_point": "the_forge.cli:main",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/rudi193-cmd/safe-app-store"
+}

@@ -1,0 +1,6 @@
+# The Forge core is stdlib only — nothing required to run `the-forge status`
+# or the test suite.
+#
+# Nothing from docs/design/the-forge.md's "Adopted dependencies" (Kart,
+# Sigstore, Casbin, vLLM, LiteLLM, py-fsrs, Nestor) is wired in yet. Each
+# lands here when the decision it belongs to gets real code, not before.
