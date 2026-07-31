@@ -471,6 +471,110 @@ Practically, this is a day-one constraint, not a later refactor:
   that will ship standalone, not just something convenient to reach for
   inside a shared repo.
 
+## Nestor inventory — shipped primitives (code-backed, 2026-07-31)
+
+Sibling repo audit from the Nestor side (`rudi193-cmd/Nestor`, `master` after
+PR #26). This section **supplements D12** (adopt Nestor for D9 memory) and **D1/D5**
+(MCP contract); it does **not** replace D4's Sigstore choice for manifest signing.
+
+**Division of labor (restated with code names):**
+
+| Concern | The Forge (this design) | Nestor (shipped) |
+|---------|-------------------------|------------------|
+| Artifact / build manifest signed? | D4 → Sigstore static-keypair (`stores/sap_gate.py`) | — |
+| Tool call allowed by policy? | D1/D5 → Casbin + connector | — |
+| Has this builder sealed this decision-type? | D12 → `EntityResolver` + domain | `memory` + `lookup` / `ask` |
+| When to resurface a checkpoint? | D9 → py-fsrs schedule | — |
+| Hash-chained audit of human actions? | Store seam ledger (D3) | `data/ledger.jsonl` + `_ledger_preflight()` |
+
+### D1 / D5 — `nestor serve` is the reference MCP allowlist
+
+`nestor.serve.Server` exposes a **closed tool list**; any other `nestor_*` name
+is refused with a message pointing at `nestor_propose`. The withheld verbs are
+data (`WITHHELD`: seal, unseal, reject, override, import, edit ledger).
+
+| MCP tool | Use in The Forge connector |
+|----------|----------------------------|
+| `nestor_ask` | Three-state cascade (`sealed` / `draft` / `pending`) + ranked candidates — model must not paraphrase verified text |
+| `nestor_resolve` | Entity recipe: alias → canonical when sealed |
+| `nestor_check` | Numeric recipe: figure vs sealed baseline |
+| `nestor_match` | Bare seam: `string` / `numeric` / `semantic` matcher |
+| `nestor_provenance` | Verifier, timestamps, origin, rejections for a `pair_id` |
+| `nestor_ledger_verify` | Hash-chain integrity + memory counts |
+| `nestor_propose` | **Only write** on the model surface → always `draft` |
+
+`nestor serve --read-only` drops even `nestor_propose`. Host-side sealing uses
+**`nestor ui`** (HTTP API: seal, unseal, reject-pair, reject-match) — same
+human/machine split as D3's seam, already two entrypoints (`serve` vs `ui`).
+
+`Server.describe()` returns wiring text for MCP hosts; D5 can treat that as the
+canonical read/propose surface rather than re-deriving tool shapes.
+
+### D4 — Do not conflate manifest signing with Nestor's seal crypto
+
+D4 adopted **Sigstore**, not Nestor HMAC, for build manifests. Nestor still
+matters for **verification semantics** on the D12 store:
+
+- **`_ledger_preflight()`** (`nestor.memory`) refuses seals when the ledger is
+  missing or broken — the failure mode of a **db backup without its chain**
+  (Nestor ships `nestor db checkpoint --out` with `<basename>.ledger.jsonl` for
+  hot copies; `nestor export` for portable bundles).
+- **`signing.py`**: three MAC domains (seal, rejection, embedding cache) so
+  signatures cannot be replayed across object types; **`SemanticMatcher`** serve
+  paths also sign cached row embeddings (store-writer cannot swap vectors under
+  a sealed row).
+- **`keyring`**: per-verifier keys; **rotate** vs **compromised** revocation;
+  `Curator` / `servable` surfaces rows that must not be served.
+
+Ed25519 upgrade for *seals* is still open in Nestor (willow-mcp
+`egress_authorization.py` is the fleet reference); unrelated to D4 cosign.
+
+### D12 / D9 — Recipe detail beyond `EntityResolver`
+
+D12's `EntityResolver(store, domain=f"builder:{builder_id}")` is one recipe.
+The same store can hold others without new infrastructure:
+
+- **Checkpoint Q→A**: seal `decision_prompt` → `chosen_option + rationale` as
+  source/target in a dedicated language-pair or use `domain` as decision-type key.
+- **`reject_match`**: wrong application of a sealed pattern for *this* query;
+  pair stays valid elsewhere (false-positive teaching).
+- **`reject_pair`**: retire the mapping globally.
+- **`nestor calibrate`**: measured false-verification rate on a corpus — honest
+  "how hard is this decision class" before tuning thresholds.
+- **`Curator.rejection_signals()`** / **`nestor rejections`**: aggregate refusals
+  → threshold vs pair-quality hints (no new analytics layer).
+
+**`memory.is_verified_seal` / `servable`**: tier-1 serve requires valid
+signature under configured keys — maps to D8 "confirm only" when sealed hit is
+**servable**, not merely `status=sealed`.
+
+**Multi-tenant:** Nestor is **per database instance**; D6/D11 must scope
+`builder:{id}` domains (or separate db paths per tenant) — no global seal
+across builders.
+
+**Import caution:** `nestor import` **downgrades** seals whose signatures do
+not verify under *this* instance's keys to `draft`. Not a trustless way to move
+D12 memory between hosts without shared key material.
+
+### Promotion ratification (store `master`, not Forge-only)
+
+`stores/promote_check.py` on `safe-app-store` **master**:
+
+- Mechanical + attested gates; **`verified_by != author`** enforced on `--record`.
+- Nestor/Jeles are worked examples (`semantic_seam`: `nestor.matcher:Matcher`).
+- **`--record`** writes `stores/{major}/promoted/<app_id>.json` — Nestor passed
+  gates in #88 but **no record minted yet** (`docs/store_refit_plan.md`).
+
+D13 promotion of **The Forge** should use the same gate; D10's pedagogy ledger
+(D12) is orthogonal to `promotion.json` ratification.
+
+### Ops hooks (tenant audit, optional)
+
+- `nestor ledger head` / `ledger verify --expect-head=…` — operator-held tip.
+- `nestor.frank` — optional mirror into willow-mcp FRANK (governance chain).
+
+Pin Nestor at promotion time the way terpsi's `FLEET-READS.md` pins Nestor SHA.
+
 ## Open / next
 
 - **The four critical gaps from the 2026-07-31 review are still open** and
