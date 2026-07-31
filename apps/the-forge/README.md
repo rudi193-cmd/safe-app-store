@@ -54,6 +54,41 @@ such. Nothing yet *produces* a build command — D7's model routing and code
 generation don't exist, so a build task is currently something a caller
 writes by hand.
 
+## D6 — the per-build mount boundary
+
+`sandbox_runner.py`'s own docstring used to say plainly that D6's mount
+boundary wasn't enforced: Kart's bind mounts come from its own
+`kart-sandbox.json` policy, not from a build's working directory, and
+without an override its vendored default binds `{{WILLOW_ROOT}}` —
+`safe-app-store` itself — **read-write**, into every build's sandbox.
+`src/the_forge/mount_policy.py` closes that gap: given a `builder_id` and
+`app_name` (validated first, against the same
+`^[A-Za-z0-9][A-Za-z0-9_.-]*$` charset used everywhere else in this repo for
+a path component), it generates a policy whose `bind_read_write` is exactly
+`apps/<builder_id>/<app_name>/` — never `WILLOW_ROOT`, never the repo root
+— writes it to a call-scoped temp file, and hands it to
+`sandbox_runner.run_in_sandbox` via the `sandbox_config` hook that was
+already there waiting for it.
+
+`run_scoped_build(task, apps_root, ...)` is the call site that actually
+uses this — it builds the scoped policy from `task.builder_id`/
+`task.app_name`, runs the build through it, and removes the temp policy
+file afterward. **Said plainly, not implied**: nothing outside
+`tests/test_mount_policy.py` calls `run_scoped_build` yet. There is no CLI
+subcommand and no seam wiring pointed at it — the boundary exists and is
+tested end to end (including a real round-trip through
+`kartikeya.sandbox.load_sandbox_config` — deliberately not
+`resolve_sandbox_config`, which exists only in an editable checkout this
+environment happens to also carry, not in the actual published
+`kartikeya>=0.0.7` this package depends on and installs; found in review,
+2026-08-02), but no production build path takes it yet. A few of
+kartikeya's own bind-mount additions — unconditional
+Python venv/`psycopg2`/site-packages binds in `collect_bind_mounts`, the
+`~/.willow` trust-root overlay in `build_bwrap_argv` — are not driven by
+any caller-supplied policy at all, so this module can't narrow them either;
+see its module docstring for the full accounting of what is and isn't
+closed.
+
 ## Tests
 
 ```bash
@@ -62,8 +97,9 @@ python -m pip install -e ".[dev]"
 pytest -q
 ```
 
-The sandbox-runner tests make real (unmocked) kartikeya calls. On a host
-without bubblewrap they exercise Kart's documented **plain** fallback — real
-subprocesses, real timeouts, but **no isolation** — and the one test that
-needs genuine bwrap containment skips itself rather than pretending. See
-`tests/test_sandbox_runner.py`'s module docstring.
+The sandbox-runner and mount-policy tests make real (unmocked) kartikeya
+calls. On a host without bubblewrap they exercise Kart's documented
+**plain** fallback — real subprocesses, real timeouts, but **no
+isolation** — and the one test that needs genuine bwrap containment skips
+itself rather than pretending. See `tests/test_sandbox_runner.py`'s and
+`tests/test_mount_policy.py`'s module docstrings.

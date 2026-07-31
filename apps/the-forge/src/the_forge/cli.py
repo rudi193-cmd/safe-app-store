@@ -48,11 +48,26 @@ for policy; the runner decides nothing and writes nothing. On a host with
 no bubblewrap it refuses by default, and an explicit dev opt-out is
 reported as unisolated rather than passed off as sandboxed.
 
+Also implemented: D6's per-build mount boundary, the part of it that lives
+in this package (mount_policy.py) — a caller-authored kart-sandbox.json-
+shaped policy whose bind_read_write is exactly apps/<builder_id>/<app_name>/,
+never WILLOW_ROOT, never the repo root, validated the same charset-first
+way as builder_id/app_name everywhere else in this repo. run_scoped_build
+wires it through sandbox_runner's existing sandbox_config hook. Honest
+caveat: nothing outside this package's own tests calls run_scoped_build
+yet — no CLI subcommand, no seam wiring — so the boundary is real and
+tested, but no production build path exercises it yet. Also out of this
+package's reach: a few of kartikeya's own bind-mount additions
+(collect_bind_mounts' unconditional venv/psycopg2/site-packages binds,
+build_bwrap_argv's ~/.willow trust-root overlay) aren't driven by any
+caller-supplied policy and can't be narrowed from here — see
+mount_policy.py's module docstring for the full account.
+
 Not yet done: real MCP client/stdio execution (an allowed call is still not
-executed, only permitted), D6's per-build mount boundary (Kart's binds come
-from its own mount policy, not from a build's working directory), tenancy/
-auth (D6/D11), model routing and code generation (D7 — nothing yet produces
-a build command), checkpoints (D8/D9), Nestor wiring (D12).
+executed, only permitted), the rest of D6 (per-builder collection
+namespace, quotas, real multi-user auth), tenancy/auth (D11), model routing
+and code generation (D7 — nothing yet produces a build command),
+checkpoints (D8/D9), Nestor wiring (D12).
 
 This CLI (`the-forge`) only ever runs the in-package subset — `plan-check`
 covers D3 alone. The gate and the allowlist are store-side authority by

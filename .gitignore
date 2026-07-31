@@ -34,3 +34,8 @@ stores/.sap_gate_ledger.jsonl
 # GitHub accounts bound to them. Same reason: dev-only stand-in for a real
 # backing store, and identity rows are not repo content.
 stores/.principals/
+
+# session.py's dev-only session store (D11) — session token hashes and their
+# expiry/revocation state. Same reason: dev-only stand-in for a real backing
+# store, and session rows are not repo content.
+stores/.sessions/

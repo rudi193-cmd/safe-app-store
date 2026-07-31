@@ -242,6 +242,34 @@ D11 later made `builder_id` canonical across the whole doc but this section's
 body was never actually edited to match — same identity throughout, one name
 for it now.
 
+**First bullet's mount-boundary claim, partially closed 2026-08-02.** The
+implementation gap this bullet describes was real, not just unwritten: D2's
+`sandbox_runner.py` shipped able to run a build inside Kart but said so
+itself — its own docstring named the mount boundary as unenforced, because
+`workdir` narrows where a command *starts*, not what Kart's bind mounts let
+it *reach*, and kartikeya's vendored default policy binds `{{WILLOW_ROOT}}`
+(this repo) **read-write** absent an override. `apps/the-forge/src/
+the_forge/mount_policy.py` now generates a caller-scoped `kart-sandbox.json`
+whose `bind_read_write` is exactly `apps/<builder_id>/<app_name>/` —
+verified by test against a real `kartikeya.sandbox.load_sandbox_config`
+round-trip, not just asserted (found in review, 2026-08-02: the test
+originally called `resolve_sandbox_config`, which exists only in an
+editable `kartikeya` checkout present in this environment, not in the
+actual published `kartikeya>=0.0.7` this package depends on — a false-green
+test against the wrong dependency, fixed to use `load_sandbox_config`,
+present and behaviorally identical in both) — and `run_scoped_build` runs a build through
+it via `sandbox_runner`'s existing `sandbox_config` hook. What this closes:
+the bind-mount half of the first bullet, for a caller that uses
+`run_scoped_build`. What it does not close, named honestly rather than
+implied: nothing outside that module's own tests calls `run_scoped_build`
+yet (no CLI subcommand, no seam wiring); the second and third bullets
+(per-builder collection namespace enforcement, quotas) are untouched; and a
+handful of kartikeya's own bind-mount additions (unconditional venv/
+`psycopg2`/site-packages binds, the `~/.willow` trust-root overlay) sit
+below any caller-supplied policy and aren't narrowed by this change either.
+See `apps/the-forge/src/the_forge/mount_policy.py`'s module docstring for
+the full accounting.
+
 ### D7 — Model routing is a declared action, not ambient network access
 
 Local model tried first (Ratatosk / local LLM); cloud fallback is a per-build
@@ -554,6 +582,27 @@ what D1 rules out. Corrected:
 - v1 scope: one authenticator per `builder_id`, minted once, no re-linking
   flow yet — a real gap (see Open/next), but it doesn't undermine the
   identity model itself.
+
+**The session-token layer this section calls for now exists —
+`stores/session.py`, 2026-07-31.** "safe-app-store issues its own session
+tokens after a GitHub OAuth handshake completes," above, was design intent
+without code; `stores/session.py` is now that code: `mint_session` issues an
+opaque `secrets.token_urlsafe(32)` bearer token for an already-minted
+`builder_id` (validated via `principal.py`'s own `_check_builder_id`, not a
+second copy of that rule), `verify_session` resolves a token back to a
+`builder_id` with real wall-clock expiry and collapses "unknown" /
+"expired" / "revoked" into the same `None` so none of the three is
+distinguishable from outside, and `revoke_session` invalidates one
+immediately. Only `sha256(token)` is ever persisted — never the raw token —
+same principle as this module's own authenticator-file digests. Store-side
+(D1), same directory and trust level as `principal.py` and `sap_gate.py`;
+`apps/the-forge/` does not import it. What this does NOT close: the actual
+GitHub OAuth HTTP handshake (redirect, `client_id`/`client_secret`, the
+callback route, the code-for-token exchange) is still not built — everything
+in `stores/session.py` starts *after* a `builder_id` already exists, the
+same boundary `principal.py`'s own docstring draws around itself. The GitHub
+OAuth app registration specifics and re-linking gap named in Open/next,
+below, are both still open.
 
 **Rollout is a separate call from architecture.** D6 already committed to
 supporting real strangers; whether self-serve signup is literally open on day

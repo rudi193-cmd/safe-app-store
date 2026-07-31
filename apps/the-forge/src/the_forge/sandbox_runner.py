@@ -98,13 +98,19 @@ run result cross-checked against `bwrap_available()`.
 
 ## What this module does NOT achieve (stated, not implied)
 
-- **D6's per-build mount boundary is not enforced here.** D6 wants the bind
-  mount restricted to exactly `apps/<builder_id>/<app_name>/`. Kart's binds
-  come from its own `kart-sandbox.json` mount policy, not from `cwd` — a
-  `workdir` narrows where the command *starts*, not what it can *reach*.
-  The hook for closing this is `sandbox_config` (below), which points Kart
-  at a caller-authored per-build policy; authoring that policy is real work
-  that does not exist yet.
+- **D6's per-build mount boundary is not enforced by THIS module.** D6
+  wants the bind mount restricted to exactly `apps/<builder_id>/<app_name>/`.
+  Kart's binds come from its own `kart-sandbox.json` mount policy, not from
+  `cwd` — a `workdir` narrows where the command *starts*, not what it can
+  *reach*. The hook for closing this is `sandbox_config` (below), which
+  points Kart at a caller-authored per-build policy. **Authoring that
+  policy is `mount_policy.py`, added 2026-07-31** — `mount_policy.
+  build_scoped_policy` generates it, `run_scoped_build` calls
+  `run_build`/`run_in_sandbox` here with it as `sandbox_config`. This
+  module's own `run_in_sandbox`/`run_build` are unchanged and still run
+  unscoped unless a caller supplies `sandbox_config` itself — that choice
+  stays with the caller, on purpose, so this module's existing behavior and
+  signatures are not altered by mount_policy.py's addition.
 - **Concurrency.** `_scoped_env` is process-global. Two builds running
   concurrently in one process can interleave their env. D6's multi-builder
   concurrency needs a worker process per build, not this.
