@@ -11,7 +11,7 @@
 ## Purpose
 
 Let anyone describe an app and have it scaffolded, built, and iterated on
-inside `apps/<tenant>/<name>/` — model-driven (local default, cloud fallback),
+inside `apps/<builder_id>/<name>/` — model-driven (local default, cloud fallback),
 sandboxed per build, gated by a trust boundary the store owns outright. Not a
 new product bolted alongside the store: a new flagship-shaped app *inside* it
 at first, using the playground → promotion pipeline that already exists — and,
@@ -45,13 +45,16 @@ An earlier audit (2026-07-31) of `safe-app-store`, `willow-mcp`, and
   more-privileged host-side process, gated by consent + ledger. The Forge
   reuses that seam, applied to build-time and MCP-call-time instead of
   install-time.
-- **Nestor** (`rudi193-cmd/Nestor`) is the closest existing prior art for the
-  gate itself: `nestor/signing.py` + `nestor/keyring.py` implement exactly
-  "signed → allowed, tampered → denied," with per-verifier keys and a
-  rotated-vs-compromised revocation split. And `nestor/serve.py` is a working
-  example of D1 below — its MCP surface can `nestor_ask` and `nestor_propose`,
-  and structurally **cannot** `nestor_seal`. That tool doesn't exist on the
-  model-facing surface; sealing only happens host-side.
+- **Nestor** (`rudi193-cmd/Nestor`) was the original prior art for the gate's
+  *shape* — `nestor/signing.py` + `nestor/keyring.py` show "signed → allowed,
+  tampered → denied" with per-verifier keys and rotated-vs-compromised
+  revocation. **D4 ended up adopting Sigstore instead of this crypto** (see
+  D4) — Nestor's lasting role in this design is D12's memory/pedagogy store
+  and D5's MCP-allowlist reference (below), not the manifest-signing gate.
+  And `nestor/serve.py` is a working example of D1 below — its MCP surface
+  can `nestor_ask` and `nestor_propose`, and structurally **cannot**
+  `nestor_seal`. That tool doesn't exist on the model-facing surface; sealing
+  only happens host-side.
 
 ## Decisions
 
@@ -85,93 +88,109 @@ only a verified, declarative plan crosses to the trusted side. Applied here:
 ```
 ┌─ SANDBOX (kart, per-build) ───────────┐        ┌─ SEAM (store-side) ────────┐
 │ run the model, generate/edit code     │        │ validate plan vs gate (D4) │
-│ execute/test the generated app        │ ─plan─► │  + this tenant's scope    │
-│ stage MCP tool calls as a request     │        │ apply: write to apps/<t>/, │
+│ execute/test the generated app        │ ─plan─► │  + this builder's scope   │
+│ stage MCP tool calls as a request     │        │ apply: write to apps/<b>/, │
 │   ("write to collection X", "read Y") │        │  or deny + report why      │
 └────────────────────────────────────────┘        └─────────────────────────────┘
 ```
 
-A build never writes to `apps/<tenant>/<name>/` directly, never calls a
-plugged-in MCP tool directly, and never touches another tenant's directory or
-collection. It emits a plan; the seam — running outside the sandbox, store-side
+A build never writes to `apps/<builder_id>/<name>/` directly, never calls a
+plugged-in MCP tool directly, and never touches another builder's directory
+or collection. It emits a plan; the seam — running outside the sandbox, store-side
 — checks the plan against the gate and against `store_scope`, and only then
 acts. Same seam-holder role the installer design already assigns to the
 more-privileged process; same reason (no vendor/generated code runs at host
 privilege, ever).
 
-**The seam validates *where*, not *what* — fixed 2026-07-31.** The plan
-schema above checks destination paths against `store_scope`; it says nothing
-about what's actually inside a generated file, and that file will later
-execute (inside Kart, at minimum — D2). Two additions close the gap the
-review found, without pretending the seam becomes a full security review:
+**The seam validates *where*, not *what* — fixed 2026-07-31, corrected
+2026-08-01.** The plan schema above checks destination paths against
+`store_scope`; it says nothing about what's actually inside a generated
+file, and that file will later execute (inside Kart, at minimum — D2). The
+first fix pass made two claims about this repo; a second independent review
+checked both against the actual code and found one of them **false**:
 
-- **A pre-crossing static scan, reusing a pattern this repo already has.**
-  `tools/vault_leak_lint.py` already AST-scans candidate code for dangerous
-  patterns (fixed-path data leaks) without ever executing it — the seam gets
-  the same treatment for a broader rule set (raw network calls,
-  `subprocess`/`os.system`, `eval`/`exec`, writes outside the declared path)
-  before a file is allowed to cross. This is a floor, not a proof — it
+- **The pre-crossing static-scan citation was wrong.** `tools/vault_leak_lint.py`
+  is **not** AST-based — it's line-by-line regex (`safe-app-installer.md`
+  says so directly: "the linter is line-based"). The real AST work in this
+  repo is `stores/promote_check.py`'s `_toplevel_dynamic_net` /
+  `_toplevel_imports`, and it's deliberately **top-level-only** — it skips
+  function bodies by design, because it's answering an import-time question.
+  That means even the real precedent wouldn't catch `def f(): os.system(...)`,
+  exactly the runtime-behavior class a pre-crossing scan for generated code
+  needs to catch. A scan for D3 has to be built to cover function bodies, not
+  adapted from either existing file as-is — both are narrower than this
+  needs, in different ways. Still a floor, not a proof, once built: it
   catches the obvious/accidental case, not a determined adversary; Kart's
-  sandbox (D2) is still what actually contains execution, not this scan.
-- **Generated code is never executed host-side, for any purpose — now a
-  stated requirement, not an accident.** Checked against the real repo:
-  `stores/promote_check.py`'s "dynamic" import-purity check
-  (`_toplevel_dynamic_net`) is itself AST-only — it looks for
-  `__import__`/`importlib.import_module` *call expressions* in the source
-  text and never imports the candidate module to find out. The one live
-  `importlib` call in that file loads the repo's own trusted
-  `vault_leak_lint.py`, not tenant code. That's already the right norm; D3
-  makes it explicit so nothing added later (a catalog tool, a review UI)
-  quietly breaks it by actually importing a build to introspect it.
+  sandbox (D2) is what actually contains execution, not this scan.
+- **"Generated code is never executed host-side" was asserted and is
+  currently false in this repo.** `stores/promote_check.py` runs
+  `subprocess.run([sys.executable, "-m", "pytest", "-q"], cwd=cand)` — the
+  candidate's actual test suite, host uid, unsandboxed, no Kart involved.
+  Worse: the files that get AST-scanned and the files that get executed are
+  **disjoint sets** — `_py_files()` filters out anything with `test` in the
+  filename before scanning, which is precisely what pytest then runs. This
+  isn't a Forge-specific hypothetical — it's a real gap in this repo's
+  *existing* promotion pipeline today, for every app that goes through it,
+  independent of whether The Forge ever ships. Filed separately in
+  Open/next, since fixing it is bigger than this design doc's scope.
+- **What D3 actually requires going forward**: `promote_check.py`'s test
+  execution step has to move inside Kart (or an equivalent sandbox) before
+  "generated code is never executed host-side" is *true* of this repo,
+  rather than merely stated as a rule for The Forge's own new code to
+  follow while an existing path violates it.
 
-### D4 — Rebuild `sap-gate` inside `safe-app-store`, modeled on Nestor's signing stack
+### D4 — Rebuild `sap-gate` inside `safe-app-store`
 
 Not in `willow-mcp` — CLAUDE.md's claim that it lives there is exactly the gap
-the audit found. New module, `stores/sap_gate.py` (name tbd), shaped directly
-on `nestor.signing` / `nestor.keyring`:
+the audit found. New module, `stores/sap_gate.py` (name tbd):
 
-- Per-tenant/maker keyring identity (`nestor keys add <name>` shape).
+- Per-builder keyring identity: one Ed25519 keypair per `builder_id` (D11),
+  generated and held by the store's own signing service, via **Sigstore**
+  static-keypair mode (see Adopted dependencies) — not Nestor's HMAC
+  pattern. Nestor's shape was the original inspiration ("Where this sits,"
+  above), but D4 adopted an audited standard instead of hand-rolling one.
 - A build's manifest is signed, bound to `(app_id, permissions, store_scope,
-  maker)` — same binding shape as a Nestor seal over `(source, target,
-  verifier)`.
+  maker)`.
 - Fail-closed `verify()`, run **before** a Kart task executes (D2/D3's seam
   check) and again before `stores/promote_check.py` runs. Unsigned or
   hash-mismatched (tampered post-generation) → denied, no exceptions.
-- Nestor's revocation duality, reused as-is: a maker leaving (`rotate`) keeps
-  their already-signed builds valid; a compromised key invalidates everything
-  signed with it, and those builds surface for re-verification the way
-  `Curator.unverifiable()` surfaces a forged seal.
 
 This is the first time "signed → allowed, tampered → denied" is actually true
-of this repo, rather than asserted by it.
+of this repo, rather than asserted by it — with one honest caveat the next
+section exists specifically to name.
 
-**Key custody and the rotate/compromise gap — fixed 2026-07-31.** The adopted
-static-keypair Sigstore mode (Adopted dependencies, below) doesn't by itself
-give the rotate-vs-compromise duality this decision wants — that lives in
-Fulcio/Rekor, which static mode deliberately avoids. Two things were missing:
+**Key custody and the rotate/compromise gap — fixed 2026-07-31, tightened
+2026-08-01.** Static-keypair Sigstore doesn't by itself give the
+rotate-vs-compromise duality this decision wants — that lives in Fulcio/Rekor,
+which static mode deliberately avoids.
 
-- **Custody is store-held, and that's named honestly rather than implied to
-  be stronger.** One Ed25519 keypair per `builder_id` (D11), generated and
-  held by the store's own signing service, not the builder. The signature's
-  job is tamper-evidence and a stable audit binding, not non-repudiation
-  against the store itself — consistent with D1 (the store *is* the trust
-  boundary by design), but the original "signed → allowed" framing implied
-  builder-authored attestation it doesn't actually deliver. Key material
-  lives in the vault this ecosystem already built for exactly this problem —
-  `safe-app-installer.md` D7's Fernet-keyed secrets vault (`vault.py`,
-  `vault.key` at 0600, never touches git) — not a fresh secrets-management
-  design.
-- **Rotate vs. compromise gets real teeth from a signing-event ledger, not
-  from Sigstore mode.** Every signing operation appends to a small,
-  append-only, hash-chained log — `(builder_id, key_id, manifest_hash,
-  timestamp)` — modeled on Nestor's `ledger.py` (refuses to extend a broken
-  chain, verified before first append, symlink/regular-file check), but its
-  **own instance**, not the ledger D12 uses for pedagogy — keeping D10's
-  "distinct ledgers, not one conflated system" boundary intact. `rotate`
-  retires a key going forward while every past ledger entry for it stays
-  trusted; `compromise` records a timestamp, and any ledger entry for that
-  key after it stops being trusted — Nestor's rotated-vs-compromised table,
-  given real timing to work from instead of assuming Sigstore supplies it.
+- **Custody is store-held, named honestly rather than implied to be
+  stronger.** The signature's job is tamper-evidence and a stable audit
+  binding, not non-repudiation against the store itself — consistent with D1
+  (the store *is* the trust boundary by design), but the original "signed →
+  allowed" framing implied builder-authored attestation it doesn't actually
+  deliver. Key material lives in the vault this ecosystem already built for
+  exactly this problem — `safe-app-installer.md` D7's Fernet-keyed secrets
+  vault (`vault.py`, `vault.key` at 0600, never touches git) — not a fresh
+  secrets-management design.
+- **Rotate vs. compromise needs a ledger the store itself can't quietly
+  rewrite — an ordinary in-repo ledger isn't enough on its own.** A
+  signing-event ledger — `(builder_id, key_id, manifest_hash, timestamp)`,
+  append-only, hash-chained, modeled on Nestor's `ledger.py` but its **own
+  instance** (not D12's pedagogy ledger — see D10) — gives rotate and
+  compromise real timing to check against. But the store holds the signing
+  keys *and* would write that ledger, so a store/vault compromise
+  invalidates both at once; "compromise" only means something distinct from
+  "everything's already broken" if the ledger's tip is pinned somewhere the
+  store's own compromise can't reach. Nestor already ships the primitive for
+  this — `nestor ledger head` / `ledger verify --expect-head=…`, an
+  **operator-held tip** outside the store's own trust domain (see "Ops
+  hooks," below). D4 adopts the same posture: the signing-event ledger's
+  head gets pinned externally — operator-held, or mirrored the way
+  `nestor.frank` mirrors into willow-mcp FRANK — not just verified against
+  itself. `rotate` retires a key going forward while every past ledger entry
+  for it stays trusted; `compromise` records a timestamp, and any entry for
+  that key after it, per the externally-pinned tip, stops being trusted.
 
 ### D5 — One capability contract, for every MCP server registered, enforced by an explicit allowlist
 
@@ -205,18 +224,23 @@ A thin connector (`the_forge/mcp_connector.py`, name tbd) generalizes
 audit, not assumed). Rather than retrofitting multi-tenancy into either,
 `safe-app-store` owns tenant identity and scoping itself:
 
-- `apps/<tenant_id>/<app_name>/` as the Kart working directory boundary —
+- `apps/<builder_id>/<app_name>/` as the Kart working directory boundary —
   the bind mount for a build's sandbox is restricted to exactly that path.
-- A per-tenant collection namespace (`saps1/tenant-<id>/...`), enforced by the
-  gate (D4) at the seam, independent of which MCP server a build happens to
-  be talking to.
-- Per-tenant quotas layered on top of Kart's existing per-*task* caps (2G mem,
-  512 PIDs already enforced) — concurrent builds, sandbox-seconds budget —
-  so the isolation Kart already gives one task extends to fairness across many
-  tenants sharing the host.
-- Real multi-user auth is a prerequisite here, not a follow-on: `willow-mcp`'s
-  current OAuth is explicitly single-user PKCE and doesn't carry a tenant
-  claim. This needs its own decision before D6 is buildable — see Open/next.
+- A per-builder collection namespace (`saps1/builder-<builder_id>/...`),
+  enforced by the gate (D4) at the seam, independent of which MCP server a
+  build happens to be talking to.
+- Per-builder quotas layered on top of Kart's existing per-*task* caps (2G
+  mem, 512 PIDs already enforced) — concurrent builds, sandbox-seconds
+  budget — so the isolation Kart already gives one task extends to fairness
+  across many builders sharing the host.
+- Real multi-user auth is a prerequisite here, not a follow-on — resolved by
+  D11's store-native session layer (`builder_id` is D11's canonical
+  identity; see there for the fix and why GitHub isn't the identity root).
+
+**Naming note, fixed 2026-08-01:** this decision originally used `tenant_id`;
+D11 later made `builder_id` canonical across the whole doc but this section's
+body was never actually edited to match — same identity throughout, one name
+for it now.
 
 ### D7 — Model routing is a declared action, not ambient network access
 
@@ -282,22 +306,37 @@ its actual cascade), applied to a new recipe:
   "remember choosing X here? here's what that cost" — same shape as
   `Curator.unverifiable()` surfacing something that needs a second look.
 
-### D10 — The pedagogy ledger and the trust gate (D4) are related but distinct
+### D10 — Three audit trails, not one conflated system
 
-Two different ledgers, not one conflated system:
+The count crept from two to three across fixes without ever being written
+out together, and both the 2026-07-31 and 2026-08-01 reviews flagged the
+drift — the "seam ledger" the Nestor-inventory table references was never
+actually defined anywhere in this doc until D3's correction, above. Stated
+plainly now:
+
+| Ledger | Lives in | Answers | Written by |
+|--------|----------|---------|------------|
+| **Seam ledger** (D3) | store-side, per seam decision | What plan did a build submit, and did the seam apply or deny it, and why? | The seam itself, on every plan it processes |
+| **Signing-event ledger** (D4) | store-side, own instance, externally-pinned tip | When was this manifest actually signed, under which key — before or after that key's compromise timestamp? | `stores/sap_gate.py`, on every signature |
+| **Pedagogy ledger** (D9/D12) | Nestor, per-builder domain | Did this builder actually engage with and understand this decision? | Nestor's `memory`/`cascade`, on every checkpoint seal/reject |
+
+None of these substitutes for another:
 
 - **D4's gate** answers "is this manifest signed by who it claims, unaltered
   since." Authorization.
 - **D9's checkpoint ledger** answers "did this builder actually engage with
   the decisions in their own build." Pedagogy / attribution quality.
+- **D3's seam ledger** answers "what did the trust boundary actually let
+  through, and on what basis." Operational audit of D1's front line, day to
+  day — not the same question as either of the other two.
 
-They meet at one point worth naming: D4's manifest signature binds
+D4 and D9 meet at one point worth naming: D4's manifest signature binds
 `(app_id, permissions, store_scope, maker)` — a maker signs off on what their
 build does. D9's ledger is what makes that attestation *mean* something
 rather than being a nominal click-through: a maker who sealed the checkpoints
 behind their own manifest actually reasoned through what they're vouching for.
-Not a hard dependency between the two systems, but the gate is more honest
-when it exists.
+Not a hard dependency between the systems, but the gate is more honest when
+it exists.
 
 ## Reused patterns (not reinvented)
 
@@ -309,8 +348,11 @@ when it exists.
 - **Fail-closed gate composition** — `stores/promote_check.py`'s "any gate
   fails, promotion fails" shape, extended one layer earlier (pre-execution,
   not just pre-promotion).
-- **Nestor's signing/keyring/revocation** — the concrete shape for D4, not a
-  fresh design.
+- **Nestor's ledger pattern** (`ledger.py`'s tamper-evident, fail-closed
+  hash-chain) — reused twice, not once: D12's pedagogy memory (Nestor
+  itself, adopted as a dependency) and D4's signing-event ledger (the
+  *pattern* only, a separate instance — D4's actual crypto is Sigstore, not
+  Nestor's).
 - **`store_mcp.py`'s stdio launch** — the base the generic connector (D5)
   generalizes from.
 
@@ -372,17 +414,20 @@ otherwise-reasonable fits for D2.
   lightweight in-repo gate" framing.
 
 **D5 — MCP gateway/connector prior art**
-No project already does D5's exact shape-based interception (classify by
-read/propose vs. write/grant, not by trusting what the server itself claims)
-— every real option leans on OAuth scopes or static allow/deny instead.
-Closest adoption candidates: **mcp-gateway-registry**
-(`agentic-community`, Apache-2.0) already has per-tool scoping and a
-fail-closed admission gate for newly registered servers — adaptable, not a
-rewrite. **mcp-filter** (MIT) has a usable tool-list-filtering technique as a
-building block, though its own author calls it "a schema reducer, not a
-security boundary." **Pomerium** and **IBM/mcp-context-forge** (both
-Apache-2.0) are real but general-purpose/federation-shaped, heavier than D5
-needs.
+Original framing here judged candidates against D5's *first* draft —
+classifying tool calls by shape (read/propose vs. write/grant). D5 no
+longer works that way (see D5, fixed 2026-07-31: default-deny via an
+explicit per-server allowlist). Re-read against the corrected target:
+**mcp-gateway-registry** (`agentic-community`, Apache-2.0) is a closer match
+than this section originally credited it — its per-tool scoping and
+fail-closed admission gate for newly registered servers is close to
+allowlist-per-server, not just "adjacent." Still not adopted as a dependency
+(see Adopted dependencies), but that call now rests on its own merits rather
+than a comparison to a version of D5 that no longer exists. **mcp-filter**
+(MIT) still has a usable tool-list-filtering technique as a building block,
+though its own author calls it "a schema reducer, not a security boundary."
+**Pomerium** and **IBM/mcp-context-forge** (both Apache-2.0) remain real but
+general-purpose/federation-shaped, heavier than D5 needs.
 
 **D7 — local-default, gated cloud-fallback model routing**
 - **Ollama** (MIT) or **vLLM** (Apache-2.0) as the local engine.
@@ -429,22 +474,27 @@ dependency.
   deliberately not adopted yet, since The Forge has no real multi-tenant
   traffic yet to justify the added infrastructure (E2B's self-hosted floor
   alone is real money: ~$1,250/mo).
-- **D4 → Sigstore, static-keypair mode.** Real audited signing
-  (`sign-blob`/`verify-blob`), the rotate-vs-compromise semantics D4 wants,
-  no new infrastructure dependency — explicitly *not* keyless mode, which
-  would pull in Fulcio/Rekor. Replaces the hand-rolled HMAC pattern borrowed
-  from Nestor; `stores/sap_gate.py` becomes a thin wrapper over cosign's
-  static-key flow rather than a fresh crypto implementation.
+- **D4 → Sigstore, static-keypair mode, plus a signing-event ledger.** Real
+  audited signing (`sign-blob`/`verify-blob`), no new infrastructure
+  dependency — explicitly *not* keyless mode, which would pull in
+  Fulcio/Rekor. **Static mode alone does not give rotate-vs-compromise
+  semantics** — that correction landed after this bullet was first written;
+  see D4's "Key custody" section for the actual mechanism (a dedicated,
+  externally-pinned signing-event ledger). Replaces the hand-rolled HMAC
+  pattern borrowed from Nestor; `stores/sap_gate.py` becomes a thin wrapper
+  over cosign's static-key flow rather than a fresh crypto implementation.
 - **D1/D5 → Casbin, in-process.** Matches D1's "lightweight in-repo gate"
   framing exactly — no sidecar, no daemon. OPA and Cedar stay noted as an
   escalation path if the policy shape outgrows what Casbin's model/policy DSL
   can express; not a decision to revisit until that pressure actually shows
   up.
 - **D5 (connector) → build the minimal version in-repo, no dependency
-  adopted.** Nothing in the sweep does D5's actual shape-based classification
-  (read/propose vs. write/grant, decided by the gate, not by the server's own
-  claims). `mcp-gateway-registry`'s admission-gate is worth reading for
-  structure, not worth depending on for a feature it doesn't have.
+  adopted.** Re-affirmed after D5's fix (default-deny, explicit per-server
+  allowlist, `nestor.serve.Server` as reference): `mcp-gateway-registry`'s
+  admission-gate is closer to this than the original sweep credited it, but
+  its authorization model is still OAuth-scope/role-based, not the
+  explicit-allowlist-per-tool shape D5 actually needs — worth reading for
+  structure, still not quite a fit to depend on.
 - **D7 → vLLM** as the local engine, not Ollama — chosen specifically because
   D6 already commits to multi-tenant from day one, and vLLM is built for real
   concurrent throughput where Ollama is shaped around single-user local use.
@@ -490,6 +540,17 @@ what D1 rules out. Corrected:
   never moves the authorization graph; only the authenticator-binding row
   changes. A second authenticator (another provider, later) could bind to
   the same `builder_id` without touching anything D4/D6/D9/D12 already built.
+- **Uniqueness is enforced at bind time, not assumed.** The authenticator
+  table has a uniqueness constraint on `(provider, external_id)` — a GitHub
+  account can bind to at most one `builder_id`, checked before the bind
+  commits. Without this, the fix is cosmetic: anything that could claim an
+  `external_id` during binding would still get to claim someone else's
+  identity, just one indirection later.
+- **`builder_id` is a filesystem path component (D6) and follows the
+  charset rule this repo already enforces for the same problem** —
+  `stores/promote_check.py`'s `_APP_ID_PATTERN`
+  (`^[A-Za-z0-9][A-Za-z0-9_.-]*$`) applied to `builder_id` at mint time, not
+  a fresh rule invented for D11.
 - v1 scope: one authenticator per `builder_id`, minted once, no re-linking
   flow yet — a real gap (see Open/next), but it doesn't undermine the
   identity model itself.
@@ -525,6 +586,16 @@ needing to work out that distinction itself.
 **Division of labor, stated plainly:** Nestor answers "has this been sealed"
 (memory). py-fsrs (D9's earlier adoption) answers "is it due for review"
 (schedule). No overlap between the two dependencies.
+
+**Storage isolation: one Nestor database per `builder_id`, not a shared DB
+with domain scoping — decided 2026-08-01.** Nestor's domain-tag scoping
+(`domain=f"builder:{builder_id}"`) would work inside one shared database, but
+that makes cross-builder isolation depend on the seam never mis-scoping a
+domain string — one bug away from leaking. A separate `SqliteStore` file per
+`builder_id` (the same directory-per-builder boundary D6 already uses for
+`apps/<builder_id>/`) makes that class of bug structurally unable to cross a
+builder boundary — a mis-scoped domain string can still misfile within one
+builder's own memory, but has no other builder's file to reach at all.
 
 ### D13 — Build for promotion from day one; the promoted repo is named **The Forge**
 
@@ -626,9 +697,9 @@ The same store can hold others without new infrastructure:
 signature under configured keys — maps to D8 "confirm only" when sealed hit is
 **servable**, not merely `status=sealed`.
 
-**Multi-tenant:** Nestor is **per database instance**; D6/D11 must scope
-`builder:{id}` domains (or separate db paths per tenant) — no global seal
-across builders.
+**Multi-tenant:** Nestor is **per database instance** — D12 resolves this as
+separate db paths per `builder_id` (defense in depth over domain-tag scoping
+within one shared file; see D12). No global seal across builders either way.
 
 **Import caution:** `nestor import` **downgrades** seals whose signatures do
 not verify under *this* instance's keys to `draft`. Not a trustless way to move
@@ -656,31 +727,51 @@ Pin Nestor at promotion time the way terpsi's `FLEET-READS.md` pins Nestor SHA.
 ## Open / next
 
 - **All four critical gaps from the 2026-07-31 review now have a concrete
-  mechanism — none are implemented, this is still pure design.**
+  mechanism; a second review (2026-08-01, `docs/design/the-forge-review-2026-07-31.md`
+  plus an independent Opus pass) checked the fixes themselves and found one
+  of them contained a false claim, now corrected below. Still pure design —
+  nothing here is implemented.**
   - **D11** (GitHub was the root of the identity namespace): fixed by a
     store-minted `builder_id` with GitHub bound as one authenticator, not
-    the identity itself.
+    the identity itself, with uniqueness enforced at bind time and a
+    path-safe charset rule borrowed from `promote_check.py`'s existing
+    `_APP_ID_PATTERN`.
   - **D4** (no key custody, rotate/compromise unearned by static Sigstore):
     fixed by naming custody as store-held (living in the existing
-    `safe-app-installer.md` D7 Fernet vault) and a dedicated signing-event
-    ledger, modeled on Nestor's `ledger.py`, giving rotate/compromise real
-    timing to work from.
+    `safe-app-installer.md` D7 Fernet vault) and a signing-event ledger
+    whose tip is pinned *externally* — operator-held, not just verified
+    against itself — closing the circularity of the store both holding the
+    keys and writing the ledger that would prove compromise timing.
   - **D5** (fail-open shape classification): fixed by default-deny via an
     explicit per-server allowlist, modeled on `nestor.serve.Server`'s closed
     tool list + `WITHHELD` set.
-  - **D3** (seam validated *where*, not *what*): fixed by a pre-crossing AST
-    scan (same pattern as `tools/vault_leak_lint.py`) plus an explicit rule,
-    checked against the real repo, that generated code is never executed
-    host-side for any purpose.
+  - **D3** (seam validated *where*, not *what*) — **the fix itself was
+    partly wrong, now corrected.** The original fix claimed
+    `tools/vault_leak_lint.py` was AST-based (it's regex/line-based) and
+    that generated code is never executed host-side in this repo (false —
+    `promote_check.py` runs candidate pytest suites unsandboxed; see the
+    new item below). D3 now states what's actually needed: a scan built to
+    cover function bodies, not adapted from either existing file, plus
+    fixing `promote_check.py` itself as a real prerequisite, not an
+    assumption.
   - What each fix still needs before it's more than design: D11 has no
     authenticator re-linking flow (one GitHub account per `builder_id`,
-    permanently, for v1); D4 hasn't decided whether `sap_gate.py` gets its
-    own namespace inside the existing vault or a new one, and the
-    signing-ledger's storage/ops story is unspecified; D5 still needs an
-    allowlist authored for every server besides Nestor, and nothing yet
-    stops a server from being registered without one; D3's dangerous-pattern
-    list for the pre-crossing scan is unenumerated, same open-ended shape as
-    D8's "where exactly a decision starts."
+    permanently, for v1); D4's signing-ledger storage/ops story (where the
+    externally-pinned tip actually lives) is still unspecified; D5 still
+    needs an allowlist authored for every server besides Nestor, and
+    nothing yet stops a server from being registered without one; D3's
+    dangerous-pattern list for the pre-crossing scan is unenumerated, same
+    open-ended shape as D8's "where exactly a decision starts."
+- **`promote_check.py` executes candidate code host-side, unsandboxed —
+  newly found 2026-08-01, repo-wide, not Forge-specific.** It runs
+  `subprocess.run([sys.executable, "-m", "pytest", "-q"], cwd=cand)` on
+  every promotion candidate's real test suite, and the files that get
+  AST-scanned for safety and the files that get executed are disjoint sets
+  (the scanner explicitly skips anything with `test` in the filename).
+  This affects every app going through promotion today, not just future
+  Forge builds — D3 depends on it being fixed (test execution moved inside
+  Kart or an equivalent sandbox), but fixing it is bigger than this design
+  doc's scope to resolve alone.
 - **Where exactly "a decision" starts** (D8) — the line between "ask first"
   and "just write it" is asserted, not drawn. Needs a working pass over real
   build sessions to find where it actually falls before this is more than a
@@ -725,10 +816,10 @@ Pin Nestor at promotion time the way terpsi's `FLEET-READS.md` pins Nestor SHA.
   (KB documents, MCP tool results) reaches the model that authors the seam's
   plan; D2/D3 treat that model as trusted-but-sandboxed, not as something an
   attacker could steer.
-- **`apps/<tenant>/<name>/` vs. CLAUDE.md rule 10** — rule 10 hardcodes
-  `app_id = directory name` for playground apps; D6's nested tenant directory
-  breaks that assumption for every existing consumer (`promote_check.py`,
-  the catalog, `make run`). Unaddressed.
+- **`apps/<builder_id>/<name>/` vs. CLAUDE.md rule 10** — rule 10 hardcodes
+  `app_id = directory name` for playground apps; D6's nested builder
+  directory breaks that assumption for every existing consumer
+  (`promote_check.py`, the catalog, `make run`). Unaddressed.
 - **`kartikeya` isn't actually wired into this repo yet** — it's a sibling
   repo, not a declared dependency of `safe-app-store` today. `tools/seam_install.py`
   currently shells to `bwrap` "when available" and proceeds silently without
