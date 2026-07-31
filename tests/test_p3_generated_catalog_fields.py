@@ -1,11 +1,17 @@
-"""Tests for the store refit's P3 gate: catalog_lint.py's
-lint_generated_fields().
+"""Tests for the store refit's P3 gate, extended by the status-vocabulary
+migration: catalog_lint.py's lint_generated_fields().
 
 Same shape as tests/test_p1_keeping_records.py: a synthetic stores/ tree under
 tmp_path, catalog.json's "apps" list passed in directly (this function takes
 it as an argument rather than reading a file, so no catalog.json fixture is
 needed), and catalog_lint.REPO monkeypatched so stores/pending.json and the
 records are read from the synthetic tree.
+
+Since the status-vocabulary migration, a catalog entry has no separate
+`state` field — `status` carries a stored entry's record-state value
+directly. `_stored_record()` still uses `state`, because that's a keeping
+record's own field (stores/{major}/stored/<id>.json, from P1) and is
+unaffected by this migration; only the *catalog* representation changed.
 """
 import importlib.util
 import json
@@ -44,6 +50,7 @@ def _build_repo(tmp_path, majors=("python", "node"), stored=(), promoted=(), pen
 
 
 def _stored_record(app_id, majors, state, major=None):
+    """A P1 keeping record — untouched by the status-vocabulary migration."""
     return {"_major": major or majors[0], "app_id": app_id, "majors": majors,
             "location": f"apps/{app_id}", "state": state}
 
@@ -52,8 +59,8 @@ def _promoted_record(app_id, major):
     return {"_major": major, "app_id": app_id, "verdict": "PROMOTED", "major": major}
 
 
-def _entry(app_id, path=f"__PATH__", **kw):
-    e = {"id": app_id, "name": app_id, "description": "x", "status": "beta"}
+def _entry(app_id, path="__PATH__", status="building", **kw):
+    e = {"id": app_id, "name": app_id, "description": "x", "status": status}
     if path == "__PATH__":
         e["path"] = f"apps/{app_id}"
     elif path is not None:
@@ -67,23 +74,27 @@ def _entry(app_id, path=f"__PATH__", **kw):
 def test_matching_playground_entry_passes(tmp_path, monkeypatch):
     repo = _build_repo(tmp_path, stored=[_stored_record("foo", ["python"], "building")])
     monkeypatch.setattr(catalog_lint, "REPO", repo)
-    apps = [_entry("foo", tier="playground", majors=["python"], state="building")]
+    apps = [_entry("foo", tier="playground", majors=["python"], status="building")]
     errors, _ = catalog_lint.lint_generated_fields(apps)
     assert errors == []
 
 
 def test_matching_pending_entry_passes(tmp_path, monkeypatch):
+    """A pending entry's status is manual, not generated — any valid status
+    passes, since there's no record to check it against."""
     repo = _build_repo(tmp_path, pending=[{"app_id": "foo", "reason": "x", "blocked_on": "y"}])
     monkeypatch.setattr(catalog_lint, "REPO", repo)
-    apps = [_entry("foo", tier="playground")]
+    apps = [_entry("foo", tier="playground", status="gated")]
     errors, _ = catalog_lint.lint_generated_fields(apps)
     assert errors == []
 
 
 def test_matching_promoted_entry_passes(tmp_path, monkeypatch):
+    """A promoted entry's status is likewise manual — no promoted record
+    carries a state-shaped field to check it against."""
     repo = _build_repo(tmp_path, promoted=[_promoted_record("foo", "python")])
     monkeypatch.setattr(catalog_lint, "REPO", repo)
-    apps = [_entry("foo", tier="promoted", majors=["python"])]
+    apps = [_entry("foo", tier="promoted", majors=["python"], status="gated")]
     errors, _ = catalog_lint.lint_generated_fields(apps)
     assert errors == []
 
@@ -93,23 +104,24 @@ def test_matching_promoted_entry_passes(tmp_path, monkeypatch):
 def test_wrong_majors_on_a_stored_entry_fails(tmp_path, monkeypatch):
     repo = _build_repo(tmp_path, stored=[_stored_record("foo", ["python"], "building")])
     monkeypatch.setattr(catalog_lint, "REPO", repo)
-    apps = [_entry("foo", tier="playground", majors=["node"], state="building")]
+    apps = [_entry("foo", tier="playground", majors=["node"], status="building")]
     errors, _ = catalog_lint.lint_generated_fields(apps)
     assert any("majors" in e and "foo" in e for e in errors)
 
 
-def test_wrong_state_on_a_stored_entry_fails(tmp_path, monkeypatch):
+def test_wrong_status_on_a_stored_entry_fails(tmp_path, monkeypatch):
+    """The migrated check: catalog status must equal the record's state."""
     repo = _build_repo(tmp_path, stored=[_stored_record("foo", ["python"], "building")])
     monkeypatch.setattr(catalog_lint, "REPO", repo)
-    apps = [_entry("foo", tier="playground", majors=["python"], state="gated")]
+    apps = [_entry("foo", tier="playground", majors=["python"], status="gated")]
     errors, _ = catalog_lint.lint_generated_fields(apps)
-    assert any("state" in e and "foo" in e for e in errors)
+    assert any("status" in e and "foo" in e for e in errors)
 
 
 def test_wrong_tier_on_a_stored_entry_fails(tmp_path, monkeypatch):
     repo = _build_repo(tmp_path, stored=[_stored_record("foo", ["python"], "building")])
     monkeypatch.setattr(catalog_lint, "REPO", repo)
-    apps = [_entry("foo", tier="promoted", majors=["python"], state="building")]
+    apps = [_entry("foo", tier="promoted", majors=["python"], status="building")]
     errors, _ = catalog_lint.lint_generated_fields(apps)
     assert any("tier" in e and "foo" in e for e in errors)
 
@@ -117,7 +129,7 @@ def test_wrong_tier_on_a_stored_entry_fails(tmp_path, monkeypatch):
 def test_pending_entry_with_wrong_tier_fails(tmp_path, monkeypatch):
     repo = _build_repo(tmp_path, pending=[{"app_id": "foo", "reason": "x", "blocked_on": "y"}])
     monkeypatch.setattr(catalog_lint, "REPO", repo)
-    apps = [_entry("foo", tier="promoted")]
+    apps = [_entry("foo", tier="promoted", status="building")]
     errors, _ = catalog_lint.lint_generated_fields(apps)
     assert any("tier" in e and "foo" in e for e in errors)
 
@@ -125,19 +137,41 @@ def test_pending_entry_with_wrong_tier_fails(tmp_path, monkeypatch):
 def test_promoted_entry_with_wrong_majors_fails(tmp_path, monkeypatch):
     repo = _build_repo(tmp_path, promoted=[_promoted_record("foo", "python")])
     monkeypatch.setattr(catalog_lint, "REPO", repo)
-    apps = [_entry("foo", tier="promoted", majors=["node"])]
+    apps = [_entry("foo", tier="promoted", majors=["node"], status="building")]
     errors, _ = catalog_lint.lint_generated_fields(apps)
     assert any("majors" in e and "foo" in e for e in errors)
 
 
-# ── pending entries don't need majors/state, only the right tier ──────────────
+# ── the status-vocabulary migration's own guard ────────────────────────────────
 
-def test_pending_entry_without_majors_or_state_is_fine(tmp_path, monkeypatch):
-    """Absence is a value, not a gap: a pending app has no record to check
-    majors/state against, and the gate must not demand fields it can't verify."""
+def test_leftover_separate_state_field_fails(tmp_path, monkeypatch):
+    """A catalog entry must not carry both status and a separate state key —
+    that's the exact two-fields-for-one-fact shape the migration closed."""
+    repo = _build_repo(tmp_path, stored=[_stored_record("foo", ["python"], "building")])
+    monkeypatch.setattr(catalog_lint, "REPO", repo)
+    apps = [_entry("foo", tier="playground", majors=["python"], status="building",
+                    state="building")]
+    errors, _ = catalog_lint.lint_generated_fields(apps)
+    assert any("state" in e and "foo" in e for e in errors)
+
+
+def test_pending_entry_status_can_differ_from_any_hypothetical_state(tmp_path, monkeypatch):
+    """Not generated, so nothing to disagree with: a pending entry's manually
+    set status is never compared against anything, unlike a stored entry's."""
     repo = _build_repo(tmp_path, pending=[{"app_id": "foo", "reason": "x", "blocked_on": "y"}])
     monkeypatch.setattr(catalog_lint, "REPO", repo)
-    apps = [_entry("foo", tier="playground")]  # no majors, no state key at all
+    for status in ("seeded", "building", "gated", "stalled"):
+        apps = [_entry("foo", tier="playground", status=status)]
+        errors, _ = catalog_lint.lint_generated_fields(apps)
+        assert errors == [], f"status={status!r} should not be flagged"
+
+
+# ── which store a stored record's majors are checked against ──────────────────
+
+def test_declared_major_is_honoured(tmp_path, monkeypatch):
+    repo = _build_repo(tmp_path, stored=[_stored_record("foo", ["node"], "building", major="node")])
+    monkeypatch.setattr(catalog_lint, "REPO", repo)
+    apps = [_entry("foo", tier="playground", majors=["node"], status="building")]
     errors, _ = catalog_lint.lint_generated_fields(apps)
     assert errors == []
 
@@ -159,7 +193,7 @@ def test_pathless_entry_is_skipped_regardless_of_content(tmp_path, monkeypatch):
     resolve."""
     repo = _build_repo(tmp_path)
     monkeypatch.setattr(catalog_lint, "REPO", repo)
-    apps = [_entry("foo", path=None, tier="nonsense")]
+    apps = [_entry("foo", path=None, tier="nonsense", status="building")]
     errors, _ = catalog_lint.lint_generated_fields(apps)
     assert errors == []
 
@@ -172,6 +206,6 @@ def test_entry_with_no_record_anywhere_errors_loudly(tmp_path, monkeypatch):
     apps list directly, so it's tested standalone rather than assumed safe."""
     repo = _build_repo(tmp_path)
     monkeypatch.setattr(catalog_lint, "REPO", repo)
-    apps = [_entry("foo", tier="playground")]
+    apps = [_entry("foo", tier="playground", status="building")]
     errors, _ = catalog_lint.lint_generated_fields(apps)
     assert any("no keeping record" in e for e in errors)

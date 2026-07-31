@@ -341,6 +341,65 @@ included:**
   untouched rather than guessing at a record for a build the house cannot
   measure.
 
+#### The `status` vocabulary migration — the bite P3 deliberately deferred · done 2026-07-31
+
+Decided explicitly, not inferred: **full replacement.** `status`'s vocabulary
+*is* the `state` enum now (`seeded · building · gated · stalled · archived`);
+the old shop vocabulary (`stable`/`beta`/`coming_soon`) is gone, and so is the
+separate `state` field P3 added — a stored entry's `status` carries that value
+directly, with nothing left to duplicate it.
+
+The real question this settled wasn't mechanical — it was whether collapsing
+the two fields loses something worth keeping. `vision-board` is the concrete
+case: catalog-`stable` (it works, people use it) but P1-`state: building` (no
+CI-verified suite). Merging the fields means it now reads `status: building`
+— true about its gate, not about whether a person should try it. Decided to
+accept that trade rather than keep a second field alive to preserve a
+distinction the plan's own wording ("archived stays" — redundant to say if the
+rest were staying two fields) pointed at merging in the first place.
+
+- **29 catalog entries migrated.** 27 from their keeping record's `state`,
+  verbatim (`story-timeline`: `beta → gated`; `nasa-archive`: `stable →
+  stalled`; etc. — full list in the commit). 2 with no record to read from get
+  a manually-assessed status instead of a fabricated one: `utety-chat` →
+  `gated` (it has a real CI-verified suite — `store-ci.yml`'s `app-tests`
+  matrix — independent of its still-unresolved P1 relation question);
+  `the-binder` → `stalled` (broken entry point + Cloudflare Pages shell, both
+  confirmed in `docs/store_refit_survey.md`). `genealogy`, `llmphysics`,
+  `llmphysics-bot` stay `archived`, unchanged.
+- **`grove`/`willow-grove` also needed a value from the new closed enum** —
+  the base status check applies store-wide, not just to P1/P3's in-scope
+  entries, so their old `beta` would otherwise fail outright. Manually set to
+  `building`: no evidence of brokenness, nothing to measure them against
+  either, same open "loose repo" gap as before, just now expressed in the new
+  vocabulary rather than the old one.
+- **`tools/catalog_lint.py`**: `VALID_STATUSES` is now identical to
+  `VALID_STATES`; the manifest-required check moved with it
+  (`building`/`gated`/`stalled` require a manifest, `seeded` only warns, same
+  softer treatment `coming_soon` used to get). `lint_generated_fields()`
+  checks a stored entry's `status` against its record's `state` (was: a
+  separate `state` field), and now also rejects a leftover `state` key on any
+  catalog entry outright — the two-fields-for-one-fact shape this migration
+  closed must not grow back.
+- **`tui.py`**'s status→color/badge maps moved to the new words
+  (`gated`→green/●, `building`→yellow/◑, `seeded`→dim/○, `stalled`→red/✕,
+  `archived`→dim/✕, unchanged).
+- **Tests**: `tests/test_p3_generated_catalog_fields.py` updated in place (14
+  tests: status-vs-record consistency, the leftover-`state`-key guard, pending
+  and promoted entries' status correctly *not* being checked against
+  anything since neither has a record to check against). New
+  `tests/test_status_vocabulary_migration.py` (6 tests) covers the base
+  `lint()` checks the other file doesn't reach: the old vocabulary is actually
+  rejected, all five new values are accepted, and the manifest-required tiers
+  moved correctly. Verified both can fail: reverted `VALID_STATUSES` to the
+  old set, watched exactly the two vocabulary tests redden, restored it; then
+  set `story-timeline`'s real catalog status to `beta`, watched
+  `catalog_lint.py --strict` catch both the invalid-status error and the
+  now-mismatched-with-its-record error, restored it.
+- **`README.md`** repointed: its app table's status column and its
+  "gated means a CI-verified suite exists, not feature-complete" caveat now
+  match the real values instead of the old shop words.
+
 ### P4 — Discovery is not the house's job · independent
 
 `discovery_sources` is the last purely-market organ: a curated directory of

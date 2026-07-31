@@ -35,15 +35,17 @@ _CONSENT_PATH = _DATA_DIR / "store_consent.json"
 _SAFE_APPS_ROOT = pathlib.Path.home() / "github" / "SAFE" / "Applications"
 
 _STATUS_COLOR = {
-    "stable": "green",
-    "beta": "yellow",
-    "coming_soon": "dim",
+    "gated": "green",
+    "building": "yellow",
+    "seeded": "dim",
+    "stalled": "red",
     "archived": "dim",
 }
 _STATUS_BADGE = {
-    "stable": "● stable",
-    "beta": "◑ beta",
-    "coming_soon": "○ soon",
+    "gated": "● gated",
+    "building": "◑ building",
+    "seeded": "○ seeded",
+    "stalled": "✕ stalled",
     "archived": "✕ arch",
 }
 _PERM_LABEL = {
