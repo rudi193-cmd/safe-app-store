@@ -4,6 +4,6 @@ pydantic>=2.8
 streamlit>=1.38
 pillow>=12.3.0
 pytesseract>=0.3.10
-cryptography>=43.0
+cryptography>=49.0.0
 pyyaml>=6.0.3
 rich>=13.8

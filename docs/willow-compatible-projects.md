@@ -1,8 +1,11 @@
 # Willow-Compatible External Projects
 
 > **Status:** Scout list — research backlog, **not** the authoritative catalog (see
-> `.willow/store/` and `catalog.json`). Promote entries to `coming_soon` only after a
-> manifest exists and `make run app=<name>` works.
+> `.willow/store/` and `catalog.json`). Add entries to the real catalog with
+> `status: seeded` only after a manifest exists and `make run app=<name>`
+> works (`status` is the P1 state enum — seeded/building/gated/stalled/
+> archived — since `docs/store_refit_plan.md`'s status-vocabulary migration;
+> it no longer accepts `coming_soon`).
 >
 > **Stars:** GitHub counts as of 2026-06 (third pass). Refresh before marketing copy.
 >
@@ -241,8 +244,9 @@ Before promoting, read **[grove-starter-borrow-map.md](../../safe-app-willow-gro
 1. Clone or `app_install` → `apps/<app_id>/` (or standalone SAFE repo; `app_id` = directory name).
 2. `safe-app-manifest.json` + `entry_point` + `make run app=<app_id>`.
 3. Smoke on host (T500): cold start, quit clean, permissions match manifest.
-4. Register in `.willow/store/` **and** sync `catalog.json` (`status: coming_soon` until stable).
-5. Mark row promoted in this doc (date + catalog `app_id` in [Overlaps](#overlaps) audit or a `promoted:` footnote).
+4. Add a keeping record at `stores/<major>/stored/<app_id>.json` (`docs/store_refit_plan.md` P1), then add the entry to `.willow/store/catalog.json` with `status: seeded` (or `building`/`gated`/`stalled` if it's already past that bar — `status` is generated from the keeping record's `state` and `catalog_lint.py --strict` will reject a mismatch; it no longer accepts `coming_soon`/`stable`).
+5. Run `python tools/catalog_lint.py --strict` before pushing.
+6. Mark row promoted in this doc (date + catalog `app_id` in [Overlaps](#overlaps) audit or a `promoted:` footnote).
 
 ---
 
