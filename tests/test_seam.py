@@ -167,6 +167,39 @@ def test_compromised_key_is_denied_at_the_gate(tmp_path):
         seam.cross(signed_manifest=signed, plan=_simple_plan(), keystore=ks, ledger=ledger, apps_root=apps_root)
 
 
+def test_symlinked_intermediate_directory_planted_after_validation_is_refused(tmp_path, monkeypatch):
+    """HIGH audit finding: validate_plan() resolves destinations before the
+    write loop runs, and nothing re-checked containment once the write
+    loop's mkdir() made the directory real. A symlink planted in that
+    window redirected writes outside the builder's own tree.
+
+    Genuinely simulates the TOCTOU window rather than pre-planting the
+    symlink (which the EXISTING validate_plan containment check would
+    already catch on its own, proving nothing about this fix specifically):
+    wraps validate_plan so the symlink lands exactly between its return and
+    the write loop that follows, in cross()'s own real call order."""
+    ks, ledger, apps_root = _rig(tmp_path)
+    signed = sap_gate.sign_manifest(_manifest(), builder_id="alice", keystore=ks, ledger=ledger)
+    plan = Plan(app_name="widget", entries=(FileWrite(dest_path="sub/app.py", content="x = 1\n"),))
+
+    outside = tmp_path / "outside-victim"
+    outside.mkdir()
+    real_validate_plan = seam.validate_plan
+
+    def _validate_then_plant_symlink(*args, **kwargs):
+        resolved = real_validate_plan(*args, **kwargs)
+        sub_dir = apps_root / "alice" / "widget" / "sub"
+        sub_dir.parent.mkdir(parents=True, exist_ok=True)
+        sub_dir.symlink_to(outside, target_is_directory=True)
+        return resolved
+
+    monkeypatch.setattr(seam, "validate_plan", _validate_then_plant_symlink)
+
+    with pytest.raises(seam.SeamError, match="replaced with a symlink"):
+        seam.cross(signed_manifest=signed, plan=plan, keystore=ks, ledger=ledger, apps_root=apps_root)
+    assert not (outside / "app.py").exists()
+
+
 def test_multiple_file_writes_all_cross_in_order(tmp_path):
     ks, ledger, apps_root = _rig(tmp_path)
     signed = sap_gate.sign_manifest(_manifest(), builder_id="alice", keystore=ks, ledger=ledger)

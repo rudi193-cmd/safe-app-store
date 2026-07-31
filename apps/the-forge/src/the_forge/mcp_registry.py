@@ -54,6 +54,16 @@ class McpRegistry:
     def register(self, name: str, *, launch_command: Iterable[str], allowed_tools: Iterable[str]) -> None:
         if name in self._servers:
             raise RegistryError(f"server {name!r} is already registered — re-registration is not an update")
+        if isinstance(allowed_tools, str):
+            # frozenset("nestor_ask") silently explodes into per-character
+            # entries {'n', 'e', 's', ...} — a caller passing a bare string
+            # instead of a list/set would get a registry that looks
+            # populated and denies almost everything, the wrong direction
+            # to fail silently in but still worth catching explicitly.
+            raise RegistryError(
+                f"allowed_tools for {name!r} was given as a bare string {allowed_tools!r} — "
+                f"pass a list/set of tool names, not a string"
+            )
         allowed = frozenset(allowed_tools)
         if not allowed:
             raise RegistryError(

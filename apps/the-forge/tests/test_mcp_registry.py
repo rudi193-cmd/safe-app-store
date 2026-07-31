@@ -9,6 +9,15 @@ def test_registering_with_no_allowlist_is_refused():
         reg.register("nestor", launch_command=["nestor", "serve"], allowed_tools=[])
 
 
+def test_registering_with_a_bare_string_allowlist_is_refused():
+    """Audit finding (LOW): frozenset("nestor_ask") silently explodes into
+    per-character entries — a caller passing a bare string by mistake would
+    get a registry that looks populated but denies almost everything."""
+    reg = McpRegistry()
+    with pytest.raises(RegistryError, match="bare string"):
+        reg.register("nestor", launch_command=["nestor", "serve"], allowed_tools="nestor_ask")
+
+
 def test_registered_tool_is_allowed():
     reg = McpRegistry()
     reg.register("nestor", launch_command=["nestor", "serve"], allowed_tools=["nestor_ask"])

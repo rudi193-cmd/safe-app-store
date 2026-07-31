@@ -22,8 +22,20 @@ isn't the allow root or strictly inside it.
 from __future__ import annotations
 
 import dataclasses
+import re
 from pathlib import Path, PurePosixPath
 from typing import Any
+
+# Same charset D11 requires for builder_id (stores/sap_gate.py's
+# _BUILDER_ID_PATTERN, itself borrowed from promote_check.py's
+# _APP_ID_PATTERN) — app_name lands in a filesystem path exactly the same
+# way builder_id does (apps_root/builder_id/app_name/...), so it needs the
+# same charset rule, not just a non-empty check. An unvalidated app_name
+# was a real path-traversal hole: `Plan(app_name="../../VICTIM", ...)`
+# resolved its allow_root outside apps_root entirely, and every subsequent
+# containment check passed because it was checking containment *within*
+# the already-escaped root.
+_APP_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 
 
 class PlanError(Exception):
@@ -75,8 +87,12 @@ class Plan:
     entries: tuple[PlanEntry, ...]
 
     def __post_init__(self) -> None:
-        if not self.app_name or not self.app_name.strip():
-            raise PlanError("plan has no app_name")
+        if not self.app_name or not _APP_NAME_PATTERN.match(self.app_name):
+            raise PlanError(
+                f"app_name {self.app_name!r} fails the path-safety charset — "
+                f"it becomes a filesystem path component (apps/<builder_id>/<app_name>/), "
+                f"same rule as builder_id (D11)"
+            )
         if not self.entries:
             raise PlanError("plan has no entries")
 
@@ -137,14 +153,26 @@ def _contain_file_write(entry: FileWrite, *, builder_id: str, app_name: str, app
     """Resolve `entry.dest_path` against apps/<builder_id>/<app_name>/ and
     refuse anything that would escape it — same shape as
     `tools/seam_install.py`'s `seam_place` containment check, applied to a
-    generated file instead of an installer artifact."""
+    generated file instead of an installer artifact, with one deliberate
+    difference: `seam_place`'s allow_root may legitimately BE the
+    destination (a single-file install). A FileWrite's destination never
+    is — `dest_path=""`/`"."`/`"./"` all normalize to the app directory
+    itself, and letting that through meant a plan could clobber
+    `apps/<builder_id>/<app_name>` with a regular file instead of writing
+    something inside it."""
     allow_root = (apps_root / builder_id / app_name).resolve()
     rel = PurePosixPath(entry.dest_path)
     if rel.is_absolute() or ".." in rel.parts:
         raise PlanError(f"seam refused: {entry.dest_path!r} is absolute or escapes its own tree")
-    dest = (allow_root / Path(*rel.parts)).resolve()
-    if dest != allow_root and not dest.is_relative_to(allow_root):
-        raise PlanError(f"seam refused: {dest} escapes allowlist {allow_root}")
+    try:
+        dest = (allow_root / Path(*rel.parts)).resolve()
+    except ValueError as e:  # e.g. an embedded null byte
+        raise PlanError(f"seam refused: {entry.dest_path!r} is not a usable path: {e}") from e
+    if dest == allow_root or not dest.is_relative_to(allow_root):
+        raise PlanError(
+            f"seam refused: {entry.dest_path!r} does not resolve to a file "
+            f"strictly inside {allow_root}"
+        )
     return dest
 
 
@@ -153,9 +181,17 @@ def validate_plan(plan: Plan, *, builder_id: str, apps_root: Path) -> list[Path]
     allowlist (D5). `builder_id` is supplied by the caller (the seam), never
     read from `plan` (see Plan's docstring). Returns the resolved
     destination path for every FileWrite entry; raises PlanError on the
-    first entry that's malformed or out of scope."""
+    first entry that's malformed or out of scope.
+
+    Re-checks `app_name`'s charset independently of `Plan.__post_init__`,
+    deliberately not trusting that construction-time check alone — the
+    containment math in `_contain_file_write` depends on `app_name` the
+    same way it depends on `builder_id`, and this is the actual boundary
+    that matters, not just the constructor's."""
     if not builder_id or not builder_id.strip():
         raise PlanError("validate_plan called with no builder_id")
+    if not plan.app_name or not _APP_NAME_PATTERN.match(plan.app_name):
+        raise PlanError(f"plan.app_name {plan.app_name!r} fails the path-safety charset")
     resolved: list[Path] = []
     for entry in plan.entries:
         if isinstance(entry, FileWrite):

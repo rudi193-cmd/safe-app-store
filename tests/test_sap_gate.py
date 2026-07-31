@@ -247,6 +247,88 @@ def test_ledger_head_and_expect_head(tmp_path):
     assert "mismatch" in msg
 
 
+# ── audit fixes, 2026-08-01 ───────────────────────────────────────────────────
+
+def test_verify_manifest_denies_when_the_ledger_chain_is_broken(tmp_path):
+    """CRITICAL audit finding: verify_manifest() never called ledger.verify()
+    at all — has_sign_entry()/compromised_at() were trusted even against a
+    ledger whose OWN tamper-evidence said it was broken. Confirmed exploit:
+    corrupt the chain, and the exact signature that was fine a moment ago
+    must now be denied, because nothing here can trust what a broken chain
+    says about it."""
+    ks, ledger = _gate(tmp_path)
+    signed = sap_gate.sign_manifest(_manifest(), builder_id="alice", keystore=ks, ledger=ledger)
+    sap_gate.sign_manifest(_manifest(app_id="other"), builder_id="alice", keystore=ks, ledger=ledger)
+    sap_gate.verify_manifest(signed, keystore=ks, ledger=ledger)  # fine before corruption
+
+    _corrupt_first_entry(ledger.path)
+
+    with pytest.raises(sap_gate.GateError, match="ledger does not verify"):
+        sap_gate.verify_manifest(signed, keystore=ks, ledger=ledger)
+
+
+def test_verify_manifest_honors_expect_ledger_head(tmp_path):
+    ks, ledger = _gate(tmp_path)
+    signed = sap_gate.sign_manifest(_manifest(), builder_id="alice", keystore=ks, ledger=ledger)
+    real_head = ledger.head()
+
+    sap_gate.verify_manifest(signed, keystore=ks, ledger=ledger, expect_ledger_head=real_head)
+
+    with pytest.raises(sap_gate.GateError, match="ledger does not verify"):
+        sap_gate.verify_manifest(signed, keystore=ks, ledger=ledger, expect_ledger_head="0" * 64)
+
+
+def test_public_key_does_not_create_a_key_for_an_unknown_builder(tmp_path):
+    """MEDIUM audit finding: public_key() used to call get_or_create(),
+    so verify_manifest() minted a real private key on disk as a side
+    effect of checking a signature for a builder_id it had never seen —
+    anyone could seed key files just by submitting a signed-manifest claim
+    for a name that never signed anything."""
+    ks, ledger = _gate(tmp_path)
+    with pytest.raises(sap_gate.GateError, match="no key exists"):
+        ks.public_key("nobody-has-signed-as-this-builder")
+    assert not (tmp_path / "keys" / "nobody-has-signed-as-this-builder.ed25519.pem").exists()
+
+
+def test_verify_manifest_on_unknown_builder_does_not_mint_a_key(tmp_path):
+    ks, ledger = _gate(tmp_path)
+    fake = sap_gate.SignedManifest(manifest=_manifest(maker="ghost"), builder_id="ghost",
+                                    signature="00" * 64, signed_at=1.0)
+    with pytest.raises(sap_gate.GateError, match="no known key"):
+        sap_gate.verify_manifest(fake, keystore=ks, ledger=ledger)
+    assert not (tmp_path / "keys" / "ghost.ed25519.pem").exists()
+
+
+def test_corrupt_json_in_the_ledger_fails_closed_not_a_traceback(tmp_path):
+    ks, ledger = _gate(tmp_path)
+    signed = sap_gate.sign_manifest(_manifest(), builder_id="alice", keystore=ks, ledger=ledger)
+    with ledger.path.open("a") as f:
+        f.write("{not valid json\n")
+
+    ok, msg = ledger.verify()
+    assert not ok
+    assert "not valid JSON" in msg
+
+    with pytest.raises(sap_gate.GateError, match="ledger does not verify"):
+        sap_gate.verify_manifest(signed, keystore=ks, ledger=ledger)
+
+
+def test_ledger_entry_missing_a_required_field_raises_gate_error_not_key_error(tmp_path):
+    ledger = sap_gate.SigningLedger(tmp_path / "ledger.jsonl")
+    ledger.path.write_text('{"prev": null, "builder_id": "alice"}\n')  # no "event", no "timestamp"
+    with pytest.raises(sap_gate.GateError, match="missing"):
+        ledger.compromised_at("alice")
+
+
+def test_signature_that_is_not_a_string_is_denied_not_a_type_error(tmp_path):
+    ks, ledger = _gate(tmp_path)
+    signed = sap_gate.sign_manifest(_manifest(), builder_id="alice", keystore=ks, ledger=ledger)
+    broken = sap_gate.SignedManifest(manifest=signed.manifest, builder_id=signed.builder_id,
+                                      signature=None, signed_at=signed.signed_at)
+    with pytest.raises(sap_gate.GateError, match="malformed signature"):
+        sap_gate.verify_manifest(broken, keystore=ks, ledger=ledger)
+
+
 # ── canonical bytes — only the bound fields are covered ──────────────────────
 
 def test_canonical_bytes_ignore_unbound_fields():

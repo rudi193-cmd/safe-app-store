@@ -45,6 +45,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -121,13 +122,38 @@ def cross(*, signed_manifest: "sap_gate.SignedManifest", plan: Plan,
             if not mcp_registry.is_allowed(call.server, call.tool):
                 raise SeamError(f"mcp_call denied: {mcp_registry.deny_reason(call.server, call.tool)}")
 
+    allow_root = (apps_root / builder_id / plan.app_name).resolve()
+
     written: list[str] = []
     file_writes = [e for e in plan.entries if isinstance(e, FileWrite)]
     for entry, dest in zip(file_writes, resolved):
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(entry.content)
+        try:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            # validate_plan() resolved `dest` before ANY of this ran — a
+            # symlink planted at an intermediate directory since then would
+            # otherwise let the write land somewhere the containment check
+            # never actually saw. Re-resolve now that the directory really
+            # exists (resolve() only chases real symlinks on disk; at
+            # validate-plan time most of this path didn't exist yet, so
+            # there was nothing to chase). This narrows the race; it does
+            # not close it completely — a symlink planted in the
+            # microseconds between this check and the O_NOFOLLOW open below
+            # is not caught by anything short of platform-specific syscalls
+            # (openat2/RESOLVE_NO_SYMLINKS) this module doesn't use. Said
+            # plainly rather than implied solved.
+            real_parent = dest.parent.resolve(strict=True)
+            if real_parent != allow_root and not real_parent.is_relative_to(allow_root):
+                raise SeamError(
+                    f"seam refused: {dest} — an intermediate directory was replaced "
+                    f"with a symlink after validation"
+                )
+            fd = os.open(str(dest), os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW, 0o644)
+            with os.fdopen(fd, "w") as f:  # closes fd on any exit path, including an exception
+                f.write(entry.content)
+        except (OSError, ValueError) as e:
+            raise SeamError(f"seam refused: cannot write {dest}: {e}") from e
         if entry.executable:
-            dest.chmod(0o755)
+            os.chmod(dest, 0o755)
         written.append(str(dest))
 
     allowed_mcp_calls = [{"server": e.server, "tool": e.tool} for e in mcp_calls]

