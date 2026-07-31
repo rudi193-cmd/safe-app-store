@@ -14,7 +14,7 @@ about repo integrity, not portability.
 | Gate | Tool | What it proves |
 |------|------|----------------|
 | catalog | `tools/catalog_lint.py --strict` | `catalog.json` and `apps/` agree: valid statuses, `app_id` = directory name (rule 8), no unregistered app dirs, no dangling paths (archived and external-repo entries exempt, rule 4), beta/stable apps carry a matching `safe-app-manifest.json` |
-| vault-clean | `tools/vault_leak_lint.py --strict` | No app persists user *data* to a fixed home path (D8); config/cache in home is classified, not flagged (D8.1) |
+| vault-clean | `tools/vault_leak_lint.py --strict` | No app persists user *data* to a fixed home path (D8); config/cache in home is classified, not flagged (D8.1). An app with no Python reports `UNKNOWN`, not `PASS` — the checker reads `*.py` and a vacuous scan is not a clean one |
 | compile | `python -m compileall` | Every `.py` in `apps/`, `tools/`, `scripts/`, and the repo root byte-compiles |
 | app-tests | `pytest`, one matrix leg per app | Suites that have no dedicated workflow: civics-check, law-gazelle, the-squirrel, utety-chat |
 
@@ -24,6 +24,11 @@ Path-filtered, OS/Python-matrixed workflows for apps whose surface warrants
 it: `ask-jeles.yml`, `private-ledger.yml`, `source-trail.yml`,
 `story-timeline.yml`. They only run when their app (or the workflow itself)
 changes.
+
+`jarvis.yml` is the same tier for a different reason: not an OS matrix but a
+different language. jarvis is the store's first app with no Python in it, so it
+needs Node and a real Chromium and cannot join an `app-tests` matrix that
+installs `requirements.txt` and runs `pytest`.
 
 ## Where a new app's tests go
 
@@ -35,6 +40,10 @@ changes.
   venv can mask a missing dependency that a fresh CI runner will catch.
 - App needs an OS matrix, editable installs, or heavier setup → give it its
   own path-filtered workflow (copy `story-timeline.yml` as the template).
+- **App is not Python** → its own workflow, and read the floor honestly while
+  you are there: `vault_leak_lint.py` and the four drift-guard suites all glob
+  `*.py`, so for such an app the store floor is the catalog gate and nothing
+  else. `jarvis.yml` is the worked example.
 - No tests yet → the app is still covered by the catalog, vault-clean, and
   compile gates. (`dating-wellbeing`'s suite is a placeholder — add it to the
   matrix when real tests land.)

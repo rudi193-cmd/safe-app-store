@@ -1,0 +1,74 @@
+name: jarvis
+
+# Tier 2, per docs/ci.md: "App needs an OS matrix, editable installs, or heavier
+# setup -> give it its own path-filtered workflow." jarvis needs Node and a real
+# Chromium and no Python at all, so it cannot join the app-tests matrix in
+# store-ci.yml — that matrix installs requirements.txt and runs pytest, and
+# jarvis has neither.
+#
+# Single OS. The suite tests IndexedDB behaviour in Chromium; running the same
+# Chromium on three operating systems would triple the cost to re-test the same
+# engine. Speech input and the Anthropic API are outside the suite entirely (see
+# apps/jarvis/README.md), so the OS matrix would not reach them either.
+
+on:
+  push:
+    paths:
+      - "apps/jarvis/**"
+      - ".github/workflows/jarvis.yml"
+  pull_request:
+    paths:
+      - "apps/jarvis/**"
+      - ".github/workflows/jarvis.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/jarvis/package-lock.json
+
+      - name: Install
+        working-directory: apps/jarvis
+        env:
+          # The browser is installed by the next step from the pinned playwright,
+          # not by npm's postinstall. Same reasoning as store-ci.yml's browser
+          # jobs.
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+        run: npm ci
+
+      - name: Install Chromium
+        working-directory: apps/jarvis
+        # Chromium only. The suite drives IndexedDB, the capability ladders and
+        # the real page; Firefox and WebKit would need their own expectations,
+        # not these ones run three times. Firefox in particular has no
+        # SpeechRecognition, so its capability ladder is a different ladder.
+        run: npx playwright install --with-deps chromium
+
+      - name: Suite
+        working-directory: apps/jarvis
+        # `npm test` builds www/ first, then runs the Capacitor conformance and
+        # packaging checks, a boot check against the real page, and the suite in
+        # a real Chromium. The build is not a convenience: www/ is generated and
+        # gitignored, so a fresh checkout has none, and reading a stale one
+        # would pass the packaging checks while the packaging step was broken.
+        run: npm test
+
+      - name: Mutation test
+        working-directory: apps/jarvis
+        # A gate that cannot fail is not a gate. Breaks each mechanism on
+        # purpose and asserts two things per mutation: the gates it declares go
+        # red, AND no others do. The second half is what keeps the suite from
+        # being entangled rather than sharp.
+        run: npm test -- --mutations
