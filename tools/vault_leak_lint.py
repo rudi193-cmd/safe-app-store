@@ -13,9 +13,14 @@ Scans SAFE apps for persistence paths and classifies each fixed/home-rooted one:
   vault  — path derives from WILLOW_STORE_ROOT / WILLOW_HOME. Good.
 
 Verdict per app:
-  FAIL  — one or more DATA leaks.
-  WARN  — only core-discovery / unknown fixed paths.
-  PASS  — only config/cache/vault-routed, or no local persistence.
+  FAIL    — one or more DATA leaks.
+  WARN    — only core-discovery / unknown fixed paths.
+  UNKNOWN — the app has no Python, so this checker read nothing. Not a pass: a
+            vacuous scan is not a clean one, and the first app in this state
+            (apps/jarvis) persists facts, reminders and an API key from
+            JavaScript while being reported clean by a tool that had opened
+            none of its files.
+  PASS    — only config/cache/vault-routed, or no local persistence.
 
 The rule (D8): an app is vault-clean only when every *data* path derives from
 the vault root. The refinement (D8.1): config/cache in home is fine — classify,
@@ -116,6 +121,7 @@ def classify(path: str, line: str) -> tuple[str, str]:
 def lint_app(app_dir: Path) -> dict:
     findings = []
     persists = False
+    scanned = 0
     for py in sorted(app_dir.rglob("*.py")):
         if SKIP_DIR_PARTS & set(py.parts):
             continue
@@ -123,6 +129,7 @@ def lint_app(app_dir: Path) -> dict:
             text = py.read_text(encoding="utf-8", errors="replace")
         except Exception:
             continue
+        scanned += 1
         if re.search(r'sqlite3\.connect|CREATE TABLE|\.execute\(', text):
             persists = True
         for i, line in enumerate(text.splitlines(), 1):
@@ -139,9 +146,28 @@ def lint_app(app_dir: Path) -> dict:
                     })
     leaks = [f for f in findings if f["category"] == "leak"]
     warns = [f for f in findings if f["category"] in ("core", "unknown")]
-    verdict = "FAIL" if leaks else ("WARN" if warns else "PASS")
+    if leaks:
+        verdict = "FAIL"
+    elif warns:
+        verdict = "WARN"
+    elif scanned == 0:
+        # A vacuous scan is not a clean one. This checker reads *.py and nothing
+        # else, so an app with no Python produced zero findings and was reported
+        # `PASS ... (no local persistence)` — a green line about a file set the
+        # tool had never opened. apps/jarvis is the first such app and both
+        # halves of that line were false: it persists facts, reminders and an API
+        # key, in IndexedDB and localStorage, from JavaScript.
+        #
+        # UNKNOWN rather than FAIL, because nothing was found to be wrong; and
+        # not PASS, because nothing was looked at. Same distinction
+        # tools/conform.py draws, for the same reason. `--strict` still gates on
+        # FAIL alone, so this changes no build outcome — it changes what the
+        # output claims.
+        verdict = "UNKNOWN"
+    else:
+        verdict = "PASS"
     return {"app": app_dir.name, "verdict": verdict, "leaks": leaks,
-            "warns": warns, "persists": persists}
+            "warns": warns, "persists": persists, "scanned": scanned}
 
 
 def main() -> int:
@@ -164,10 +190,15 @@ def main() -> int:
     if args.json:
         print(json.dumps(results, indent=2))
     else:
-        order = {"FAIL": 0, "WARN": 1, "PASS": 2}
+        order = {"FAIL": 0, "WARN": 1, "UNKNOWN": 2, "PASS": 3}
         for r in sorted(results, key=lambda r: (order[r["verdict"]], r["app"])):
-            mark = {"FAIL": "❌", "WARN": "⚠️ ", "PASS": "✅"}[r["verdict"]]
-            extra = "" if r["persists"] or r["leaks"] or r["warns"] else " (no local persistence)"
+            mark = {"FAIL": "❌", "WARN": "⚠️ ", "UNKNOWN": "❔", "PASS": "✅"}[r["verdict"]]
+            if r["verdict"] == "UNKNOWN":
+                extra = " (no Python in this app — nothing was scanned)"
+            elif r["persists"] or r["leaks"] or r["warns"]:
+                extra = ""
+            else:
+                extra = " (no local persistence)"
             print(f"{mark} {r['verdict']:4} {r['app']}{extra}")
             for f in r["leaks"]:
                 print(f"      LEAK  {f['file']}:{f['line']}  {f['path']}  — {f['reason']}")
@@ -176,7 +207,9 @@ def main() -> int:
         n_fail = sum(1 for r in results if r["verdict"] == "FAIL")
         n_warn = sum(1 for r in results if r["verdict"] == "WARN")
         n_pass = sum(1 for r in results if r["verdict"] == "PASS")
-        print(f"\n{len(results)} apps: {n_fail} FAIL · {n_warn} WARN · {n_pass} PASS")
+        n_unknown = sum(1 for r in results if r["verdict"] == "UNKNOWN")
+        print(f"\n{len(results)} apps: {n_fail} FAIL · {n_warn} WARN · "
+              f"{n_unknown} UNKNOWN · {n_pass} PASS")
 
     if args.strict and any(r["verdict"] == "FAIL" for r in results):
         return 1
