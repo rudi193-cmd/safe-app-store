@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0d10" />
+    <title>Jarvis</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🜂</text></svg>"
+    />
+  </head>
+  <body>
+    <header class="bar">
+      <button id="memory-toggle" class="ghost" aria-label="Memory">memory</button>
+      <h1>Jarvis</h1>
+      <button id="settings-toggle" class="ghost" aria-label="Settings">settings</button>
+    </header>
+
+    <main id="transcript" class="transcript" aria-live="polite"></main>
+
+    <div id="status" class="status" role="status"></div>
+
+    <footer class="composer">
+      <button id="mic" class="mic" aria-label="Hold to talk">
+        <span class="mic-dot"></span>
+      </button>
+      <form id="text-form" class="text-form">
+        <input
+          id="text-input"
+          type="text"
+          placeholder="…or type"
+          autocomplete="off"
+          autocapitalize="sentences"
+          enterkeyhint="send"
+        />
+        <button type="submit" class="send" aria-label="Send">→</button>
+      </form>
+    </footer>
+
+    <!-- Settings -->
+    <dialog id="settings" class="sheet">
+      <form method="dialog">
+        <h2>Settings</h2>
+
+        <label for="api-key">Anthropic API key</label>
+        <input id="api-key" type="password" placeholder="sk-ant-…" autocomplete="off" spellcheck="false" />
+        <p class="fine">
+          Kept in this browser's localStorage and sent directly to api.anthropic.com. Anyone with access to this
+          device or any script on this page can read it. Use a key you are willing to rotate.
+        </p>
+
+        <label for="effort">Effort</label>
+        <select id="effort">
+          <option value="low">low — fastest, good for conversation</option>
+          <option value="medium">medium</option>
+          <option value="high">high — slowest, best reasoning</option>
+        </select>
+
+        <label class="row">
+          <input id="speak-toggle" type="checkbox" checked />
+          <span>Speak replies aloud</span>
+        </label>
+
+        <h3>Capabilities</h3>
+        <ul id="capabilities" class="caps"></ul>
+
+        <menu>
+          <button value="close" class="primary">Done</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <!-- Memory -->
+    <dialog id="memory" class="sheet">
+      <form method="dialog">
+        <h2>What I remember</h2>
+        <p class="fine" id="memory-provenance"></p>
+        <ul id="memory-list" class="facts"></ul>
+        <menu>
+          <button type="button" id="wipe" class="danger">Forget everything</button>
+          <button value="close" class="primary">Done</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>

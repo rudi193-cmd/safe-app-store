@@ -1,0 +1,17 @@
+{
+  "appId": "dev.quickstupids.jarvis",
+  "appName": "Jarvis",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#FF8A5C"
+    }
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
