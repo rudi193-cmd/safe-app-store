@@ -395,6 +395,21 @@
         "drill-design",
         "local-first"
       ]
+    },
+    {
+      "id": "jarvis",
+      "name": "Jarvis",
+      "description": "Voice-first browser assistant with an indexed fact store. Hold to talk, replies read back, facts remembered between sessions: corrections filed beside the record, absence stored as a value, provenance propagated by min(). Bring-your-own-key, and the conversation goes to Anthropic.",
+      "status": "beta",
+      "version": "0.1.0",
+      "path": "apps/jarvis",
+      "tags": [
+        "assistant",
+        "voice",
+        "memory",
+        "browser",
+        "prototype"
+      ]
     }
   ],
   "discovery_sources": [
