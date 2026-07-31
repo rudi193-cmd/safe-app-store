@@ -1,0 +1,13 @@
+{
+  "app_id": "jarvis",
+  "majors": [
+    "browser"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/jarvis",
+  "maker": "USER",
+  "lane": null,
+  "state": "gated",
+  "notes": null
+}

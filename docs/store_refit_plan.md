@@ -70,7 +70,7 @@ builds.
 Sequenced by dependency. Each phase ships the gate that makes its promise
 checkable — **a phase without a gate is not done.**
 
-### P0 — Settle the tier vocabulary · unblocked
+### P0 — Settle the tier vocabulary · done
 
 One name per tier, in both documents, with the collision above resolved
 explicitly rather than quietly. `stores/README.md` adopts *playground* for the
@@ -84,6 +84,12 @@ it is deliberately separate so the vocabulary change is reviewable on its own.
 **Gate.** A doc test asserting the two files use one vocabulary: no occurrence
 of `stored/` as a *code location* in either, and the tier names match a single
 canonical list. Cheap, and it stops the collision reopening.
+
+**Done 2026-07-31:** `stores/README.md`'s "Stored" tier renamed to
+"Playground"; both files now state, verbatim, "The code is not duplicated. The
+record is what `stores/` stores." — `tests/test_tier_vocabulary.py`, wired into
+`store-ci.yml`'s `gates` job, is the gate. Verified it can fail: reverting
+`stores/README.md` to its pre-P0 wording reddens all four assertions.
 
 ### P1 — The keeping record · needs P0
 
@@ -155,6 +161,38 @@ existing `gates` job:
 - **a record naming more than one major must name the relation** — a spanning
   build with an unnamed relation fails
 - `state` is in the closed set
+
+**Done 2026-07-31, with two apps deliberately left open:**
+
+- `tools/catalog_lint.py`'s `lint_records()` implements the gate above exactly
+  (plus: a record's `anchor`, when named, must be one of its own `majors`).
+  `tests/test_p1_keeping_records.py` proves each check can fail, against a
+  synthetic repo, wired into `store-ci.yml`.
+- `stores/browser/` was added as a seventh major — the gap
+  `docs/store_refit_survey.md` named directly: forcing jarvis and
+  `band-camp-arcade` (self-contained HTML/JS, no backend, no build step) into
+  `node` would state something false about what craft they're built in.
+- 27 of 29 `apps/` builds now have a record under `stores/{major}/stored/`.
+  `llmphysics` got exactly the treatment this section anticipated: its
+  wrong-dialect manifest (`safe-app-manifest.js`, per the survey) is recorded
+  as a gap in its `notes`, not smoothed over.
+- **`the-binder` and `utety-chat` are recorded in `stores/pending.json`
+  instead**, each with the specific open question blocking it, per
+  `docs/store_refit_survey.md`'s own "Open gates" section: both span crafts
+  with no reference implementation defining correct, so `anchor` has no
+  principled answer and the closed five-term relation vocabulary has no term
+  for either shape. Inventing an anchor or forcing a relation would be
+  exactly the kind of false record P1 exists to prevent. Resolving this needs
+  a human call — either the relation vocabulary grows a term, or these two
+  get a rule of their own — not an agent's guess while implementing the gate.
+- `state` was assigned per app with a documented, mechanical-where-possible
+  policy: `archived` mirrors `catalog.json`; `gated` means a real,
+  CI-verified test suite exists (the `app-tests` matrix plus each dedicated
+  workflow) — a claim about the gate, not about feature completeness (see
+  `source-trail`'s and `vision-board`'s notes, where `state` and catalog
+  `status` deliberately disagree); `stalled` cites a specific broken-entry-point
+  or non-functional finding from one of the two survey docs; everything else
+  defaults to `building`. Each record's `notes` cites its evidence.
 
 ### P2 — Promotion leaves a record · needs P1
 

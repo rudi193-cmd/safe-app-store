@@ -52,7 +52,16 @@ At session start, run `/startup` to orient before touching anything.
    - a semantic-search seam over its own **injectable** knowledge (ship the reader; the corpus stays with whoever grew it)
    - the host repointed as a consumer
 
-   Promotion is recorded under [`stores/{major}/promoted/`](stores/). **The maker enrolls; someone else promotes** — `verified_by ≠ author` (§0.2: proposing and ratifying never rest in the same hand). *Nestor and Jeles are the worked standard — each lifted from inside a host into its own repo with injected storage and its own tests.* The bar is enforced by **`stores/promote_check.py`**; a build that fails any gate is **not** promoted (fail-closed).
+   Promotion is recorded under [`stores/{major}/promoted/`](stores/). While a
+   build is still in the playground, [`stores/{major}/stored/`](stores/) holds
+   only its keeping record, never a second copy of the build. **The code is
+   not duplicated. The record is what `stores/` stores.** **The maker enrolls;
+   someone else promotes** — `verified_by ≠ author` (§0.2: proposing and
+   ratifying never rest in the same hand). *Nestor and Jeles are the worked
+   standard — each lifted from inside a host into its own repo with injected
+   storage and its own tests.* The bar is enforced by
+   **`stores/promote_check.py`**; a build that fails any gate is **not**
+   promoted (fail-closed).
 9. **The catalog is a status map, not a shelf.** It tracks builds across both tiers (playground / promoted) in `.willow/store/` — keep `catalog.json` in sync. It records where a thing is in its becoming, not an inventory for sale.
 10. **`apps/<name>/` self-containment and `app_id = directory name` describe a build only while it is in the playground.** They exist so SAFE dev-fallback auth resolves during testing. Once promoted, the app is its own repo with its own identity. `make run app=<name>` runs a playground build.
 

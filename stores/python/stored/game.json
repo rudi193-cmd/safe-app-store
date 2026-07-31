@@ -1,0 +1,13 @@
+{
+  "app_id": "game",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/game",
+  "maker": "USER",
+  "lane": null,
+  "state": "stalled",
+  "notes": "Broken entry point (safe_integration:status has no status()) confirmed by docs/store_refit_survey.md; 3 of 4 catalogued crash findings already fixed per the same doc, but not yet gated."
+}

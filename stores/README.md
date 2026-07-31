@@ -16,10 +16,17 @@ it stays yours until it's promoted.
 
 ## The two tiers
 
-Every store holds work at one of two stages:
+Every store holds work at one of two stages, and both tiers share one
+vocabulary with [`CLAUDE.md`](../CLAUDE.md) §5/§8 — the law and the map name
+these the same way on purpose, after the two used to disagree.
 
-- **Stored** — provisional, incubating. A held piece: local, or a loose repo.
-  Low bar. Not yet established.
+- **Playground** — provisional, incubating, contested. The code itself lives
+  in `apps/` (or a local/loose repo, per [`CLAUDE.md`](../CLAUDE.md) §7);
+  `stores/{major}/stored/` holds only the **keeping record** of it — an entry
+  describing the build, not a copy of it. A storehouse keeps a ledger of its
+  stock; it does not keep two copies of the stock. **The code is not
+  duplicated. The record is what `stores/` stores.** Low bar. Not yet
+  established.
 - **Promoted** — a full SAFE app: **its own repo · injected seams (host imports
   it, never the reverse) · its own tests green · a manifest · a
   dependency-light / import-pure core · MCP-shaped or library-clean · a
@@ -40,6 +47,14 @@ in each store is the enrollment; those two are the graduation.
 | [`go/`](go/) | Bubble Tea · Charm | — |
 | [`cpp/`](cpp/) | C++ tools & apps | — |
 | [`obsidian/`](obsidian/) | Obsidian plugins & vaults | — |
+| [`browser/`](browser/) | Static HTML/JS, client-only, no backend | — |
+
+`browser` was added in the store refit's P1 (`docs/store_refit_plan.md`):
+`docs/store_refit_survey.md` measured that forcing jarvis, `band-camp-arcade`,
+and the Cloudflare Pages slices of a few other builds into `node` would state
+something false — a bundler-built Node CLI and a single self-contained HTML
+file with no build step are not the same craft. *"The majors list has a gap,
+not these builds."*
 
 The list is open — a store is added when someone brings a craft to build in. The
 `tui-design` skill (`.agents/skills/tui-design`) already carries per-ecosystem
@@ -48,7 +63,7 @@ guidance for the terminal ones (Go/Rust/Python/TS).
 ## The Almanac — a branch, not a store
 
 One node here is a different kind: [`almanac/`](almanac/) is **not** a code
-store and holds no `stored/`/`promoted/` tiers. It is the fleet's public record —
+store and holds neither the playground nor the promoted tier. It is the fleet's public record —
 an **auto-updated list** — and the whole point is that *the store does not store
 it.* A self-renewing list needs no keeping; a frozen copy only goes stale. So the
 Almanac is a **pointer to a live feed**, injected the same way a corpus is. It is
