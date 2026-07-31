@@ -1,0 +1,5 @@
+# stores/sap_gate.py needs real asymmetric signing (stdlib has none).
+# Every other stores/ and tools/ script is stdlib-only by convention;
+# this is the first exception, and it's a deliberate one — not something
+# to work around with a hand-rolled scheme in a trust-boundary module.
+cryptography>=41.0

@@ -24,3 +24,8 @@ tools/.seam-receipts/
 *.seam.json
 *.receipt.json
 .sandbox/
+
+# sap_gate.py's dev-only key custody + signing-event ledger (D4) — never
+# committed even in dev; real custody is the D7 vault, not this repo.
+stores/.sap_gate_keys/
+stores/.sap_gate_ledger.jsonl
