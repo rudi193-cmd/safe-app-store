@@ -389,6 +389,61 @@ dependency.
   strictly weaker, py-irt's PyTorch dependency too heavy, openskill missing
   the interval-scheduling piece D9's "resurface later" actually depends on).
 
+### D11 — Multi-user auth: store-native session layer, GitHub OAuth only
+
+Not an extension of `willow-mcp`'s OAuth — that provider is explicitly
+single-user PKCE, and stretching it for multi-tenancy is real surgery on code
+that wasn't built for this. Per D1 (the store owns trust, not any MCP
+server), `safe-app-store` issues its own session tokens after a GitHub OAuth
+handshake completes. No password storage, no reset flow to build.
+
+GitHub specifically, not a generic OAuth menu: every sibling repo this design
+already leans on — Kart, Nestor, willow-mcp — lives there, so a builder
+plausibly already has an account, and it's where they'd be pulling this down
+from anyway.
+
+**`builder_id`, derived from the GitHub account's stable ID, is the identity
+every other decision has been hand-waving with a placeholder.** Making this
+canonical now retroactively resolves loose terminology: D6's `tenant_id` and
+D9's `builder_id` are the same value. It threads through:
+- D4's signing keyring (one Sigstore keypair per `builder_id`)
+- D6's collection/working-directory scoping (`apps/<builder_id>/<name>/`,
+  `saps1/builder-<builder_id>/...`)
+- D9/D12's Nestor domain (`domain=f"builder:{builder_id}"`)
+- every Casbin (D1/D5) policy check's `caller` field
+
+**Rollout is a separate call from architecture.** D6 already committed to
+supporting real strangers; whether self-serve signup is literally open on day
+one is a later decision, not something this design needs to answer to keep
+moving.
+
+### D12 — D9's storage/ledger half: adopt Nestor as a real dependency
+
+Unlike D4 (which borrowed Sigstore instead of Nestor's HMAC pattern), this one
+adopts Nestor itself — `pip install nestor`, not a pattern reference. This is
+Nestor's actual domain (matching a query against a memory of confirmed
+answers), the core package has zero runtime dependencies, and — unlike the
+arm's-length OSS elsewhere in this stack — it's a sibling repo CLAUDE.md
+already treats as the worked standard for exactly this kind of promoted
+dependency.
+
+Concrete recipe: `EntityResolver(store, domain=f"builder:{builder_id}")`.
+A decision description resolves against canonical decision-types this
+specific builder has already sealed — a hit at/above threshold triggers D8's
+lighter-touch confirm, a miss or near-miss triggers the full Socratic
+checkpoint.
+
+**Rejection is included, not just sealing.** `reject_pair` — "I was wrong
+about this generally, unseal it everywhere" — and `reject_match` — "that
+explanation didn't fit this specific case, the general understanding still
+holds" — are both real things that happen while someone is actually learning,
+and Nestor already distinguishes them correctly rather than this design
+needing to work out that distinction itself.
+
+**Division of labor, stated plainly:** Nestor answers "has this been sealed"
+(memory). py-fsrs (D9's earlier adoption) answers "is it due for review"
+(schedule). No overlap between the two dependencies.
+
 ## Open / next
 
 - **Where exactly "a decision" starts** (D8) — the line between "ask first"
@@ -402,18 +457,17 @@ dependency.
   choose" is a legitimate answer that still seals *as a taught decision*
   (builder saw the tradeoff, deferred deliberately) versus something that
   should block progress.
-- **Whether Nestor becomes an actual dependency for the ledger/storage half
-  of D9** — py-fsrs (adopted above) settles *scheduling*; it doesn't touch
-  *storage*. D9's checkpoint ledger (matching a decision against a memory of
-  sealed answers, per builder) is still much closer to Nestor's actual domain
-  than D4's gate ever was — `pip install nestor` and a real
-  `EntityResolver`-shaped recipe, with py-fsrs supplying the interval math
-  Nestor doesn't have, is the live option worth deciding on next.
-- **Multi-user auth is the actual prerequisite for D6**, and isn't sketched
-  yet. Does the store issue its own session tokens with a tenant claim, or
-  extend `willow-mcp`'s OAuth provider to carry one? Given D1 (store owns
-  trust), leans toward store-native — but worth a decision of its own before
-  any of D6 is buildable.
+- **GitHub OAuth app registration specifics** (D11) — scopes requested (read
+  access to the builder's identity only, presumably; no repo access needed
+  unless a later feature wants to push a promoted build straight to a
+  builder's own GitHub), callback/session-token lifetime, and whether this
+  reuses any existing GitHub App this org already has registered or needs its
+  own.
+- **Whether `willow-mcp`'s existing single-user OAuth gets touched at all.**
+  D11 is additive — a new store-native layer, not a replacement — since
+  `willow-mcp`'s provider presumably still serves its own single-operator use
+  elsewhere in the fleet. Worth confirming that stays true rather than
+  assuming it.
 - **The KB (docs from major software companies) lives locally, not in a
   repo** — no integration shape sketched yet. Whatever plugs it in should go
   through D5's same connector contract once it's reachable at all (local
