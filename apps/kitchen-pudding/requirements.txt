@@ -1,0 +1,9 @@
+# Stdlib-only core — no runtime dependencies.
+#
+# Storage resolves through the shared libs/vault-paths (installed with
+# `pip install -e libs/vault-paths` in dev/CI, same as the other apps in
+# this matrix); kitchen_pudding.store falls back to the in-repo source tree
+# if it isn't installed, and to a hardcoded default if neither is present.
+#
+# Dev-only, not a runtime dependency:
+# pytest>=8.0

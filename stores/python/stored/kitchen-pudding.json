@@ -1,0 +1,13 @@
+{
+  "app_id": "kitchen-pudding",
+  "majors": [
+    "python"
+  ],
+  "location": "apps/kitchen-pudding",
+  "maker": "USER",
+  "lane": [
+    "kitchen_pudding_*"
+  ],
+  "state": "building",
+  "notes": "P0 scaffold: provenance ledger (min()-aggregated) and append-only corrections, both tested. Not wired into store-ci.yml's app-tests matrix yet, so state is building, not gated, even though a real test suite exists locally. See docs/PRODUCT_PLAN.md for what's open."
+}

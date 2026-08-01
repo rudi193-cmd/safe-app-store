@@ -1,0 +1,41 @@
+{
+  "app_id": "kitchen-pudding",
+  "name": "kitchen-pudding",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "agent_type": "tool",
+  "description": "Local-first recipe store. Every ingredient carries provenance — measured, fitted, or assumed — and a recipe is only as trustworthy as its weakest ingredient. Corrections append beside the original record; the original is never overwritten.",
+  "author": "USER",
+  "data_streams": [
+    {
+      "id": "recipes",
+      "purpose": "Recipe records: title, ingredients (each with qty, unit, provenance), steps",
+      "retention": "permanent",
+      "description": "One JSON file per recipe under the vault. Written once by add(); never rewritten in place."
+    },
+    {
+      "id": "corrections",
+      "purpose": "Append-only correction log per recipe — field, new value, and why",
+      "retention": "permanent",
+      "description": "A .jsonl file per recipe, beside the original, never merged into it. current() replays this over the original to produce the current view; get_original() ignores it entirely."
+    }
+  ],
+  "permissions": [
+    "file_read",
+    "file_write"
+  ],
+  "store_scope": [
+    "kitchen_pudding_*"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "network": "none",
+  "entry_point": "kitchen_pudding.cli:main",
+  "license": "Apache-2.0",
+  "notes": {
+    "phase": "P0 scaffold — provenance ledger and append-only corrections are real and tested; docs/PRODUCT_PLAN.md tracks what's not built yet",
+    "not_a_fork": "Mealie/Tandoor/KitchenOwl were surveyed and rejected as a base, not for feature reasons but licensing: all three are AGPLv3, which would bind anything built on top of them to the same terms the moment it's run as a service. This is from scratch under Apache-2.0, matching the rest of the store.",
+    "mechanism_vs_preference": "Not yet enforced in code, only in the data model: provenance (measured/fitted/assumed) is a mechanism claim, checked and testable. Taste, rating, and flavor adjustments are preference and belong in a separate, votable field once one exists — see docs/PRODUCT_PLAN.md. Nothing currently lets a preference field overwrite a provenance one, but there's also no schema-level lock stopping it yet; that's an open gate, not a closed one.",
+    "aggregation": "Recipe.provenance() is min() over ingredients, not a mean and not a majority vote — one assumed quantity in a ten-ingredient recipe makes the whole recipe assumed. CLAUDE.md: 'a result is worth its weakest input, propagated by min().'"
+  }
+}
