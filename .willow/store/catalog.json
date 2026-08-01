@@ -542,6 +542,24 @@
         "prototype",
         "local-first"
       ]
+    },
+    {
+      "id": "kitchen-pudding",
+      "name": "Kitchen Pudding",
+      "description": "Local-first recipe store where every ingredient carries provenance (measured/fitted/assumed) and a recipe is worth its weakest ingredient via min(), not an average. Append-only corrections, never overwritten originals.",
+      "status": "building",
+      "version": "0.1.0",
+      "path": "apps/kitchen-pudding",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "tags": [
+        "recipes",
+        "kitchen",
+        "provenance",
+        "local-first"
+      ]
     }
   ]
 }
