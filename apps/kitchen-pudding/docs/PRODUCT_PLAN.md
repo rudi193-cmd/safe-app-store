@@ -2,7 +2,55 @@
 
 ## What this is
 
-A recipe box, not a meal-planning suite — yet. The one thing that's different
+**Revised.** Not a solo recipe box — a way to bring people together over
+food, using recipe verification as the reason two strangers start talking.
+P0 (merged, #142) built the provenance mechanism as data hygiene: every
+ingredient carries `measured`/`fitted`/`assumed`, and a recipe is worth its
+weakest ingredient via `min()`. Turns out that mechanism is more interesting
+pointed at other *people* than pointed at a solo user's own recipe box —
+"I can verify this needs more flour at my altitude" is a reason to connect,
+not just a data quality flag. See "The pivot" below for what that means
+concretely. The P0 framing (below, kept for the record) is superseded, not
+deleted — same "corrections land beside the record" discipline applied to a
+plan doc instead of a recipe.
+
+### Landscape check (2026-08-01)
+
+Surveyed before committing to this direction — full notes in conversation,
+summarized here for the record:
+
+- **Buy Nothing's own app** shares the *opposite* of what this wants: it
+  auto-saves your exact address and drops it into a private message per
+  exchange. A stricter disclosure model than the app you're already in is a
+  real differentiator, not a nice-to-have.
+- **OLIO** is the closest existing shape (photo → neighbor requests → agree
+  pickup) but has no verification layer at all — no provenance, no "this
+  needs adjusting," just listings.
+- **Every high-altitude baking resource that exists is a static published
+  formula** (King Arthur, Exploratorium, calculator sites) — "+1-2 tbsp per
+  3,000 ft," not per-recipe, not crowdsourced, not attributed to a person who
+  actually tried it at your elevation. Nobody has built the thing this app
+  does. Strongest signal that the idea, not just the execution, was missing.
+- **DP3T** (COVID contact tracing) is the proven mechanism for "confirm
+  proximity without resolving identity until it matters" — rotating,
+  meaningless IDs exchanged locally, identity resolved only on a real match.
+- **Earthstar** is a p2p, offline-first, scoped-group document sync engine —
+  a serious candidate for *not* building a central server, see "Open
+  questions" below.
+- **Community Notes' bridging rank** — a correction/note only surfaces once
+  people who normally *disagree* both find it helpful — is sharper than a
+  plain append-only log for a multi-author correction stream. Worth adapting,
+  not adopting whole (see below).
+- **Timebanking/LETS software (Cyclos, WebLETS, openLETS)** — sound idea
+  (track reciprocity without money), dead 2000s-era code. Not a foundation.
+- **Mutual Aid Wiki / MutualAidNYC** — the *dispatcher-mediated* trust model:
+  a volunteer bridges a need and an offer so neither party sees the other's
+  address directly. The middle rung of the ladder below is this pattern,
+  minus the human dispatcher.
+
+## What P0 was (superseded framing, kept for the record)
+
+A recipe box, not a meal-planning suite. The one thing that was different
 from Mealie/Tandoor/KitchenOwl (all surveyed, all AGPLv3, none forked): every
 ingredient carries a provenance tag, and a recipe's overall trustworthiness is
 the weakest ingredient in it, not an average. "2 cups flour" from a tested
@@ -55,3 +103,95 @@ and none of the existing open-source options say which one you're looking at.
 - **Promotion.** This is a P0 playground build (`stores/python/stored/kitchen-pudding.json`,
   `state: building`) — not in the CI matrix, not gated, not promoted. See
   `safe-app-store/CLAUDE.md` §8 for what promotion requires.
+
+## The pivot: a three-rung disclosure ladder
+
+Not "how much do I hide" but "how do two people earn their way to an
+exchange." Same shape whether the interaction is verifying a recipe or
+offering to bring someone flour — that's the point of the pivot, one
+mechanism serves both halves of "bringing people together over food."
+
+1. **Anonymous match.** "Someone in your group verified this needs more
+   flour at altitude" / "someone nearby has flour to spare." No name, no
+   location finer than the group. Where most interactions stay — this is
+   where the P0 provenance/correction mechanism already lives, just made
+   multi-author.
+2. **Named, still vague.** Both sides opt in and it becomes "Jamie, three
+   blocks over, verified this" / "Jamie has flour." First name and rough
+   proximity, not an address. About what a Buy Nothing post looks like
+   before you've claimed anything.
+3. **Handoff, mutual and explicit.** Only when *both* people confirm does
+   anything precise change hands, peer-to-peer, never stored by the app.
+   Same shape as the sealed-grant consent model already built in
+   `marching-arts`: a grant only exists because a named person sealed it,
+   and revoking deletes rather than flags. Applied here to "can you see my
+   street" instead of "can you see my roster record."
+
+The app's responsibility ends at rung 3's threshold: it marks a match as
+"handoff pending" and gets out of the way. No address field anywhere in the
+schema, no messaging feature to build. Keeps "no export path rather than a
+disabled one" (CLAUDE.md) literally true — there is no code path in this app
+that ever transmits an address.
+
+## P1: what the ladder needs, concretely
+
+Gaps this surfaces that P0's single-user design didn't have to face:
+
+- **A Group model.** P0's `store_scope` (`kitchen_pudding_*`) is a
+  single-vault namespace. P1 needs it to generalize to a shared namespace
+  per group (`kitchen_pudding_<group_id>_*`), the same store-scope wall the
+  rest of this repo already enforces for apps, now enforced between groups
+  within one app.
+- **Membership.** Invite-only, matching Buy Nothing's private-group model —
+  open discovery is explicitly not the goal. Who can invite, and who
+  removes a bad actor, is a real question (see "Open questions").
+- **Corrections need a submitter.** P0's `store.py` correction schema has no
+  `who` field at all — it was written for a single user correcting their own
+  recipes. That's a genuine gap this pivot exposes, not glossed over: rung 1
+  needs *some* identity (even pseudonymous) attached to a correction, or
+  there's nothing for rung 2 to name later.
+- **Bridging-lite surfacing.** Not the full Community Notes algorithm, but
+  the same idea: a correction from someone in a different self-reported
+  elevation band agreeing with an existing one should outrank a second
+  correction from someone in the same band. Otherwise ten neighbors at the
+  same altitude look like stronger evidence than they are.
+- **Sync architecture — the single biggest open fork.** A single-device JSON
+  store doesn't work once there's more than one person. Real options, not
+  yet decided: (a) a small self-hosted sync server per group, most control,
+  breaks the "no server" ethos; (b) Earthstar-style p2p sync scoped per
+  group, keeps local-first, unproven in this codebase; (c) a Postgres
+  instance per group, no different in shape from `private-ledger`'s existing
+  shim. This has to be decided before P1 schema work starts, not discovered
+  partway through it.
+
+## The "bring you some" matching (next-next bite, not P1)
+
+- Offer/need posts scoped to a group, rung 1 only — no identity needed to
+  see "someone needs flour."
+- Matching is declared-need vs. declared-offer *within a group*, no
+  geocoding, no lat/long. The group boundary already is the proximity
+  boundary, same as a Buy Nothing group. This sidesteps most of the
+  privacy-preserving-proximity literature (DP3T etc.) because the group is
+  invite-scoped from the start, not global.
+- Explicitly out of scope even here: reputation/rating systems, payment,
+  delivery logistics.
+
+## Open questions before writing any P1 code
+
+1. **Sync architecture** — self-hosted server vs. Earthstar vs. a
+   Postgres-per-group shim. Three real options; needs a decision, not a
+   default.
+2. **What "anonymous" means at rung 1.** Literally anonymous (no persistent
+   identity, even within a group) defeats bridging-lite surfacing, which
+   needs *some* stable-but-unlinked identity to tell "two different people
+   agree" from "the same person posted twice." Pseudonymous-stable within a
+   group, resolved only at rung 2, is the likely answer — not yet decided.
+3. **Group moderation.** Buy Nothing groups have moderators. A P1 with no
+   admin role and no way to remove a bad actor is a known gap if shipped
+   that way, not an oversight — needs an explicit decision either way.
+
+## Next bite
+
+Answer the three open questions above — a scoped design conversation, not
+code. Once decided, P1 starts with: the Group model, a submitter field on
+corrections, and the sync architecture choice, in that order.
