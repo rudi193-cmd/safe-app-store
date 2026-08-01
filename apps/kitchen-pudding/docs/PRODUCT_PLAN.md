@@ -104,6 +104,28 @@ and none of the existing open-source options say which one you're looking at.
   `state: building`) — not in the CI matrix, not gated, not promoted. See
   `safe-app-store/CLAUDE.md` §8 for what promotion requires.
 
+## Noted: a candidate display format
+
+A recipe card spotted 2026-08-01 (grid layout: ingredients as rows on the
+left, columns to the right showing `melt` / `mix` / `mix` / `fold in` /
+`bake`, each ingredient's row terminating at the column where it enters)
+does something most recipe formats don't — ingredients and instructions in
+one box, with column position telling you *when* something enters instead of
+a separate numbered sentence for it.
+
+Worth keeping for whenever the interaction layer moves past the CLI (see
+"Settled" above — deliberately not designed yet). Two things worth noting
+now, before that phase, so they're not rediscovered the hard way:
+
+- **It requires `Recipe.steps` to stop being a flat list of strings.** The
+  card encodes a small DAG — which ingredients converge at which stage —
+  and today's model has no structure to hang a merge point on. If steps ever
+  need to render this way, that's a model change, not a display change.
+- **Each merge point is itself a provenance claim.** "Fold the dry
+  ingredients in last" can be `measured` (the card author actually tested
+  order) or `assumed` (nobody's confirmed order matters) — same discipline
+  as ingredient quantities, just applied to structure instead of amounts.
+
 ## The pivot: a three-rung disclosure ladder
 
 Not "how much do I hide" but "how do two people earn their way to an
