@@ -1,0 +1,86 @@
+{
+  "catalog_version": 1,
+  "note": [
+    "Every entry here is `assumed`, and that is not a placeholder to be filled",
+    "in later with something better-looking. Nobody has sat with a child and",
+    "counted interruptions for any of these, and no tracker lookup has been run",
+    "against them either, so `assumed` is the true state and writing anything",
+    "stronger would be the exact failure this app exists to refuse.",
+    "",
+    "`fitted` and `measured` records are exercised in tests/ against fixtures.",
+    "They are absent here because producing one requires work nobody has done:",
+    "`fitted` needs a stated derivation rule and a real tracker lookup,",
+    "`measured` needs ten minutes, a child, and someone watching.",
+    "",
+    "apk_path and sha256 are null because this app does not download. An",
+    "operator puts an APK on disk and records its digest; until then the",
+    "install path refuses rather than fetching, which is the intended",
+    "behaviour and not an unfinished one."
+  ],
+  "apps": [
+    {
+      "id": "sgt-puzzles",
+      "title": "Simon Tatham's Puzzles",
+      "blurb": "Forty small logic puzzles. No timer, no streak, no reason to come back tomorrow.",
+      "age_band": "7+",
+      "abi": "universal",
+      "package": "name.boyle.chris.sgtpuzzles",
+      "version": null,
+      "apk_path": null,
+      "sha256": null,
+      "interruption": {
+        "provenance": "assumed",
+        "note": "nobody has watched this run"
+      },
+      "tracker_provenance": "assumed"
+    },
+    {
+      "id": "shattered-pixel-dungeon",
+      "title": "Shattered Pixel Dungeon",
+      "blurb": "A roguelike dungeon crawl. Runs end; there is nothing to buy.",
+      "age_band": "10+",
+      "abi": "universal",
+      "package": "com.shatteredpixel.shatteredpixeldungeon",
+      "version": null,
+      "apk_path": null,
+      "sha256": null,
+      "interruption": {
+        "provenance": "assumed",
+        "note": "nobody has watched this run"
+      },
+      "tracker_provenance": "assumed"
+    },
+    {
+      "id": "vector-pinball",
+      "title": "Vector Pinball",
+      "blurb": "Pinball tables drawn in lines. Ball drains, table resets, that is the loop.",
+      "age_band": "6+",
+      "abi": "universal",
+      "package": "com.dozingcatsoftware.bouncy",
+      "version": null,
+      "apk_path": null,
+      "sha256": null,
+      "interruption": {
+        "provenance": "assumed",
+        "note": "nobody has watched this run"
+      },
+      "tracker_provenance": "assumed"
+    },
+    {
+      "id": "frozen-bubble",
+      "title": "Frozen Bubble",
+      "blurb": "Match three bubbles by colour before the ceiling comes down.",
+      "age_band": "5+",
+      "abi": "universal",
+      "package": "org.jfedor.frozenbubble",
+      "version": null,
+      "apk_path": null,
+      "sha256": null,
+      "interruption": {
+        "provenance": "assumed",
+        "note": "nobody has watched this run"
+      },
+      "tracker_provenance": "assumed"
+    }
+  ]
+}
