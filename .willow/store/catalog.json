@@ -544,6 +544,25 @@
       ]
     },
     {
+      "id": "playgate",
+      "name": "Nest Playgate",
+      "description": "Kid catalog and parent inbox for approving Waydroid app installs. Static browser UI here; disposition queue and adb hook run in Desktop/Nest/playgate host.",
+      "status": "building",
+      "version": "0.1.0",
+      "path": "apps/playgate",
+      "tier": "playground",
+      "majors": [
+        "browser"
+      ],
+      "tags": [
+        "parenting",
+        "waydroid",
+        "browser",
+        "local-first",
+        "governance"
+      ]
+    },
+    {
       "id": "kitchen-pudding",
       "name": "Kitchen Pudding",
       "description": "Local-first recipe store where every ingredient carries provenance (measured/fitted/assumed) and a recipe is worth its weakest ingredient via min(), not an average. Append-only corrections, never overwritten originals.",

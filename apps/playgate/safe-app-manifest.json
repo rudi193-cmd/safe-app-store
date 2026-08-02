@@ -1,0 +1,28 @@
+{
+  "app_id": "playgate",
+  "name": "Nest Playgate",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "agent_type": "tool",
+  "description": "Calm kid catalog and parent inbox for approving Android app installs on Waydroid. Static browser UI in this app; disposition queue and adb install run in the Nest host daemon (Desktop/Nest/playgate). No third-party store, no ads.",
+  "author": "USER",
+  "data_streams": [
+    {
+      "id": "playgate_requests",
+      "purpose": "Append-only disposition log for app install asks",
+      "retention": "until operator deletes data/requests.jsonl on the host",
+      "description": "Nest host only — not used when browsing these HTML files alone."
+    }
+  ],
+  "permissions": [],
+  "store_scope": [],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "network": "none",
+  "entry_point": "kid/index.html",
+  "license": "Apache-2.0",
+  "notes": {
+    "host_daemon": "Canonical implementation: Desktop/Nest/playgate (Apache-2.0).",
+    "network": "UI expects same-origin API from Nest serve.sh on 127.0.0.1 — not a standalone static host."
+  }
+}

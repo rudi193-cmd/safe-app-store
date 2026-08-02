@@ -1,0 +1,13 @@
+{
+  "app_id": "playgate",
+  "majors": [
+    "browser"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/playgate",
+  "maker": "USER",
+  "lane": null,
+  "state": "building",
+  "notes": "Kid/parent UI; host daemon and Waydroid install hook live in Desktop/Nest/playgate."
+}
