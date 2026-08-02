@@ -1,0 +1,58 @@
+:root {
+  --bg: #f4f1ea;
+  --ink: #1a1a1a;
+  --muted: #5c5c5c;
+  --card: #fff;
+  --accent: #2d5a4a;
+  --border: #d8d2c8;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+* { box-sizing: border-box; }
+body { margin: 0; padding: 1rem 1.25rem 3rem; max-width: 42rem; }
+header h1 { margin: 0; font-size: 1.5rem; font-weight: 600; }
+.sub { color: var(--muted); margin: 0.25rem 0 1rem; }
+.search input, .who input {
+  width: 100%;
+  max-width: 20rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+#apps { list-style: none; padding: 0; margin: 1rem 0; }
+#apps li {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+}
+#apps h2 { margin: 0 0 0.25rem; font-size: 1.1rem; }
+#apps p { margin: 0 0 0.5rem; color: var(--muted); font-size: 0.9rem; }
+button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+#status { margin-top: 1rem; font-size: 0.95rem; }
+footer { margin-top: 2rem; font-size: 0.9rem; }
+footer a { color: var(--accent); }
+.meta { font-size: 0.85rem; }
+.interruption {
+  font-size: 0.9rem;
+  color: var(--ink);
+  border-left: 3px solid var(--border);
+  padding-left: 0.6rem;
+  margin: 0.5rem 0;
+}
+.who select {
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}

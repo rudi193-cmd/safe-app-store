@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:," />
+  <title>Playgate — Parent</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Parent inbox</h1>
+    <p class="sub">Approve or refuse with a reason. Then run install from the host.</p>
+  </header>
+  <main>
+    <p>Signing as <input id="parent" value="Parent" size="12" /></p>
+    <button type="button" id="refresh">Refresh</button>
+    <ul id="inbox"></ul>
+    <p id="msg" aria-live="polite"></p>
+  </main>
+  <footer><a href="/kid/">Kid catalog</a></footer>
+  <script src="app.js"></script>
+</body>
+</html>
