@@ -546,9 +546,9 @@
     {
       "id": "playgate",
       "name": "Nest Playgate",
-      "description": "Kid catalog and parent inbox for approving Waydroid app installs. Static browser UI here; disposition queue and adb hook run in Desktop/Nest/playgate host.",
+      "description": "Kid catalog and parent inbox for approving Waydroid app installs. Loopback host, append-only disposition log with a reason required to grant as well as to refuse, SHA256-verified adb install, and an interruption record on every catalog entry carrying assumed/fitted/measured provenance.",
       "status": "building",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "path": "apps/playgate",
       "tier": "playground",
       "majors": [

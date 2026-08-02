@@ -70,18 +70,25 @@ def test_a_real_leak_still_fails(tmp_path):
     assert got["verdict"] == "FAIL", got
 
 
-def test_the_store_has_exactly_three_unknowns_band_camp_arcade_jarvis_and_playgate():
-    """Named rather than counted loosely: if a fourth non-Python app lands, this
+def test_the_store_has_exactly_two_unknowns_band_camp_arcade_and_jarvis():
+    """Named rather than counted loosely: if a third non-Python app lands, this
     fails and someone reads the sentence above instead of adding a row.
 
-    band-camp-arcade joined jarvis as the store's second Python-free app;
-    playgate is the third — kid/parent static HTML/JS shells with no Python in-tree.
-    Same reasoning as jarvis: this checker reads *.py and nothing else, so
-    it correctly has nothing to read here, and UNKNOWN says so rather than a
-    vacuous PASS."""
+    band-camp-arcade joined jarvis as the store's second Python-free app —
+    five static HTML/JS games, no backend. Same reasoning as jarvis: this
+    checker reads *.py and nothing else, so it correctly has nothing to read
+    here, and UNKNOWN says so rather than a vacuous PASS.
+
+    playgate was briefly a third. It was merged as two static UIs whose host
+    daemon lived outside the repository, so this checker had nothing to read and
+    the app was added to the list above. That was the wrong fix: the right one
+    was to stop the app being unreadable. Its host is now in-tree and it lints
+    PASS, so the list is back to two. Adding a row here is what you do when an
+    app genuinely has no Python; it is not a way to quiet the gate.
+    """
     apps = sorted(d for d in (REPO / "apps").iterdir() if d.is_dir())
     unknown = [d.name for d in apps if lint.lint_app(d)["verdict"] == "UNKNOWN"]
-    assert unknown == ["band-camp-arcade", "jarvis", "playgate"], unknown
+    assert unknown == ["band-camp-arcade", "jarvis"], unknown
 
 
 def test_the_module_is_not_broken_shut(tmp_path):

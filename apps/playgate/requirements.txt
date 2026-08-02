@@ -1,0 +1,5 @@
+# Deliberately empty: the playgate core is stdlib-only.
+#
+# tests/test_no_egress.py::test_import_is_stdlib_only is what keeps this true —
+# importing the core must not pull in a third-party package. pytest is installed
+# by CI, not declared here, because the app does not need it to run.

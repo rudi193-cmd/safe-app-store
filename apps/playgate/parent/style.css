@@ -27,3 +27,11 @@ header h1 { margin: 0; font-size: 1.4rem; }
 .refuse { background: var(--no); color: #fff; }
 input.reason { width: 100%; margin-top: 0.35rem; padding: 0.35rem; }
 footer a { color: var(--ok); }
+.evidence {
+  font-size: 0.9rem;
+  color: var(--muted);
+  border-left: 3px solid var(--border);
+  padding-left: 0.6rem;
+  margin: 0.5rem 0;
+}
+button:disabled { opacity: 0.5; cursor: not-allowed; }

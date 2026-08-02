@@ -1,28 +1,41 @@
 {
   "app_id": "playgate",
   "name": "Nest Playgate",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "safe_version": ">=2.0.0",
   "agent_type": "tool",
-  "description": "Calm kid catalog and parent inbox for approving Android app installs on Waydroid. Static browser UI in this app; disposition queue and adb install run in the Nest host daemon (Desktop/Nest/playgate). No third-party store, no ads.",
+  "description": "A curated kid catalog and a parent gate that closes. Children ask from a fixed roster; a parent grants or refuses with a reason, either way, into an append-only log; a grant verifies the APK's digest and installs it into Waydroid, recording the outcome including failure. Every catalog entry carries an interruption record — how often the app stops the child — with a provenance state of assumed, fitted or measured, and no composite score anywhere.",
   "author": "USER",
   "data_streams": [
     {
       "id": "playgate_requests",
-      "purpose": "Append-only disposition log for app install asks",
-      "retention": "until operator deletes data/requests.jsonl on the host",
-      "description": "Nest host only — not used when browsing these HTML files alone."
+      "purpose": "Append-only disposition log: who asked, for what, who answered, why, and what the interruption evidence looked like at that moment",
+      "retention": "until the operator deletes the log file; nothing here is rotated, compacted, or rewritten by the app",
+      "description": "One JSONL file on the operator's machine. Rows are appended and never edited: a correction is a new row beside the old one, so the log can be used to check whether a decision was reasonable on the evidence available at the time, not only whether it turned out well."
     }
   ],
-  "permissions": [],
+  "permissions": [
+    "file_read",
+    "file_write"
+  ],
   "store_scope": [],
   "privacy_tier": "client_only",
   "local_processing": 1.0,
-  "network": "none",
+  "network": "loopback listener only. Binds 127.0.0.1 to serve the kid and parent UIs to a browser on the same machine, and serve() refuses any non-loopback bind. No outbound requests of any kind: no catalog fetch, no update check, no telemetry, and no report of what a child asked for leaving the machine. Verified structurally by tests/test_no_egress.py, which scans the core for network imports at all and scans server.py for outbound clients specifically.",
+  "dev_server": {
+    "env_var": "PLAYGATE_DEV_SERVER",
+    "port": 8424,
+    "scope": "localhost",
+    "note": "Start with: python -m playgate serve --subject kid1"
+  },
   "entry_point": "kid/index.html",
   "license": "Apache-2.0",
   "notes": {
-    "host_daemon": "Canonical implementation: Desktop/Nest/playgate (Apache-2.0).",
-    "network": "UI expects same-origin API from Nest serve.sh on 127.0.0.1 — not a standalone static host."
+    "subprocess": "Grants shell out to `adb install` against a running Waydroid session. That is a real capability and it is the only one: the app never downloads an APK. It verifies the SHA256 of a file an operator already placed on disk, and refuses outright when no digest is recorded.",
+    "no_score": "The catalog view exposes four unweighted interruption facts — count per ten minutes, how the interruption ends, the date observed, the provenance state — and deliberately no composite. A single displayed number would be built from weights somebody picked, sorted on, and within two releases optimised against, measuring compliance with the scoring function rather than interruption.",
+    "shipped_catalog_is_all_assumed": "Nobody has measured any entry in data/catalog.json, so every entry reads `assumed`, and a test enforces that. Reaching `measured` requires ten minutes, a child, and someone watching; there is no code path that can produce it.",
+    "ci_blind_spots": "The store floor's vault_leak_lint and the drift-guard suites glob *.py and now have Python to read here, so this app is no longer UNKNOWN to them. What no suite in this repo can see: whether Waydroid actually installs anything. The adb path is exercised against an injected runner and against a genuinely absent adb on the CI runner, never against a real device.",
+    "web_is_out_of_scope": "This gates installed packages. It has nothing to say about a browser tab, which is where the problem it answers usually starts. It is a supply-side fix: it makes the good path good enough to use, and says nothing about the bad one.",
+    "relation_to_nest": "An earlier prototype of this host lived outside version control at ~/Desktop/Nest/playgate. This is a rebuild against the store's conventions, not a copy of it; the two will diverge and this one is the one under CI."
   }
 }

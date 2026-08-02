@@ -9,5 +9,5 @@
   "maker": "USER",
   "lane": null,
   "state": "building",
-  "notes": "Kid/parent UI; host daemon and Waydroid install hook live in Desktop/Nest/playgate."
+  "notes": "Kid/parent UI plus the loopback host that serves them — Python, stdlib-only, in-tree. Rebuilt against this repo's conventions rather than lifted from the Desktop/Nest prototype; that copy is no longer the canonical one. In the app-tests matrix in store-ci.yml."
 }

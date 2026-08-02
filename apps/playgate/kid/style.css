@@ -43,3 +43,16 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 #status { margin-top: 1rem; font-size: 0.95rem; }
 footer { margin-top: 2rem; font-size: 0.9rem; }
 footer a { color: var(--accent); }
+.meta { font-size: 0.85rem; }
+.interruption {
+  font-size: 0.9rem;
+  color: var(--ink);
+  border-left: 3px solid var(--border);
+  padding-left: 0.6rem;
+  margin: 0.5rem 0;
+}
+.who select {
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
