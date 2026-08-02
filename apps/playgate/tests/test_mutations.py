@@ -90,6 +90,20 @@ MUTATIONS: "list[Case]" = [
         'interruption = Interruption.from_json(entry.get("interruption") or {"provenance": "assumed"})',
         "tests/test_catalog.py::test_an_entry_with_no_interruption_field_is_refused",
     ),
+    (
+        "the log defaults back into the app's own directory",
+        "playgate/paths.py",
+        'return _vp.resolve(APP_ID, "requests.jsonl", env_vars=("PLAYGATE_LOG",))',
+        'return Path(__file__).resolve().parents[1] / "data" / "requests.jsonl"',
+        "tests/test_paths.py::test_the_log_does_not_default_into_the_app_directory",
+    ),
+    (
+        "an unconfigured host searches its own install directory for APKs",
+        "playgate/server.py",
+        '    apk_root: "Path | None" = None',
+        '    apk_root: "Path | None" = APP_ROOT',
+        "tests/test_paths.py::test_an_unconfigured_host_refuses_to_install_rather_than_searching_itself",
+    ),
 ]
 
 

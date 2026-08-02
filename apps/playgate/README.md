@@ -93,7 +93,8 @@ request.
 | `test_install.py` | Digest verified before adb is reached, an entry with no digest refused, a zero exit without `Success` still a failure, timeouts and `OSError` reported rather than raised. |
 | `test_catalog.py` | An entry with no interruption field does not load; the view carries four facts and no score; the shipped catalog is all `assumed`. |
 | `test_server.py` | Real loopback socket, real routes: ask, refuse, grant-and-install, and the traversal guard. |
-| `test_mutations.py` | Nine mechanisms broken on purpose, each required to fail exactly the test that claims to cover it — plus a control run proving an unmutated copy passes. |
+| `test_paths.py` | Only `paths.py` imports the vault resolver; the four core modules choose no location at all; no module hardcodes a home or absolute persistence path; the log and APK dir resolve outside the install directory; env overrides still win; an unconfigured host refuses to install rather than searching itself. |
+| `test_mutations.py` | Eleven mechanisms broken on purpose, each required to fail exactly the test that claims to cover it — plus a control run proving an unmutated copy passes. |
 
 ## What none of this can see
 
@@ -110,15 +111,36 @@ request.
   bind a measurement to. This is a supply-side fix: it makes the good path good
   enough to use, so there is less reason to go looking on the bad one.
 
-## Relation to the Desktop prototype
+## Where it writes
 
-An earlier host lived outside version control at `~/Desktop/Nest/playgate`. This
+Everything resolves through the shared `libs/vault-paths` (installer design
+D8) — never a home path, and never the app's own install directory.
+
+| What | Default | Override |
+| --- | --- | --- |
+| Disposition log | `<vault>/playgate/requests.jsonl` | `PLAYGATE_LOG`, `--log` |
+| Installable APKs | `<vault>/playgate/apks` | `PLAYGATE_APK_DIR`, `--apk-root` |
+| Seed catalog | `data/catalog.json`, app-relative | `--catalog` |
+
+The catalog is the one deliberately app-relative path: it is shipped content,
+read-only at runtime, and replaced wholesale rather than written to. The log is
+not — it records what a specific family's children asked for and what their
+parents decided, and defaulting it beside the source would put it inside a
+checkout, carry it into any copy of the app, and lose it on a reinstall.
+
+`serve` prints both resolved locations at startup, because an operator should
+be able to see where that record is actually going without reading this file.
+
+Only `playgate/paths.py` imports the resolver, and `test_paths.py` enforces
+that: `vault_root()` is a security boundary, so a second importer is a second
+place for it to drift.
+
+## Relation to the earlier prototype
+
+An earlier host lived outside version control on the author's own machine. This
 is a **rebuild** against this repo's conventions, not a copy — the two will
 diverge, and this is the one under CI. The store copy previously shipped only
 `kid/` and `parent/`, whose every `fetch()` went to that out-of-tree host; the
 result was two directories that could not run and could not be tested.
-
-See Nest's own `README.md` for Waydroid prerequisites and the optional F-Droid
-path.
 
 License: Apache-2.0.

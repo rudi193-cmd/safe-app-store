@@ -7,11 +7,10 @@ import sys
 from pathlib import Path
 
 from . import catalog as catalog_mod
+from . import paths as paths_mod
 from . import server as server_mod
 from .disposition import Log
 from .interruption import InterruptionError
-
-DEFAULT_DATA = Path(__file__).resolve().parents[1] / "data"
 
 
 def _load(catalog_path: Path):
@@ -29,7 +28,12 @@ def main(argv: "list[str] | None" = None) -> int:
 
     serve = sub.add_parser("serve", help="run the loopback host")
     serve.add_argument("--port", type=int, default=server_mod.DEFAULT_PORT)
-    serve.add_argument("--log", type=Path, default=DEFAULT_DATA / "requests.jsonl")
+    serve.add_argument("--log", type=Path, default=None,
+                       help="disposition log; defaults under the vault (D8), "
+                            "overridable with PLAYGATE_LOG")
+    serve.add_argument("--apk-root", type=Path, default=None,
+                       help="where the installable APKs live; defaults under "
+                            "the vault, overridable with PLAYGATE_APK_DIR")
     serve.add_argument("--subject", action="append", default=None,
                        help="a child who may ask; repeatable. Required.")
 
@@ -48,10 +52,17 @@ def main(argv: "list[str] | None" = None) -> int:
               "not a text box", file=sys.stderr)
         return 2
 
-    log = Log(path=args.log, roster=tuple(args.subject))
-    httpd = server_mod.serve(apps, log, port=args.port)
+    log_path = args.log or paths_mod.log_path()
+    apk_root = args.apk_root or paths_mod.apk_dir()
+
+    log = Log(path=log_path, roster=tuple(args.subject))
+    httpd = server_mod.serve(apps, log, port=args.port, apk_root=apk_root)
     print(f"playgate on http://{server_mod.DEFAULT_HOST}:{args.port}/kid/ "
           f"(parent inbox at /parent/)")
+    # Printed rather than assumed: an operator should be able to see where the
+    # record of their child's requests is actually going.
+    print(f"  log:  {log_path}")
+    print(f"  apks: {apk_root}")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

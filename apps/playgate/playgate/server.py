@@ -43,7 +43,10 @@ class Handler(BaseHTTPRequestHandler):
     # Injected by serve()
     apps: list = []
     log: Log = None            # type: ignore[assignment]
-    apk_root: Path = APP_ROOT
+    #: Where installable APKs live. Deliberately not defaulted to APP_ROOT — an
+    #: unconfigured host must refuse to install, not quietly search its own
+    #: install directory.
+    apk_root: "Path | None" = None
 
     # -- plumbing ----------------------------------------------------------
 
@@ -170,6 +173,11 @@ class Handler(BaseHTTPRequestHandler):
     def _install(self, app) -> install_mod.Result:
         if app is None or not app.apk_path:
             return install_mod.Result(False, "catalog entry has no apk_path")
+        if self.apk_root is None:
+            return install_mod.Result(
+                False, "no apk root configured; start with --apk-root or set "
+                       "PLAYGATE_APK_DIR"
+            )
         return install_mod.perform(self.apk_root / app.apk_path, app.sha256 or "")
 
     def _static(self, route: str) -> None:
@@ -186,14 +194,14 @@ class Handler(BaseHTTPRequestHandler):
         self._error(404, "not found")
 
 
-def build_handler(apps, log: Log, apk_root: Path) -> type:
+def build_handler(apps, log: Log, apk_root: "Path | None") -> type:
     return type("BoundHandler", (Handler,), {
         "apps": apps, "log": log, "apk_root": apk_root,
     })
 
 
 def serve(apps, log: Log, *, host: str = DEFAULT_HOST, port: int = DEFAULT_PORT,
-          apk_root: Path = APP_ROOT) -> ThreadingHTTPServer:
+          apk_root: "Path | None" = None) -> ThreadingHTTPServer:
     if host not in ("127.0.0.1", "::1", "localhost"):
         raise ValueError(
             f"refusing to bind {host!r}: this host serves a child's request "

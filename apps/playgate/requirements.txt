@@ -1,5 +1,15 @@
-# Deliberately empty: the playgate core is stdlib-only.
+# Stdlib-only core — no runtime dependencies.
 #
-# tests/test_no_egress.py::test_import_is_stdlib_only is what keeps this true —
-# importing the core must not pull in a third-party package. pytest is installed
-# by CI, not declared here, because the app does not need it to run.
+# Persistence resolves through the shared libs/vault-paths (installed with
+# `pip install -e libs/vault-paths` in dev/CI, same as the other apps in the
+# app-tests matrix). Only playgate/paths.py imports it, and a test enforces
+# that: vault_root() is a security boundary, so a second importer would be a
+# second place for it to drift. paths.py falls back to the in-repo source tree
+# when the library is not installed.
+#
+# tests/test_no_egress.py::test_import_is_stdlib_only keeps the four core
+# modules — catalog, disposition, install, interruption — free of it, and of
+# everything else third-party.
+#
+# Dev-only, not a runtime dependency:
+# pytest>=8.0
