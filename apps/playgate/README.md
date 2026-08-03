@@ -12,13 +12,17 @@ python -m playgate serve --subject kid1 --subject kid2
 # http://127.0.0.1:8424/kid/   ·   parent inbox at /parent/
 
 python -m playgate lint            # what state is each entry's evidence in
-python -m pytest tests/ -q         # 104 assertions, including 10 mutations
+python -m pytest tests/ -q         # 118 assertions, including 11 mutations
 ```
 
 No third-party store, no ads, and no network beyond the loopback socket that
 serves the two UIs to a browser on the same machine.
 
 ## Why there is an interruption record on every entry
+
+The full argument is
+[`docs/NOBODY_COUNTS_THE_AD_BREAKS.md`](docs/NOBODY_COUNTS_THE_AD_BREAKS.md),
+the paper this app was built from. What follows is the short version.
 
 The problem this app answers is not that children play games. It is that a
 child looking for one gets routed through surfaces where the play button is
