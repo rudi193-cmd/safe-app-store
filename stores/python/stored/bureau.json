@@ -1,0 +1,14 @@
+{
+  "app_id": "bureau",
+  "majors": [
+    "python",
+    "node"
+  ],
+  "relation": "differential-paired",
+  "anchor": "python",
+  "location": "apps/bureau",
+  "maker": "USER",
+  "lane": null,
+  "state": "gated",
+  "notes": "Stdlib-only core, no runtime dependencies, and nothing persisted — playing writes nothing, so the manifest's data_streams is empty rather than describing a save file. bureau/web/engine.js is a port of the Python held to it across 400 seeds / 16,000 state comparisons; Python is the anchor. The differential skips without node and the app-tests matrix is Python-only, so a dedicated bureau-differential job runs it — without that leg the suite would report green in CI having compared nothing. What no suite here can see: the generated page's own rendering layer, where the last real bug was found by a browser rather than by this suite."
+}

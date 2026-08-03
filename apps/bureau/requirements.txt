@@ -1,0 +1,12 @@
+# Stdlib-only. Python 3.11+.
+#
+# There is deliberately nothing here. The core is pure stdlib, the browser port
+# is a single generated HTML file with no external script or style, and the
+# differential drives bureau/web/engine.js through node with no npm install and
+# no package.json — tools/diff_runner.js is handed a script generated in Python
+# and run verbatim.
+#
+# node is required only for tests/test_differential.py, which skips without it.
+# That skip is why the store-ci bureau-differential job exists: the app-tests
+# matrix is Python-only, and a silently skipped differential would report green
+# having compared nothing.
