@@ -1,0 +1,33 @@
+{
+  "app_id": "bureau",
+  "name": "Bureau",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "agent_type": "tool",
+  "description": "A Bureaucracy homage set at UTETY. You attended a lecture you did not sign up for, six documents will resolve the discrepancy, and four offices will each hand you something that looks like one of them. Every office rule is individually reasonable and the requirement graph is closed; the deadlock is proved by fixpoint rather than asserted, and the gap between what is strictly obtainable and what looks obtainable from the docket is measured. The escape lives outside the graph the verifier reasons about, so no cleverness inside the building wins.",
+  "author": "USER",
+  "data_streams": [],
+  "permissions": [
+    "file_write"
+  ],
+  "store_scope": [],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "network": "none. The core is stdlib-only Python with no sockets and no HTTP client; the browser port is a single generated HTML file with no fetch, no external script or style, and no storage of any kind. Nothing about a play session is recorded anywhere, which is why data_streams is empty rather than describing a save file — there is no save.",
+  "entry_point": "bureau/web/bureau.html",
+  "license": "Apache-2.0",
+  "notes": {
+    "file_write": "The only write is bureau/web/build.py regenerating data.json and bureau.html inside this app's own directory. It is a build step over shipped content, not user data, and it touches nothing outside apps/bureau. Playing the game writes nothing at all.",
+    "the_deadlock_is_proved": "verify.py searches the requirement graph twice — strict, honouring each document's fine print, and credulous, matching on displayed kind alone. Both are fixpoints, and document acquisition is monotone, so each closure is complete over every strategy including ones nobody has thought of. attestation_presence, filing_resolved and note_judged are required and never issuable by anyone.",
+    "the_gate_can_fail": "test_the_gate_can_fail installs issuers for all three never-issued documents and requires the verdict to flip; test_one_mutation_is_not_enough requires that fixing only one does not. Without both, 'unreachable' would be a mood rather than a result.",
+    "credulous_is_not_a_weaker_checker": "It is a model of the player, and of the Pigeon, both reading the docket rather than the small type. The gap between the two verdicts is the design, so it is measured rather than described.",
+    "differential": "bureau/web/engine.js is a port of the Python, not a rewrite, and tests/test_differential.py runs it under node against the Python across 400 seeds — 16,000 state comparisons, every move. Both engines share an explicit xorshift32 because random.Random is reproducible only inside CPython. Offices, documents, rules and prose are generated from graph.py by build.py, so prose cannot drift between engines.",
+    "differential_needs_node": "The differential skips when node is absent. The app-tests matrix is Python-only, so a dedicated bureau-differential job runs it under Node — otherwise the 16,000 comparisons would skip silently in CI and the suite would report green having never compared anything.",
+    "what_the_differential_cannot_see": "The page's own rendering layer — labels, DOM, CSS. Nothing in Python touches those. A browser found the last bug there (a class-level display beating the hidden attribute), not this suite.",
+    "absence_is_a_recorded_value": "A blank napkin means Gerald declined, on the record, and voids the attendance. No napkin at all means the goo is not finished and resolves nothing. They are different facts, stored differently, and the tests enforce the distinction.",
+    "proofs_are_not_predictions": "bureau/ledger.py emits claims for a calibration ledger and deliberately does not log the fixpoint results. A false summit is a theorem, not a forecast; filing one at 99% would pull a reliability diagram toward well-calibrated on rows that were never in doubt. What is logged is the part that can be wrong — that the model is faithful to the system it describes. emit() raises rather than auto-assign the one number the ledger exists to grade.",
+    "must_not_share_a_surface_with_utety": "rudi193-cmd/utety is a COPPA-scoped under-13 product whose second ground rule is that feedback is about the work, never the learner. This is a machine for inducing administrative frustration on purpose. Same lore, separate artifact, and there must be no route between them.",
+    "lore_provenance": "Gerald's write-authority rule, the napkin, the grape, the goo threshold, the squeakdogs' queueing, Hanz's orange and the wink are canon, from rudi193-cmd/sean-data-vault. The office personas are the ones in apps/utety-chat/data/professors/. The discrepancy, the offices and the entire requirement graph are invented for this.",
+    "relanded": "Built in the rudi193-cmd/quick-stupids playground and rebuilt here against this repo's conventions. The playground copy is not a dependency and is not synced; this is the one under CI."
+  }
+}

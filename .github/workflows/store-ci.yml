@@ -8,6 +8,11 @@ name: store
 #   vault-clean — no app leaks user data to fixed paths (tools/vault_leak_lint.py --strict)
 #   compile     — every .py in the repo byte-compiles
 #   app-tests   — test suites with no dedicated workflow, one matrix leg per app
+#   bureau-differential
+#               — bureau ships a JS port of its Python engine. Its differential
+#                 is guarded with skipUnless(node), and a skipped test still
+#                 exits 0, so the Python-only app-tests leg passes it by
+#                 skipping. This job runs it under Node and fails if it skipped.
 #   browser-resolver
 #               — marching-arts ships a second implementation of its
 #                 authorization resolver, in TypeScript on SQLite-WASM. This job
@@ -127,7 +132,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [civics-check, field-acoustics, law-gazelle, marching-arts,
+        app: [bureau, civics-check, field-acoustics, law-gazelle, marching-arts,
               playgate, the-squirrel, utety-chat]
         include:
           # utety-chat's TUI tests boot the real Textual app; textual is an
@@ -157,6 +162,49 @@ jobs:
       - name: Run tests
         working-directory: apps/${{ matrix.app }}
         run: python -m pytest tests/ -q
+
+  # bureau's browser port, held to its Python core by a differential. Same
+  # reason as browser-resolver below for being its own job: the app-tests matrix
+  # is Python-only and this needs Node.
+  #
+  # The matrix leg above DOES run tests/test_differential.py, and it passes
+  # there — by skipping, because the tests are guarded with
+  # skipUnless(shutil.which("node")). A skipped test still exits 0, so that leg
+  # reports green having compared nothing. This job is what makes the 16,000
+  # comparisons real, and it asserts they happened rather than trusting the
+  # exit code.
+  bureau-differential:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          # No pip install and no cache: bureau is stdlib-only and has no
+          # requirements to resolve.
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          # No npm cache: there is no package.json. tools/diff_runner.js is
+          # handed a script generated in Python and run verbatim.
+
+      - name: Differential against the Python core
+        working-directory: apps/bureau
+        run: |
+          set -eo pipefail
+          node --version
+          python -m pip install --upgrade pip >/dev/null
+          pip install pytest
+          python -m pytest tests/test_differential.py -q -rs | tee "$RUNNER_TEMP/bureau-diff.txt"
+          if grep -qi "skipped" "$RUNNER_TEMP/bureau-diff.txt"; then
+            echo "::error::the differential skipped in the job that exists to run it"
+            exit 1
+          fi
 
   # marching-arts' browser port, held to the Python core by a differential.
   # Separate from the app-tests matrix because that matrix is Python-only and

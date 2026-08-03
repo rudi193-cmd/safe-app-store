@@ -1,0 +1,464 @@
+<title>Discrepancy 4471-b — Office of Records, UTETY</title>
+
+<style>
+/* ── tokens ───────────────────────────────────────────────────────────────────
+   The subject is a records office, so the material is the spirit-duplicator
+   form: buff stock, aniline violet ink, rubber-stamp red. Amber is the
+   precausal goo and appears only as surprise runs out. Neutrals are biased
+   warm toward the paper — no pure greys anywhere. */
+:root {
+  --paper:      #e9e1cf;
+  --paper-2:    #f2ecdd;
+  --paper-edge: #d6cbb2;
+  --ink:        #2a2521;
+  --ink-soft:   #6b6153;
+  --ink-faint:  #9a8f7d;
+  --violet:     #4a3a93;
+  --violet-wash:#4a3a9314;
+  --stamp:      #a6382c;
+  --goo:        #d98a1f;
+  --goo-glow:   #e8a03a;
+  --goo-strength: 0;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper:      #15151b;
+    --paper-2:    #1c1c24;
+    --paper-edge: #2e2e3a;
+    --ink:        #ddd5c3;
+    --ink-soft:   #96907f;
+    --ink-faint:  #625e53;
+    --violet:     #a897f2;
+    --violet-wash:#a897f21f;
+    --stamp:      #e2765f;
+    --goo:        #f0b255;
+    --goo-glow:   #f0b255;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="light"] {
+  --paper: #e9e1cf; --paper-2: #f2ecdd; --paper-edge: #d6cbb2;
+  --ink: #2a2521; --ink-soft: #6b6153; --ink-faint: #9a8f7d;
+  --violet: #4a3a93; --violet-wash: #4a3a9314; --stamp: #a6382c;
+  --goo: #d98a1f; --goo-glow: #e8a03a; color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --paper: #15151b; --paper-2: #1c1c24; --paper-edge: #2e2e3a;
+  --ink: #ddd5c3; --ink-soft: #96907f; --ink-faint: #625e53;
+  --violet: #a897f2; --violet-wash: #a897f21f; --stamp: #e2765f;
+  --goo: #f0b255; --goo-glow: #f0b255; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+/* `hidden` is display:none in the UA sheet, which any class-level display wins
+   against. Without this the napkin controls are visible from the first move. */
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 15px/1.62 ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  min-height: 100vh;
+}
+/* the goo. warm, slightly luminous, present in the room. */
+body::before {
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(70% 55% at 50% 108%, color-mix(in oklab, var(--goo-glow) 42%, transparent), transparent 72%),
+    radial-gradient(46% 34% at 12% 8%,  color-mix(in oklab, var(--goo-glow) 22%, transparent), transparent 70%);
+  opacity: var(--goo-strength);
+  transition: opacity 1.6s ease;
+  animation: breathe 11s ease-in-out infinite;
+}
+@keyframes breathe { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.22); } }
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none; transition: none; }
+  * { scroll-behavior: auto !important; }
+}
+
+.sheet {
+  position: relative; z-index: 1;
+  max-width: 1120px; margin: 0 auto; padding: 34px 22px 72px;
+  display: flex; flex-direction: column; gap: 26px;
+}
+
+/* ── masthead ─────────────────────────────────────────────────────────────── */
+.masthead {
+  display: grid; grid-template-columns: 1fr auto; gap: 22px; align-items: start;
+  border-bottom: 2px solid var(--ink); padding-bottom: 16px;
+}
+.eyebrow {
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+  font-size: 10.5px; font-weight: 700; letter-spacing: .19em; text-transform: uppercase;
+  color: var(--violet); margin: 0 0 6px;
+}
+.masthead h1 {
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+  font-size: clamp(25px, 4.4vw, 40px); font-weight: 800; letter-spacing: -.022em;
+  margin: 0; text-wrap: balance; line-height: 1.04;
+}
+.dek { color: var(--ink-soft); margin: 9px 0 0; max-width: 56ch; font-size: 13.5px; }
+
+.stamp {
+  border: 2.5px solid var(--stamp); color: var(--stamp);
+  padding: 7px 13px 8px; transform: rotate(-4.5deg); text-align: center;
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+  box-shadow: inset 0 0 0 1px var(--stamp); border-radius: 3px;
+  flex: none; opacity: .88;
+}
+.stamp b { display: block; font-size: 9.5px; letter-spacing: .17em; font-weight: 700; }
+.stamp span {
+  display: block; font-size: 21px; font-weight: 800; letter-spacing: .04em;
+  font-variant-numeric: tabular-nums; margin-top: 1px;
+}
+
+/* ── layout ───────────────────────────────────────────────────────────────── */
+.cols { display: grid; grid-template-columns: minmax(0,1.62fr) minmax(0,1fr); gap: 26px; align-items: start; }
+@media (max-width: 880px) { .cols { grid-template-columns: 1fr; } }
+
+.panel {
+  background: var(--paper-2); border: 1px solid var(--paper-edge); border-radius: 2px;
+}
+.panel-hd {
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+  font-size: 10px; font-weight: 700; letter-spacing: .17em; text-transform: uppercase;
+  color: var(--ink-soft); padding: 10px 15px; border-bottom: 1px solid var(--paper-edge);
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+}
+
+/* ── transcript ───────────────────────────────────────────────────────────── */
+#log { padding: 6px 0 10px; max-height: 58vh; overflow-y: auto; scroll-behavior: smooth; }
+.entry { padding: 13px 18px; border-bottom: 1px dotted var(--paper-edge); }
+.entry:last-child { border-bottom: 0; }
+.ohead {
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+  font-weight: 700; font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--violet); display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline;
+  margin-bottom: 7px;
+}
+.ohead em { font-style: normal; font-weight: 400; letter-spacing: .02em; color: var(--ink-faint); text-transform: none; font-size: 11.5px; }
+.t { margin: 0 0 7px; max-width: 68ch; }
+.t:last-child { margin-bottom: 0; }
+.t.rule { border-left: 2px solid var(--violet); padding-left: 11px; color: var(--ink-soft); background: var(--violet-wash); padding-top: 5px; padding-bottom: 5px; }
+.t.refuse { color: var(--ink); }
+.t.issue  { color: var(--ink); }
+.t.missing, .t.note {
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+  font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--stamp);
+}
+.t.goo, .t.gerald, .t.declare { color: var(--goo); }
+.t.gerald { font-weight: 700; letter-spacing: .04em; }
+.t.sys { color: var(--ink-faint); font-style: italic; }
+
+.ending {
+  margin: 16px 18px 8px; border: 2.5px solid var(--stamp); border-radius: 3px; padding: 15px 17px;
+}
+.ending b {
+  display: block; font-family: system-ui, sans-serif; font-size: 10.5px; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--stamp); margin-bottom: 8px;
+}
+.ending p { margin: 0 0 9px; max-width: 64ch; }
+.ending p:last-child { margin: 0; }
+
+/* ── docket ───────────────────────────────────────────────────────────────── */
+.docket { padding: 14px 15px 16px; display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 7px; }
+.flabel {
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+  font-size: 9.5px; font-weight: 700; letter-spacing: .17em; text-transform: uppercase; color: var(--ink-soft);
+}
+.leader { display: flex; align-items: baseline; gap: 7px; font-size: 12.5px; }
+.leader .dots { flex: 1; border-bottom: 1px dotted var(--ink-faint); transform: translateY(-3px); }
+.leader .val { font-variant-numeric: tabular-nums; color: var(--violet); font-weight: 600; }
+.leader .val.bad { color: var(--stamp); }
+.leader.off { color: var(--ink-faint); }
+.leader.off .val { color: var(--ink-faint); }
+
+.ticks { display: flex; gap: 5px; flex-wrap: wrap; }
+.tick { width: 13px; height: 20px; border: 1.5px solid var(--violet); border-radius: 1px; }
+.tick.spent { border-color: var(--ink-faint); background: repeating-linear-gradient(-45deg, transparent 0 2px, var(--ink-faint) 2px 3px); }
+
+.offices { display: flex; flex-direction: column; gap: 5px; }
+button {
+  font: inherit; text-align: left; cursor: pointer; color: var(--ink);
+  background: var(--paper); border: 1px solid var(--paper-edge); border-radius: 2px;
+  padding: 8px 11px; display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+  transition: border-color .13s, background .13s, transform .08s;
+}
+button:hover { border-color: var(--violet); background: var(--violet-wash); }
+button:active { transform: translateY(1px); }
+button:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+button .who { font-size: 10.5px; color: var(--ink-faint); font-family: system-ui, sans-serif; }
+button.hand { border-color: var(--stamp); color: var(--stamp); font-weight: 600; }
+button.hand:hover { background: color-mix(in oklab, var(--stamp) 9%, transparent); border-color: var(--stamp); }
+button.ghost { border-style: dashed; color: var(--ink-soft); justify-content: center; font-size: 12.5px; }
+
+.seedrow { display: flex; gap: 7px; align-items: center; }
+input[type="number"] {
+  font: inherit; width: 5.6em; padding: 6px 8px; color: var(--ink);
+  background: var(--paper); border: 1px solid var(--paper-edge); border-radius: 2px;
+  font-variant-numeric: tabular-nums;
+}
+input[type="number"]:focus-visible { outline: 2px solid var(--violet); outline-offset: 1px; }
+
+.foot {
+  font-size: 11.5px; color: var(--ink-faint); border-top: 1px solid var(--paper-edge);
+  padding-top: 14px; max-width: 74ch;
+}
+.foot a { color: var(--violet); }
+.foot code { color: var(--ink-soft); }
+</style>
+
+<div class="sheet">
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">University of Technical Entropy, Thank You</p>
+      <h1>Office of Records</h1>
+      <p class="dek">
+        You attended a lecture you did not sign up for. The University has no objection to your
+        having been there, and a serious structural objection to the resulting record. Resolve it
+        in either direction and you may go.
+      </p>
+    </div>
+    <div class="stamp"><b>Discrepancy</b><span>4471-b</span></div>
+  </header>
+
+  <div class="cols">
+    <section class="panel">
+      <div class="panel-hd"><span>Transcript</span><span id="movecount">0 visits</span></div>
+      <div id="log"></div>
+    </section>
+
+    <aside class="panel">
+      <div class="panel-hd"><span>Docket</span><span id="status">open</span></div>
+      <div class="docket">
+        <div class="field">
+          <span class="flabel">Capacity for surprise</span>
+          <div class="ticks" id="ticks"></div>
+          <div class="leader off" id="dwellrow">
+            <span>Visits since it stopped being strange</span>
+            <span class="dots"></span><span class="val" id="dwell">—</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="flabel">Records requires</span>
+          <div id="reqs"></div>
+        </div>
+
+        <div class="field">
+          <span class="flabel">Documents held</span>
+          <div id="docs"></div>
+        </div>
+
+        <div class="field">
+          <span class="flabel">Call at</span>
+          <div class="offices" id="offices"></div>
+        </div>
+
+        <div class="field" id="handfield" hidden>
+          <span class="flabel">Napkin</span>
+          <div class="offices" id="hands"></div>
+        </div>
+
+        <div class="field">
+          <span class="flabel">Seed</span>
+          <div class="seedrow">
+            <input type="number" id="seed" value="4" min="0" max="99999" aria-label="Seed" />
+            <button class="ghost" id="restart" style="flex:1">Start over</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <p class="foot">
+    The building cannot be solved — <code>bureau/verify.py</code> computes the closure of everything
+    obtainable by any strategy and <code>attendance_attestation</code> has no issuer anywhere in it.
+    The only witness cannot write and the only writer did not witness. This page is a port of the
+    Python engine, checked against it across 16,000 state comparisons; the check compares state and
+    not prose. Lore is Sean's. Not affiliated with the campus front.
+  </p>
+</div>
+
+<script>
+/* ENGINE */
+</script>
+
+<script>
+(function () {
+  "use strict";
+  var DOC_LABEL = { napkin_word: "napkin — one word", napkin_blank: "napkin — blank" };
+  Object.keys(BUREAU_DATA.docs).forEach(function (id) { DOC_LABEL[id] = BUREAU_DATA.docs[id].label; });
+  var RECORDS_REQS = BUREAU_DATA.offices.records.requires;
+  var ENDINGS = {
+    enrolled: {
+      label: "Discrepancy 4471-b: resolved",
+      body: [
+        "Hanz reads the napkin. He does not tell you what it says.",
+        "He writes for a while, and hands you an attestation of attendance signed by a man holding an orange, countersigned by nobody, sourced to a witness with no write authority. The Binder accepts it without comment. You are, retroactively, a student of a course that finished in March.",
+      ],
+    },
+    voided: {
+      label: "Discrepancy 4471-b: voided",
+      body: [
+        "You put the blank napkin on the Binder's desk.",
+        "The Binder is quiet for a moment. Then, with what you would swear is relief: 'That is a record. Thank you. It is not the record I expected and it resolves the matter entirely — you did not attend, on the authority of the only entity that would know, in the only form he is able to issue it.'",
+        "The lecture you sat through formally did not happen. You remember it anyway. Nobody has asked you not to.",
+      ],
+    },
+  };
+
+  var log = document.getElementById("log");
+  var session, moves = 0, fineRevealed = false;
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  function render(result) {
+    var entry = el("div", "entry");
+    result.lines.forEach(function (line) {
+      if (line.kind === "head") {
+        var h = el("div", "ohead");
+        h.appendChild(el("span", null, line.text));
+        h.appendChild(el("em", null, line.sub));
+        entry.appendChild(h);
+      } else if (line.kind === "ending") {
+        var spec = ENDINGS[line.text];
+        var box = el("div", "ending");
+        box.appendChild(el("b", null, spec.label));
+        spec.body.forEach(function (p) { box.appendChild(el("p", null, p)); });
+        log.appendChild(box);
+        return;
+      } else if (line.kind === "missing") {
+        entry.appendChild(el("p", "t missing", "you are missing: " + line.text));
+      } else {
+        entry.appendChild(el("p", "t " + line.kind, line.text));
+      }
+    });
+    if (entry.childNodes.length) log.appendChild(entry);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function paintDocket() {
+    var s = session.state();
+
+    var ticks = document.getElementById("ticks");
+    ticks.textContent = "";
+    for (var i = 0; i < 8; i++) {
+      ticks.appendChild(el("span", "tick" + (i < 8 - s.surprise ? " spent" : "")));
+    }
+
+    var visible = s.surprise <= 0;
+    document.getElementById("dwellrow").className = "leader" + (visible ? "" : " off");
+    document.getElementById("dwell").textContent = visible ? String(s.dwell) : "—";
+    document.documentElement.style.setProperty("--goo-strength", String((8 - s.surprise) / 8 * 0.9));
+
+    // The Records checklist. Until the desk refuses you, it is drawn the way a
+    // player reads a docket — by kind — and every near-miss ticks. That is the
+    // false progress, rendered rather than described.
+    var reqs = document.getElementById("reqs");
+    reqs.textContent = "";
+    RECORDS_REQS.forEach(function (r) {
+      var loose = false, strict = false;
+      s.held.forEach(function (d) {
+        var doc = BUREAU_DATA.docs[d];
+        if (!doc || doc.kind !== r.kind) return;
+        loose = true;
+        if (r.needs.every(function (n) { return doc.qual.indexOf(n) >= 0; })) strict = true;
+      });
+      var ok = fineRevealed ? strict : loose;
+      var row = el("div", "leader" + (ok ? "" : " off"));
+      row.appendChild(el("span", null, fineRevealed && r.needs.length ? r.kind + " — " + r.needs.join("/") : r.kind));
+      row.appendChild(el("span", "dots"));
+      var mark = el("span", "val", ok ? "✓" : (fineRevealed && loose ? "✗" : "—"));
+      if (fineRevealed && loose && !strict) mark.className = "val bad";
+      row.appendChild(mark);
+      reqs.appendChild(row);
+    });
+
+    var docs = document.getElementById("docs");
+    docs.textContent = "";
+    if (!s.held.length) {
+      docs.appendChild(el("div", "leader off", "nothing"));
+    } else {
+      s.held.forEach(function (d) {
+        var row = el("div", "leader");
+        row.appendChild(el("span", null, DOC_LABEL[d] || d));
+        row.appendChild(el("span", "dots"));
+        row.appendChild(el("span", "val", "held"));
+        docs.appendChild(row);
+      });
+    }
+
+    var hasNapkin = s.held.indexOf("napkin_word") >= 0 || s.held.indexOf("napkin_blank") >= 0;
+    document.getElementById("handfield").hidden = !hasNapkin || !!s.resolution;
+    document.getElementById("status").textContent = s.resolution || "open";
+    document.getElementById("movecount").textContent = moves + (moves === 1 ? " visit" : " visits");
+  }
+
+  function act(fn) {
+    return function () {
+      var before = session.resolution;
+      var result = fn();
+      result.lines.forEach(function (l) {
+        if (l.kind === "missing" && l.reqs && l.reqs.some(function (r) { return r.needs.length; })) fineRevealed = true;
+      });
+      render(result);
+      if (!before) moves++;
+      paintDocket();
+    };
+  }
+
+  function buildControls() {
+    var box = document.getElementById("offices");
+    box.textContent = "";
+    BUREAU_DATA.office_order.forEach(function (id) {
+      var o = BUREAU_DATA.offices[id];
+      var b = el("button");
+      b.appendChild(el("span", null, o.name));
+      b.appendChild(el("span", "who", o.staff));
+      b.addEventListener("click", act(function () { return session.visit(id); }));
+      box.appendChild(b);
+    });
+
+    var hands = document.getElementById("hands");
+    hands.textContent = "";
+    [["hanz", "Hand it to Hanz"], ["records", "Hand it to Records"]].forEach(function (pair) {
+      var b = el("button", "hand");
+      b.appendChild(el("span", null, pair[1]));
+      b.addEventListener("click", act(function () { return session.hand(pair[0]); }));
+      hands.appendChild(b);
+    });
+  }
+
+  function start() {
+    var seed = parseInt(document.getElementById("seed").value, 10) || 0;
+    session = new Session(seed);
+    moves = 0;
+    fineRevealed = false;
+    log.textContent = "";
+    render({ lines: [
+      { kind: "sys", text: "Office of Records. The building opens at nine and does not, in any sense you will find useful, close." },
+      { kind: "rule", text: "Call at an office to begin. Every rule you meet is individually reasonable and none of them can be broken by anyone who works here." },
+    ] });
+    paintDocket();
+  }
+
+  document.getElementById("restart").addEventListener("click", start);
+  document.getElementById("seed").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") start();
+  });
+  buildControls();
+  start();
+})();
+</script>
