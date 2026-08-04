@@ -485,6 +485,26 @@
       ]
     },
     {
+      "id": "marching-arts-shell",
+      "name": "Marching Arts Shell (placeholder)",
+      "description": "The P4 browser chassis for marching-arts: shell, storage seam, offline, generated mark. No capability inside it \u2014 what goes there is the open question P4 is blocked on.",
+      "status": "building",
+      "version": "0.1.0",
+      "path": "apps/marching-arts-shell",
+      "tier": "playground",
+      "majors": [
+        "node"
+      ],
+      "tags": [
+        "marching",
+        "shell",
+        "pwa",
+        "offline",
+        "local-first",
+        "design"
+      ]
+    },
+    {
       "id": "field-acoustics",
       "name": "Field Acoustics",
       "description": "Design-time acoustic model for marching drill \u2014 what the audience actually hears when the form turns in. Python model plus a dependency-free TypeScript kernel, held together by a five-tier differential suite. Nothing else in the category models acoustics.",

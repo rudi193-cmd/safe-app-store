@@ -1,0 +1,23 @@
+{
+  "name": "@marching-arts/shell",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "The P4 chassis: shell, storage seam, offline, and the mark. The capability slot is empty on purpose.",
+  "scripts": {
+    "build": "node mark/build.mjs",
+    "icons": "node mark/rasterise.mjs",
+    "test": "node --test test/construct.test.mjs test/shell.test.mjs",
+    "test:raster": "node --test test/raster.test.mjs",
+    "explore": "node mark/explore.mjs",
+    "mutate": "stryker run",
+    "mutate:named": "node mark/mutate.mjs"
+  },
+  "engines": { "node": ">=22" },
+  "devDependencies": {
+    "@stryker-mutator/core": "^9.6.1",
+    "@stryker-mutator/tap-runner": "^9.6.1",
+    "pngjs": "^7.0.0"
+  }
+}

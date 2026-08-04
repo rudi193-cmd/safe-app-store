@@ -1,0 +1,129 @@
+/*
+ * Copyright 2026 The dcisim Authors
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Design tokens. Light is the default; dark comes from prefers-color-scheme
+ * and can be pinned with data-theme on <html>. Every rule below is written
+ * twice on purpose so a pinned theme always beats the media query.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
+
+  --step--1: clamp(0.78rem, 0.76rem + 0.1vw, 0.83rem);
+  --step-0: clamp(0.94rem, 0.91rem + 0.14vw, 1rem);
+  --step-1: clamp(1.1rem, 1.04rem + 0.3vw, 1.28rem);
+  --step-2: clamp(1.35rem, 1.22rem + 0.6vw, 1.7rem);
+  --step-3: clamp(1.7rem, 1.45rem + 1.1vw, 2.3rem);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2.25rem;
+  --space-7: 3.5rem;
+
+  --radius-1: 4px;
+  --radius-2: 8px;
+  --radius-3: 14px;
+
+  --bar-height: 3.25rem;
+  --nav-width: 15rem;
+  --measure: 68ch;
+
+  --ease: cubic-bezier(0.22, 0.7, 0.3, 1);
+  --dur: 160ms;
+}
+
+/* ---------- light ---------- */
+:root,
+:root[data-theme="light"] {
+  --bg: #f6f5f2;
+  --bg-sunk: #edece7;
+  --surface: #fffefb;
+  --surface-2: #f2f1ec;
+  --line: #dedbd2;
+  --line-strong: #c4c0b3;
+
+  --ink: #1a1d20;
+  --ink-2: #4d5257;
+  --ink-3: #767b80;
+
+  --accent: #8a5a10;
+  --accent-ink: #ffffff;
+  --accent-soft: #f4e6cd;
+
+  --ok: #2c6e49;
+  --warn: #8a4b12;
+  --danger: #9b2226;
+
+  --focus: #1f6feb;
+  --shadow-1: 0 1px 2px rgb(26 29 32 / 0.06), 0 2px 8px rgb(26 29 32 / 0.05);
+  --shadow-2: 0 6px 28px rgb(26 29 32 / 0.16);
+}
+
+/* ---------- dark ---------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101418;
+    --bg-sunk: #0a0d10;
+    --surface: #171c21;
+    --surface-2: #1e242a;
+    --line: #2a3138;
+    --line-strong: #3b444d;
+
+    --ink: #e8eaec;
+    --ink-2: #b0b7bd;
+    --ink-3: #838b92;
+
+    --accent: #e0a95c;
+    --accent-ink: #14181c;
+    --accent-soft: #33291a;
+
+    --ok: #6fbf8b;
+    --warn: #e0a95c;
+    --danger: #e8737a;
+
+    --focus: #79b8ff;
+    --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 10px rgb(0 0 0 / 0.3);
+    --shadow-2: 0 8px 32px rgb(0 0 0 / 0.55);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #101418;
+  --bg-sunk: #0a0d10;
+  --surface: #171c21;
+  --surface-2: #1e242a;
+  --line: #2a3138;
+  --line-strong: #3b444d;
+
+  --ink: #e8eaec;
+  --ink-2: #b0b7bd;
+  --ink-3: #838b92;
+
+  --accent: #e0a95c;
+  --accent-ink: #14181c;
+  --accent-soft: #33291a;
+
+  --ok: #6fbf8b;
+  --warn: #e0a95c;
+  --danger: #e8737a;
+
+  --focus: #79b8ff;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 10px rgb(0 0 0 / 0.3);
+  --shadow-2: 0 8px 32px rgb(0 0 0 / 0.55);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}

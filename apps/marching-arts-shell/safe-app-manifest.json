@@ -1,0 +1,33 @@
+{
+  "app_id": "marching-arts-shell",
+  "name": "marching-arts-shell",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "agent_type": "tool",
+  "description": "The browser chassis for marching-arts: shell, storage seam, offline, and a generated mark. Contains no capability \u2014 what goes inside it is the open question in P4.",
+  "author": "USER",
+  "data_streams": [
+    {
+      "id": "theme",
+      "purpose": "Which colour theme the reader picked",
+      "retention": "until cleared by the reader",
+      "description": "localStorage, one key. Survives a failed write without breaking the shell, because a preference is not worth an exception."
+    }
+  ],
+  "permissions": [],
+  "store_scope": [
+    "marching_arts_shell_*"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "network": "none",
+  "entry_point": "web/index.html",
+  "license": "Apache-2.0",
+  "notes": {
+    "phase": "P4 chassis only, of apps/marching-arts/docs/BUILD_PLAN.md",
+    "capability": "None, deliberately. BUILD_PLAN P4 reads 'Shell and the first capability - blocked on the core job' and says what goes inside is the one open question. The chassis is described there as settled; the contents are not. web/src/capabilities.js ships an empty registry and test/shell.test.mjs asserts it is empty, so the open question cannot be answered in code by accident.",
+    "network": "'none' is a mechanism, not a declaration. The page CSP sets connect-src 'none' and the service worker is cache-only with no fetch() in it at all. test/shell.test.mjs fails if either drifts.",
+    "storage": "This app decides which backend rung is available and reports it. It stores nothing. Real storage is @marching-arts/browser - SQLite-WASM on OPFS - because a blob store has nowhere to put a WHERE clause and therefore nowhere to put the authorization predicate.",
+    "gate_not_claimed": "P4's gate is 'works fully offline after first load, on a Chromebook, from a static host'. Not claimed. No Chromebook has run this, and the offline path is gated only by unit tests over the worker's source, not by a real reload."
+  }
+}

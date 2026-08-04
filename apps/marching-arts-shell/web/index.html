@@ -1,0 +1,125 @@
+<!doctype html>
+<!--
+  Copyright 2026 The marching-arts Authors
+  SPDX-License-Identifier: Apache-2.0
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!--
+      The trust boundary, enforced rather than promised. 'none' by default;
+      connect-src 'none' means this document cannot open a network connection of
+      any kind. The service worker enforces the same rule for everything the page
+      loads. The manifest declares network: none — this is the mechanism behind
+      that declaration, and web/network.test.mjs fails if either drifts.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none';
+               script-src 'self';
+               style-src 'self';
+               img-src 'self' data:;
+               font-src 'self';
+               connect-src 'none';
+               manifest-src 'self';
+               worker-src 'self';
+               base-uri 'none';
+               form-action 'none';
+               frame-ancestors 'none'"
+    />
+    <title>marching-arts</title>
+    <meta name="description" content="Local-first tools for marching arts. Nothing leaves this device." />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#101418" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+    <link rel="stylesheet" href="./styles/tokens.css" />
+    <link rel="stylesheet" href="./styles/shell.css" />
+    <script type="module" src="./src/shell.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <div class="app" id="app">
+      <header class="app-bar">
+        <button
+          class="icon-button nav-toggle"
+          id="nav-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="nav"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+          <span class="sr-only">Menu</span>
+        </button>
+
+        <a class="wordmark" href="#/">
+          <svg class="wordmark-glyph" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+            <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round">
+              <path d="M18.4963 47.3148A41.5692 41.5692 0 0 0 45.5037 47.3148" />
+              <path d="M25.4888 12.6481A41.5692 41.5692 0 0 0 11.9852 36.0371" />
+              <path d="M52.0148 36.0371A41.5692 41.5692 0 0 0 38.5112 12.6481" />
+            </g>
+            <g fill="currentColor" stroke="none">
+              <circle cx="32" cy="8" r="4" />
+              <circle cx="52.7846" cy="44" r="4" />
+              <circle cx="11.2154" cy="44" r="4" />
+            </g>
+          </svg>
+          <span class="wordmark-text">marching-arts</span>
+        </a>
+
+        <div class="app-bar-spacer"></div>
+
+        <div class="theme-switch" role="group" aria-label="Colour theme">
+          <button type="button" data-theme-choice="system" aria-pressed="true">Auto</button>
+          <button type="button" data-theme-choice="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
+        </div>
+      </header>
+
+      <nav class="nav" id="nav" aria-label="Sections">
+        <p class="nav-heading" id="nav-caps-heading">Tools</p>
+        <ul class="nav-list" id="nav-capabilities" aria-labelledby="nav-caps-heading"></ul>
+        <p class="nav-heading" id="nav-shell-heading">This device</p>
+        <ul class="nav-list" id="nav-shell" aria-labelledby="nav-shell-heading"></ul>
+      </nav>
+
+      <main class="main" id="main" tabindex="-1">
+        <div class="view" id="view" aria-busy="true">
+          <p class="loading">Loading&hellip;</p>
+        </div>
+      </main>
+
+      <footer class="status-bar">
+        <p class="status-item privacy" title="No accounts, no server, no telemetry, no network calls.">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="status-glyph">
+            <path d="M12 3l7 3v6c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6z" />
+            <path d="M9 12.2l2.1 2.1L15 10.5" />
+          </svg>
+          <span>Everything stays on this device.</span>
+        </p>
+        <p class="status-item" id="storage-status" aria-live="polite">
+          <span class="sr-only">Storage: </span><span id="storage-status-text">checking storage&hellip;</span>
+        </p>
+        <p class="status-item net-status" id="net-status" aria-live="polite">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="net-status-text">Offline-ready</span>
+        </p>
+      </footer>
+    </div>
+
+    <div class="toaster" id="toaster" role="status" aria-live="polite"></div>
+
+    <noscript>
+      <p class="noscript">
+        This runs entirely in your browser, so it needs JavaScript enabled. It still makes no
+        network requests once loaded.
+      </p>
+    </noscript>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="dcisim">
+  <title>dcisim</title>
+  <style>
+    :root { color: #8a5a10; }
+    @media (prefers-color-scheme: dark) { :root { color: #e0a95c; } }
+  </style>
+  <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round">
+    <path d="M18.4963 47.3148A41.5692 41.5692 0 0 0 45.5037 47.3148" />
+    <path d="M25.4888 12.6481A41.5692 41.5692 0 0 0 11.9852 36.0371" />
+    <path d="M52.0148 36.0371A41.5692 41.5692 0 0 0 38.5112 12.6481" />
+  </g>
+  <g fill="currentColor" stroke="none">
+    <circle cx="32" cy="8" r="4" />
+    <circle cx="52.7846" cy="44" r="4" />
+    <circle cx="11.2154" cy="44" r="4" />
+  </g>
+</svg>
