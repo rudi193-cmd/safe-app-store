@@ -14,7 +14,10 @@ name: marching-arts-shell
 
 on:
   push:
-    branches: [master]
+    # Both names: the fleet is split between `main` and `master`, and a
+    # single-name filter turns a default-branch rename into a silently dead
+    # push trigger. Same hedge dependabot-automerge.yml already carries.
+    branches: [main, master]
     paths: ["apps/marching-arts-shell/**", ".github/workflows/marching-arts-shell.yml"]
   pull_request:
     paths: ["apps/marching-arts-shell/**", ".github/workflows/marching-arts-shell.yml"]
