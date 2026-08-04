@@ -1,0 +1,13 @@
+{
+  "app_id": "terpsi-chat",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/terpsi-chat",
+  "maker": "USER",
+  "lane": null,
+  "state": "gated",
+  "notes": "A schema and its gates, not an implementation — no client, no transport, no key custody, no device. Held here so its live parts are importable by rudi193-cmd/terpsi-music, which cannot depend on the quick-stupids playground it was built in. Superseded in named parts by that repo's W-1/W-3 lane model and bitemporal edges; README.md carries a per-mechanism table, and guardian_links is marked defective rather than merely superseded because it conflates standing with reachability and cannot express a contact restriction that does not end guardianship. The live contribution is the witness constraint on adult-to-minor channels, filed natively as terpsi-music issue #20. 22 schema mutations plus 2 on notify, each requiring its named gate to fail. Substrate hazard recorded: SQLite enforces foreign keys only under a per-connection pragma that cannot be bound to a schema."
+}

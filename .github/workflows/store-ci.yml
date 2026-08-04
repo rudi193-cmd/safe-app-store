@@ -133,7 +133,7 @@ jobs:
       fail-fast: false
       matrix:
         app: [bureau, civics-check, field-acoustics, law-gazelle, marching-arts,
-              playgate, the-squirrel, utety-chat]
+              playgate, terpsi-chat, the-squirrel, utety-chat]
         include:
           # utety-chat's TUI tests boot the real Textual app; textual is an
           # optional runtime dep (the server runs without it), so it lives
