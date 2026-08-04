@@ -10,13 +10,42 @@ half, built; the open half is left open, and there is a test that fails if
 anyone closes it in code instead of with the person who owns the decision.
 
 ```sh
+make demo app=marching-arts-shell   # from the repo root — the wiring, watched happening
+```
+
+```sh
 npm install
 npm run build        # the mark, the icon SVGs, the app-bar glyph
 npm run icons        # the PNG set — needs Chromium
-npm test             # 71 gates, no browser
+npm test             # 74 gates, no browser
 npm run test:raster  # the rasteriser, in a real browser
+npm run demo         # the same thing make demo runs
 npm run mutate:named # every gate proven able to fail, by name
 ```
+
+## The wiring demo
+
+`demo.sh` serves this over real HTTP on an ephemeral port — P4's gate says
+"from a static host", and explicitly not `file://`, where a null origin kills
+fetch, WASM, modules and OPFS alike — then drives a real Chromium through every
+seam and prints what each one did. It exits non-zero if a step does not do what
+it says, because a demo that cannot fail is a screenshot. It runs in CI for the
+same reason.
+
+Its last two steps are the ones no unit test here can reach: **cut the network
+and reload**, and count every request that went anywhere other than this host.
+
+**It found a defect on its first run, which is the argument for having it.** The
+`opfs-sahpool` rung's `available()` checks `createSyncAccessHandle`, which
+Chromium exposes on dedicated workers and *not* on the window — verified both
+ways on one origin. `probeStorage()` runs on the main thread, so that rung could
+never be seen, and the seam would have reported `indexeddb` on every browser
+alive, including ones that fully support the better rung. Every test passed
+throughout: they all fed `probeStorage` a synthetic ladder, so the real
+predicate had never executed in a browser anywhere. It is now recorded as
+`unprobed` rather than `unavailable` — a rung this context cannot see is a
+different fact from a rung that is not there — and the status bar says
+"better rungs unprobed here" instead of quietly claiming the lesser one.
 
 ## What is here
 
@@ -59,11 +88,12 @@ for what its gates structurally cannot see.
 
 ## What is NOT claimed
 
-- **P4's gate is not met.** It reads *"works fully offline after first load, on a
-  Chromebook, from a static host"*. No Chromebook has run this, nothing has been
-  served from a static host, and the offline path is gated by unit tests over
-  the worker's source rather than by a real reload. The gate is quoted here so
-  the gap is legible, not to imply it is nearly closed.
+- **P4's gate is still not met, but it is closer and the gap is now exact.** It
+  reads *"works fully offline after first load, on a Chromebook, from a static
+  host"*. The demo serves it from a static host and does reload it with the
+  network cut, in CI, on every push — so two thirds of that sentence is now
+  mechanised. **No Chromebook has run this**, and that is the whole of what is
+  left unproven in it.
 - **`favicon.ico` is absent.** The 2026 minimum set is six files and this ships
   five; ICO needs an encoder nothing here has. Modern browsers take the SVG.
 - **No capability, so nothing has been demonstrated to anyone.** A chassis with

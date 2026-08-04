@@ -12,12 +12,16 @@
     "test:raster": "node --test test/raster.test.mjs",
     "explore": "node mark/explore.mjs",
     "mutate": "stryker run",
-    "mutate:named": "node mark/mutate.mjs"
+    "mutate:named": "node mark/mutate.mjs",
+    "demo": "./demo.sh"
   },
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "devDependencies": {
     "@stryker-mutator/core": "^9.6.1",
     "@stryker-mutator/tap-runner": "^9.6.1",
+    "playwright-core": "^1.62.1",
     "pngjs": "^7.0.0"
   }
 }
