@@ -8,6 +8,7 @@ with a human doing all the checking, no amount of assistance saves it.
     python app.py consent grant-keeping --narrator slappy --by operator
     python app.py file --narrator slappy --taker penny --body-file interview.txt
     python app.py claim --statement <id> --span 0:41 --assertion "..."
+    python app.py route --all
     python app.py docket --claim <id> --relation contradicts --source-kind vault
     python app.py rule --claim <id> --by wrench --confidence high
     python app.py queue
@@ -26,6 +27,7 @@ import desk  # noqa: E402
 import desk_db  # noqa: E402
 import export  # noqa: E402
 import interviewer  # noqa: E402
+import router  # noqa: E402
 
 
 def _stores(args):
@@ -60,6 +62,8 @@ def main(argv: list[str] | None = None) -> int:
     cl.add_argument("--span", required=True, help="START:END, character offsets")
     cl.add_argument("--assertion", required=True)
     cl.add_argument("--source-type", default="oral_history_consented")
+    cl.add_argument("--occurred-at", help='when, as the narrator dated it — fuzzy is fine ("summer 1998")')
+    cl.add_argument("--place")
 
     d = sub.add_parser("docket", help="record evidence — never a verdict")
     d.add_argument("--claim", required=True)
@@ -70,6 +74,10 @@ def main(argv: list[str] | None = None) -> int:
     d.add_argument("--source-ref")
     d.add_argument("--excerpt")
     d.add_argument("--by", default="operator")
+
+    rt = sub.add_parser("route", help="run the routing pass — evidence, never a verdict")
+    rt.add_argument("--claim")
+    rt.add_argument("--all", action="store_true", help="sweep every unrouted claim")
 
     r = sub.add_parser("rule", help="a human judges a claim (not the narrator, not the taker)")
     r.add_argument("--claim", required=True)
@@ -128,12 +136,25 @@ def main(argv: list[str] | None = None) -> int:
             start, _, end = args.span.partition(":")
             print(desk.add_claim(
                 conn, statement_id=args.statement, span=(int(start), int(end)),
-                assertion=args.assertion, source_type=args.source_type))
+                assertion=args.assertion, source_type=args.source_type,
+                occurred_at=args.occurred_at, place=args.place))
         elif args.cmd == "docket":
             print(desk.add_docket_entry(
                 conn, claim_id=args.claim, relation=args.relation,
                 source_kind=args.source_kind, source_ref=args.source_ref,
                 excerpt=args.excerpt, found_by=args.by))
+        elif args.cmd == "route":
+            if args.all:
+                findings = router.route_all(conn)
+            elif args.claim:
+                findings = [router.route(conn, args.claim)]
+            else:
+                print("--claim or --all required", file=sys.stderr)
+                return 2
+            for f in findings:
+                print(f"{f.claim_id}  {f.sentence()}")
+            if not findings:
+                print("nothing to route")
         elif args.cmd == "rule":
             if args.uncheckable:
                 desk.mark_uncheckable(conn, claim_id=args.claim, ruled_by=args.by, note=args.note)
@@ -159,7 +180,8 @@ def main(argv: list[str] | None = None) -> int:
         elif args.cmd == "export":
             fn = export.to_json if args.format == "json" else export.to_markdown
             print(fn(conn, consent_store=store, path=args.out))
-    except (desk.DeskError, export.ExportRefused, interviewer.InterviewerError) as exc:
+    except (desk.DeskError, export.ExportRefused, interviewer.InterviewerError,
+            router.RouterError) as exc:
         print(f"refused: {exc}", file=sys.stderr)
         return 1
     finally:

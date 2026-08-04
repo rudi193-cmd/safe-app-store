@@ -88,7 +88,8 @@ pip install -e ../../libs/subject-consent
 
 python app.py consent grant-keeping --narrator slappy --by operator
 python app.py file --narrator slappy --taker penny --body-file interview.txt
-python app.py claim --statement <id> --span 0:41 --assertion "They pushed the bike four miles."
+python app.py claim --statement <id> --span 0:41 --assertion "They pushed the bike four miles." --occurred-at 1998
+python app.py route --all
 python app.py docket --claim <id> --relation contradicts --source-kind vault --source-ref claim:other
 python app.py rule --claim <id> --by wrench --confidence conflicting
 python app.py queue
@@ -97,22 +98,58 @@ python app.py export --format markdown --out testimony.md
 ```
 
 ```bash
-python -m pytest tests/ -q      # 38 passed
+python -m pytest tests/ -q      # 67 passed
 ```
+
+## The router never adjudicates
+
+`router.py` does four things and stops: **resolve** the entities a claim
+touches, **corroborate** against the vault, **sequence** it in time, and
+**declare the gap**. The output is a docket. A human rules.
+
+Its entire vocabulary of conclusion is five sentences, and they live in
+`vocabulary.py` — a contract owned by the component it constrains is not much
+of a contract:
+
+| Situation | It says |
+|---|---|
+| ≥2 independent narrators agree | `Corroborated by N sources.` |
+| dated accounts disagree | `Contradicted. X says A; Y says B.` — **never picks** |
+| nothing related found | `No source found. This is checkable — nobody has checked it.` |
+| interior state, no witness possible | `Uncheckable. No record of this could exist.` |
+| related, but only the same narrator | `Uncorroborated. Only the narrator asserts this.` |
+
+There is no sentence available for "this is true", and that absence is the
+design. `verdict_language()` catches nineteen verdict words on whole-word
+boundaries — a narrator called Charlie must not trip a gate about the router's
+vocabulary — and a test runs it over everything the router actually emits, not
+just the constants.
+
+Two things it cannot do, by construction:
+
+- **It never rules.** Nothing in it writes `ruled_by`, `confidence`, or a
+  terminal state. `uncheckable` is *proposed* and confirmed by a person, because
+  a machine deciding no record could exist is a machine deciding something.
+- **Independence is counted, not assumed.** A second telling by the same
+  narrator is one source saying it twice, and comes back `Uncorroborated`.
+
+No model, no network. Corroboration is retrieval and comparison over the local
+vault. `extract_entities()` is the one seam where a model would be legitimate —
+it proposes what to look up rather than concluding anything about what is found
+— and it is deliberately naive today.
+
+The queue keeps `gap_proposed` separate from `uncorroborated`: agreeing that a
+gap is real is different work from finding a source nobody has looked for.
 
 ## Not built yet
 
-The router (spec §6) is not here. That is on purpose — the honest build order
-is **discipline first, assistance second**. Strip the automation and what
-remains is the invention; the router is most of the code and the least of the
-value. A desk where a human does all the checking is still the thing.
+The retelling surface (§8) — search returns hits and compose builds a timeline,
+but nothing hands the story *back*, and retelling is the only operation that
+makes a story survive contact with a human.
 
-When it lands it must **never adjudicate** — resolve, corroborate, sequence,
-declare the gap, then stop — with the refusal vocabulary of §6 held by a test
-over its output strings. `uncheckable` is a successful terminal state.
-
-Also outstanding: the retelling surface (§8), and the second-eyes problem for a
-one-volunteer society (§13.1), which is the keystone gate and has no answer yet
-that doesn't reintroduce a central pile.
+And the second-eyes problem for a one-volunteer society (§13.1). `ruled_by ∉
+{narrator, taker}` is the keystone gate, the smallest real deployment may not
+have two people, and every answer so far reintroduces the central pile this
+design exists to avoid.
 
 `ΔΣ=42`

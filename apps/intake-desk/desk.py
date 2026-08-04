@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import consent as consent_mod
+import vocabulary
 from desk_db import body_digest
 
 MEDIA = ("audio", "transcript", "typed", "letter", "note")
@@ -255,20 +256,33 @@ def withhold_narrator(conn: sqlite3.Connection, *, narrator_id: str, reason: str
 # ── the queue ─────────────────────────────────────────────────────────────────
 
 def queue(conn: sqlite3.Connection) -> dict[str, int]:
-    """What a human is uniquely needed for, ordered by that (spec §7)."""
-    counts = {"contradicted": 0, "uncorroborated": 0, "uncheckable": 0, "corroborated": 0}
+    """What a human is uniquely needed for, ordered by that (spec §7).
+
+    `gap_proposed` is its own bucket rather than a kind of uncorroborated: a
+    claim the router thinks no source could exist for needs a person to *agree
+    that the gap is real*, which is different work from finding a source
+    nobody has looked for yet. Recognised by the refusal contract's own
+    sentence (vocabulary.py), so the queue does not have to import the router
+    that wrote it.
+    """
+    counts = {"contradicted": 0, "uncorroborated": 0, "gap_proposed": 0,
+              "uncheckable": 0, "corroborated": 0}
     rows = conn.execute(
         "SELECT c.id, c.state,"
         " SUM(CASE WHEN d.relation='contradicts' THEN 1 ELSE 0 END) AS against,"
-        " SUM(CASE WHEN d.relation='corroborates' THEN 1 ELSE 0 END) AS for_"
+        " SUM(CASE WHEN d.relation='corroborates' THEN 1 ELSE 0 END) AS for_,"
+        " SUM(CASE WHEN d.excerpt = ? THEN 1 ELSE 0 END) AS gap"
         " FROM claims c LEFT JOIN docket_entries d ON d.claim_id = c.id"
-        " WHERE c.state IN ('filed','routed','uncheckable') GROUP BY c.id"
+        " WHERE c.state IN ('filed','routed','uncheckable') GROUP BY c.id",
+        (vocabulary.UNCHECKABLE,),
     )
     for row in rows:
         if row["state"] == "uncheckable":
-            counts["uncheckable"] += 1
+            counts["uncheckable"] += 1          # already confirmed by a person
         elif row["against"]:
             counts["contradicted"] += 1
+        elif row["gap"]:
+            counts["gap_proposed"] += 1
         elif row["for_"]:
             counts["corroborated"] += 1
         else:
