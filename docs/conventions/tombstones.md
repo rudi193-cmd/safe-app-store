@@ -37,12 +37,13 @@ hurry.
 
 **Every archived entry records why it ended and where its code went.**
 
-An archive has exactly three end-shapes, and each has a required forward:
+An archive has these end-shapes, and each has a required forward:
 
 | End-shape | Meaning | Required forward |
 |---|---|---|
 | **merged** | The code was absorbed into another build | `successor` — the `app_id` it became part of. The forward is **mandatory**; a merge with nowhere to point is a deletion wearing an archive. |
 | **promoted** | It left the playground for its own repo | `successor` — the repo URL. This is the good ending; `stores/{major}/promoted/<app_id>.json` already holds the verdict, and the tombstone points at it. |
+| **rebuilt** | It was replaced by a fresh implementation; **the code does not travel, the knowledge does** | `successor` — the build that replaces it, plus a `carried` list that is the whole point. Proposed 2026-08-04 for `law-gazelle` → `homestead-law`; see [`docs/homestead-law-build-plan.md`](../homestead-law-build-plan.md). **Not yet ratified.** |
 | **retired** | It ended, and nothing carries it forward | `reason` — a sentence saying what was decided. This is the only shape permitted to have no successor, and it must say so deliberately rather than by omission. |
 
 **`retired` is the only one that may point nowhere, and it must say why.** The
@@ -84,7 +85,7 @@ Proposed fields on the archived entry, alongside the existing
 }
 ```
 
-`ended` is a closed enum — `merged | promoted | retired` — for the same reason
+`ended` is a closed enum — `merged | promoted | rebuilt | retired` — for the same reason
 `status` is: *never invented, same discipline as the status vocabulary.*
 
 ---
@@ -101,7 +102,11 @@ add: *an archived entry must carry `ended`; if `ended` is `merged` or
 builds will merge, some will promote, and the shape is not yet known. A lint
 written against a vocabulary that has not settled would be enforcing a guess.
 It goes in once the first real tombstone is written, and the first tombstone is
-the thing that tells us whether these three shapes are the right three.
+the thing that tells us whether these shapes are the right ones. **It already
+did:** `law-gazelle` → `homestead-law` is a rebuild — the code does not travel —
+and `merged | promoted | retired` had no shape for it. `rebuilt` was added the
+same day this convention was written, which is the argument for deferring the
+lint rather than against it.
 
 Until then this is a convention, which means it holds only as long as someone
 remembers it. That is stated plainly rather than hoped away.
