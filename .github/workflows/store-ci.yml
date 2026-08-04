@@ -124,10 +124,33 @@ jobs:
         # path (code the house can't reach, like grove/willow-grove) must
         # be named in stores/pending.json with a reason, same as an
         # unresolved apps/ build.
+        #
+        # test_sap_gate / test_seam / test_session / test_principal /
+        # test_quota are The Forge's store-side half (PR #161, D3-D6/D11):
+        # the signed-manifest gate, the seam that enforces it, store-minted
+        # sessions, builder identity, and per-builder quota. They landed
+        # with 165 passing tests and nothing running them — this step names
+        # its files explicitly, so a new suite is invisible to CI until it
+        # is listed here. These are trust-boundary modules; CLAUDE.md §7
+        # states their behaviour as law ("signed -> allowed, tampered ->
+        # denied"), which is exactly the claim that should not rest on a
+        # local run recorded in a PR body.
+        #
+        # tests/test_checkpoint_memory.py is deliberately NOT listed: it
+        # imports Nestor, which is not on PyPI, and stores/requirements.txt
+        # keeps that line commented out until a SHA is pinned at promotion
+        # (D12/D13). Listing it here would fail collection on every run.
+        # It goes in the moment the pin lands.
+        #
+        # pip install -r stores/requirements.txt: stores/sap_gate.py needs
+        # real asymmetric signing, so `pip install pytest` alone no longer
+        # collects. The Nestor line in that file is commented out, so this
+        # resolves to cryptography and nothing else.
         run: |
           python -m pip install --upgrade pip
           pip install pytest
-          python -m pytest tests/test_no_raw_soil_reads.py tests/test_no_fstring_schema_sql.py tests/test_no_inline_vault_root.py tests/test_no_unauthenticated_bind.py tests/test_promote_check.py tests/test_promote_check_record.py tests/test_vault_lint_vacuous_scan.py tests/test_tier_vocabulary.py tests/test_p1_keeping_records.py tests/test_p3_generated_catalog_fields.py tests/test_catalog_location.py tests/test_status_vocabulary_migration.py tests/test_catalog_top_level_keys.py tests/test_loose_repos.py -q
+          pip install -r stores/requirements.txt
+          python -m pytest tests/test_no_raw_soil_reads.py tests/test_no_fstring_schema_sql.py tests/test_no_inline_vault_root.py tests/test_no_unauthenticated_bind.py tests/test_promote_check.py tests/test_promote_check_record.py tests/test_vault_lint_vacuous_scan.py tests/test_tier_vocabulary.py tests/test_p1_keeping_records.py tests/test_p3_generated_catalog_fields.py tests/test_catalog_location.py tests/test_status_vocabulary_migration.py tests/test_catalog_top_level_keys.py tests/test_loose_repos.py tests/test_sap_gate.py tests/test_seam.py tests/test_session.py tests/test_principal.py tests/test_quota.py -q
 
   app-tests:
     runs-on: ubuntu-latest
@@ -319,10 +342,69 @@ jobs:
         # it to go red. Without this the job above is a suite, not a gate.
         run: npm run test:browser:mutation
 
+  # The Forge's app-side half. Its own job rather than an app-tests matrix
+  # leg, for two reasons the generic leg cannot express:
+  #
+  #   1. src/ layout. app-tests runs `pytest tests/` from the app directory
+  #      with only `pip install -r requirements.txt`; the_forge lives under
+  #      src/ and is not importable that way. This job installs the package.
+  #   2. kartikeya decides how much of the suite is real. The D2 sandbox
+  #      runner and D6 mount-policy tests are guarded with skipUnless(kart),
+  #      and a skipped test still exits 0 — the same trap bureau-differential
+  #      exists to close. Without Kart: 83 passed, 2 skipped. With it: 186
+  #      passed. The 103-test difference is the isolation boundary itself,
+  #      which is the whole reason this code is in the trust boundary.
+  #
+  # bubblewrap is deliberately NOT installed here yet. bwrap on the runner
+  # un-skips one further test and turns two others red: test_workdir_is_honoured
+  # (the build lands in /root instead of its requested workdir under bwrap
+  # isolation) and test_sandbox_config_is_scoped_to_the_call. Those look like
+  # real defects in sandbox_runner.py, not CI setup, and installing bwrap here
+  # before they are fixed would land a red gate. Add the install step in the
+  # same change that fixes them — that is the point at which CI starts
+  # testing real isolation rather than the plain fallback path.
+  forge-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: apps/the-forge/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e apps/the-forge
+          pip install -r apps/the-forge/requirements.txt
+          pip install pytest
+
+      - name: Run tests
+        working-directory: apps/the-forge
+        run: python -m pytest tests/ -q
+
+      - name: Assert Kart-gated tests actually ran
+        # The point of the job. If kartikeya ever fails to install, the suite
+        # still exits 0 with the D2/D6 tests skipped, and this job would report
+        # green having tested no isolation at all.
+        working-directory: apps/the-forge
+        run: |
+          set -eo pipefail
+          python -c "import kartikeya"
+          python -m pytest tests/test_sandbox_runner.py tests/test_mount_policy.py -q -rs | tee /tmp/forge.txt
+          if grep -q "kartikeya is a real dependency" /tmp/forge.txt; then
+            echo "::error::D2/D6 tests skipped — kartikeya missing, isolation untested"
+            exit 1
+          fi
+
   # Aggregate gate: branch protection requires a single check named "test"
   # across the whole fleet. Green only when every gate and app suite is.
   test:
-    needs: [gates, app-tests, browser-resolver, browser-mechanisms]
+    needs: [gates, app-tests, forge-tests, browser-resolver, browser-mechanisms]
     runs-on: ubuntu-latest
     steps:
-      - run: echo "gates, all app suites, the browser resolver and the browser mechanisms green"
+      - run: echo "gates, all app suites, The Forge, the browser resolver and the browser mechanisms green"
