@@ -124,6 +124,14 @@ plus the attestation precondition. **2 of 9 pass today.***
 
 ## Suggested order
 
+> **Before any of this: [`bug_list.md`](bug_list.md) BUG-1 and BUG-2.** A
+> dedicated bug pass found 12 defects, two of them critical, in the deadline
+> arithmetic — a long-form date like `"July 1, 2026"` parses to `None`, so an
+> overdue court deadline renders as not-overdue and sinks in the urgent queue;
+> the same value raises an uncaught `ValueError` out of `milestones()` and takes
+> down the briefing packet and the TUI refresh. Nothing on this list outranks a
+> wrong answer about when something is due.
+
 1. **A-1, A-2** — the only fixable-today reason a mechanical gate is red, and
    the same fix is C-1, the top pilot item. One change, two tracks.
 2. **A-6, C-6** — the two items that are wrong in a way a reader can see:
