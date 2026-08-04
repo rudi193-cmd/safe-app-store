@@ -20,8 +20,9 @@ answer to "where do we stand" is not a reading list.*
 | **Legal — US / intl** | [`apps/law-gazelle/docs/legal_obligations_*.md`](../apps/law-gazelle/docs/) | reference; gates deployment, not code |
 | **Sourcing** | [`apps/law-gazelle/docs/sourcing_report.md`](../apps/law-gazelle/docs/sourcing_report.md) | two dependencies total; the rest is write-it-ourselves |
 | **Store-wide safety** | [`docs/store_minors_safety.md`](store_minors_safety.md) | **no tracking home — deliberately, see below** |
-| **The code** | `rudi193-cmd/homestead` | Phase 0 built, **audited, not clean** |
-| **Remediation** | `rudi193-cmd/homestead` → `docs/PHASE0-REMEDIATION.md` | 7 fixes + 1 decision, none made |
+| **The code** | `rudi193-cmd/homestead` | **Phase 0 remediated, Phase 1 landed** — 406 passed / 10 xfailed |
+| **Remediation** | `rudi193-cmd/homestead` → `docs/PHASE0-REMEDIATION.md` | **done** — R-1…R-7 plus the decision: rename and anchor now, encrypt at Phase 4 |
+| **Phase 1 — dates** | `rudi193-cmd/homestead` → `docs/PHASE1-DATES.md` | done; **three product decisions left open by name** |
 
 **Repos live:** `rudi193-cmd/homestead` (Phase 0 pushed), `homestead-law`,
 `homestead-ledger` — all public, all on the personal account awaiting transfer.
@@ -59,8 +60,11 @@ Six of Track A and one of B. Their **lessons** survive as invariants — A-1 bec
 ### Done
 
 `E-0` org handle confirmed · `E-2` `homestead.keep` and `E-3` `/.homestead`
-exist — **but Phase 0 is audited and not clean**, so treat both as built rather
-than finished.
+exist, **and Phase 0's audit findings are now closed** — the seven fixes landed
+and the sealed-log decision was made (`IntegrityLog`, anchored now, encrypted at
+Phase 4). `C-1` cold checkout still holds, on a narrower and now-honest claim:
+the *core* is stdlib-only, and a separate test checks that every third-party
+import is declared.
 
 ### Carries — knowledge, not work
 
@@ -139,13 +143,21 @@ becomes.
 
 ## What is actually next
 
-1. **Phase 0 remediation** — 7 fixes, 1 decision. Nothing should build on Phase 0
-   until this lands; the audits found the enforcement weaker than the plan claims
-   in four places.
-2. **`E-1`** — teach the vault-leak linter, which is a *store* fix and unblocks
-   nothing else but is small and real.
+1. **The three open date decisions** — they are product calls, not engineering
+   ones, which is why both Phase 1 agents declined to make them alone:
+   **slash forms** (`08/11/2026` — BUG-4's own example, and genuinely ambiguous
+   across US and everywhere else), **basic ISO** (`20260810` — unambiguous and
+   cheap), and **backward counting** (FRCP 6(a)(5); service and notice deadlines
+   are counted backward routinely, so refusing it is a gap, not a resolution).
+   All three are currently refused *by default rather than by decision*, and
+   refusing a date a user typed correctly is a real cost.
+2. **`E-1`** — teach the vault-leak linter `HOMESTEAD_HOME`. A *store* fix that
+   unblocks nothing else but is small and real.
 3. **`C-6`** — archive `personas.py` with a note saying why.
-4. **Phase 1** — dates. Three pending tests already written and waiting.
+4. **Phase 2** — surfaces. Four pending tests written and waiting
+   (`homestead.keep.surfaces`), including I-35's list-vs-detail split.
+5. **`I-37`** — the proposed seeder invariant, still unwritten.
+6. **`F-8`** — DV referral copy. Still has no home in the plan.
 
-Everything else waits on a person: a verifier, counsel, a pilot partner, and the
-org transfer.
+The four store-level findings remain deliberately homeless. Everything else
+waits on a person: a verifier, counsel, a pilot partner, and the org transfer.
