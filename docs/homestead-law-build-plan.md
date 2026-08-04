@@ -160,6 +160,8 @@ first time" is enforced rather than intended.
 | **I-31** | **The resting state reveals nothing.** The cover shows counts that survive the `L2` re-identification check and no more. *"1 overdue"* over a household where one matter has deadlines identifies that matter — the check is not theoretical at three matters. | **F-5**, rung model |
 | **I-32** | **Reveal expires.** A deliberate act shows the payload; a timeout returns the surface to the derived form. Not a lock — a fall-back. The threat is someone walking past thirty seconds later, not someone stealing the machine. | **F-5** |
 | **I-33** | **One rung indicator per surface, never per datum.** A status line — *"showing derived · L4 present"* — that changes on reveal. `L4` tagged on fifty fields is unreadable, and unreadable is unread. Never a colour alone. | rung model |
+| **I-35** | **The list pane cannot render an `L4` payload.** Not a policy — the ambient render path does not accept one. Payloads exist only in a detail pane the user opened, and expire per I-32. The act of opening is the purpose declaration. | rung model, **F-5** |
+| **I-36** | **The app never deletes canonical data.** It has no write path to the record (I-6), so retention is necessarily advisory. Matter packs carry **`review_after`** — an event or duration that surfaces a *review item in the queue*, never a deletion. Auto-purging a live matter is destroying evidence on a schedule. | I-6, **F-5**, GDPR Art. 17 |
 | **I-34** | **Bind by consequence, not by frequency.** Single-key for acting — what is due, mark done, snooze. Deliberate friction for revealing history or payloads. `a` opening a confession timeline in one press is the defect. | **F-4** |
 
 
@@ -252,12 +254,23 @@ Then `promotion.json` and a verifier who is not the author.
 
 ## Open, and blocking
 
-- **D-6 — the verifier.** Still unanswered; no engineering resolves it.
+- ~~**D-6 — the verifier.**~~ **Decided 2026-08-04.** `verified_by` is a named
+  hand that is not the author — if the code is written by an agent, the
+  operator verifies. **The attestation splits:** `verified_by` covers the
+  **engineering gates only**. The **legal posture is a separate, named,
+  outstanding item that promotion does not cover and must not appear to.** The
+  gates check tests, imports, seams and leaks; they check nothing about UPL,
+  § 110, GDPR, or whether this is safe to hand a litigant, and a record silent
+  on that gap invites a green gate being trusted to say what it never said.
+  Counsel precedes any D2 deployment.
+- **Verification evidence is a Phase 0 deliverable**, not a Phase 6 scramble: a
+  verifier must be able to clone cold and run the whole invariant suite and the
+  gate in **one command**. A verifier who arrives at the end with no record has
+  to take everything on trust, which is ratification in name only.
 - **The `L4`-on-S1 question** — does the operator see the derived form on their
   own screen? The one rung decision that changes daily use.
 - **`rebuilt` as a fourth tombstone shape** — needs ratifying into
   [`conventions/tombstones.md`](conventions/tombstones.md).
-- **Retention** — `"permanent local"` is a placeholder, not a decision.
 
 ---
 

@@ -40,9 +40,9 @@ Every render happens on exactly one of these, and the rung is scored against it.
 
 | # | Surface | What it is |
 |---|---|---|
-| **S1** | **The operator's own screen** | The TUI, on their machine, in front of them |
+| **S1** | **The operator's own screen** | The app window, on their machine, in front of them. Two panes with different powers: the **list** (ambient, cannot render an `L4` payload — I-35) and the **detail** (opened deliberately, expires back to derived — I-32). |
 | **S2** | **A model prompt** | Anything placed in a local LLM's context window |
-| **S3** | **Agent retrieval** | The MCP surface — `gazelle_detail`, `gazelle_briefing`, and friends |
+| **S3** | **Agent retrieval** | The MCP stdio entry point, invoked as a subprocess. Never a listening port. |
 | **S4** | **Egress** | Drafts, exports, filings, commit manifests — anything that leaves |
 
 **S2 is a rendering.** This is the point most easily missed and the one with the
@@ -105,17 +105,20 @@ data**, **substance-use records** (42 CFR Part 2), **immigration status**, and
 **privileged communications**. The four are examples of the clause, not the
 whole of it.
 
-**The derived instruction is the normal serving mode — on every surface,
-including S1 — and the payload is the exception**, requiring a declared purpose.
+**The derived instruction is the normal serving mode, and the payload is the
+exception.** On S1 that resolves by pane rather than by ceremony: the **list
+cannot render a payload at all**, and the **detail pane** serves it when the
+user opens it — the act of opening *is* the declaration. On S2 the payload never
+appears. On S3 and S4 it requires an explicit purpose.
 
 > *Worked example.* The workers' comp file holds: *"IME 2026-06-14: L4–L5 disc
 > herniation, 12% whole-person impairment, permanent lifting restriction 20 lb."*
 >
 > What Today renders is *"Medical records response due Aug 15 — 11 days."* The
-> operator can act. The diagnosis is not on the Today screen, not in the Ollama
-> prompt, and not in the MCP briefing. Opening the record under a declared
-> medical purpose serves the payload; the same operator, ten minutes earlier
-> under a deadline purpose, gets the instruction.
+> operator can act. The diagnosis is not on the Today list, not in the local
+> model's prompt, and not in the MCP briefing. Opening the record shows it —
+> and I-32 puts it away again, because the threat is someone walking past
+> thirty seconds later.
 
 > **This is the rung that makes the ladder worth having.** `L4` is not "`L3` but
 > more so." It is the claim that most of what a household needs to *do* about a
@@ -242,14 +245,16 @@ unrepresentable**, rather than making it a thing tests must catch.
 
 ## Open
 
-- **Does the operator get the derived form on their own screen at `L4`?** Drafted
-  as yes-unless-purpose. Terpsi caps the subject at `L4` for a reason (W-4: a
-  ward may request, never authorize), but a household operator is both subject
-  and principal, so the argument does not carry over unchanged. This is the one
-  rung decision that most affects daily use.
-- **What is a purpose declaration worth when the only principal is the
-  operator?** Weaker than a guardian's, but still an intentional act that can be
-  ledgered — which is most of its value.
+- ~~**Does the operator get the derived form on their own screen at `L4`?**~~
+  **Decided 2026-08-04 — by widget, not by dialog.** The **list pane cannot
+  render an `L4` payload**: its render path does not accept one, so nothing
+  sensitive can be ambient even by mistake. The payload exists only in a detail
+  pane the user explicitly opened, and **I-32** returns it to derived on
+  timeout. The deliberate act of opening **is** the purpose declaration, so
+  there is no ceremony tax on a person in crisis. Terpsi caps the subject at
+  `L4` because a ward may request but never authorize (W-4); a household
+  operator is both subject and principal, so that argument does not carry over
+  — but the *surface* distinction does all the work the cap was for.
 - **Where does classification live?** Schema-definition time, with a manifest
   and a test that fails the build on an unclassified field. Not written.
 - **D2 re-introduces entitlement edges.** A clinic operating for clients brings
