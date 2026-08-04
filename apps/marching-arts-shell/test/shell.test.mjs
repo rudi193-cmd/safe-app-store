@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
 import { EMPTY_STATE, capabilities, register } from '../web/src/capabilities.js';
-import { LADDER, describeStorage, probeStorage } from '../web/src/storage.js';
+import { LADDER, describeStorage, inWorker, probeStorage } from '../web/src/storage.js';
 
 const app = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(resolve(app, p), 'utf8');
@@ -182,6 +182,40 @@ test('an exhausted ladder reports none rather than the last thing it tried', () 
   assert.equal(none.name, 'none');
   assert.equal(none.durable, false);
   assert.match(describeStorage(none), /no storage backend/);
+});
+
+test('a rung this context cannot see is recorded as unprobed, not as absent', () => {
+  // The demo caught this and the suite could not: createSyncAccessHandle is
+  // exposed on dedicated workers and not on the window, so a main-thread probe
+  // can never see opfs-sahpool. Calling that "unavailable" would mean the shell
+  // reports indexeddb on a browser that fully supports the better rung — an
+  // absence invented out of a blind spot.
+  const ladder = [
+    { name: 'sah', durable: true, context: 'worker', why: 'x', available: () => false },
+    { name: 'idb', durable: true, why: 'y', available: () => true },
+  ];
+  const main = probeStorage(ladder, false);
+  assert.equal(main.name, 'idb');
+  assert.equal(main.unprobed, 1);
+  assert.match(main.notes[0], /not probeable from the main thread/);
+  assert.doesNotMatch(main.notes[0], /unavailable/);
+  assert.match(describeStorage(main), /better rungs unprobed here/);
+
+  // In a worker the same rung is probed for real, and its real answer stands.
+  const worker = probeStorage(ladder, true);
+  assert.equal(worker.name, 'idb');
+  assert.equal(worker.unprobed, 0);
+  assert.match(worker.notes[0], /unavailable/);
+  assert.doesNotMatch(describeStorage(worker), /unprobed/);
+});
+
+test('the shipped ladder marks the worker-only rung as such', () => {
+  // If this is ever dropped, the seam silently goes back to reporting the best
+  // rung absent on every main thread in the world.
+  const sah = LADDER.find((r) => r.name === 'opfs-sahpool');
+  assert.equal(sah.context, 'worker', 'opfs-sahpool is no longer marked worker-only');
+  assert.equal(typeof inWorker, 'function');
+  assert.equal(inWorker(), false, 'node is not a worker context');
 });
 
 test('probing twice does not memoise — the skeleton hazard this replaces', () => {
