@@ -639,6 +639,24 @@
         "stdlib-only",
         "exploration"
       ]
+    },
+    {
+      "id": "the-forge",
+      "name": "The Forge",
+      "description": "SAFE-native, multi-tenant app-building playground. Design-phase scaffold - see docs/design/the-forge.md (D1-D13) for the architecture.",
+      "status": "building",
+      "version": "0.1.0",
+      "path": "apps/the-forge",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "tags": [
+        "app-builder",
+        "multi-tenant",
+        "meta",
+        "design-phase"
+      ]
     }
   ]
 }
