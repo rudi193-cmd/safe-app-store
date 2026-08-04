@@ -258,7 +258,7 @@ applies for the whole run-up to transfer, which is now.)
 | `.github` | Org profile |
 | **`homestead`** | **Seat + engine.** Portfolio / orient for the face, and home of **`homestead.keep`** — the import-pure record/deadline/evidence core every module pins, plus the `/.homestead` path resolver. Load-bearing, not optional. |
 | **`homestead-law`** | **Module one.** Promoted `law-gazelle`; prose name stays **Law Gazelle** / **Gazelle**. Not a monorepo umbrella, not a sibling `gazelle` repo. |
-| **`private-ledger`** | **Module two, already built.** Household money, local-first SQLite, "mirror not judge" — the homesteader keeping their own books. Currently has no die face. Name open: it has its own identity, and the earlier rejection of `homestead-ledger` was about a settler-order module *inside* `homestead-law`, a different question. |
+| **`homestead-ledger`** *(live 2026-08-04, on `rudi193-cmd`)* | **Module two.** **E-6 resolved in favour of the rename.** Coherent despite the earlier draft rejecting `homestead-ledger`: that rejection was of a settler-order module *inside* `homestead-law`, and this is a **sibling module on the face** — which is exactly the two-level split below. Succeeds `private-ledger`: Household money, local-first SQLite, "mirror not judge" — the homesteader keeping their own books. Currently has no die face. Name open: it has its own identity, and the earlier rejection of `homestead-ledger` was about a settler-order module *inside* `homestead-law`, a different question. |
 | **`awesome-sovereign-software`** | Public catalog + report — **keeps its name and its politics** |
 
 **On the catalog.** The sovereignty stance was not wrong, it was attached to the

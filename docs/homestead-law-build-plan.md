@@ -7,6 +7,14 @@ so are written before the code that satisfies them.*
 **Drafted 2026-08-04.** Target: `homestead-affairs/homestead-law`, with
 `homestead-affairs/homestead` (the seat, holding `homestead.keep`) built first.
 
+**Where they actually live, 2026-08-04.** All three are on **`rudi193-cmd`**,
+public, awaiting transfer to the org — the same tier-E workshop pattern the
+placement draft already uses for `nestor` ("until transferred to
+`Die-Namic-Systems`"). Live now: **`rudi193-cmd/homestead`** (the seat —
+**Phase 0 pushed**, 19 passing / 13 xfailed), `rudi193-cmd/homestead-law`,
+`rudi193-cmd/homestead-ledger`. Transfer is a placement act, not a build
+dependency; nothing in the phases below waits on it.
+
 ---
 
 ## Why fresh, and what that costs
