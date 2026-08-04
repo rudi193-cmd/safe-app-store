@@ -50,9 +50,11 @@ the **domain** — and the domain is legal matters.
   their faces and what *Sovereign* never did.
 - It obeys this document's own rule — **short display name · substance suffix**.
   Memory, Knowledge, Data, Programs are all substances. *Sovereign* was the
-  only leg naming a political posture rather than a material. (Face 5's
-  artifact/leg ordering is unsettled in the placement draft — **Forge** is the
-  promoted SAFE app store, i.e. an artifact, not a leg.)
+  only leg naming a political posture rather than a material. (Face 5 reorders
+  to **Forge · Play** — *Forge* is the promoted SAFE app store, an artifact,
+  and *Play* is the leg. Org `forge-play` was already artifact-first; the seat
+  becomes `forge`. Seat and product coincide there, legitimately: the store
+  **is** that face's orchestrator.)
 - **It says "legal" without claiming legal authority.** This is the constraint
   that rules out the otherwise-obvious alternatives, and it is not stylistic —
   see below.
