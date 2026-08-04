@@ -619,6 +619,26 @@
         "local-first",
         "stdlib-only"
       ]
+    },
+    {
+      "id": "terpsi-chat",
+      "name": "Terpsi Chat (schema exploration)",
+      "description": "Schema and gates for messaging between under-18s in a youth-arts org. Adults and minors are separate tables, so a channel's foreign keys decide who may appear in it; a private adult-minor channel has no representable form. A design exploration with working enforcement, superseded in named parts by terpsi-music's lane model \u2014 README carries the table saying which parts to take.",
+      "status": "gated",
+      "version": "0.1.0",
+      "path": "apps/terpsi-chat",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "tags": [
+        "schema",
+        "safeguarding",
+        "minors",
+        "sqlite",
+        "stdlib-only",
+        "exploration"
+      ]
     }
   ]
 }

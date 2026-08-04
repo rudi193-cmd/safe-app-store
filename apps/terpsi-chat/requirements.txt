@@ -1,0 +1,5 @@
+# Stdlib-only. Python 3.11+.
+#
+# Nothing here on purpose. The schema is SQLite via the stdlib sqlite3 module,
+# the suites are stdlib unittest (run under pytest in CI), and there is no
+# client, transport or key custody to pull a dependency in for.
