@@ -170,11 +170,15 @@ The household's records live under **`/.homestead`**, the face's data root on
 the operator's machine, resolved by the engine (`homestead.keep.paths`) and
 overridable by env.
 
-**Why a separate root rather than a subdirectory of the Willow vault.** This
-face is the organ that cannot deposit into the shared bloodstream — its data
-must never reach Nestor, the fleet corpus, or another face. A distinct root
-makes that boundary **physical rather than conventional**. Household affairs sit
-in their own vein, not in a folder inside the fleet's.
+**Why a separate root rather than a subdirectory of the Willow vault.** Not for
+isolation — `~/.homestead` and `~/.willow` are the same uid with the same
+permissions, and a directory name is not a security boundary. What keeps Nestor
+out of case data is the gate and the store-scope wall, not the path. The reason
+is **audience**: once `homestead-law` is promoted it is installed by people who
+do not run the fleet, and a legal aid clinic should not have to adopt
+`WILLOW_STORE_ROOT` to open a custody matter. A promoted product carrying its
+host's brand in its env var is a soft form of the coupling `inversion [M]`
+exists to forbid.
 
 **It also dissolves the coupling problem by construction.** Law Gazelle
 currently imports `vault_paths` from `libs/` — undeclared, and the reason
