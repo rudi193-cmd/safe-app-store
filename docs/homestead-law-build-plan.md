@@ -7,6 +7,16 @@ so are written before the code that satisfies them.*
 **Drafted 2026-08-04.** Target: `homestead-affairs/homestead-law`, with
 `homestead-affairs/homestead` (the seat, holding `homestead.keep`) built first.
 
+> **Phase 0 was audited on 2026-08-04 and does not meet its exit criteria.**
+> Two independent passes found the enforcement weaker than this document
+> claims. **I-19's wording below states a guarantee its test does not
+> deliver** — a `Path(os.environ["HOME"]) / "Desktop" / "Nest"` injection
+> passes the suite — and **I-22 claims tamper-evidence the code does not
+> provide**. Both are corrected as part of the remediation, not before it, so
+> the overclaim stays visible rather than being quietly edited away. See
+> `rudi193-cmd/homestead` → `docs/PHASE0-REMEDIATION.md` and `docs/audits/`.
+> **Do not read the invariant tables below as enforced.**
+
 **Where they actually live, 2026-08-04.** All three are on **`rudi193-cmd`**,
 public, awaiting transfer to the org — the same tier-E workshop pattern the
 placement draft already uses for `nestor` ("until transferred to
