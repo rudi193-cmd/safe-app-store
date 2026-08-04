@@ -39,6 +39,58 @@ tell us whether three shapes were enough. It was not.
 
 ---
 
+## The shape — self-contained, no listening socket
+
+**Decided 2026-08-04.** Not a TUI, and not HTTP. A **self-contained desktop
+application**, plus a separate agent entry point. Neither binds a port.
+
+```
+homestead.keep                  the core — record, deadlines, rungs, gate, logs
+  ├── homestead-law (the app)   S1 · a window the user double-clicks
+  └── homestead-law-mcp         S3 · stdio, invoked as a subprocess by an agent
+```
+
+**Why, and it is not a departure.** [`die-rules.md`](die-rules.md) Rule 2 says a
+product gets its own root when *someone who does not run the fleet installs it*.
+The same test decides the surface: **a self-represented parent does not open a
+terminal.** Being the only non-TUI on a die of TUIs is what that rule predicts
+for the one face that ships to strangers.
+
+**What it deletes rather than solves.** Terpsi's whole three-zone architecture
+exists because guardians *force* a reachable endpoint. A household has no such
+constraint, so a self-contained app does not solve the server problem — it
+removes it. No port, no bind, no relay. `I-26` stops being a rule to police,
+because nothing in the app wants `http.server`.
+
+**MCP survives without HTTP.** MCP is stdio — a subprocess pipe, not a server.
+The agent surface is a separate entry point, so `I-16`'s single chokepoint sits
+in the core where *both* surfaces cross it. **F-2 happened because law-gazelle
+wired its gate to one entry point;** this shape makes that mistake structurally
+hard rather than merely forbidden.
+
+**Toolkit: `tkinter`.** Stdlib, zero dependencies, cross-platform, native
+widgets via `ttk`, accessibility inherited from the host toolkit. It is the only
+option that costs nothing against the dependency posture, and this UI is a list,
+a detail pane and a cover — not a complex layout. Rejected: **PyQt** (GPL or
+commercial, same exclusion as PyMuPDF); **Electron/Tauri** (heavy, and an extra
+security surface on an app holding privileged records). Held in reserve:
+**PySide6** — LGPL, so dependency-only and never vendored, a contained swap
+*if the surface stayed thin* and a pilot partner says the look is a blocker.
+
+**Accessibility becomes tractable.** EN 301 549 and the European Accessibility
+Act against a terminal application are genuinely unresolved (see
+[`legal_obligations_intl.md`](../apps/law-gazelle/docs/legal_obligations_intl.md)).
+Native widgets bring screen-reader, contrast and font-scaling support from the
+host, converting an open legal question into a shipping property.
+
+**The honest cost: packaging.** PyInstaller or Briefcase, **code signing**,
+**macOS notarization**, Windows SmartScreen. Real, ongoing, per-platform work.
+It also makes packaging a **Phase 0** concern — "self-contained" is a
+build-system property, and discovering that at Phase 6 is how a project ends up
+shipping a zip file with instructions.
+
+---
+
 ## The invariants
 
 Every row is traceable to a documented failure. These are written as tests
@@ -99,6 +151,18 @@ first time" is enforced rather than intended.
 | **I-27** | **Declared dependencies are true.** `pip install` from a cold checkout, then the suite passes. No out-of-band CI install. | A-1 |
 | **I-28** | **Bare `pytest` works.** Nothing shadows the live suite. The promotion gate runs bare `pytest -q`. | A-2 |
 
+### The surfaces
+
+| # | Invariant | From |
+|---|---|---|
+| **I-29** | **The surface layer holds no domain logic.** It composes and renders; anything calculating lives in `homestead.keep`. With two surfaces over one core, logic in either is duplicated or divergent. law-gazelle's 1,296-line `app.py` is the symptom this prevents. | new |
+| **I-30** | **Nothing binds a port.** No `http.server`, no socket listen, in any surface or the core. MCP is stdio only. | the shape |
+| **I-31** | **The resting state reveals nothing.** The cover shows counts that survive the `L2` re-identification check and no more. *"1 overdue"* over a household where one matter has deadlines identifies that matter — the check is not theoretical at three matters. | **F-5**, rung model |
+| **I-32** | **Reveal expires.** A deliberate act shows the payload; a timeout returns the surface to the derived form. Not a lock — a fall-back. The threat is someone walking past thirty seconds later, not someone stealing the machine. | **F-5** |
+| **I-33** | **One rung indicator per surface, never per datum.** A status line — *"showing derived · L4 present"* — that changes on reveal. `L4` tagged on fifty fields is unreadable, and unreadable is unread. Never a colour alone. | rung model |
+| **I-34** | **Bind by consequence, not by frequency.** Single-key for acting — what is due, mark done, snooze. Deliberate friction for revealing history or payloads. `a` opening a confession timeline in one press is the defect. | **F-4** |
+
+
 ---
 
 ## Build order
@@ -110,7 +174,12 @@ red** — that is the whole method.
 
 `homestead-affairs/homestead`. `homestead.keep` skeleton, the `/.homestead`
 resolver (I-19, I-20), the two logs (I-22), and **the invariant test suite,
-written and failing**. Nothing else.
+written and failing**.
+
+**Plus packaging, from day one.** A signed, double-clickable artifact that
+launches an empty window on all three platforms — before there is anything to
+put in it. "Self-contained" is a build-system property; a project that defers it
+ships a zip file with instructions.
 
 *Exit:* I-19, I-20, I-27, I-28 green. `pip install -e .` from cold, `pytest -q`
 bare, both clean.
@@ -139,11 +208,12 @@ prove nothing that one does not.
 
 ### Phase 4 — surfaces
 
-TUI, then MCP, both behind the single chokepoint. Cover screen. Rung enforcement
-per surface.
+The app (tkinter) first, then the MCP stdio entry, both thin over the core and
+both crossing the single chokepoint. Cover, reveal-expires, boundary indicator,
+consequence-bound keys.
 
-*Exit:* I-16, I-17, I-21 green. `GAZELLE_GATE`'s successor is **on by default**
-and its tests do not skip.
+*Exit:* I-16, I-17, I-21, I-29 … I-34 green. The gate is **on by default** and
+its tests do not skip — law-gazelle's skipped 9 are the counter-example.
 
 ### Phase 5 — the other two packs
 
