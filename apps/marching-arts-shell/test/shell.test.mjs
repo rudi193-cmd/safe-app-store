@@ -104,6 +104,45 @@ test('the web manifest ships the 2026 icon set and no cargo cult', () => {
   assert.ok(web.icons.every((i) => !/\s/.test(i.purpose)), 'purpose must not combine roles');
 });
 
+/* ------------------------------------------- what the store's Python lint cannot read */
+
+test('the shell persists exactly one thing, and it is a preference', () => {
+  // tools/vault_leak_lint.py reads *.py and this app has none, so the store
+  // records it UNKNOWN — honest, but "nothing to read" must not become
+  // "nothing checked". That lint asks whether an app writes user data to a
+  // fixed path outside the vault. This is the browser equivalent, asked of the
+  // only files that could: every persistence call in web/src and web/sw.js has
+  // to be on this list, and a new one fails here rather than passing silently
+  // in a language the store's tooling does not speak.
+  const ALLOWED = [
+    // one preference, read and written; a failed write is swallowed on purpose
+    "localStorage.setItem('theme'",
+    "localStorage.getItem('theme'",
+    // the service worker's own versioned cache, and nothing else
+    'caches.open(VERSION',
+    'caches.keys()',
+    'caches.delete(',
+    'caches.match(',
+  ];
+  const FORBIDDEN =
+    /\b(indexedDB|navigator\.storage|showSaveFilePicker|createWritable|sessionStorage|document\.cookie)\b/;
+
+  for (const file of ['web/src/shell.js', 'web/src/capabilities.js', 'web/sw.js']) {
+    const code = codeOf(file);
+    assert.doesNotMatch(code, FORBIDDEN, `${file} reaches a storage API the shell does not use`);
+    const calls = [...code.matchAll(/\b(localStorage|sessionStorage|caches)\.[a-zA-Z]+\s*\(?[^)\n]*/g)]
+      .map((m) => m[0].trim());
+    for (const call of calls) {
+      assert.ok(
+        ALLOWED.some((allowed) => call.startsWith(allowed)),
+        `${file}: unlisted persistence call — ${call}`,
+      );
+    }
+  }
+  // storage.js only *probes*; it must not touch the APIs it reports on.
+  assert.doesNotMatch(codeOf('web/src/storage.js'), /\.(setItem|put|add|createSyncAccessHandle)\s*\(/);
+});
+
 /* --------------------------------------------------- storage reports, not assumes */
 
 test('the ladder is ordered best-first and ends somewhere always available', () => {
