@@ -1,0 +1,115 @@
+"""Pinned snapshot of every column in schema.sql.
+
+Regenerate deliberately, never mechanically:
+
+    python3 -c "
+    import sqlite3, pathlib
+    c = sqlite3.connect(':memory:')
+    c.executescript(pathlib.Path('schema.sql').read_text())
+    names = [n for (n,) in c.execute(
+        \"SELECT name FROM sqlite_master WHERE type IN ('table','view') ORDER BY name\")]
+    for n in names:
+        for r in c.execute(f'PRAGMA table_info({n})'):
+            print(f'    ({n!r}, {r[1]!r}),')
+    "
+
+If a diff to this file shows up in review, the question to ask is what the new
+column holds and who can read it — not whether the snapshot needs updating. It
+always needs updating; that is why it is here.
+"""
+
+EXPECTED_SCHEMA_SURFACE = [
+    ('adult_channels', 'channel_id'),
+    ('adult_channels', 'low_adult'),
+    ('adult_channels', 'high_adult'),
+    ('adult_channels', 'opened_at'),
+    ('adults', 'adult_id'),
+    ('adults', 'display_name'),
+    ('adults', 'roster_ref'),
+    ('adults', 'roster_provenance'),
+    ('adults', 'joined_at'),
+    ('guardian_approval_evidence', 'request_id'),
+    ('guardian_approval_evidence', 'approved_at'),
+    ('guardian_approval_evidence', 'guardian_person_ref'),
+    ('guardian_approval_evidence', 'counterparty_minor_id'),
+    ('guardian_approval_evidence', 'counterparty_display_name'),
+    ('guardian_approval_evidence', 'counterparty_roster_provenance'),
+    ('guardian_approval_evidence', 'counterparty_band'),
+    ('guardian_approval_evidence', 'guardian_link_provenance'),
+    ('guardian_approval_evidence', 'decision_provenance'),
+    ('guardian_link_events', 'event_id'),
+    ('guardian_link_events', 'minor_id'),
+    ('guardian_link_events', 'guardian_person_ref'),
+    ('guardian_link_events', 'action'),
+    ('guardian_link_events', 'occurred_at'),
+    ('guardian_link_events', 'actor_ref'),
+    ('guardian_links', 'minor_id'),
+    ('guardian_links', 'guardian_person_ref'),
+    ('guardian_links', 'guardian_display_name'),
+    ('guardian_links', 'provenance'),
+    ('guardian_links', 'established_at'),
+    ('guardian_observations', 'observation_id'),
+    ('guardian_observations', 'minor_id'),
+    ('guardian_observations', 'guardian_person_ref'),
+    ('guardian_observations', 'observed_at'),
+    ('guardian_observations', 'scope'),
+    ('guardian_visible_structure', 'channel_id'),
+    ('guardian_visible_structure', 'low_minor'),
+    ('guardian_visible_structure', 'high_minor'),
+    ('guardian_visible_structure', 'opened_at'),
+    ('guardian_visible_structure', 'message_count'),
+    ('guardian_visible_structure', 'first_at'),
+    ('guardian_visible_structure', 'last_at'),
+    ('minors', 'minor_id'),
+    ('minors', 'display_name'),
+    ('minors', 'roster_ref'),
+    ('minors', 'roster_provenance'),
+    ('minors', 'band'),
+    ('minors', 'joined_at'),
+    ('observation_capability', 'minor_id'),
+    ('observation_capability', 'period_start'),
+    ('observation_capability', 'period_end'),
+    ('observation_capability', 'capability'),
+    ('observation_capability', 'note'),
+    ('outbound_notices', 'notice_id'),
+    ('outbound_notices', 'recipient_ref'),
+    ('outbound_notices', 'template_key'),
+    ('outbound_notices', 'sent_at'),
+    ('peer_channel_requests', 'request_id'),
+    ('peer_channel_requests', 'from_minor'),
+    ('peer_channel_requests', 'to_minor'),
+    ('peer_channel_requests', 'requested_at'),
+    ('peer_channel_requests', 'counterparty_accepted_at'),
+    ('peer_channels', 'channel_id'),
+    ('peer_channels', 'low_minor'),
+    ('peer_channels', 'high_minor'),
+    ('peer_channels', 'opened_at'),
+    ('peer_channels', 'shielded_by_minor'),
+    ('peer_messages', 'message_id'),
+    ('peer_messages', 'channel_id'),
+    ('peer_messages', 'sender_minor_id'),
+    ('peer_messages', 'sent_at'),
+    ('peer_messages', 'ciphertext'),
+    ('retention_disposals', 'message_id'),
+    ('retention_disposals', 'authorised_by'),
+    ('retention_disposals', 'authorised_at'),
+    ('retention_disposals', 'stated_basis'),
+    ('staff_archive_reads', 'read_id'),
+    ('staff_archive_reads', 'channel_id'),
+    ('staff_archive_reads', 'reader_person_ref'),
+    ('staff_archive_reads', 'read_at'),
+    ('staff_archive_reads', 'stated_reason'),
+    ('staff_archive_reads', 'messages_present_at_read'),
+    ('staff_archive_reads', 'disposals_before_read'),
+    ('staff_archive_reads', 'archive_state'),
+    ('staff_channels', 'channel_id'),
+    ('staff_channels', 'adult_id'),
+    ('staff_channels', 'minor_id'),
+    ('staff_channels', 'witness_adult_id'),
+    ('staff_channels', 'opened_at'),
+    ('staff_messages', 'message_id'),
+    ('staff_messages', 'channel_id'),
+    ('staff_messages', 'sender_ref'),
+    ('staff_messages', 'sent_at'),
+    ('staff_messages', 'body'),
+]

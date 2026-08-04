@@ -1,0 +1,26 @@
+{
+  "app_id": "terpsi-chat",
+  "name": "Terpsi Chat (schema exploration)",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "agent_type": "tool",
+  "description": "A SQLite schema and its gates for messaging between under-18s in a youth-arts organisation. Adults and minors are separate tables, so a channel table's foreign keys decide who may appear in it: peer channels hold ciphertext with no plaintext column, staff channels require a witness who is not the sender so a private adult-minor channel has no representable form, and guardian visibility is a view over structure that never touches message content. A design exploration with working enforcement, not an implementation — most of it is superseded by rudi193-cmd/terpsi-music's lane model, and README.md carries the per-mechanism table saying which parts to take.",
+  "author": "USER",
+  "data_streams": [],
+  "permissions": [],
+  "store_scope": [],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "network": "none. Stdlib only, no sockets, no HTTP client. The only database is created in memory by the test suite; nothing is written to disk and nothing is persisted between runs, which is why data_streams is empty rather than describing a store.",
+  "entry_point": "terpsi_chat/schema.sql",
+  "license": "Apache-2.0",
+  "notes": {
+    "not_an_implementation": "There is no client, no transport, no key custody and no device here. The gates cover a schema, which is the easy half of a messaging system. Anything device-side has, in practice, never executed.",
+    "superseded_in_named_parts": "README.md carries a per-mechanism table. The live contribution is the witness constraint on adult-to-minor channels; guardian_links is defective and must not be ported, because it conflates standing with reachability and cannot express a contact restriction that does not end guardianship. The consuming repo separates those in records/sending.py.",
+    "why_it_is_in_the_store": "It was built in rudi193-cmd/quick-stupids, which by that repo's first rule can never be a dependency of anything. Landing it here is what makes its live parts importable when terpsi-music builds a messaging capability.",
+    "sqlite_pragma_hazard": "Several guarantees are foreign keys, and SQLite enforces those only under PRAGMA foreign_keys = ON, per connection, off by default. The pragma cannot be bound to a schema. test_fk_pragma_is_the_whole_ballgame demonstrates the unenforced case accepting an orphan row; a consuming implementation on Postgres has no equivalent hazard.",
+    "mutation_harness": "22 schema mutations plus 2 on the notify module, each removing one mechanism and requiring the gate that claims to cover it to fail, with a control proving the unmutated schema passes. Building it caught three gates passing for the wrong reason — a neighbouring constraint satisfying the assertion — which is the failure shape terpsi-music's §7 already names.",
+    "provenance": "Every empirical and legal claim in docs/DESIGN.md is marked assumed. Outbound egress was blocked in the session that wrote it, no primary source was retrieved, and no figure was invented to fill the gap.",
+    "no_score_no_content_access": "Guardian visibility is structure only — edges, counts, timing — by a view that cannot reach ciphertext. There is no code path by which a guardian reads a message, and the young person sees whatever the guardian sees, including that they looked."
+  }
+}
