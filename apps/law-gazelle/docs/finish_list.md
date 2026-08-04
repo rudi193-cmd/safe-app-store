@@ -49,6 +49,7 @@ standing between this app and a passing `tests_green [M]` gate.*
 | **A-4** | **`safe_integration.py` self-shadowing re-export.** The top-level module does `sys.path.insert(0, .../src)` then `from safe_integration import SAFESession` — importing a different module of its own name. It resolves today (tests pass), but it depends on path-insert ordering and will confuse anyone reading it, and it mutates `sys.path` at import time. Worth a plain relative import. | 🟢 here | open |
 | **A-5** | **README refresh** — spec Phase 3's "update README when the local markdown read hook permits it". | 🟢 here | open |
 | **A-6** | **`seed_demo.py` takes any argv[1] as a destination.** `scripts/seed_demo.py:227` is `seed(Path(sys.argv[1])...)` with no parsing, so `--help` seeds four case files into a directory named `--help`; a typo'd path seeds them wherever the typo points. Found by accident on 2026-08-04 — the stray dir had to be deleted rather than committed, since case DBs never enter git. Wrong failure mode for an app whose premise is that case data lands only where the operator expects, and `demo.sh` advertises `--fresh`, which trains flag-passing to this family of scripts. Add argparse: a real `--help`, and refuse a destination that starts with `-`. | 🟢 here | open |
+| **A-7** | **Four orphan modules inside the live tree** — 510 LOC imported by nothing, and referenced nowhere outside the Python tree either (no docs, shell, Makefile, or CI): `src/ecf_parser.py` (225), `backfill_from_willow.py` (171, plausibly a standalone script — confirm before archiving), `client_profile.py` (78, imports only itself; its docstring targets `gazelle_engine.create_session()`, which is archived), `personas.py` (36 — see **C-6**, it is more than dead weight). Archive rather than delete (`CLAUDE.md` §4), and check `_archived/` naming against **A-2** so nothing new shadows the live suite. | 🟢 here | open |
 
 ---
 
@@ -79,6 +80,7 @@ store bar. Mostly about a stranger's first five minutes.*
 | **C-3** | **PII scrub before any public push** — confirm repo *history*, docs, and screenshots contain only code, tests, and synthetic data. Spec Open Gate #5, and MISSION's public-repo claim depends on it. | 🟢 here | open |
 | **C-4** | **MISSION/README for a non-fleet reader.** MISSION.md is strong already; README still assumes fleet vocabulary (Nest, sidecar, b17, Grove, the session-end ritual). A clinic director is the target reader. | 🟢 here | open |
 | **C-5** | **Name the pilot partner** — MISSION step 2. Everything downstream (jurisdiction, intake scope, grant posture) waits on this. | 🟡 decision | open |
+| **C-6** | **`personas.py` states the opposite of MISSION.** The "Gazelle" persona describes doing issue classification, "statute lookup: cite the actual law, the actual deadline, the actual form number," and "next steps: what to file, where, by when, what it costs" — that is applying law to facts. MISSION says the app *does not apply law to facts, recommend strategy, or predict outcomes* and will **never** give legal advice. The file is a survivor of the archived `gazelle_engine` template-assistant era and is imported by nothing today, so it changes no behavior — which is exactly why it is filed here rather than under A. It is a **liability in the repo a partner org reads**, and a loaded gun for whoever wires it back in and silently reverses the app's stated ethics. Archive it with a note saying why, so the reversal can't happen by accident. | 🟢 here | open |
 
 ---
 
@@ -124,14 +126,18 @@ plus the attestation precondition. **2 of 9 pass today.***
 
 1. **A-1, A-2** — the only fixable-today reason a mechanical gate is red, and
    the same fix is C-1, the top pilot item. One change, two tracks.
-2. **A-3, A-4, A-5** — hygiene, cheap, while the context is loaded.
-3. **C-2, C-3** — prove the demo and the privacy claim, since both are already
+2. **A-6, C-6** — the two items that are wrong in a way a reader can see:
+   a seeder that writes case files wherever the first argument points, and a
+   persona file asserting the app does the thing MISSION promises it never
+   does. Neither changes behavior today; both misrepresent the app.
+3. **A-3, A-4, A-5, A-7** — hygiene, cheap, while the context is loaded.
+4. **C-2, C-3** — prove the demo and the privacy claim, since both are already
    asserted in public-facing docs.
-4. **D-1, D-2** — the two real builds. Independently valuable: a search seam
+5. **D-1, D-2** — the two real builds. Independently valuable: a search seam
    and a pure core are better architecture whether or not promotion happens.
-5. **B-1, B-2** — feature surface, on fixtures here, verified by the operator
+6. **B-1, B-2** — feature surface, on fixtures here, verified by the operator
    against real Nest.
-6. **D-3 → D-6** — extraction, attestation, witnessed run. Needs D-6 answered
+7. **D-3 → D-6** — extraction, attestation, witnessed run. Needs D-6 answered
    first.
 
 Decisions outstanding: **B-4** (draft evidence guard), **B-5** (CourtListener:
