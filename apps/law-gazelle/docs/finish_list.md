@@ -1,5 +1,16 @@
 # Law Gazelle — Finish List
 
+> **Reconciled 2026-08-04 — much of this list is dead.** It was written when the
+> plan was to *repair* law-gazelle; the decision is now to **rebuild** as
+> `homestead-law`. Six of Track A and one of Track B describe work that will
+> never happen; five more items are resolved by design decisions. Verdicts are
+> in [`docs/STATE.md`](../../../docs/STATE.md) — **read that before working
+> anything here.**
+>
+> Still live and unchanged by the rebuild: **C-6** (`personas.py` is still in
+> this repo and is still a liability), C-3, C-5, E-1, E-4, E-7 through E-12, and
+> all of Track F.
+
 *The standing list of what remains, across all five tracks. Kept here rather
 than in a session, because the work spans sessions.*
 
