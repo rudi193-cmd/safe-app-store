@@ -147,23 +147,64 @@ module.** Deadlines that cause real harm when missed, evidence that must tie to
 a source, facts that may never be invented. An engine that survives custody and
 bankruptcy will carry warranty claims and service histories without strain.
 
-**Open — extract the shared engine.** A pinned, import-pure record/deadline
-library consumed by every module on the face. It satisfies the promotion bar's
-import-pure-core requirement with something real to point at (finish-list D-2),
-satisfies the Möbius rule *depend on contracts, not apps*, and gives this face
-something **other faces can pin** — today face 4 is nearly all consumer and
-little producer. **`homestead-keep`** is the candidate name; *keeping* is the
-right verb even though it was the wrong leg.
+**The engine lives in the seat, not in a sibling repo.** `homestead` — the base
+repo — carries **`homestead.keep`**, the import-pure record/deadline/evidence
+core that every module on the face pins. *Keeping* is the right verb even though
+it was the wrong leg.
+
+That satisfies the promotion bar's import-pure-core requirement with something
+real to point at (finish-list D-2), satisfies the Möbius rule *depend on
+contracts, not apps*, and gives this face something **other faces can pin** —
+today face 4 is nearly all consumer and little producer.
+
+**One deviation from the general rule, stated plainly.** The placement draft
+makes base repos *optional* — "an org can exist with only `.github` + products
+until someone opens a seat." **Not on this face.** `homestead` must exist before
+any module can pin the engine, so the seat is load-bearing here rather than
+reserved. Modules depend on it: `homestead-law` and `private-ledger` import
+`homestead.keep` and pin it by tag.
+
+## `/.homestead` — the face's own root
+
+The household's records live under **`/.homestead`**, the face's data root on
+the operator's machine, resolved by the engine (`homestead.keep.paths`) and
+overridable by env.
+
+**Why a separate root rather than a subdirectory of the Willow vault.** This
+face is the organ that cannot deposit into the shared bloodstream — its data
+must never reach Nestor, the fleet corpus, or another face. A distinct root
+makes that boundary **physical rather than conventional**. Household affairs sit
+in their own vein, not in a folder inside the fleet's.
+
+**It also dissolves the coupling problem by construction.** Law Gazelle
+currently imports `vault_paths` from `libs/` — undeclared, and the reason
+finish-list **A-1** exists and the promotion gate's `inversion [M]` would fail.
+Once path resolution comes from `homestead.keep.paths` rooted at `/.homestead`,
+the module no longer imports a host library at all. **A-1 stops being a
+dependency to declare and becomes a dependency to delete**, and `inversion`
+passes by construction instead of by pinning.
+
+**Ordering constraint — teach the linter first.**
+`tools/vault_leak_lint.py` classifies a persistence path as clean only when the
+line derives from `WILLOW_STORE_ROOT` or `WILLOW_HOME`; anything else
+home-rooted that holds data is a **leak**, and `"case"` is in its data-name
+hints. `store-ci.yml` runs it `--strict`. So introducing `/.homestead` **before**
+the linter learns it would flip `vault_leak [M]` — the one promotion gate this
+app currently passes — from PASS to FAIL, and turn CI red.
+
+Sequence: add a `HOMESTEAD_HOME` env root and teach `vault_leak_lint.py` to
+accept it as a vault-equivalent, **then** move path resolution. Not the reverse.
+(After promotion the linter no longer applies — it scans `apps/*` — but it
+applies for the whole run-up to transfer, which is now.)
 
 ## Repos
 
 | Repo | Role |
 |---|---|
 | `.github` | Org profile |
-| **`homestead`** | Base orchestrator seat — portfolio / orient for the face |
+| **`homestead`** | **Seat + engine.** Portfolio / orient for the face, and home of **`homestead.keep`** — the import-pure record/deadline/evidence core every module pins, plus the `/.homestead` path resolver. Load-bearing, not optional. |
 | **`homestead-law`** | **Module one.** Promoted `law-gazelle`; prose name stays **Law Gazelle** / **Gazelle**. Not a monorepo umbrella, not a sibling `gazelle` repo. |
 | **`private-ledger`** | **Module two, already built.** Household money, local-first SQLite, "mirror not judge" — the homesteader keeping their own books. Currently has no die face. Name open: it has its own identity, and the earlier rejection of `homestead-ledger` was about a settler-order module *inside* `homestead-law`, a different question. |
-| **`homestead-keep`** *(proposed)* | The shared record/deadline/evidence engine — import-pure, pinned by the modules |
 | **`awesome-sovereign-software`** | Public catalog + report — **keeps its name and its politics** |
 
 **On the catalog.** The sovereignty stance was not wrong, it was attached to the
@@ -250,7 +291,7 @@ enjoined Quicken Family Lawyer on exactly that shape.
 
 | Takes from other faces | Gives to other faces |
 |---|---|
-| Nestor to score **catalog entries**; `willow-gate` and vault paths as pinned contracts; SAFE manifest schema; **`justice-almanac`** for court-rules and deadline data | Sovereignty test + awesome list; `homestead-law`; **`homestead-keep`** as a pinnable record/deadline engine |
+| Nestor to score **catalog entries**; `willow-gate` and vault paths as pinned contracts; SAFE manifest schema; **`justice-almanac`** for court-rules and deadline data | Sovereignty test + awesome list; `homestead-law`; **`homestead.keep`** as a pinnable record/deadline engine |
 
 **A Möbius edge worth drawing:** court rules and deadline tables are *public
 data*, and public data belongs to Almanac · Data, which holds the map.
@@ -297,12 +338,16 @@ programs, each holding its own records locally. That is the whole architecture.
 
 - [ ] Ratify **Homestead · Affairs**; org `homestead-affairs`
 - [ ] Place **`private-ledger`** on this face; settle whether it keeps its name
-- [ ] Extract the shared record/deadline engine (`homestead-keep`?)
+- [ ] Build **`homestead.keep`** in the seat repo; modules pin it by tag
+- [ ] Add `HOMESTEAD_HOME` + teach `tools/vault_leak_lint.py` the new root
+      **before** moving path resolution to `/.homestead` — otherwise
+      `vault_leak [M]` flips to FAIL and CI goes red
 - [ ] Re-derive module names from the domain — the settler-order five do not
       carry forward
 - [ ] Fix BUG-1 / BUG-2 + regression tests — **transfer precondition**
-- [ ] Declare the host-lib dependencies (finish-list A-1) — step one of the
-      Möbius contract, not hygiene
+- [ ] Resolve finish-list A-1 — with `/.homestead`, `vault_paths` becomes a
+      dependency to **delete** rather than declare, and `inversion [M]` passes
+      by construction
 - [ ] Matter-type registry before any fourth matter type
 - [ ] Add the *"Nestor takes no affairs"* carve-out to this face's Möbius row
 - [ ] Draw the `justice-almanac` → deadline-engine edge in §12
