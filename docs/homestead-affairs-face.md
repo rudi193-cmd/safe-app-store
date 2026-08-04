@@ -159,6 +159,9 @@ today face 4 is nearly all consumer and little producer.
 
 ### Restating the base-repo rule
 
+*Stated at die altitude in [`docs/die-rules.md`](die-rules.md) Rule 1, because it
+governs four faces. The derivation stays here.*
+
 The placement draft makes base repos *optional* — "an org can exist with only
 `.github` + products until someone opens a seat; the base repo is the
 **reserved slot** for that face's Jarvis/charter work."
@@ -196,6 +199,9 @@ whichever path the data sits at. A separate root buys zero isolation, and any
 argument that leans on it is wrong.
 
 ### The test: audience, not face
+
+*Stated at die altitude in [`docs/die-rules.md`](die-rules.md) Rule 2 — Terpsi is
+the second face it applies to, and the sharper one.*
 
 > **Does someone who does not run the fleet install this?**
 >
@@ -413,6 +419,7 @@ programs, each holding its own records locally. That is the whole architecture.
 - [`apps/law-gazelle/docs/bug_list.md`](../apps/law-gazelle/docs/bug_list.md) — 12 defects, two critical
 - [`apps/law-gazelle/docs/legal_obligations_us.md`](../apps/law-gazelle/docs/legal_obligations_us.md) — *Reynoso*, § 110, UPL by deployment model
 - [`apps/law-gazelle/docs/legal_obligations_intl.md`](../apps/law-gazelle/docs/legal_obligations_intl.md) — EU AI Act Annex III, GDPR Art. 9
+- [`docs/die-rules.md`](die-rules.md) — the seat rule and the root rule, at die altitude
 - [`stores/README.md`](../stores/README.md) — the promotion bar
 
 ΔΣ=42
