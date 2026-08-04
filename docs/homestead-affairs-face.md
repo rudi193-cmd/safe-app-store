@@ -157,12 +157,31 @@ real to point at (finish-list D-2), satisfies the Möbius rule *depend on
 contracts, not apps*, and gives this face something **other faces can pin** —
 today face 4 is nearly all consumer and little producer.
 
-**One deviation from the general rule, stated plainly.** The placement draft
-makes base repos *optional* — "an org can exist with only `.github` + products
-until someone opens a seat." **Not on this face.** `homestead` must exist before
-any module can pin the engine, so the seat is load-bearing here rather than
-reserved. Modules depend on it: `homestead-law` and `private-ledger` import
-`homestead.keep` and pin it by tag.
+### Restating the base-repo rule
+
+The placement draft makes base repos *optional* — "an org can exist with only
+`.github` + products until someone opens a seat; the base repo is the
+**reserved slot** for that face's Jarvis/charter work."
+
+That is **the right default and the wrong absolute.** A face with only products
+genuinely doesn't need a seat, and the instinct behind the rule — don't create
+empty orgs full of empty repos — is correct. But it stops holding the moment a
+face has something **every module must share**: an engine, a schema, a root.
+Then the seat is not a reserved slot, it is a **dependency**, and a dependency
+cannot be optional.
+
+> **A seat is optional until the face has a shared artifact. Then it is
+> mandatory, and it comes first — before the second module exists to pin it.**
+
+Face 4 crosses that line because of `homestead.keep`; `homestead-law` and
+`private-ledger` both import it and pin it by tag. **Willow · Memory** arguably
+crossed it already (the charter is a shared artifact, and §10 tracks moving it
+to `willow-memory/willow`). **Almanac · Data** has `propagate-engine`.
+**Terpsi · Programs** will the moment `terpsi-core` exists — same shape,
+same rule.
+
+Stated this way, three faces stop quietly violating a rule they were never
+exceptions to; the rule was just written for the simple case.
 
 ## `/.homestead` — the face's own root
 
@@ -170,15 +189,40 @@ The household's records live under **`/.homestead`**, the face's data root on
 the operator's machine, resolved by the engine (`homestead.keep.paths`) and
 overridable by env.
 
-**Why a separate root rather than a subdirectory of the Willow vault.** Not for
-isolation — `~/.homestead` and `~/.willow` are the same uid with the same
-permissions, and a directory name is not a security boundary. What keeps Nestor
-out of case data is the gate and the store-scope wall, not the path. The reason
-is **audience**: once `homestead-law` is promoted it is installed by people who
-do not run the fleet, and a legal aid clinic should not have to adopt
-`WILLOW_STORE_ROOT` to open a custody matter. A promoted product carrying its
-host's brand in its env var is a soft form of the coupling `inversion [M]`
-exists to forbid.
+**Not for isolation.** `~/.homestead` and `~/.willow` are the same uid with the
+same permissions, and a directory name is not a security boundary. What keeps
+Nestor out of case data is the gate and the store-scope wall, and that is true
+whichever path the data sits at. A separate root buys zero isolation, and any
+argument that leans on it is wrong.
+
+### The test: audience, not face
+
+> **Does someone who does not run the fleet install this?**
+>
+> - **No** → `~/.willow`, `vault-paths`, no change. That is most of `apps/*`.
+> - **Yes** → its own root. You cannot ask a stranger to adopt your
+>   infrastructure's vocabulary.
+
+Face 4 is currently the only face answering *yes*. Once `homestead-law` is
+promoted it is installed by a legal aid clinic that has never heard of Willow,
+will never run an agent, and does not want fleet infrastructure. "Install this
+and it creates `~/.willow`" is a strange sentence to put in front of a pilot
+partner, and `WILLOW_STORE_ROOT` in a shipped product's environment is the same
+coupling `inversion [M]` exists to forbid — expressed in paths instead of
+imports.
+
+**The root belongs to the household, not the face.** `homestead-law` and
+`private-ledger` share `~/.homestead`, because a household's affairs are one
+thing; splitting law from money into two roots would be the actual mistake.
+
+**`~/.willow` is not being migrated.** Adding a root for the shipping face is
+cheap and lands the benefit exactly where it accrues — the pilot install.
+Migrating the fleet root wholesale would cost `vault-paths`, `vault_leak_lint`,
+every app's path module, `CLAUDE.md`, the docs, **and a data move on a machine
+holding live case files** — the highest-risk operation on any list here — while
+buying nothing a stranger would ever see. If a second shipping face appears
+later, there will be a rule and a worked example rather than a precedent
+argument.
 
 **It also dissolves the coupling problem by construction.** Law Gazelle
 currently imports `vault_paths` from `libs/` — undeclared, and the reason
