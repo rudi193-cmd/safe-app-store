@@ -156,9 +156,33 @@ not builds. **E-10 gates showing the org to anyone outside.**
 
 ---
 
+## Track F — Household safety
+
+*From [`household_safety.md`](household_safety.md), 2026-08-04. Every item below
+was **independently re-verified in source** before landing. These outrank most of
+Tracks A–E: they are exposures to a person whose adversary may share their
+house.*
+
+| # | Item | Where | Status |
+|---|---|---|---|
+| **F-1** | **`dev.sh` puts the case package on the Desktop.** `dev.sh:17` defaults `NEST_SOURCE` to `$HOME/Desktop/Nest`, overriding the clean vault default at `gazelle_paths.py:30`. Drafts, letters, DBs and `legal_commit_<date>.json` — an index of the whole case — land in the least private directory on a shared machine. The documented launcher is the leak. Fix: default to the vault; make Desktop an explicit opt-in with a warning. `L3`–`L4` · S4. | 🟢 here | open |
+| **F-2** | **The authorization gate never sees the operator.** `gazelle_gate` is imported only by `gazelle_mcp.py`. `app.py` does not import it, so with `GAZELLE_GATE=1` fully configured the TUI's save-to-Nest export — the very thing the gate exists to ledger — is ungated, along with every local-LLM call and sidecar write. The control governs agents and is blind to the screen. | 🟢 here | open |
+| **F-3** | **The citation regex matches home addresses and POSTs them.** `_CITATION_RE` (`tool_context.py:29`) matches `1420 Maple 87501`; `courtlistener_search` issues a live `requests.get`; `build_context_bundle` defaults `include_courtlistener=True`. It also *misses* `347 F.3d 1120`, so it fails in both directions. In a custody matter this is a residential address, possibly protected. Fix: anchor on reporter abbreviations, and default the flag off. `L4` · S4. | 🟢 here | open |
+| **F-4** | **Private notes reach the model prompt via the activity log.** `add_note` copies the first 80 chars of every note into the activity log (`gazelle_state.py:415`); `tool_context.py:149` puts the last 8 activity rows into every prompt. Under the rung model a prompt is a rendering (**E-12**), so this is `L3`/`L4` content on S2 with no purpose declared. The log is also one keystroke (`a`) from the TUI — a confession timeline for anyone who opens the app. | 🟢 here | open |
+| **F-5** | **No authentication, lock, or timeout anywhere.** One command renders the whole record; `on_mount` draws the queue before any human input. Cannot be fully solved — a shared OS account is the same uid and is not securable by an application — but a cover screen, an idle blank, and a deliberate encrypted move-off-machine flow are all real mitigations. **Do not ship a panic wipe:** spoliation, discoverability under oath, it does not reach the canonical store or editor backups, and given the lack of any lock it is equally the *adversary's* destroy key. | 🟡 decision + 🟢 here | open |
+| **F-6** | **Split the audit trail.** A supervising attorney, LSC Part 1636 and any breach clock all require a log; the abuser reads it with one keypress. Recommendation: a redacted operator-visible log plus a sealed hash-chained one the app can append to but never render. Cost: two logging paths, and the sealed half is worthless to a user who loses the key. | 🟡 decision | open |
+| **F-7** | **No subject apparatus for the other parent or the child.** The app holds a structured dossier on third parties with no party index, no source requirement, no purpose scoping, and `"permanent local"` retention. No classifier can distinguish an evidence chronology from a surveillance log — only provenance, scope and purpose can. Require a source and an issue for every third-party observation. Depends on **E-12**. | 🟢 here | open |
+| **F-8** | **First-run shared-machine question, ending in a referral.** If the answer is "yes, with the other party," the right destination is a domestic-violence safety-planning referral, not a settings page. Documentation and copy, not a control. | 🟢 here | open |
+
+---
+
 ## Suggested order
 
-> **Before any of this: [`bug_list.md`](bug_list.md) BUG-1 and BUG-2.** A
+> **Before any of this: Track F, then [`bug_list.md`](bug_list.md) BUG-1 and
+> BUG-2.** Track F's F-1 and F-3 are exposures to a person whose adversary may
+> share their house; F-3 sends data off-device. They come first.
+>
+> **Then: BUG-1 and BUG-2.** A
 > dedicated bug pass found 12 defects, two of them critical, in the deadline
 > arithmetic — a long-form date like `"July 1, 2026"` parses to `None`, so an
 > overdue court deadline renders as not-overdue and sinks in the urgent queue;
