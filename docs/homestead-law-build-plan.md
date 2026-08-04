@@ -152,6 +152,14 @@ Phase 3 was wrong and the registry gets fixed before the pack lands.
 
 ### Phase 6 — search, seams, attestation
 
+**Nestor is an optional extra, decided 2026-08-04.** It goes in
+`[project.optional-dependencies]`, never the required path — a household that
+wants entity resolution installs it; nobody else pays for it. Two consequences:
+the seam must **degrade to feature-absent, never crash**, and the ledger-pinning
+obligation only arises when the extra is present. `homestead.keep` builds its
+own sealed log per **I-22** regardless, so there is never a second hash-chain
+in the required path.
+
 FTS5 semantic seam (the [sourcing report](../apps/law-gazelle/docs/sourcing_report.md)
 establishes it clears the bar at zero dependency cost). The
 [Nestor seam](drafts/nestor_seam.py) if wanted — contract already written.
@@ -179,7 +187,6 @@ Then `promotion.json` and a verifier who is not the author.
   own screen? The one rung decision that changes daily use.
 - **`rebuilt` as a fourth tombstone shape** — needs ratifying into
   [`conventions/tombstones.md`](conventions/tombstones.md).
-- **Nestor's pin**, and whether it is in v1 at all.
 - **Retention** — `"permanent local"` is a placeholder, not a decision.
 
 ---

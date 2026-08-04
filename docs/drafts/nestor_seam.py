@@ -9,6 +9,12 @@ below raise until the pin is chosen and the store implementation exists.
 Nestor is Apache-2.0 with ``dependencies = []``. Nothing here obliges a
 household to install a dependency tree.
 
+**Nestor is an OPTIONAL EXTRA** (decided 2026-08-04), never a required
+dependency. Every function here must degrade to *feature absent* when Nestor is
+not installed — never raise on import, never crash a surface. The household's
+own sealed log (build plan I-22) exists regardless; Nestor's ledger is bound
+only when the extra is present.
+
 ═══════════════════════════════════════════════════════════════════════════
 TAKEN FROM NESTOR   (pin: TBD — a tag or sha, never a branch)
 ═══════════════════════════════════════════════════════════════════════════
