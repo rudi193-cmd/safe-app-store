@@ -25,6 +25,19 @@ pieces disagree.
 
 ---
 
+> **Update 2026-08-04 — partially answered.** The fleet placement work names
+> this app the flagship of die face 4, **Homestead · Case** (*"the law you
+> handle yourself"*), promoted out of the playground as `homestead-law`. That
+> supplies a third answer to the A-vs-B tension below — **C, a domain
+> foundation** — which dissolves the "support/keep vs. the biggest build"
+> contradiction rather than picking a horn: a foundation gets grown because
+> things stand on it. See [`docs/homestead-case-face.md`](homestead-case-face.md).
+> The tension below is kept because it is **not fully resolved**: MISSION.md
+> still tells an access-to-justice story (pilot org, docassemble, grants) that
+> is not the same product as *the law you handle yourself*. Both are
+> defensible. They are not identical, and MISSION is still the only document a
+> partner org would read.
+
 ## The tension we should name
 
 `app_store_vision_and_gaps.md` §4 named the repo's central tension — two
