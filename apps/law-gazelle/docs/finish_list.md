@@ -1,7 +1,7 @@
 # Law Gazelle — Finish List
 
-*The standing list of what remains, across all four destinations. Kept here
-rather than in a session, because the work spans sessions.*
+*The standing list of what remains, across all five tracks. Kept here rather
+than in a session, because the work spans sessions.*
 
 **Last verified:** 2026-08-04 · **b17:** E472A
 
@@ -39,11 +39,12 @@ Everything below was run against this checkout. The commands are in
 ## Track A — Cheap real fixes
 
 *Worth doing regardless of destination. A-1 and A-2 are the only things
-standing between this app and a passing `tests_green [M]` gate.*
+standing between this app and a passing `tests_green [M]` gate — though A-1's
+end state is now E-3, which deletes the dependency rather than declaring it.*
 
 | # | Item | Where | Status |
 |---|---|---|---|
-| **A-1** | **Declare the host-lib dependencies.** `requirements.txt` is `requests` + `textual`; `pyproject.toml` declares the same two. But `gazelle_paths.py`, `safe_integration.py`, and `core/db.py` import `vault_paths` / `pg_sqlite_shim`, and `gazelle_paths` sits under nearly every import chain in the app. Tests pass in CI only because `store-ci.yml` installs `libs/vault-paths` and `libs/pg-sqlite-shim` out of band. The declared dependencies are false relative to what the code imports. | 🟢 here | open |
+| **A-1** | **Declare the host-lib dependencies.** `requirements.txt` is `requests` + `textual`; `pyproject.toml` declares the same two. But `gazelle_paths.py`, `safe_integration.py`, and `core/db.py` import `vault_paths` / `pg_sqlite_shim`, and `gazelle_paths` sits under nearly every import chain in the app. Tests pass in CI only because `store-ci.yml` installs `libs/vault-paths` and `libs/pg-sqlite-shim` out of band. The declared dependencies are false relative to what the code imports. **Superseded as an end state by E-3** — with `/.homestead`, `vault_paths` is deleted rather than declared — but A-1 remains the correct *interim* fix, because until E-3 lands a cold checkout still fails and `tests_green [M]` stays red. | 🟢 here | open |
 | **A-2** | **Stop `_archived/` shadowing the live suite.** `_archived/test_case_store.py` and `tests/test_case_store.py` share a module basename, so bare `pytest -q` dies at collection. The spec footnotes this as a "use `pytest tests`" workaround — but `promote_check.py` runs bare `pytest -q` with `cwd=candidate`, so the workaround is not available to the gate. Fix by excluding `_archived` from collection (`[tool.pytest.ini_options] norecursedirs`) or renaming the archived file. | 🟢 here | open |
 | **A-3** | **Correct the spec's stale boxes.** `docs/law_gazelle_spec.md` Phase 3 lists "archive or remove dead stubs (`legal_db.py`, old `SAFESession` path)" as open, but `legal_db.py` and `gazelle_engine.py` are *already* in `_archived/`. The archiving happened; the doc didn't. | 🟢 here | open |
 | **A-4** | **`safe_integration.py` self-shadowing re-export.** The top-level module does `sys.path.insert(0, .../src)` then `from safe_integration import SAFESession` — importing a different module of its own name. It resolves today (tests pass), but it depends on path-insert ordering and will confuse anyone reading it, and it mutates `sys.path` at import time. Worth a plain relative import. | 🟢 here | open |
@@ -106,8 +107,8 @@ plus the attestation precondition. **2 of 9 pass today.***
 | # | Item | Where | Status |
 |---|---|---|---|
 | **D-1** | **Build the semantic-search seam** — a reader over the app's own document/case corpus, with the corpus *injected* (`stores/README.md`: "ship the mold and the reader; the wood stays with whoever grew it"). Natural home is alongside `document_store.py` / `chronology_builder`. Buildable against synthetic fixtures. | 🟢 here | open |
-| **D-2** | **Restructure an import-pure core worth declaring** — a real `law_gazelle/` package holding the network-free logic (deadline computation, queue ranking, detail assembly), with the TUI, MCP server, and Ollama client as impure adapters outside it. | 🟢 here | open |
-| **D-3** | **Extract to its own repo**, then repoint this host as a consumer. Follows Nestor and Jeles as the worked standard. | 🟡 decision + 🟢 here | open |
+| **D-2** | **Restructure an import-pure core worth declaring** — a real `law_gazelle/` package holding the network-free logic (deadline computation, queue ranking, detail assembly), with the TUI, MCP server, and Ollama client as impure adapters outside it. **Superseded by E-2** — the import-pure core is `homestead.keep` in the seat repo, shared by every module on the face rather than private to this one. | 🟢 here | superseded |
+| **D-3** | **Extract to its own repo**, then repoint this host as a consumer. Follows Nestor and Jeles as the worked standard. **Superseded by E-5** — the destination is named: `homestead-affairs/homestead-law`. | 🟡 decision + 🟢 here | superseded |
 | **D-4** | **Write `promotion.json`** — `app_id`, `author`, `verified_by`, `repo_url`, `host`, `core_module`, `semantic_seam`, `host_repointed`, `major: python`. Only truthfully authorable *after* D-1→D-3. | 🟢 here | blocked on D-1..D-3 |
 | **D-5** | **Run the gate and record the verdict** — `--record` writes `stores/python/promoted/law-gazelle.json`. | 🟣 second hand | blocked |
 | **D-6** | **Choose the verifier.** Open as of 2026-08-04. Cannot be whoever authors the build. | 🟡 decision · 🟣 | open |
@@ -119,6 +120,36 @@ plus the attestation precondition. **2 of 9 pass today.***
 > nothing to object to. D-2 exists so the gate has something real to measure.
 > A green gate over an empty target is worse than a red one, because it spends
 > trust it didn't earn.
+
+---
+
+## Track E — Face 4 · `homestead-affairs`
+
+*The die placement: this app becomes **`homestead-law`**, module one of
+**Homestead · Affairs** — "the affairs you handle yourself." Full reasoning in
+[`docs/homestead-affairs-face.md`](../../../docs/homestead-affairs-face.md).
+Several of these **supersede** items in Tracks A and D rather than adding to
+them; cross-references are noted.*
+
+**Already done:** GitHub org stood up · `.github` repo created.
+
+| # | Item | Where | Status |
+|---|---|---|---|
+| **E-0** | **Confirm the org handle reads `homestead-affairs`.** If it was stood up as `homestead-sovereign` under the earlier naming, rename it. GitHub redirects the old handle, but every pinned URL, clone remote, and doc reference should be updated rather than left on the redirect — and the whole point of the rename is that the old word not appear in a legal product's URL. | 🟢 here | **check** |
+| **E-1** | **Teach `tools/vault_leak_lint.py` a `HOMESTEAD_HOME` root.** **Do this first — it blocks E-3.** The linter treats a persistence path as clean only when the line derives from `WILLOW_STORE_ROOT` / `WILLOW_HOME`; anything else home-rooted holding data is a leak, and `"case"` is in its data-name hints. `store-ci.yml` runs it `--strict`. Moving to `/.homestead` before the linter learns it flips `vault_leak [M]` — the one promotion gate this app passes — from PASS to FAIL, and reddens CI. Host-side edit, small, lives in this repo. | 🟢 here | open |
+| **E-2** | **Build `homestead.keep`** — the import-pure record / deadline / evidence engine, in the **seat repo** `homestead`, pinned by tag from each module. **Supersedes D-2**: this is the import-pure core, and it is worth pointing the gate at because it holds real logic rather than a stub. Note the deviation: base repos are optional elsewhere on the die; this seat is load-bearing, because nothing can pin an engine that doesn't exist. | 🟢 here | open |
+| **E-3** | **Move path resolution to `/.homestead`** via `homestead.keep.paths`, and **delete the `vault_paths` import**. **Supersedes A-1**: with its own root, this stops being a dependency to *declare* and becomes one to *remove*, and `inversion [M]` passes by construction rather than by pinning. Blocked on E-1. | 🟢 here | blocked on E-1 |
+| **E-4** | **Matter-type registry** — descriptors carrying tables, item types, deadline rules, and detail renderers, replacing the three hardcoded types in `MATTER_NAV` and the per-matter functions in `case_store`. Prerequisite for any fourth matter type and for the module layer; ranked candidates are housing (eviction/foreclosure), debt-collection defense, benefits appeals, small claims. **Bankruptcy is retained** — highest-exposure matter type in the legal review, and the doctrinal root of the artifact's name. | 🟢 here | open |
+| **E-5** | **Extract to `homestead-affairs/homestead-law`**, then repoint this host as a consumer. **Supersedes D-3.** Promotion is an extraction with preconditions, not a tree move: BUG-1/BUG-2 fixed with regression tests, E-2 and E-3 done, D-1 built. | 🟡 decision + 🟢 here | blocked |
+| **E-6** | **Place `private-ledger` on the face as module two.** Already built, currently faceless. Settle whether it keeps its name — the earlier rejection of `homestead-ledger` was about a settler-order module *inside* `homestead-law`, a different question. | 🟡 decision | open |
+| **E-7** | **Re-derive the module names.** `compact / claim / ledger / fence / remedy` came from the "settler order without a county" framing that the rename removes. *Claim*, *remedy*, *ledger* may survive on merit; *compact* and *fence* came from the settler framing specifically. Do not inherit them through a rename. | 🟡 decision | open |
+| **E-8** | **Draw the `justice-almanac` → deadline-engine edge.** Court rules and deadline tables are public data and belong to face 3, which already has that vertical. Tables pinned from the almanac; engine lives here. Gives face 4 a producer role instead of pure consumption. | 🟡 decision | open |
+| **E-9** | **Reconcile `MISSION.md` with the face.** It tells an access-to-justice story — pilot org, docassemble, LSC TIG grants — that is not the same product as *the affairs you handle yourself*. Both are defensible; they are not identical, and MISSION is still the only document a partner org would read. | 🟡 decision | open |
+
+**Ordering inside Track E:** E-1 → E-2 → E-3 are a chain and the only part that
+is pure engineering. E-4 is independent and can run in parallel. E-5 is the
+gate, blocked on everything above plus the two critical bugs. E-6 through E-9
+are decisions, not builds.
 
 ---
 
@@ -139,16 +170,21 @@ plus the attestation precondition. **2 of 9 pass today.***
    persona file asserting the app does the thing MISSION promises it never
    does. Neither changes behavior today; both misrepresent the app.
 3. **A-3, A-4, A-5, A-7** — hygiene, cheap, while the context is loaded.
-4. **C-2, C-3** — prove the demo and the privacy claim, since both are already
+4. **E-1 → E-2 → E-3** — the face-4 engine chain, and the only part of Track E
+   that is pure engineering. E-1 first or CI goes red. E-3 retires A-1.
+5. **C-2, C-3** — prove the demo and the privacy claim, since both are already
    asserted in public-facing docs.
-5. **D-1, D-2** — the two real builds. Independently valuable: a search seam
-   and a pure core are better architecture whether or not promotion happens.
-6. **B-1, B-2** — feature surface, on fixtures here, verified by the operator
+6. **D-1 + E-4** — the semantic seam and the matter-type registry. Both are
+   better architecture whether or not promotion happens. (D-2 is retired by
+   E-2.)
+7. **B-1, B-2** — feature surface, on fixtures here, verified by the operator
    against real Nest.
-7. **D-3 → D-6** — extraction, attestation, witnessed run. Needs D-6 answered
-   first.
+8. **E-5, D-4 → D-6** — extraction, attestation, witnessed run. Needs D-6
+   (the verifier) answered first.
 
-Decisions outstanding: **B-4** (draft evidence guard), **B-5** (CourtListener:
+Decisions outstanding: **E-6** (private-ledger's name), **E-7** (module names),
+**E-8** (almanac edge), **E-9** (MISSION vs the face), **B-4** (draft evidence
+guard), **B-5** (CourtListener:
 build or mark unimplemented), **C-5** (pilot partner), **D-6** (verifier).
 
 ---
