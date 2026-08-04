@@ -49,8 +49,10 @@ the **domain** — and the domain is legal matters.
   instead of sitting on top of it, which is what *Memory* and *Data* do for
   their faces and what *Sovereign* never did.
 - It obeys this document's own rule — **short display name · substance suffix**.
-  Memory, Knowledge, Data, Forge, Programs are all substances. *Sovereign* was
-  the only leg naming a political posture rather than a material.
+  Memory, Knowledge, Data, Programs are all substances. *Sovereign* was the
+  only leg naming a political posture rather than a material. (Face 5's
+  artifact/leg ordering is unsettled in the placement draft — **Forge** is the
+  promoted SAFE app store, i.e. an artifact, not a leg.)
 - **It says "legal" without claiming legal authority.** This is the constraint
   that rules out the otherwise-obvious alternatives, and it is not stylistic —
   see below.
@@ -190,7 +192,7 @@ that **cannot** deposit into the shared bloodstream. See
 
 | Face A | Face B | Tension |
 |---|---|---|
-| **Homestead · Case** | **Play · Forge** | **What you must do vs. what you choose to do.** A case arrives whether you wanted it or not, on someone else's schedule; the forge is entered freely. Obligation against craft. |
+| **Homestead · Case** | **Play · Forge** | **What you must do vs. what you choose to do.** A case arrives whether you wanted it or not, on someone else's schedule; play is entered freely. Obligation against craft. |
 
 Sharper than the previous "ground you hold vs. workshop," and it survives the
 rename because it never depended on the sovereignty reading.
