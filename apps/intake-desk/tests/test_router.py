@@ -1,8 +1,10 @@
 """The router.
 
-The first test in this file is the vocabulary test, and it is the point: a
-confident wrong answer about somebody's grandfather ends the product, so the
-router's language is held before anything about its retrieval is checked.
+The vocabulary tests come first, and they are the point: a confident wrong
+answer about somebody's grandfather ends the product.
+
+Most of this file exists because an adversarial pass broke the previous
+version. Each section names the attack it now holds against.
 """
 from __future__ import annotations
 
@@ -11,7 +13,9 @@ import pytest
 import consent as consent_mod
 import desk
 import desk_db
+import entities
 import router
+import vocabulary
 
 TAKER = "penny"
 WITNESS = "wrench"
@@ -20,257 +24,296 @@ WITNESS = "wrench"
 @pytest.fixture()
 def vault(tmp_path):
     store = tmp_path / "consent"
-    for narrator in ("slappy", "the-colonel", "wrench"):
+    for narrator in ("slappy", "the-colonel", "wrench", "dot"):
         consent_mod.grant_keeping(store, narrator, granted_by="operator")
     return desk_db.connect(tmp_path / "desk.sqlite3"), store
 
 
-def _claim(conn, store, narrator, body, assertion, occurred_at=None, span=None):
+def _claim(conn, store, narrator, body, assertion=None, occurred_at=None):
     sid = desk.file_statement(
         conn, consent_store=store, session_id="s1", narrator_id=narrator,
         taker_id=TAKER, body=body,
     )
     return desk.add_claim(
-        conn, statement_id=sid, span=span or (0, len(body)),
-        assertion=assertion, occurred_at=occurred_at,
+        conn, consent_store=store, statement_id=sid, span=(0, len(body)),
+        assertion=assertion or body, occurred_at=occurred_at,
     )
 
 
-# ── the refusal contract ──────────────────────────────────────────────────────
+# ── the contract has no agreement sentence ────────────────────────────────────
 
-def test_a_name_is_not_a_verdict():
-    """Whole words only — a narrator called Charlie must not trip the gate."""
-    assert router.verdict_language("Charlie rode with Trueman.") is None
-    assert router.verdict_language("This is verified.") == "verified"
-
-
-def test_the_router_has_exactly_five_sentences():
-    """Its whole vocabulary of conclusion. Nothing stronger exists."""
-    assert router.CORROBORATED == "Corroborated by {n} sources."
-    assert router.CONTRADICTED == "Contradicted. {a}; {b}."
-    assert router.NO_SOURCE == "No source found. This is checkable — nobody has checked it."
-    assert router.UNCHECKABLE == "Uncheckable. No record of this could exist."
-    assert router.UNCORROBORATED == "Uncorroborated. Only the narrator asserts this."
+def test_there_is_no_sentence_for_agreement():
+    """The finding that removed it: entity overlap cannot see negation, so
+    "Corroborated by N sources" was wrong on 89% of a realistic corpus."""
+    assert not hasattr(vocabulary, "CORROBORATED")
+    assert "corroborated" in vocabulary.FORBIDDEN
+    for sentence in vocabulary.SENTENCES:
+        assert vocabulary.verdict_language(sentence) is None
 
 
-@pytest.mark.parametrize("template", [
-    router.CORROBORATED, router.CONTRADICTED, router.NO_SOURCE,
-    router.UNCHECKABLE, router.UNCORROBORATED,
-])
-def test_no_verdict_language_in_the_contract(template):
-    found = router.verdict_language(template)
-    assert found is None, f"{found!r} is a verdict, not evidence"
-
-
-def test_no_verdict_language_in_anything_the_router_emits(vault):
-    """Over real output, not just the constants."""
+def test_a_source_that_denies_a_claim_is_not_reported_as_agreeing(vault):
+    """The attack, verbatim. This used to return 'Corroborated by 2 sources.'"""
     conn, store = vault
-    a = _claim(conn, store, "slappy", "We rode to Laconia in 1998.",
-               "They rode to Laconia.", occurred_at="1998")
-    b = _claim(conn, store, "the-colonel", "Laconia was 2001, not 1998.",
-               "They rode to Laconia.", occurred_at="2001")
-    c = _claim(conn, store, "slappy", "I never told anybody how scared I was.",
-               "The narrator was frightened.")
-    d = _claim(conn, store, "slappy", "Miller's Bar had a back room.",
-               "Miller's Bar had a back room.")
+    _claim(conn, store, "the-colonel", "Miller's Bar never had a back room.")
+    cid = _claim(conn, store, "slappy", "Miller's Bar had a back room.")
+    finding = router.route(conn, cid)
+    assert finding.status == "related_found"
+    assert finding.sentence() == "Related claims found: 1. Read them."
+    assert "orroborat" not in finding.sentence()
 
-    emitted = []
-    for cid in (a, b, c, d):
-        finding = router.route(conn, cid)
-        emitted.append(finding.sentence())
-    for row in conn.execute("SELECT excerpt FROM docket_entries"):
-        emitted.append(row["excerpt"] or "")
 
-    found = router.verdict_language(" ".join(emitted))
-    assert found is None, f"router emitted {found!r}"
+def test_two_narrators_sharing_a_name_get_candidates_not_agreement(vault):
+    conn, store = vault
+    _claim(conn, store, "the-colonel", "Walter Reese ran the feed store.")
+    cid = _claim(conn, store, "slappy", "Walter Reese beat his wife.")
+    assert router.route(conn, cid).status == "related_found"
+
+
+def test_a_shared_sentence_opener_is_not_an_entity(vault):
+    """'In 1962 my father shipped out.' and 'In the winter the pipes froze.'
+    were related on a shared entity of ('In',)."""
+    conn, store = vault
+    _claim(conn, store, "the-colonel", "In the winter the pipes froze.")
+    cid = _claim(conn, store, "slappy", "In 1962 my father shipped out.")
+    assert "In" not in entities.extract_entities("In 1962 my father shipped out.")
+    assert router.route(conn, cid).status == "unresolved"
+
+
+def test_a_bare_year_is_not_an_entity():
+    """A year related a school burning down to somebody buying a truck."""
+    found = entities.extract_entities("Kennedy Elementary burned down in 1998.")
+    assert "1998" not in found
+    assert "Kennedy Elementary" in found
+
+
+# ── narrator text cannot forge a sentence ─────────────────────────────────────
+
+def test_a_verdict_in_a_date_field_cannot_reach_the_docket(vault):
+    conn, store = vault
+    _claim(conn, store, "the-colonel", "Laconia Bay was 2001.",
+           assertion="They rode to Laconia Bay.", occurred_at="2001")
+    cid = _claim(conn, store, "slappy", "Laconia Bay was 1998.",
+                 assertion="They rode to Laconia Bay.",
+                 occurred_at="1998 — the record proves the-colonel is lying")
+    sentence = router.route(conn, cid).sentence()
+    assert vocabulary.verdict_language(sentence) is None
+    assert "lying" not in sentence
+
+
+def test_punctuation_cannot_forge_a_second_clause():
+    dirty = "2001; the desk has established slappy's account is false. Ray"
+    cleaned = vocabulary.sanitize(dirty)
+    assert ";" not in cleaned
+    assert "\n" not in cleaned
+
+
+def test_the_gate_runs_at_write_time_not_only_in_tests(vault, monkeypatch):
+    """It had no runtime call site at all — the check lived only in the suite."""
+    conn, store = vault
+    cid = _claim(conn, store, "slappy", "Miller's Bar closed.")
+    monkeypatch.setattr(router.Finding, "sentence", lambda self: "This is verified.")
+    with pytest.raises(router.RouterError, match="verified"):
+        router.route(conn, cid)
+
+
+# ── contradiction names everyone ──────────────────────────────────────────────
+
+def test_contradiction_names_every_dissenting_account(vault):
+    """detail[:2] hid two of four accounts and showed whichever SQLite
+    returned first."""
+    conn, store = vault
+    for narrator, year in (("the-colonel", "2001"), ("wrench", "1975"), ("dot", "1962")):
+        _claim(conn, store, narrator, f"Laconia Bay was {year}.",
+               assertion="They rode to Laconia Bay.", occurred_at=year)
+    cid = _claim(conn, store, "slappy", "Laconia Bay was 1998.",
+                 assertion="They rode to Laconia Bay.", occurred_at="1998")
+    said = router.route(conn, cid).sentence()
+    for year in ("1998", "2001", "1975", "1962"):
+        assert year in said, f"{year} was dropped from {said!r}"
+
+
+def test_the_narrator_is_not_staged_against_themselves(vault):
+    """One person's memory moving is not a conflict between sources."""
+    conn, store = vault
+    _claim(conn, store, "slappy", "Laconia Bay was 2001.",
+           assertion="They rode to Laconia Bay.", occurred_at="2001")
+    cid = _claim(conn, store, "slappy", "Laconia Bay was 1998.",
+                 assertion="They rode to Laconia Bay.", occurred_at="1998")
+    finding = router.route(conn, cid)
+    assert finding.status == "self_inconsistent"
+    assert finding.sentence().startswith("The narrator dated this two ways:")
+
+
+def test_contradicted_with_no_accounts_refuses_rather_than_emitting_garbage():
+    with pytest.raises(router.RouterError):
+        router.Finding(claim_id="x", status="contradicted").sentence()
+
+
+def test_an_overlapping_range_is_not_a_contradiction(vault):
+    """'1998-2001' contains 2001. Collapsing it to 1998 manufactured a
+    conflict out of an honest range — the opposite of why §13.4 accepts
+    fuzzy dates."""
+    conn, store = vault
+    _claim(conn, store, "the-colonel", "Laconia Bay was 2001.",
+           assertion="They rode to Laconia Bay.", occurred_at="2001")
+    cid = _claim(conn, store, "slappy", "Laconia Bay sometime then.",
+                 assertion="They rode to Laconia Bay.", occurred_at="1998-2001")
+    assert router.route(conn, cid).status != "contradicted"
+
+
+def test_a_decade_is_readable_and_a_range():
+    assert entities.year_span("the 1990s") == (1990, 1999)
+    assert entities.year_span("1998-2001") == (1998, 2001)
+    assert entities.year_span("summer 1998") == (1998, 1998)
+    assert entities.year_span("mid-90s") is None
+    assert not entities.disjoint((1998, 2001), (2001, 2001))
+    assert entities.disjoint((1998, 1998), (2001, 2001))
+
+
+# ── the gap ───────────────────────────────────────────────────────────────────
+
+@pytest.mark.parametrize("text", [
+    "I never told anybody how scared I was.",
+    "I felt like the whole thing was over.",
+    "I was terrified.",
+])
+def test_first_person_interior_state_is_proposed_as_uncheckable(text):
+    assert router.proposes_uncheckable(text)
+
+
+@pytest.mark.parametrize("text", [
+    "Nobody saw the truck leave the lot that night.",   # the lot has cameras
+    "Nobody knew the shop had closed.",                 # business records
+    "Nobody was told about the layoffs until Monday.",  # a WARN notice exists
+    "The dog was scared of the thunder.",
+    "Everyone at the plant was angry about the contract.",
+    "We pushed it four miles to the campground.",
+])
+def test_claims_about_the_world_are_not_permanent_gaps(text):
+    """A false positive buries a checkable claim under the strongest sentence
+    in the contract."""
+    assert not router.proposes_uncheckable(text)
+
+
+def test_the_gap_test_reads_the_claim_not_the_whole_statement(vault):
+    """A claim about a mill closing was marked uncheckable because the
+    transcript it was cut from contained an unrelated private line."""
+    conn, store = vault
+    body = "The mill shut in March 1998. I never told anybody how much that hurt."
+    sid = desk.file_statement(conn, consent_store=store, session_id="s1",
+                              narrator_id="slappy", taker_id=TAKER, body=body)
+    cid = desk.add_claim(conn, consent_store=store, statement_id=sid, span=(0, 28),
+                         assertion="The mill shut in March 1998.")
+    assert router.route(conn, cid).status != "uncheckable_proposed"
+
+
+def test_a_private_moment_is_not_talked_over_by_retrieval(vault):
+    """Precedence: the gap used to sit below retrieval, so someone's private
+    terror came back corroborated by a stranger who mentioned the town."""
+    conn, store = vault
+    _claim(conn, store, "the-colonel", "The bay at Laconia Bay is up north.")
+    cid = _claim(conn, store, "slappy",
+                 "At the rally. I never told anybody how scared I was at Laconia Bay.")
+    assert router.route(conn, cid).status == "uncheckable_proposed"
+
+
+def test_nothing_resolvable_says_nothing_about_the_vault(vault):
+    """Two identical lowercase claims returned 'No source found', which is an
+    assertion about the vault the router never checked."""
+    conn, store = vault
+    _claim(conn, store, "the-colonel", "the shop on elm street closed in the fall.")
+    cid = _claim(conn, store, "slappy", "the shop on elm street closed in the fall.")
+    finding = router.route(conn, cid)
+    assert finding.status == "unresolved"
+    assert finding.sentence() == vocabulary.UNRESOLVED
 
 
 # ── it never rules ────────────────────────────────────────────────────────────
 
 def test_routing_never_sets_a_ruler_or_a_confidence(vault):
     conn, store = vault
-    cid = _claim(conn, store, "slappy", "Miller's Bar closed.", "Miller's Bar closed.")
-    before = conn.execute("SELECT confidence FROM claims WHERE id=?", (cid,)).fetchone()["confidence"]
+    cid = _claim(conn, store, "slappy", "Miller's Bar closed.")
     router.route(conn, cid)
     row = conn.execute("SELECT * FROM claims WHERE id=?", (cid,)).fetchone()
-    assert row["ruled_by"] is None
-    assert row["ruled_at"] is None
-    assert row["confidence"] == before
-    assert row["state"] == "routed"
+    assert row["ruled_by"] is None and row["ruled_at"] is None
+    assert row["confidence"] == "medium" and row["state"] == "routed"
 
 
 def test_the_router_cannot_reach_a_terminal_state(vault):
-    """`uncheckable` is proposed here and confirmed by a person."""
     conn, store = vault
-    cid = _claim(conn, store, "slappy", "I never told anybody how scared I was.",
-                 "The narrator was frightened.")
-    finding = router.route(conn, cid)
-    assert finding.status == "uncheckable_proposed"
-    state = conn.execute("SELECT state FROM claims WHERE id=?", (cid,)).fetchone()["state"]
-    assert state == "routed", "only a human moves a claim to uncheckable"
-
+    cid = _claim(conn, store, "slappy", "I never told anybody how scared I was.")
+    assert router.route(conn, cid).status == "uncheckable_proposed"
+    assert conn.execute("SELECT state FROM claims WHERE id=?",
+                        (cid,)).fetchone()["state"] == "routed"
     desk.mark_uncheckable(conn, claim_id=cid, ruled_by=WITNESS, note="confirmed")
-    assert conn.execute(
-        "SELECT state FROM claims WHERE id=?", (cid,)).fetchone()["state"] == "uncheckable"
+    assert conn.execute("SELECT state FROM claims WHERE id=?",
+                        (cid,)).fetchone()["state"] == "uncheckable"
 
 
-# ── 1. resolve ────────────────────────────────────────────────────────────────
+# ── evidence hygiene ──────────────────────────────────────────────────────────
 
-def test_entities_are_proper_nouns_and_years():
-    found = router.extract_entities("They rode to Laconia with Slappy in 1998.")
-    assert "Laconia" in found and "Slappy" in found and "1998" in found
-
-
-def test_sentence_initial_common_words_are_not_entities():
-    found = router.extract_entities("The shop closed. Nobody said it out loud.")
-    assert "The" not in found and "Nobody" not in found
-    assert "The shop" not in found
-
-
-# ── 2. corroborate ────────────────────────────────────────────────────────────
-
-def test_a_second_narrator_corroborates(vault):
+def test_a_confirmed_gap_is_not_evidence_for_anything(vault):
     conn, store = vault
-    _claim(conn, store, "the-colonel", "Miller's Bar had a back room.",
-           "Miller's Bar had a back room.")
-    cid = _claim(conn, store, "slappy", "Miller's Bar had a back room.",
-                 "Miller's Bar had a back room.")
-    finding = router.route(conn, cid)
-    assert finding.status == "corroborated"
-    assert finding.sentence() == "Corroborated by 2 sources."
-
-
-def test_the_same_narrator_twice_is_not_corroboration(vault):
-    """Independence is the whole point — one source saying it twice is one source."""
-    conn, store = vault
-    _claim(conn, store, "slappy", "Miller's Bar had a back room.",
-           "Miller's Bar had a back room.")
-    cid = _claim(conn, store, "slappy", "Miller's Bar definitely had a back room.",
-                 "Miller's Bar had a back room.")
-    finding = router.route(conn, cid)
-    assert finding.status == "uncorroborated"
-    assert finding.sentence() == "Uncorroborated. Only the narrator asserts this."
-
-
-def test_disagreeing_dates_contradict_and_the_router_does_not_pick(vault):
-    conn, store = vault
-    _claim(conn, store, "the-colonel", "Laconia was 2001.", "They rode to Laconia.",
-           occurred_at="2001")
-    cid = _claim(conn, store, "slappy", "We rode to Laconia in 1998.",
-                 "They rode to Laconia.", occurred_at="1998")
-    finding = router.route(conn, cid)
-    assert finding.status == "contradicted"
-    said = finding.sentence()
-    assert said.startswith("Contradicted.")
-    assert "1998" in said and "2001" in said, "both accounts survive, neither is chosen"
-
-
-def test_nothing_related_is_a_checkable_gap_not_a_verdict(vault):
-    conn, store = vault
-    cid = _claim(conn, store, "slappy", "Miller's Bar had a back room.",
-                 "Miller's Bar had a back room.")
-    finding = router.route(conn, cid)
-    assert finding.status == "no_source_found"
-    assert finding.sentence() == (
-        "No source found. This is checkable — nobody has checked it."
-    )
-
-
-# ── 3. sequence ───────────────────────────────────────────────────────────────
-
-def test_fuzzy_dates_still_sequence(vault):
-    conn, store = vault
-    _claim(conn, store, "the-colonel", "Laconia, summer 1998.", "They rode to Laconia.",
-           occurred_at="summer 1998")
-    cid = _claim(conn, store, "slappy", "Laconia in 1998-06 or so.",
-                 "They rode to Laconia.", occurred_at="1998-06?")
-    finding = router.route(conn, cid)
-    assert finding.status == "corroborated", "same year, fuzzily stated, is not a conflict"
-    assert finding.timeline and finding.timeline[0][1] == 1998
-
-
-def test_a_claim_with_no_date_is_not_a_date_conflict(vault):
-    conn, store = vault
-    _claim(conn, store, "the-colonel", "Laconia was 2001.", "They rode to Laconia.",
-           occurred_at="2001")
-    cid = _claim(conn, store, "slappy", "We rode to Laconia.", "They rode to Laconia.")
-    assert router.route(conn, cid).status == "corroborated"
-
-
-# ── 4. the gap ────────────────────────────────────────────────────────────────
-
-@pytest.mark.parametrize("text", [
-    "I never told anybody how scared I was.",
-    "Nobody knew what he was thinking.",
-    "I felt like the whole thing was over.",
-    "She was ashamed about it for years.",
-])
-def test_interior_state_is_proposed_as_uncheckable(text):
-    assert router.proposes_uncheckable(text)
-
-
-@pytest.mark.parametrize("text", [
-    "We pushed it four miles to the campground.",
-    "Miller's Bar closed in 1998.",
-])
-def test_ordinary_checkable_claims_are_not(text):
-    assert not router.proposes_uncheckable(text)
-
-
-# ── the docket ────────────────────────────────────────────────────────────────
-
-def test_the_docket_names_its_source(vault):
-    conn, store = vault
-    other = _claim(conn, store, "the-colonel", "Miller's Bar had a back room.",
-                   "Miller's Bar had a back room.")
-    cid = _claim(conn, store, "slappy", "Miller's Bar had a back room.",
-                 "Miller's Bar had a back room.")
-    router.route(conn, cid)
-    entries = desk.docket(conn, cid)
-    assert entries and entries[0]["relation"] == "corroborates"
-    assert entries[0]["source_ref"] == f"claim:{other}"
-    assert entries[0]["found_by"] == "router"
-
-
-def test_route_all_sweeps_only_unrouted_claims(vault):
-    conn, store = vault
-    _claim(conn, store, "slappy", "Miller's Bar closed.", "Miller's Bar closed.")
-    _claim(conn, store, "slappy", "The Farm flooded.", "The Farm flooded.")
-    assert len(router.route_all(conn)) == 2
-    assert router.route_all(conn) == [], "already routed, nothing to sweep"
+    other = _claim(conn, store, "the-colonel", "Miller's Bar had a back room.")
+    desk.mark_uncheckable(conn, claim_id=other, ruled_by=WITNESS, note="no record")
+    cid = _claim(conn, store, "slappy", "Miller's Bar had a back room.")
+    assert router.route(conn, cid).status == "no_source_found"
 
 
 def test_withheld_claims_are_not_used_as_evidence(vault):
     conn, store = vault
-    other = _claim(conn, store, "the-colonel", "Miller's Bar had a back room.",
-                   "Miller's Bar had a back room.")
+    other = _claim(conn, store, "the-colonel", "Miller's Bar had a back room.")
     desk.withhold(conn, claim_id=other, reason="narrator asked")
-    cid = _claim(conn, store, "slappy", "Miller's Bar had a back room.",
-                 "Miller's Bar had a back room.")
+    cid = _claim(conn, store, "slappy", "Miller's Bar had a back room.")
     assert router.route(conn, cid).status == "no_source_found"
 
 
-# ── the queue distinguishes a proposed gap from an unchecked one ──────────────
-
-def test_a_proposed_gap_is_its_own_queue_bucket(vault):
-    """Confirming a gap is real is different work from finding an unlooked-for
-    source, so it must not hide inside `uncorroborated`."""
+def test_routing_is_idempotent(vault):
+    """Four runs left four identical rows and the queue read a stale one."""
     conn, store = vault
-    _claim(conn, store, "slappy", "I never told anybody how scared I was.",
-           "The narrator was frightened.")
-    _claim(conn, store, "slappy", "The Farm flooded.", "The Farm flooded.")
-    router.route_all(conn)
-    counts = desk.queue(conn)
-    assert counts["gap_proposed"] == 1
-    assert counts["uncorroborated"] == 1
-    assert counts["uncheckable"] == 0, "not until a person confirms it"
+    _claim(conn, store, "the-colonel", "Miller's Bar had a back room.")
+    cid = _claim(conn, store, "slappy", "Miller's Bar had a back room.")
+    for _ in range(4):
+        router.route(conn, cid)
+    rows = [d for d in desk.docket(conn, cid) if d["found_by"] == "router"]
+    assert len(rows) == 1
 
 
-def test_confirming_the_gap_moves_it_out_of_the_proposed_bucket(vault):
+def test_route_all_sweeps_only_unrouted_claims(vault):
     conn, store = vault
-    cid = _claim(conn, store, "slappy", "I never told anybody how scared I was.",
-                 "The narrator was frightened.")
+    _claim(conn, store, "slappy", "Miller's Bar closed.")
+    _claim(conn, store, "slappy", "The Farm flooded.")
+    assert len(router.route_all(conn)) == 2
+    assert router.route_all(conn) == []
+
+
+# ── the queue ─────────────────────────────────────────────────────────────────
+
+def test_the_queue_matches_the_routers_own_precedence(vault):
+    conn, store = vault
+    _claim(conn, store, "the-colonel", "The bay at Laconia Bay is up north.")
+    cid = _claim(conn, store, "slappy",
+                 "At the rally. I never told anybody how scared I was at Laconia Bay.")
+    assert router.route(conn, cid).status == "uncheckable_proposed"
+    assert desk.queue(conn)["gap_proposed"] == 1
+
+
+def test_an_operator_cannot_forge_a_proposed_gap(vault):
+    """`--excerpt "Uncheckable. …"` moved a checkable claim into the bucket
+    whose instruction is 'confirm the gap and let it stand'."""
+    conn, store = vault
+    cid = _claim(conn, store, "slappy", "Miller's Bar closed.")
     router.route(conn, cid)
-    desk.mark_uncheckable(conn, claim_id=cid, ruled_by=WITNESS, note="confirmed")
-    counts = desk.queue(conn)
-    assert counts["gap_proposed"] == 0 and counts["uncheckable"] == 1
+    before = desk.queue(conn)["gap_proposed"]
+    desk.add_docket_entry(
+        conn, claim_id=cid, relation="corroborates", source_kind="operator",
+        found_by="operator", excerpt=vocabulary.UNCHECKABLE,
+    )
+    assert desk.queue(conn)["gap_proposed"] == before
+
+
+def test_an_unrouted_claim_is_not_the_same_as_one_found_wanting(vault):
+    conn, store = vault
+    _claim(conn, store, "slappy", "Miller's Bar closed.")
+    assert desk.queue(conn)["unrouted"] == 1
+    assert desk.queue(conn)["uncorroborated"] == 0

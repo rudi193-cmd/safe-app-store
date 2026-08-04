@@ -3,20 +3,23 @@
 -- docs/specs/intake_desk_spec.md §4
 --
 -- Local-first SQLite. Zero Willow, zero Postgres, zero network.
--- apps/nasa-archive/supabase/migrations/20260218000000_oral_history.sql
--- is the proven ancestor; this is that shape, localized and de-domained.
 --
 -- The invariants are enforced HERE, in triggers, not only in Python.
 -- A gate that lives in one call path is a convention; a gate in the
 -- database is a gate.
+--
+-- Every gate below is doubled on INSERT and UPDATE. The first version of
+-- this file guarded only the operation its author had in mind, and an
+-- adversarial pass walked in through the other one: the witness gate was
+-- BEFORE UPDATE OF ruled_by, so an INSERT carrying ruled_by went straight
+-- past it, and INSERT OR REPLACE overwrote an honestly filed claim with a
+-- forged ruling. Identities are compared normalised for the same reason —
+-- `Slappy` defeated a gate that refused `slappy`.
 -- ============================================================
 
 PRAGMA foreign_keys = ON;
 
 -- ── statements — what a person actually said. Verbatim. Whole. ──────────────
---
--- Never edited, never normalized, never deleted. Everything else in this
--- schema points back into it by character offset.
 CREATE TABLE IF NOT EXISTS statements (
   id           TEXT PRIMARY KEY,
   created_at   TEXT NOT NULL,
@@ -27,8 +30,13 @@ CREATE TABLE IF NOT EXISTS statements (
   medium       TEXT NOT NULL
                CHECK (medium IN ('audio','transcript','typed','letter','note')),
   captured_at  TEXT,
-  consent_ref  TEXT NOT NULL,          -- subject-consent subject_id. required.
-  body_sha256  TEXT NOT NULL
+  consent_ref  TEXT NOT NULL,
+  body_sha256  TEXT NOT NULL,
+  -- Identities are stored already normalised (desk.identity). The CHECKs are
+  -- the floor under that: a raw writer cannot introduce a variant spelling
+  -- that the witness gate would then fail to recognise.
+  CHECK (narrator_id = trim(lower(narrator_id)) AND narrator_id != ''),
+  CHECK (taker_id    = trim(lower(taker_id))    AND taker_id    != '')
 );
 
 -- ── claims — one checkable assertion, anchored in a statement ────────────────
@@ -39,7 +47,7 @@ CREATE TABLE IF NOT EXISTS claims (
   span_end     INTEGER NOT NULL,
   assertion    TEXT NOT NULL,
   entities     TEXT NOT NULL DEFAULT '[]',
-  occurred_at  TEXT,                   -- ISO8601, may be fuzzy: "1998", "1998-06?"
+  occurred_at  TEXT,
   place        TEXT,
 
   state        TEXT NOT NULL DEFAULT 'filed'
@@ -55,7 +63,18 @@ CREATE TABLE IF NOT EXISTS claims (
   ruled_at     TEXT,
   ruling_note  TEXT,
 
-  corrections  TEXT NOT NULL DEFAULT '[]'
+  corrections  TEXT NOT NULL DEFAULT '[]',
+
+  CHECK (ruled_by IS NULL OR (ruled_by = trim(lower(ruled_by)) AND ruled_by != ''))
+);
+
+-- ── the entity index — what each claim is about ─────────────────────────────
+-- Written by desk.add_claim. The router joins it instead of re-extracting
+-- entities over the whole table on every call (which was quadratic).
+CREATE TABLE IF NOT EXISTS claim_entities (
+  claim_id TEXT NOT NULL REFERENCES claims(id) ON DELETE CASCADE,
+  entity   TEXT NOT NULL,
+  PRIMARY KEY (claim_id, entity)
 );
 
 -- ── docket_entries — evidence for and against. Machine-written, human-read. ──
@@ -78,21 +97,27 @@ CREATE INDEX IF NOT EXISTS idx_claims_statement  ON claims(statement_id);
 CREATE INDEX IF NOT EXISTS idx_claims_confidence ON claims(confidence);
 CREATE INDEX IF NOT EXISTS idx_docket_claim      ON docket_entries(claim_id);
 CREATE INDEX IF NOT EXISTS idx_statements_sess   ON statements(session_id);
+CREATE INDEX IF NOT EXISTS idx_entity            ON claim_entities(entity);
 
 -- ============================================================
 -- The invariants (spec §4)
 -- ============================================================
 
--- 1. The verbatim account is write-once.
---    "Corrections not erasure" is only true if the original cannot move.
-CREATE TRIGGER IF NOT EXISTS statements_body_write_once
-BEFORE UPDATE OF body, body_sha256, narrator_id, taker_id ON statements
+-- 1. The verbatim account is write-once — and so is everything that decides
+--    whose account it is. `consent_ref` and `session_id` were mutable in the
+--    first version; repointing consent_ref at a subject who *had* granted is
+--    how a non-consenting person's testimony gets laundered into an export.
+CREATE TRIGGER IF NOT EXISTS statements_write_once
+BEFORE UPDATE OF body, body_sha256, narrator_id, taker_id, session_id,
+                 medium, captured_at, consent_ref ON statements
 BEGIN
   SELECT RAISE(ABORT,
-    'statements.body is write-once — file a correction on the claim instead');
+    'statements are write-once — file a correction on the claim instead');
 END;
 
--- 2. Statements are never deleted. `withheld` is the operation.
+-- 2. Nothing is deleted. `withheld` is the operation.
+--    With PRAGMA recursive_triggers ON (set in desk_db.connect), these also
+--    catch INSERT OR REPLACE, which is a delete wearing an insert's clothes.
 CREATE TRIGGER IF NOT EXISTS statements_never_deleted
 BEFORE DELETE ON statements
 BEGIN
@@ -107,36 +132,78 @@ BEGIN
     'claims are never deleted — withhold instead (spec 3.5)');
 END;
 
--- 3. A claim's span must resolve inside its statement's body.
---    There is no free-floating fact in this system.
-CREATE TRIGGER IF NOT EXISTS claims_span_resolves
+-- 3. A claim's span must resolve inside its statement's body — on the way in,
+--    and forever after. Spans were mutable once inserted, so a ruled and
+--    published claim could be re-aimed at different words and keep its
+--    witness.
+CREATE TRIGGER IF NOT EXISTS claims_span_resolves_insert
 BEFORE INSERT ON claims
 WHEN NEW.span_start < 0
   OR NEW.span_end <= NEW.span_start
   OR NEW.span_end > (SELECT length(body) FROM statements WHERE id = NEW.statement_id)
 BEGIN
+  SELECT RAISE(ABORT, 'claim span does not resolve inside its statement body');
+END;
+
+CREATE TRIGGER IF NOT EXISTS claims_span_frozen
+BEFORE UPDATE OF span_start, span_end, statement_id, assertion ON claims
+WHEN OLD.span_start != NEW.span_start
+  OR OLD.span_end != NEW.span_end
+  OR OLD.statement_id != NEW.statement_id
+  OR OLD.assertion != NEW.assertion
+BEGIN
   SELECT RAISE(ABORT,
-    'claim span does not resolve inside its statement body');
+    'a claim cannot be re-aimed — its span, statement and assertion are fixed');
 END;
 
 -- 4. §0.2 — proposing and ratifying never rest in the same hand.
---    The one gate with no override flag.
-CREATE TRIGGER IF NOT EXISTS claims_witness_gate
+--    The one gate with no override flag, on both operations, compared on the
+--    normalised identity so a capital letter is not a bypass.
+CREATE TRIGGER IF NOT EXISTS claims_witness_gate_update
 BEFORE UPDATE OF ruled_by ON claims
 WHEN NEW.ruled_by IS NOT NULL
- AND NEW.ruled_by IN (
-       SELECT narrator_id FROM statements WHERE id = NEW.statement_id
+ AND trim(lower(NEW.ruled_by)) IN (
+       SELECT trim(lower(narrator_id)) FROM statements WHERE id = NEW.statement_id
        UNION
-       SELECT taker_id    FROM statements WHERE id = NEW.statement_id)
+       SELECT trim(lower(taker_id))    FROM statements WHERE id = NEW.statement_id)
 BEGIN
   SELECT RAISE(ABORT,
     'ruled_by must be neither the narrator nor the taker (verified_by != author)');
 END;
 
--- 5. A claim cannot reach `published` without a ruler.
-CREATE TRIGGER IF NOT EXISTS claims_publish_needs_ruling
+CREATE TRIGGER IF NOT EXISTS claims_witness_gate_insert
+BEFORE INSERT ON claims
+WHEN NEW.ruled_by IS NOT NULL
+ AND trim(lower(NEW.ruled_by)) IN (
+       SELECT trim(lower(narrator_id)) FROM statements WHERE id = NEW.statement_id
+       UNION
+       SELECT trim(lower(taker_id))    FROM statements WHERE id = NEW.statement_id)
+BEGIN
+  SELECT RAISE(ABORT,
+    'ruled_by must be neither the narrator nor the taker (verified_by != author)');
+END;
+
+-- 5. A claim cannot reach `published` without a ruler — on either operation.
+CREATE TRIGGER IF NOT EXISTS claims_publish_needs_ruling_update
 BEFORE UPDATE OF state ON claims
 WHEN NEW.state = 'published' AND (NEW.ruled_by IS NULL OR NEW.ruled_at IS NULL)
 BEGIN
   SELECT RAISE(ABORT, 'a claim cannot be published before it is ruled');
+END;
+
+CREATE TRIGGER IF NOT EXISTS claims_publish_needs_ruling_insert
+BEFORE INSERT ON claims
+WHEN NEW.state = 'published' AND (NEW.ruled_by IS NULL OR NEW.ruled_at IS NULL)
+BEGIN
+  SELECT RAISE(ABORT, 'a claim cannot be published before it is ruled');
+END;
+
+-- 6. Withholding is not reversible. A narrator who withdrew does not get
+--    un-withdrawn by a later ruling, a re-route, or mark_uncheckable.
+CREATE TRIGGER IF NOT EXISTS claims_withheld_is_final
+BEFORE UPDATE OF state ON claims
+WHEN OLD.state = 'withheld' AND NEW.state != 'withheld'
+BEGIN
+  SELECT RAISE(ABORT,
+    'a withheld claim stays withheld — the record stays, the export stops');
 END;

@@ -28,6 +28,7 @@ import desk_db  # noqa: E402
 import export  # noqa: E402
 import interviewer  # noqa: E402
 import router  # noqa: E402
+from subject_consent import ChainTamperError  # noqa: E402
 
 
 def _stores(args):
@@ -135,7 +136,8 @@ def main(argv: list[str] | None = None) -> int:
         elif args.cmd == "claim":
             start, _, end = args.span.partition(":")
             print(desk.add_claim(
-                conn, statement_id=args.statement, span=(int(start), int(end)),
+                conn, consent_store=store,
+                statement_id=args.statement, span=(int(start), int(end)),
                 assertion=args.assertion, source_type=args.source_type,
                 occurred_at=args.occurred_at, place=args.place))
         elif args.cmd == "docket":
@@ -181,7 +183,7 @@ def main(argv: list[str] | None = None) -> int:
             fn = export.to_json if args.format == "json" else export.to_markdown
             print(fn(conn, consent_store=store, path=args.out))
     except (desk.DeskError, export.ExportRefused, interviewer.InterviewerError,
-            router.RouterError) as exc:
+            router.RouterError, desk_db.VaultTampered, ChainTamperError) as exc:
         print(f"refused: {exc}", file=sys.stderr)
         return 1
     finally:

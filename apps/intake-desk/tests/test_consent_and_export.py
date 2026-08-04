@@ -26,7 +26,7 @@ def _ready_claim(conn, store, narrator=NARRATOR):
         conn, consent_store=store, session_id="s1", narrator_id=narrator,
         taker_id=TAKER, body=BODY,
     )
-    cid = desk.add_claim(conn, statement_id=sid, span=(0, 41),
+    cid = desk.add_claim(conn, consent_store=store, statement_id=sid, span=(0, 41),
                          assertion="They pushed the bike four miles.")
     desk.rule(conn, claim_id=cid, ruled_by=WITNESS, confidence="high")
     desk.publish(conn, claim_id=cid)
@@ -136,12 +136,19 @@ def test_withhold_narrator_covers_everything_they_gave(vault):
     assert remaining == 0
 
 
-def test_export_appends_to_the_disclosure_chain(vault):
+def test_export_appends_to_the_disclosure_chain(vault, tmp_path):
+    """After the file is written, not before — a failed write used to leave a
+    permanent record of an export that never happened."""
     conn, store, _ = vault
     _ready_claim(conn, store)
     consent_mod.grant_publication(store, NARRATOR, granted_by="operator")
-    export.gather(conn, consent_store=store)
     from subject_consent import read_disclosures
+
+    export.gather(conn, consent_store=store)
+    assert "exported" not in [d["action"] for d in read_disclosures(store, NARRATOR)], \
+        "gathering is not disclosing — nothing has left yet"
+
+    export.to_json(conn, consent_store=store, path=tmp_path / "o.json")
     assert "exported" in [d["action"] for d in read_disclosures(store, NARRATOR)]
 
 

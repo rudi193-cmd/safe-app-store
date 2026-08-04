@@ -34,15 +34,28 @@ newsroom (days), a writer checking their own raw idea (whatever).
 They live in `schema.sql` as triggers, not only in `desk.py`, so they hold for
 anything that opens the file:
 
-1. **`statements.body` is write-once.** "Corrections not erasure" is only true
-   if the original cannot move. `desk_db.verify_bodies()` catches a body
-   rewritten by something that bypassed the trigger.
+1. **`statements.body` is write-once**, along with everything that decides
+   whose account it is (`narrator_id`, `taker_id`, `consent_ref`, `session_id`).
+   The in-row digest is a **checksum, not a witness** — body and digest sit in
+   the same row, so anything that rewrites one rewrites the other. It is
+   evidence only because `file_statement` also writes the digest into the
+   subject's hash-chained disclosure record, outside this database;
+   `verify_bodies(conn, store)` compares the two.
 2. **Nothing is deleted.** `withhold` is the operation. Revocation stops the
    export and keeps the record.
-3. **A claim's span must resolve inside its statement.** A claim that cannot
-   point back at the words it came from is refused by the database.
+3. **A claim's span, statement and assertion are frozen.** Refused on the way
+   in *and* after — a ruled, published claim cannot be re-aimed at different
+   words while keeping its witness. `quoted()` refuses rather than returning a
+   silently wrong slice.
 4. **`ruled_by ∉ {narrator, taker}`** — §0.2, proposing and ratifying never rest
-   in the same hand. The one gate with no override flag.
+   in the same hand. No override flag, on INSERT as well as UPDATE, compared on
+   the **normalised** identity (`desk.identity`) so a capital letter is not a
+   bypass.
+
+Every gate is doubled on INSERT and UPDATE, and `connect()` sets
+`PRAGMA recursive_triggers = ON` — without it `INSERT OR REPLACE` is a delete
+that does not fire the delete triggers. `connect()` also refuses to open a
+vault whose triggers have been removed or neutered.
 
 ## Consent
 
@@ -98,48 +111,61 @@ python app.py export --format markdown --out testimony.md
 ```
 
 ```bash
-python -m pytest tests/ -q      # 67 passed
+python -m pytest tests/ -q      # 73 passed
 ```
 
-## The router never adjudicates
+## The router hands you candidates and stops
 
-`router.py` does four things and stops: **resolve** the entities a claim
-touches, **corroborate** against the vault, **sequence** it in time, and
-**declare the gap**. The output is a docket. A human rules.
+`router.py` does four things: **resolve** the entities a claim touches,
+**retrieve** other claims about the same things, **sequence** the dated accounts,
+and **declare the gap**. The output is a docket. A human rules.
 
-Its entire vocabulary of conclusion is five sentences, and they live in
-`vocabulary.py` — a contract owned by the component it constrains is not much
-of a contract:
+**There is no sentence for agreement, and that is the most important thing
+about this module.** There was one — `Corroborated by N sources.` — and an
+adversarial pass measured it wrong on **89%** of the corroborations it produced
+over a realistic corpus. Entity overlap is the whole relatedness test, and
+entity overlap cannot see negation:
+
+```
+[the-colonel] Miller's Bar never had a back room.
+[slappy]      Miller's Bar had a back room.
+              -> "Corroborated by 2 sources."      # the old behaviour
+              -> "Related claims found: 1. Read them."   # now
+```
+
+Retrieval can honestly say *these are about the same things*. It cannot say
+*they agree*. Only a person can promote a candidate to agreement.
 
 | Situation | It says |
 |---|---|
-| ≥2 independent narrators agree | `Corroborated by N sources.` |
-| dated accounts disagree | `Contradicted. X says A; Y says B.` — **never picks** |
-| nothing related found | `No source found. This is checkable — nobody has checked it.` |
-| interior state, no witness possible | `Uncheckable. No record of this could exist.` |
+| dated accounts cannot all be right | `Contradicted. {every account, named}.` |
+| the same narrator dated it two ways | `The narrator dated this two ways: …` |
+| other claims about the same things | `Related claims found: N. Read them.` |
 | related, but only the same narrator | `Uncorroborated. Only the narrator asserts this.` |
+| nothing related found | `No source found. This is checkable — nobody has checked it.` |
+| first-person interior state | `Uncheckable. No record of this could exist.` |
+| no entity could be resolved | `Nothing to look up: no entity could be resolved…` |
 
-There is no sentence available for "this is true", and that absence is the
-design. `verdict_language()` catches nineteen verdict words on whole-word
-boundaries — a narrator called Charlie must not trip a gate about the router's
-vocabulary — and a test runs it over everything the router actually emits, not
-just the constants.
+`Contradicted` names **every** dissenting account, not the first two — the old
+truncation hid two of four and showed whichever row SQLite returned first,
+which is picking. Narrator-supplied text is sanitised before it enters a
+sentence, and `verdict_language()` now runs **at write time**, not only in the
+test suite where it used to live.
 
-Two things it cannot do, by construction:
+Three things it cannot do, by construction:
 
-- **It never rules.** Nothing in it writes `ruled_by`, `confidence`, or a
-  terminal state. `uncheckable` is *proposed* and confirmed by a person, because
-  a machine deciding no record could exist is a machine deciding something.
-- **Independence is counted, not assumed.** A second telling by the same
-  narrator is one source saying it twice, and comes back `Uncorroborated`.
+- **It never rules.** Nothing writes `ruled_by`, `confidence`, or a terminal
+  state. `uncheckable` is *proposed* and confirmed by a person.
+- **It never uses a human's judgement as its own evidence.** `withheld` and
+  confirmed-`uncheckable` claims are excluded from retrieval.
+- **It never says anything about the vault it did not check.** A claim with no
+  resolvable entity returns `unresolved`, not "no source found".
 
-No model, no network. Corroboration is retrieval and comparison over the local
-vault. `extract_entities()` is the one seam where a model would be legitimate —
-it proposes what to look up rather than concluding anything about what is found
-— and it is deliberately naive today.
-
-The queue keeps `gap_proposed` separate from `uncorroborated`: agreeing that a
-gap is real is different work from finding a source nobody has looked for.
+Bare years are not entities (a year related a school burning down to somebody
+buying a truck). Dates resolve to **intervals**, so an honest `1998-2001` no
+longer contradicts someone who said `2001`. Retrieval joins a persisted entity
+index rather than re-extracting over the whole table — the old version was
+quadratic and took 139 seconds for a 500-claim sweep.
 
 ## Not built yet
 

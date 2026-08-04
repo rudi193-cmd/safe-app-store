@@ -20,6 +20,7 @@ from pathlib import Path
 import consent as consent_mod
 import vocabulary
 from desk_db import body_digest
+from entities import extract_entities
 
 MEDIA = ("audio", "transcript", "typed", "letter", "note")
 SOURCE_TYPES = ("public_record", "oral_history_consented", "authored", "unverifiable")
@@ -35,6 +36,22 @@ def _now() -> str:
 
 def _id() -> str:
     return uuid.uuid4().hex
+
+
+def identity(value: str, *, field: str = "identity") -> str:
+    """Normalise a person's identifier, or refuse it.
+
+    The witness gate compares identity strings, and SQLite compares TEXT
+    byte-exactly. Without this, `Slappy` sailed through a gate that refused
+    `slappy`, and a whitespace-only ruler was accepted — the keystone gate
+    defeated by a shift key. Every identity enters the vault through here.
+    """
+    if value is None:
+        raise DeskError(f"{field} is required")
+    normalised = " ".join(str(value).split()).strip().lower()
+    if not normalised:
+        raise DeskError(f"{field} is required — an unnamed hand is not a witness")
+    return normalised
 
 
 # ── filing ────────────────────────────────────────────────────────────────────
@@ -60,6 +77,8 @@ def file_statement(
         raise DeskError(f"unknown medium: {medium!r}")
     if not body.strip():
         raise DeskError("a statement with no body is not a statement")
+    narrator_id = identity(narrator_id, field="narrator_id")
+    taker_id = identity(taker_id, field="taker_id")
     if not consent_mod.may_keep(consent_store, narrator_id):
         raise DeskError(
             f"no verified keeping consent for narrator {narrator_id!r} — "
@@ -67,16 +86,22 @@ def file_statement(
         )
 
     sid = _id()
+    digest = body_digest(body)
     conn.execute(
         "INSERT INTO statements (id, created_at, session_id, narrator_id, taker_id,"
         " body, medium, captured_at, consent_ref, body_sha256)"
         " VALUES (?,?,?,?,?,?,?,?,?,?)",
         (sid, _now(), session_id, narrator_id, taker_id, body, medium,
-         captured_at, narrator_id, body_digest(body)),
+         captured_at, narrator_id, digest),
     )
     conn.commit()
+    # The digest goes into the subject's hash-chained disclosure record too.
+    # Inside the database it is a checksum sitting next to the thing it
+    # checksums; outside it, in a chain that detects edits and truncation, it
+    # is a witness. desk_db.verify_bodies compares the two.
     consent_mod.note_disclosure(
-        consent_store, narrator_id, "statement_filed", f"session={session_id} id={sid}"
+        consent_store, narrator_id, "statement_filed",
+        f"session={session_id} id={sid} sha256={digest}",
     )
     return sid
 
@@ -91,6 +116,7 @@ def add_claim(
     entities: list | None = None,
     occurred_at: str | None = None,
     place: str | None = None,
+    consent_store: Path | str | None = None,
 ) -> str:
     """Break one checkable assertion out of a statement.
 
@@ -99,6 +125,8 @@ def add_claim(
     """
     if source_type not in SOURCE_TYPES:
         raise DeskError(f"unknown source_type: {source_type!r}")
+    _require_keeping(conn, statement_id, consent_store)
+    resolved = tuple(entities) if entities is not None else extract_entities(assertion)
     cid = _id()
     try:
         conn.execute(
@@ -106,12 +134,36 @@ def add_claim(
             " entities, occurred_at, place, state, source_type)"
             " VALUES (?,?,?,?,?,?,?,?,'filed',?)",
             (cid, statement_id, span[0], span[1], assertion,
-             json.dumps(entities or []), occurred_at, place, source_type),
+             json.dumps(list(resolved)), occurred_at, place, source_type),
+        )
+        conn.executemany(
+            "INSERT OR IGNORE INTO claim_entities (claim_id, entity) VALUES (?,?)",
+            [(cid, e) for e in resolved],
         )
     except sqlite3.IntegrityError as exc:
         raise DeskError(str(exc)) from exc
     conn.commit()
     return cid
+
+
+def _require_keeping(conn, statement_id, consent_store) -> None:
+    """Refuse new work on a statement whose narrator has withdrawn.
+
+    Keeping consent used to be checked only when filing, so after a narrator
+    revoked, the desk happily kept building claims and docket entries on top
+    of what they had already asked to stop being used.
+    """
+    if consent_store is None:
+        return
+    row = conn.execute(
+        "SELECT narrator_id FROM statements WHERE id=?", (statement_id,)).fetchone()
+    if row is None:
+        raise DeskError(f"no such statement: {statement_id!r}")
+    if not consent_mod.may_keep(consent_store, row["narrator_id"]):
+        raise DeskError(
+            f"keeping consent for {row['narrator_id']!r} is not in force — "
+            "no new work on a withdrawn account"
+        )
 
 
 def quoted(conn: sqlite3.Connection, claim_id: str) -> str:
@@ -123,7 +175,16 @@ def quoted(conn: sqlite3.Connection, claim_id: str) -> str:
     ).fetchone()
     if row is None:
         raise DeskError(f"no such claim: {claim_id!r}")
-    return row["body"][row["span_start"]:row["span_end"]]
+    start, end, body = row["span_start"], row["span_end"], row["body"]
+    # Python slicing does not raise on an out-of-range span — it returns a
+    # shorter string, or an empty one. A citation that is silently wrong is
+    # worse than an error, so this refuses instead of slicing.
+    if start < 0 or end <= start or end > len(body):
+        raise DeskError(
+            f"claim {claim_id!r} has a span that no longer resolves "
+            f"({start}:{end} of {len(body)}) — refusing to quote"
+        )
+    return body[start:end]
 
 
 # ── the docket ────────────────────────────────────────────────────────────────
@@ -177,6 +238,7 @@ def rule(
     """
     if confidence not in ("high", "medium", "low", "conflicting"):
         raise DeskError(f"unknown confidence: {confidence!r}")
+    ruled_by = identity(ruled_by, field="ruled_by")
     try:
         cur = conn.execute(
             "UPDATE claims SET ruled_by=?, ruled_at=?, ruling_note=?,"
@@ -197,16 +259,20 @@ def mark_uncheckable(conn: sqlite3.Connection, *, claim_id: str, ruled_by: str, 
     private moment, a room with two people in it and one of them is dead.
     Confirming the gap is real is work, and this is what it produces.
     """
+    ruled_by = identity(ruled_by, field="ruled_by")
     try:
         cur = conn.execute(
             "UPDATE claims SET ruled_by=?, ruled_at=?, ruling_note=?,"
-            " source_type='unverifiable', state='uncheckable' WHERE id=?",
+            " source_type='unverifiable', state='uncheckable'"
+            " WHERE id=? AND state IN ('filed','routed')",
             (ruled_by, _now(), note, claim_id),
         )
     except sqlite3.IntegrityError as exc:
         raise DeskError(str(exc)) from exc
     if cur.rowcount == 0:
-        raise DeskError(f"no such claim: {claim_id!r}")
+        raise DeskError(
+            f"claim {claim_id!r} is not in a state that can be marked uncheckable"
+        )
     conn.commit()
 
 
@@ -258,20 +324,25 @@ def withhold_narrator(conn: sqlite3.Connection, *, narrator_id: str, reason: str
 def queue(conn: sqlite3.Connection) -> dict[str, int]:
     """What a human is uniquely needed for, ordered by that (spec §7).
 
-    `gap_proposed` is its own bucket rather than a kind of uncorroborated: a
-    claim the router thinks no source could exist for needs a person to *agree
-    that the gap is real*, which is different work from finding a source
-    nobody has looked for yet. Recognised by the refusal contract's own
-    sentence (vocabulary.py), so the queue does not have to import the router
-    that wrote it.
+    Classification matches the router's own precedence, and only counts rows
+    the router wrote. Both were wrong before: the queue put a proposed gap
+    above retrieval while the router put it below, so the two disagreed about
+    the same claim; and it matched on `excerpt` alone, so an operator could
+    pass `--excerpt "Uncheckable. No record of this could exist."` on the CLI
+    and bury a checkable claim in the "confirm the gap and let it stand" pile.
+
+    `unrouted` is its own bucket: a claim nobody has looked at is not the same
+    as one the router examined and found nothing for.
     """
-    counts = {"contradicted": 0, "uncorroborated": 0, "gap_proposed": 0,
-              "uncheckable": 0, "corroborated": 0}
+    counts = {"contradicted": 0, "gap_proposed": 0, "related": 0,
+              "uncorroborated": 0, "unrouted": 0, "uncheckable": 0}
     rows = conn.execute(
         "SELECT c.id, c.state,"
         " SUM(CASE WHEN d.relation='contradicts' THEN 1 ELSE 0 END) AS against,"
-        " SUM(CASE WHEN d.relation='corroborates' THEN 1 ELSE 0 END) AS for_,"
-        " SUM(CASE WHEN d.excerpt = ? THEN 1 ELSE 0 END) AS gap"
+        " SUM(CASE WHEN d.relation='contextualizes' THEN 1 ELSE 0 END) AS near,"
+        " SUM(CASE WHEN d.found_by='router' AND d.relation='no_source_found'"
+        "           AND d.excerpt = ? THEN 1 ELSE 0 END) AS gap,"
+        " SUM(CASE WHEN d.found_by='router' THEN 1 ELSE 0 END) AS routed"
         " FROM claims c LEFT JOIN docket_entries d ON d.claim_id = c.id"
         " WHERE c.state IN ('filed','routed','uncheckable') GROUP BY c.id",
         (vocabulary.UNCHECKABLE,),
@@ -283,8 +354,10 @@ def queue(conn: sqlite3.Connection) -> dict[str, int]:
             counts["contradicted"] += 1
         elif row["gap"]:
             counts["gap_proposed"] += 1
-        elif row["for_"]:
-            counts["corroborated"] += 1
-        else:
+        elif row["near"]:
+            counts["related"] += 1
+        elif row["routed"]:
             counts["uncorroborated"] += 1
+        else:
+            counts["unrouted"] += 1
     return counts

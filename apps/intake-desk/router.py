@@ -1,50 +1,49 @@
 """The routing pass.
 
-**The router never adjudicates.** It does four things and then stops:
+**The router never adjudicates, and it no longer claims agreement either.**
+It does four things and then stops:
 
-  1. resolve      — what entities, dates, places does this claim touch
-  2. corroborate  — who else in the vault said something about this, and do
-                    they agree
-  3. sequence     — where does it sit in time, relative to related claims
+  1. resolve      — what entities and dates does this claim touch
+  2. retrieve     — which other claims in the vault are about the same things
+  3. sequence     — can the dated accounts all be right
   4. declare the gap — what could not be checked by any source that could exist
 
-The output is a docket. A human rules. Nothing in this module writes
-`ruled_by`, `confidence`, or any terminal state — `uncheckable` is *proposed*
-here and confirmed by a person in `desk.mark_uncheckable`, because a machine
-deciding that no record could exist is a machine deciding something.
+The output is a docket of candidates and conflicts. A human rules.
 
-A confident wrong answer about somebody's grandfather ends the product, so the
-refusal contract below is fixed language, and `tests/test_router.py` holds it
-with a vocabulary test over these exact strings. The router is built to be
-boring and correct at the boundary.
+What changed, and why it matters more than anything else in this module: there
+used to be a fifth thing, "corroborate", which reported "Corroborated by N
+sources." whenever another narrator's claim shared an entity. An adversarial
+pass measured that wrong on 89% of the corroborations it produced. Entity
+overlap cannot see negation, so a source that *denied* a claim was counted as
+confirming it. Retrieval can honestly say *these are about the same things*;
+it cannot say *they agree*. Only a person can promote a candidate to
+agreement, so the sentence is gone.
 
-No model, no network. Corroboration is retrieval and comparison over the local
-vault. Claim extraction may one day use a model — `extract_entities` is the
-seam for that — but nothing downstream of it may.
+Nothing here writes `ruled_by`, `confidence`, or a terminal state.
+`uncheckable` is *proposed* and confirmed by a person in
+`desk.mark_uncheckable`, because a machine deciding that no record could exist
+is a machine deciding something.
+
+No model, no network.
 """
 from __future__ import annotations
 
 import re
 import sqlite3
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import desk
-
-# ── the refusal contract (spec §6) ─────────────────────────────────────────────
-#
-# The five sentences are the router's entire vocabulary of conclusion, and they
-# live in vocabulary.py — the desk queue has to recognise a proposed gap without
-# importing the thing that proposed it, and a contract owned by the component it
-# constrains is not much of a contract. Re-exported here so callers of the
-# router read them where they are used.
-
-from vocabulary import (  # noqa: F401
+import vocabulary
+from entities import disjoint, extract_entities, year_span
+from vocabulary import (  # noqa: F401  (re-exported: callers read them here)
     CONTRADICTED,
-    CORROBORATED,
-    FORBIDDEN,
     NO_SOURCE,
+    RELATED,
+    SELF_INCONSISTENT,
     UNCHECKABLE,
     UNCORROBORATED,
+    UNRESOLVED,
+    sanitize,
     verdict_language,
 )
 
@@ -53,190 +52,160 @@ class RouterError(Exception):
     pass
 
 
-# ── 1. resolve ────────────────────────────────────────────────────────────────
-
-_YEAR = re.compile(r"\b(1[6-9]\d{2}|20\d{2})\b")
-_PROPER = re.compile(r"\b([A-Z][a-z]{1,}(?:['’][A-Za-z]+)?(?:\s+[A-Z][a-z]{1,})*)\b")
-
-# Words that start sentences and are not entities. Deliberately short: this
-# resolver is naive on purpose and says so. Precision here is the job of a
-# model-assisted resolver later; the seam is extract_entities(), and nothing
-# downstream of it is allowed to become less careful because it improved.
-_STOP = frozenset({
-    "The", "A", "An", "It", "He", "She", "They", "We", "I", "You", "That",
-    "This", "There", "Then", "But", "And", "Nobody", "Somebody", "Someone",
-    "Everyone", "When", "What", "Who", "Where", "Why", "How", "After",
-    "Before", "Once", "Never", "Always", "His", "Her", "Their", "Our", "My",
-})
-
-
-def extract_entities(text: str) -> tuple[str, ...]:
-    """Candidate entities in a claim: proper-noun runs and years.
-
-    Deliberately naive, and named as such. It is the seam a model-assisted
-    resolver replaces — the one place in the router where a model would be
-    legitimate, because it proposes what to look up rather than concluding
-    anything about what is found.
-    """
-    found: list[str] = []
-    for match in _PROPER.finditer(text):
-        token = match.group(1)
-        head = token.split()[0]
-        if head in _STOP:
-            token = " ".join(token.split()[1:])
-        if token and token not in _STOP:
-            found.append(token)
-    found += _YEAR.findall(text)
-    seen: dict[str, None] = {}
-    for item in found:
-        seen.setdefault(item.strip(), None)
-    return tuple(seen)
-
-
-# ── 3. sequence ───────────────────────────────────────────────────────────────
-
-def _year_of(value: str | None) -> int | None:
-    """The year in a fuzzy date. "1998", "1998-06?", "summer 1998" all resolve.
-
-    Fuzzy time is how people actually date things, and it is more reliable than
-    the precise year they will guess if pushed (spec §13.4). The router reads
-    what it can and stays quiet about the rest.
-    """
-    if not value:
-        return None
-    match = _YEAR.search(value)
-    return int(match.group(1)) if match else None
-
-
-# ── the finding ───────────────────────────────────────────────────────────────
-
-@dataclass(frozen=True)
-class Finding:
-    """What the routing pass found. Evidence and gaps — never a verdict."""
-
-    claim_id: str
-    status: str  # corroborated | contradicted | uncorroborated
-                 # | no_source_found | uncheckable_proposed
-    entities: tuple[str, ...] = ()
-    corroborating: tuple[str, ...] = ()
-    contradicting: tuple[str, ...] = ()
-    independent_narrators: tuple[str, ...] = ()
-    timeline: tuple[tuple[str, int], ...] = ()
-    detail: tuple[str, ...] = field(default=())
-
-    def sentence(self) -> str:
-        """The router's conclusion, in the only words it is allowed."""
-        if self.status == "corroborated":
-            return CORROBORATED.format(n=len(self.independent_narrators))
-        if self.status == "contradicted":
-            a, b = (self.detail + ("", ""))[:2]
-            return CONTRADICTED.format(a=a, b=b)
-        if self.status == "uncheckable_proposed":
-            return UNCHECKABLE
-        if self.status == "uncorroborated":
-            return UNCORROBORATED
-        return NO_SOURCE
-
-
-# ── 4. declare the gap ────────────────────────────────────────────────────────
-
-# Interior state, in the first person, with no witness by construction: a
-# feeling, a private thought, a thing nobody was told. The router only ever
-# *proposes* this — desk.mark_uncheckable requires a human ruler, because
-# confirming that a gap is real is work, and it is a person's work.
+# ── declaring the gap ─────────────────────────────────────────────────────────
+#
+# First person, interior, with no witness by construction. Every clause is
+# anchored to a first-person pronoun on purpose: the previous version matched
+# "nobody knew/saw/was told …", which is a claim about the *world* and is
+# usually checkable — "Nobody saw the truck leave the lot" is answered by the
+# lot's cameras. Marking that uncheckable routes a checkable claim toward never
+# being checked, under the strongest sentence in the contract.
 _INTERIOR = re.compile(
-    r"\b("
-    r"i (?:felt|thought|believed|knew|wanted|hoped|feared|wondered|assumed)"
-    r"|i (?:never|didn'?t|did not) (?:told?|tell|say|said|mention)"
-    r"|(?:nobody|no one|noone) (?:knew|noticed|saw|heard|was told)"
-    r"|(?:was|were|felt) (?:scared|afraid|ashamed|relieved|proud|angry)"
-    r"|in (?:my|his|her|their) head"
+    r"(?:^|[.!?]\s+|;\s*)i\s+(?:"
+    r"felt|thought|believed|knew|wanted|hoped|feared|wondered|assumed"
+    r"|never\s+(?:told|said|mentioned)"
+    r"|didn'?t\s+(?:tell|say|mention)"
+    r"|did\s+not\s+(?:tell|say|mention)"
+    r"|was\s+(?:scared|afraid|ashamed|relieved|proud|angry|terrified|humiliated)"
     r")\b",
     re.IGNORECASE,
 )
 
 
 def proposes_uncheckable(text: str) -> bool:
-    return bool(_INTERIOR.search(text))
+    """Whether a claim looks like interior state nobody could witness.
 
-
-# ── 2. corroborate, and the pass itself ───────────────────────────────────────
-
-def _related(conn: sqlite3.Connection, claim: sqlite3.Row, entities: tuple[str, ...]):
-    """Other claims in the vault touching any of the same entities.
-
-    Retrieval and comparison, not inference. A claim is related when the words
-    it is about overlap — nothing here decides what the overlap means.
+    Conservative by design, and it only ever *proposes*. A false positive here
+    is worse than a false negative: it buries a checkable claim in the queue
+    bucket whose instruction is "confirm the gap and let it stand".
     """
-    if not entities:
-        return []
-    rows = conn.execute(
-        "SELECT c.*, s.narrator_id FROM claims c JOIN statements s ON s.id = c.statement_id"
-        " WHERE c.id != ? AND c.state != 'withheld'",
-        (claim["id"],),
+    return bool(_INTERIOR.search(text or ""))
+
+
+# ── the finding ───────────────────────────────────────────────────────────────
+
+@dataclass(frozen=True)
+class Finding:
+    """What the routing pass found. Candidates, conflicts and gaps.
+
+    There is no field, and no sentence, that asserts agreement.
+    """
+
+    claim_id: str
+    status: str  # contradicted | self_inconsistent | uncheckable_proposed
+                 # | related_found | uncorroborated | no_source_found | unresolved
+    entities: tuple[str, ...] = ()
+    related: tuple[str, ...] = ()
+    contradicting: tuple[str, ...] = ()
+    accounts: tuple[str, ...] = ()
+    timeline: tuple[tuple[str, int], ...] = ()
+
+    def sentence(self) -> str:
+        """The router's conclusion, in the only words it is allowed."""
+        if self.status == "contradicted":
+            if not self.accounts:
+                raise RouterError("contradicted with no accounts to name")
+            return CONTRADICTED.format(accounts="; ".join(self.accounts))
+        if self.status == "self_inconsistent":
+            if not self.accounts:
+                raise RouterError("self_inconsistent with no accounts to name")
+            return SELF_INCONSISTENT.format(accounts="; ".join(self.accounts))
+        if self.status == "uncheckable_proposed":
+            return UNCHECKABLE
+        if self.status == "related_found":
+            return RELATED.format(n=len(self.related))
+        if self.status == "uncorroborated":
+            return UNCORROBORATED
+        if self.status == "unresolved":
+            return UNRESOLVED
+        return NO_SOURCE
+
+
+# ── retrieval ─────────────────────────────────────────────────────────────────
+
+def _related(conn: sqlite3.Connection, claim: sqlite3.Row):
+    """Other claims about the same things.
+
+    Joins the persisted entity index rather than re-extracting entities over
+    the whole table on every call — the old version was quadratic and measured
+    at 139 seconds for a 500-claim sweep, which an archive with one shoebox of
+    transcripts would exceed on its first afternoon.
+
+    Excludes claims a human has already dealt with: `withheld` (revoked or
+    asked), and `uncheckable` (a confirmed gap is not evidence for anything).
+    """
+    return conn.execute(
+        "SELECT DISTINCT c.*, s.narrator_id FROM claim_entities e"
+        " JOIN claims c ON c.id = e.claim_id"
+        " JOIN statements s ON s.id = c.statement_id"
+        " WHERE e.entity IN (SELECT entity FROM claim_entities WHERE claim_id = ?)"
+        "   AND c.id != ?"
+        "   AND c.state NOT IN ('withheld','uncheckable')"
+        " ORDER BY c.id",
+        (claim["id"], claim["id"]),
     ).fetchall()
-    out = []
-    for row in rows:
-        other = set(extract_entities(row["assertion"]))
-        if other & set(entities):
-            out.append(row)
-    return out
 
 
 def route(conn: sqlite3.Connection, claim_id: str, *, write_docket: bool = True) -> Finding:
-    """Run the four passes over one claim and return the finding.
+    """Run the passes over one claim and return the finding.
 
-    Writes docket entries as a side effect (that is the deliverable), and
-    moves `filed` -> `routed`. It writes nothing else: no ruling, no
-    confidence, no terminal state.
+    Writes docket entries as a side effect (that is the deliverable), replacing
+    any the router wrote for this claim before, and moves `filed` -> `routed`.
+    It writes nothing else.
     """
     claim = conn.execute(
-        "SELECT c.*, s.narrator_id, s.body FROM claims c"
+        "SELECT c.*, s.narrator_id FROM claims c"
         " JOIN statements s ON s.id = c.statement_id WHERE c.id = ?",
         (claim_id,),
     ).fetchone()
     if claim is None:
         raise RouterError(f"no such claim: {claim_id!r}")
 
-    entities = extract_entities(claim["assertion"])
-    related = _related(conn, claim, entities)
-    year = _year_of(claim["occurred_at"])
+    ents = tuple(r["entity"] for r in conn.execute(
+        "SELECT entity FROM claim_entities WHERE claim_id = ? ORDER BY entity", (claim_id,)))
+    mine = year_span(claim["occurred_at"])
+    me = sanitize(claim["narrator_id"])
 
-    corroborating: list[str] = []
+    related: list[str] = []
     contradicting: list[str] = []
-    narrators: list[str] = []
-    detail: list[str] = []
+    self_conflict: list[str] = []
+    accounts: dict[str, None] = {f"{me} says {sanitize(claim['occurred_at'])}": None}
     timeline: list[tuple[str, int]] = []
+    others: list[str] = []
 
-    for row in related:
-        other_year = _year_of(row["occurred_at"])
-        if other_year is not None:
-            timeline.append((row["id"], other_year))
-        # A comparison the router can actually make without semantics: two
-        # claims about the same entities, dated to different years. That is a
-        # disagreement about the record, and it is surfaced, never settled.
-        if year is not None and other_year is not None and year != other_year:
-            contradicting.append(row["id"])
-            detail.append(f"{claim['narrator_id']} says {claim['occurred_at']}")
-            detail.append(f"{row['narrator_id']} says {row['occurred_at']}")
-        elif row["narrator_id"] != claim["narrator_id"]:
-            # Independence is the whole point: a second telling by the same
-            # narrator is the same source saying it twice.
-            corroborating.append(row["id"])
-            if row["narrator_id"] not in narrators:
-                narrators.append(row["narrator_id"])
+    for row in _related(conn, claim) if ents else []:
+        theirs = year_span(row["occurred_at"])
+        if theirs is not None:
+            timeline.append((row["id"], theirs[0]))
+        if disjoint(mine, theirs):
+            entry = f"{sanitize(row['narrator_id'])} says {sanitize(row['occurred_at'])}"
+            accounts.setdefault(entry, None)
+            if row["narrator_id"] == claim["narrator_id"]:
+                self_conflict.append(row["id"])
+            else:
+                contradicting.append(row["id"])
+        else:
+            related.append(row["id"])
+            if row["narrator_id"] != claim["narrator_id"]:
+                others.append(row["narrator_id"])
 
+    # Precedence. The gap test sits above retrieval on purpose: a private
+    # moment must not be talked over by whatever else happens to mention the
+    # same town. Previously it sat below, and someone's "I never told anybody
+    # how scared I was at Laconia" came back corroborated by a stranger who
+    # said Laconia is up north.
     if contradicting:
         status = "contradicted"
-    elif len(narrators) >= 1:
-        # ">= 2 independent agreeing sources" counts the narrator of this claim
-        # plus every distinct other narrator who said something compatible.
-        status = "corroborated"
-        narrators = [claim["narrator_id"]] + narrators
-    elif proposes_uncheckable(claim["assertion"]) or proposes_uncheckable(
-        claim["body"][claim["span_start"]:claim["span_end"]]
-    ):
+    elif self_conflict:
+        status = "self_inconsistent"
+    elif proposes_uncheckable(claim["assertion"]):
         status = "uncheckable_proposed"
+    elif not ents:
+        # Nothing was looked up, so nothing may be said about the vault.
+        # `No source found` asserts a fact about what is in there.
+        status = "unresolved"
+    elif related and others:
+        status = "related_found"
     elif related:
         status = "uncorroborated"
     else:
@@ -245,12 +214,11 @@ def route(conn: sqlite3.Connection, claim_id: str, *, write_docket: bool = True)
     finding = Finding(
         claim_id=claim_id,
         status=status,
-        entities=entities,
-        corroborating=tuple(corroborating),
-        contradicting=tuple(contradicting),
-        independent_narrators=tuple(narrators),
+        entities=ents,
+        related=tuple(related),
+        contradicting=tuple(contradicting + self_conflict),
+        accounts=tuple(accounts) if status in ("contradicted", "self_inconsistent") else (),
         timeline=tuple(sorted(timeline, key=lambda t: t[1])),
-        detail=tuple(detail[:2]),
     )
 
     if write_docket:
@@ -259,21 +227,44 @@ def route(conn: sqlite3.Connection, claim_id: str, *, write_docket: bool = True)
 
 
 def _record(conn: sqlite3.Connection, claim_id: str, finding: Finding) -> None:
-    """Turn a finding into docket entries. Evidence, with the source named."""
+    """Turn a finding into docket entries, replacing the router's previous pass.
+
+    The sentence is checked against the forbidden vocabulary *here*, at the
+    point it is written. The gate used to exist only in the test suite, which
+    meant narrator-supplied text could carry a verdict into the docket and out
+    through the export with nothing in the running system objecting.
+    """
+    sentence = finding.sentence()
+    found = verdict_language(sentence)
+    if found is not None:
+        raise RouterError(
+            f"refusing to write a docket entry containing {found!r} — "
+            "the router reports evidence, not conclusions"
+        )
+
+    # Routing is idempotent: re-running replaced nothing before, so four runs
+    # left four identical rows and the queue read whichever was stale.
+    conn.execute(
+        "DELETE FROM docket_entries WHERE claim_id = ? AND found_by = 'router'",
+        (claim_id,),
+    )
+    conn.commit()
+
     for other in finding.contradicting:
         desk.add_docket_entry(
             conn, claim_id=claim_id, relation="contradicts", source_kind="vault",
-            source_ref=f"claim:{other}", excerpt=finding.sentence(), found_by="router",
+            source_ref=f"claim:{other}", excerpt=sentence, found_by="router",
         )
-    for other in finding.corroborating:
+    for other in finding.related:
         desk.add_docket_entry(
-            conn, claim_id=claim_id, relation="corroborates", source_kind="vault",
-            source_ref=f"claim:{other}", excerpt=finding.sentence(), found_by="router",
+            conn, claim_id=claim_id, relation="contextualizes", source_kind="vault",
+            source_ref=f"claim:{other}", excerpt=sentence, found_by="router",
         )
-    if finding.status in ("no_source_found", "uncheckable_proposed", "uncorroborated"):
+    if finding.status in ("no_source_found", "uncheckable_proposed",
+                          "uncorroborated", "unresolved"):
         desk.add_docket_entry(
             conn, claim_id=claim_id, relation="no_source_found", source_kind="vault",
-            source_ref=None, excerpt=finding.sentence(), found_by="router",
+            source_ref=None, excerpt=sentence, found_by="router",
         )
 
 

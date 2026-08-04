@@ -31,10 +31,35 @@ class ExportRefused(Exception):
 
 def _publishable(conn: sqlite3.Connection) -> list[sqlite3.Row]:
     return list(conn.execute(
-        "SELECT c.*, s.narrator_id, s.taker_id, s.session_id, s.captured_at, s.medium"
+        "SELECT c.*, s.narrator_id, s.taker_id, s.session_id, s.captured_at,"
+        " s.medium, s.consent_ref"
         " FROM claims c JOIN statements s ON s.id = c.statement_id"
         " WHERE c.state = 'published' ORDER BY c.id"
     ))
+
+
+def _docket_subjects(conn: sqlite3.Connection, claim_id: str) -> set[str]:
+    """Every narrator named by a claim's docket, not just the claim's own.
+
+    The router writes other people into an excerpt — "slappy says 1998;
+    the-colonel says 1999" — and the docket travels with the export. Checking
+    consent only for the narrators of the published claims meant a person who
+    had revoked both scopes still left the vault by name, inside somebody
+    else's record. Consent has to be asked of everyone the export mentions.
+    """
+    subjects: set[str] = set()
+    for row in conn.execute(
+        "SELECT source_ref FROM docket_entries WHERE claim_id=? AND source_ref LIKE 'claim:%'",
+        (claim_id,),
+    ):
+        other = conn.execute(
+            "SELECT s.narrator_id FROM claims c JOIN statements s ON s.id = c.statement_id"
+            " WHERE c.id = ?",
+            (row["source_ref"].split("claim:", 1)[1],),
+        ).fetchone()
+        if other is not None:
+            subjects.add(other["narrator_id"])
+    return subjects
 
 
 def gather(conn: sqlite3.Connection, *, consent_store: Path | str) -> list[dict]:
@@ -47,9 +72,13 @@ def gather(conn: sqlite3.Connection, *, consent_store: Path | str) -> list[dict]
     if not rows:
         raise ExportRefused("nothing is published — there is nothing to export")
 
+    mentioned = set()
+    for row in rows:
+        mentioned.add(row["narrator_id"])
+        mentioned |= _docket_subjects(conn, row["id"])
     ungranted = {
-        row["narrator_id"] for row in rows
-        if not consent_mod.may_publish(consent_store, row["narrator_id"])
+        subject for subject in mentioned
+        if not consent_mod.may_publish(consent_store, subject)
     }
     if ungranted:
         # The count, never the values. Naming who withheld consent in an error
@@ -59,8 +88,14 @@ def gather(conn: sqlite3.Connection, *, consent_store: Path | str) -> list[dict]
             "publication grant. Nothing was written."
         )
 
+    # Scoped to the narrators in this export. A global count told a recipient
+    # how many times other people had withdrawn, which is a disclosure about
+    # those people to someone with no relationship to them.
+    placeholders = ",".join("?" * len(mentioned))
     withheld = conn.execute(
-        "SELECT COUNT(*) AS n FROM claims WHERE state = 'withheld'"
+        "SELECT COUNT(*) AS n FROM claims c JOIN statements s ON s.id = c.statement_id"
+        f" WHERE c.state = 'withheld' AND s.narrator_id IN ({placeholders})",
+        tuple(sorted(mentioned)),
     ).fetchone()["n"]
 
     out = []
@@ -78,9 +113,11 @@ def gather(conn: sqlite3.Connection, *, consent_store: Path | str) -> list[dict]
             "occurred_at": row["occurred_at"],
             "place": row["place"],
             "corrections": json.loads(row["corrections"]),
-            # Rule 1 — the scope travels with the data.
+            # Rule 1 — the scope travels with the data, read from the
+            # statement's stored consent_ref rather than re-derived, so the
+            # exported block is the record rather than a restatement of it.
             "consent": {
-                "subject": row["narrator_id"],
+                "subject": row["consent_ref"],
                 "scope": consent_mod.PUBLICATION,
                 "verified_at_export": True,
             },
@@ -93,20 +130,31 @@ def gather(conn: sqlite3.Connection, *, consent_store: Path | str) -> list[dict]
             ],
         })
 
-    for narrator in {row["narrator_id"] for row in rows}:
-        consent_mod.note_disclosure(
-            consent_store, narrator, "exported",
-            f"{sum(1 for r in rows if r['narrator_id'] == narrator)} claim(s)",
-        )
     if withheld:
         out.append({"_note": f"{withheld} claim(s) withheld and not exported"})
     return out
+
+
+def _note_export(conn: sqlite3.Connection, consent_store, records: list[dict]) -> None:
+    """Append to the disclosure chain — after the write, not before.
+
+    Recording the export first meant a failed write left a permanent record of
+    an export that never happened.
+    """
+    counts: dict[str, int] = {}
+    for rec in records:
+        if "_note" in rec:
+            continue
+        counts[rec["narrator"]] = counts.get(rec["narrator"], 0) + 1
+    for narrator, n in sorted(counts.items()):
+        consent_mod.note_disclosure(consent_store, narrator, "exported", f"{n} claim(s)")
 
 
 def to_json(conn: sqlite3.Connection, *, consent_store: Path | str, path: Path | str) -> Path:
     records = gather(conn, consent_store=consent_store)
     dest = Path(path)
     dest.write_text(json.dumps(records, indent=2) + "\n", encoding="utf-8")
+    _note_export(conn, consent_store, records)
     return dest
 
 
@@ -137,4 +185,5 @@ def to_markdown(conn: sqlite3.Connection, *, consent_store: Path | str, path: Pa
             lines.append("")
     dest = Path(path)
     dest.write_text("\n".join(lines), encoding="utf-8")
+    _note_export(conn, consent_store, records)
     return dest
