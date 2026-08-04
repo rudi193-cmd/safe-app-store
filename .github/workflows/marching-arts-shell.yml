@@ -1,0 +1,101 @@
+name: marching-arts-shell
+
+# Per-app and path-filtered, like ask-jeles and story-timeline. It has to be its
+# own workflow rather than a leg of store-ci's app-tests matrix, because that
+# matrix is Python-only — `python -m pytest tests/ -q` — and this app is Node.
+# Adding files under apps/ earns no CI on its own, which is how two re-landed
+# apps once passed locally and ran nowhere.
+#
+# Two jobs, split the way browser-resolver and browser-mechanisms are split: the
+# gates must stay runnable without a browser, so the one thing that needs
+# Chromium gets its own job rather than a skip guard inside the other. A skipped
+# test still exits 0, which is how bureau-differential's Python leg came to
+# report green having compared nothing.
+
+on:
+  push:
+    branches: [master]
+    paths: ["apps/marching-arts-shell/**", ".github/workflows/marching-arts-shell.yml"]
+  pull_request:
+    paths: ["apps/marching-arts-shell/**", ".github/workflows/marching-arts-shell.yml"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: apps/marching-arts-shell
+
+jobs:
+  gates:
+    name: mark, shell, named mutations
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/marching-arts-shell/package-lock.json
+
+      - run: npm ci
+
+      # 71 gates: the mark's construction and artefact checks, plus the chassis
+      # holding itself to what its manifest claims — network: none as a
+      # mechanism, an empty capability slot, storage that reports rather than
+      # assumes.
+      - name: Gates
+        run: npm test
+
+      # Every gate proven able to fail, by name. Stryker is configured too, but
+      # the TAP runner reports one test per file, so it cannot attribute a kill
+      # to a gate; this can, and fails if the wrong gate catches a defect.
+      - name: Named mutations
+        run: npm run mutate:named
+
+      # Rebuilding must change nothing. If the committed mark drifted from the
+      # generator, `npm test` has already said so — this is the belt to that
+      # braces and costs a second.
+      - name: Build is idempotent
+        run: |
+          npm run build
+          git diff --exit-code -- .
+
+  raster:
+    name: icon set, in a real browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/marching-arts-shell/package-lock.json
+
+      - run: npm ci
+
+      # Playwright for the browser binary only; nothing imports it. Chromium is
+      # the one dependency the rasteriser cannot fake, and raster.test.mjs fails
+      # rather than skips without it — the whole point of a separate job.
+      - name: Install Chromium
+        run: npx --yes playwright@1.56.1 install --with-deps chromium
+
+      - name: Locate Chromium
+        run: |
+          CHROME="$(find "$HOME/.cache/ms-playwright" -type f -name chrome | head -n 1)"
+          test -n "$CHROME" || { echo "no chrome under ms-playwright"; exit 1; }
+          echo "CHROME=$CHROME" >> "$GITHUB_ENV"
+
+      # Rasterises fresh and compares every pixel against the committed icon,
+      # then asserts the comparisons happened rather than trusting exit 0.
+      - name: Raster gate
+        run: npm run test:raster

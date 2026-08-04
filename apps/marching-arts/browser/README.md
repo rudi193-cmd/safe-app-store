@@ -657,3 +657,15 @@ behind.
 Net: one idea kept, ~630 lines not carried across. The repo's own CLAUDE.md is
 right that re-landing is where the mistakes get caught — the mistake caught here
 was the data model.
+
+---
+
+## The shell that consumes this
+
+This package is a library — a resolver over SQLite-WASM, with no HTML and no UI.
+The browser chassis that hosts it is a separate app:
+[`apps/marching-arts-shell`](../../marching-arts-shell/), built for P4 and
+deliberately shipping no capability, because P4 is blocked on the core job and
+what goes inside the chassis is the open question. It carries the shell, the
+storage seam, the service worker and the mark; it does not yet import this
+package, and it says so.

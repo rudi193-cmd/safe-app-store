@@ -1,0 +1,39 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "_comment": "Mutation testing for the chassis and the mark. Breadth; mark/mutate.mjs is the attribution half. The TAP runner reports one test per file, so killedBy is not usable here \u2014 see mark/mutate.mjs.",
+  "packageManager": "npm",
+  "testRunner": "tap",
+  "tap": {
+    "testFiles": [
+      "test/construct.test.mjs",
+      "test/shell.test.mjs"
+    ],
+    "nodeArgs": [],
+    "forceBail": false
+  },
+  "mutate": [
+    "mark/construct.mjs",
+    "mark/invariants.mjs",
+    "mark/endpoint.mjs",
+    "mark/build.mjs",
+    "mark/png.mjs",
+    "mark/rasterise.mjs",
+    "web/src/capabilities.js",
+    "web/src/storage.js"
+  ],
+  "reporters": [
+    "html",
+    "json",
+    "clear-text",
+    "progress"
+  ],
+  "htmlReporter": {
+    "fileName": "reports/mutation/index.html"
+  },
+  "jsonReporter": {
+    "fileName": "reports/mutation/mutation.json"
+  },
+  "timeoutMS": 30000,
+  "concurrency": 4,
+  "coverageAnalysis": "perTest"
+}

@@ -1,0 +1,13 @@
+{
+  "app_id": "marching-arts-shell",
+  "majors": [
+    "node"
+  ],
+  "location": "apps/marching-arts-shell",
+  "maker": "USER",
+  "lane": [
+    "marching_arts_shell_*"
+  ],
+  "state": "building",
+  "notes": "P4 chassis for apps/marching-arts — shell, storage seam, offline, generated mark. Single major, so no relation is named: it does not yet import @marching-arts/browser, and until it does the two are neighbours rather than a pair. The capability slot is empty because P4 is blocked on the core job, and test/shell.test.mjs fails if anything registers, so the open question cannot be closed in code by accident. P4's gate — offline after first load, on a Chromebook, from a static host — is not claimed."
+}

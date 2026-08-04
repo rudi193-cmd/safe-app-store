@@ -1,0 +1,4 @@
+node_modules/
+mark/preview/
+reports/
+.stryker-tmp/
