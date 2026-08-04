@@ -131,11 +131,11 @@ plus the attestation precondition. **2 of 9 pass today.***
 Several of these **supersede** items in Tracks A and D rather than adding to
 them; cross-references are noted.*
 
-**Already done:** GitHub org stood up · `.github` repo created.
+**Already done:** GitHub org stood up as **`homestead-affairs`** (handle confirmed 2026-08-04 — no rename needed) · `.github` repo created.
 
 | # | Item | Where | Status |
 |---|---|---|---|
-| **E-0** | **Confirm the org handle reads `homestead-affairs`.** If it was stood up as `homestead-sovereign` under the earlier naming, rename it. GitHub redirects the old handle, but every pinned URL, clone remote, and doc reference should be updated rather than left on the redirect — and the whole point of the rename is that the old word not appear in a legal product's URL. | 🟢 here | **check** |
+| **E-0** | ~~Confirm the org handle reads `homestead-affairs`.~~ **Done 2026-08-04** — confirmed correct; the earlier `homestead-sovereign` naming never went live, so no rename and no redirect to clean up. | 🟢 here | **done** |
 | **E-1** | **Teach `tools/vault_leak_lint.py` a `HOMESTEAD_HOME` root.** **Do this first — it blocks E-3.** The linter treats a persistence path as clean only when the line derives from `WILLOW_STORE_ROOT` / `WILLOW_HOME`; anything else home-rooted holding data is a leak, and `"case"` is in its data-name hints. `store-ci.yml` runs it `--strict`. Moving to `/.homestead` before the linter learns it flips `vault_leak [M]` — the one promotion gate this app passes — from PASS to FAIL, and reddens CI. Host-side edit, small, lives in this repo. | 🟢 here | open |
 | **E-2** | **Build `homestead.keep`** — the import-pure record / deadline / evidence engine, in the **seat repo** `homestead`, pinned by tag from each module. **Supersedes D-2**: this is the import-pure core, and it is worth pointing the gate at because it holds real logic rather than a stub. Note the deviation: base repos are optional elsewhere on the die; this seat is load-bearing, because nothing can pin an engine that doesn't exist. | 🟢 here | open |
 | **E-3** | **Move path resolution to `/.homestead`** via `homestead.keep.paths`, and **delete the `vault_paths` import**. **Supersedes A-1**: with its own root this stops being a dependency to *declare* and becomes one to *remove*, and `inversion [M]` passes by construction rather than by pinning. **Criterion — audience, not face:** a product gets its own root only when *someone who does not run the fleet installs it*; everything else stays on `~/.willow` + `vault-paths`. Face 4 is currently the only face answering yes. Note the root is **not** for isolation — same uid, same permissions, and a directory name is not a security boundary; the gate and store-scope wall are what keep Nestor out. **`~/.willow` is not being migrated** — the fleet root stays as it is. Blocked on E-1. | 🟢 here | blocked on E-1 |
@@ -145,11 +145,12 @@ them; cross-references are noted.*
 | **E-7** | **Re-derive the module names.** `compact / claim / ledger / fence / remedy` came from the "settler order without a county" framing that the rename removes. *Claim*, *remedy*, *ledger* may survive on merit; *compact* and *fence* came from the settler framing specifically. Do not inherit them through a rename. | 🟡 decision | open |
 | **E-8** | **Draw the `justice-almanac` → deadline-engine edge.** Court rules and deadline tables are public data and belong to face 3, which already has that vertical. Tables pinned from the almanac; engine lives here. Gives face 4 a producer role instead of pure consumption. | 🟡 decision | open |
 | **E-9** | **Reconcile `MISSION.md` with the face.** It tells an access-to-justice story — pilot org, docassemble, LSC TIG grants — that is not the same product as *the affairs you handle yourself*. Both are defensible; they are not identical, and MISSION is still the only document a partner org would read. | 🟡 decision | open |
+| **E-10** | **Write the org profile — `homestead-affairs/.github` → `profile/README.md`.** The repo exists and is empty. This is the first thing a reader sees on the org, including a pilot partner's ethics counsel running diligence, and it is a **self-presentation surface**: *In re Reynoso* turned on how a tool described itself, not on what its code did, and *FTC v. DoNotPay* is the same shape for capability claims. The handle was made safe; the profile is the next place the same care applies. It must say what the household holds, never what the software knows — and it must not out-claim `MISSION.md`, which is itself unreconciled (**E-9**). Draft it before the org is shown to anyone. | 🟢 here | open |
 
 **Ordering inside Track E:** E-1 → E-2 → E-3 are a chain and the only part that
 is pure engineering. E-4 is independent and can run in parallel. E-5 is the
-gate, blocked on everything above plus the two critical bugs. E-6 through E-9
-are decisions, not builds.
+gate, blocked on everything above plus the two critical bugs. E-6 through E-9 are decisions,
+not builds. **E-10 gates showing the org to anyone outside.**
 
 ---
 
