@@ -1,0 +1,37 @@
+{
+  "app_id": "intake-desk",
+  "name": "The Intake Desk",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "b17": "SAPS1",
+  "agent_type": "tool",
+  "description": "Takes an unverified human account, keeps it whole, breaks out the claims inside it, and refuses to publish anything on the word of the person who filed it. Local-first SQLite; consent is a subject-consent chain, not a checkbox.",
+  "author": "USER",
+  "data_streams": [
+    {
+      "id": "statements",
+      "purpose": "Verbatim testimony, write-once",
+      "retention": "permanent",
+      "description": "What a narrator actually said. Never edited, never deleted."
+    },
+    {
+      "id": "claims",
+      "purpose": "Checkable assertions anchored in a statement",
+      "retention": "permanent",
+      "description": "Extracted claims with span offsets back into the verbatim body."
+    },
+    {
+      "id": "consent_chain",
+      "purpose": "Third-party consent and the disclosure record",
+      "retention": "permanent",
+      "description": "Hash-chained subject-consent store. Revocation is a logged transition, never an erasure."
+    }
+  ],
+  "permissions": [
+    "file_write"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "entry_point": "app:main",
+  "license": "MIT"
+}

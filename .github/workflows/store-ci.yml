@@ -158,8 +158,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [aristarchus, bureau, civics-check, field-acoustics, law-gazelle,
-              marching-arts, playgate, terpsi-chat, the-squirrel, utety-chat]
+        app: [aristarchus, bureau, civics-check, field-acoustics, intake-desk,
+              law-gazelle, marching-arts, playgate, terpsi-chat, the-squirrel,
+              utety-chat]
         include:
           # utety-chat's TUI tests boot the real Textual app; textual is an
           # optional runtime dep (the server runs without it), so it lives
@@ -182,6 +183,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e libs/vault-paths      # shared vault-rooted path resolver (A5)
           pip install -e libs/pg-sqlite-shim   # shared SQLite->Postgres shim (A5, law-gazelle)
+          pip install -e libs/subject-consent  # third-party consent axis (intake-desk)
           pip install -r apps/${{ matrix.app }}/requirements.txt
           pip install pytest ${{ matrix.test-deps }}
 
