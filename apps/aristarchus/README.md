@@ -42,6 +42,29 @@ pip install -e ".[dev]"
 ARISTARCHUS_SEAL_KEY=dev python -m pytest tests/ -q
 ```
 
+## The gate — `aristarchus check` (N9, warn-mode)
+
+```bash
+pip install -e ".[semantic]"     # the encoder; string fallback is falsified
+ARISTARCHUS_SEAL_KEY=... aristarchus check --db fleet.db --ledger fleet.jsonl \
+    "Can the decision gate fail builds fail-closed?"
+```
+
+```
+  constrained 'Can the decision gate fail builds fail-closed?'
+      law: 'no - warn-mode only' (sealed by rudi193; reason: N1 bench: ...)
+      rejected: 'strict enforcement now' - bench numbers do not support it
+                [not yet - reopen when: larger corpus or stronger encoder ...]
+```
+
+The contract the bench earned: **exit 0 always** — it speaks, it does not
+block. Questions resolving ≥0.95 report constraints as findings; the
+0.85–0.95 band reports "possible match — check." Two things outrank
+advisory: a broken ledger chain exits 2 unconditionally, and a row whose
+seal fails verification is always surfaced as TAMPERED. `--strict` (exit 2
+on findings) exists for experimentation and announces, every run, that the
+bench has not earned it.
+
 ## The N1 bench — all legs run; the gate opens to advisory, not enforcement
 
 `bench/n1_bench.py` over `bench/corpus.json` (20 stored decisions × 3
