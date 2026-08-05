@@ -65,7 +65,13 @@ class TestChecksAreNotVacuous:
         rec["decisions"][0]["superseded_by"] = "2026-08-06"
         out = io.StringIO()
         decisions_boot.render(rec, out=out)
-        assert rec["decisions"][0]["commitment"] not in out.getvalue()
+        # Match the rendered LAW LINE, not the bare commitment string - the
+        # commitment's words may legitimately appear in other entries'
+        # reasons (found the day 'Nestor' showed up in a rejection reason).
+        law_line = f"-> {rec['decisions'][0]['commitment']}  (sealed by"
+        assert law_line not in out.getvalue()
+        rec2 = _clean()
+        assert law_line in (lambda s: (decisions_boot.render(rec2, out=s), s)[1])(io.StringIO()).getvalue()
 
     def test_strict_exits_nonzero_on_violation(self, tmp_path):
         import json
