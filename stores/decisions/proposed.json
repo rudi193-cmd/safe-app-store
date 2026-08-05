@@ -1,0 +1,6 @@
+{
+  "_contract": "DRAFTS awaiting the operator's seal - Nestor's draft tier, applied to law. Each entry was queued by running the fleet's sealed record against the other sessions' new pieces (2026-08-05): standing law had no answer within reach, so these are proposals. author is the machine; verified_by is EMPTY and stays empty until a person seals the entry by moving it into fleet.json with their name on it. The machine proposes; it does not ratify its own proposals - which is, fittingly, proposal one.",
+  "proposed_decisions": [],
+  "proposed_rejections": [],
+  "_last_resolution": "2026-08-05: all five proposals and their three riding rejections sealed into fleet.json by rudi193 - ratification arrived as inline annotations on the reading copy, including explicit pass on the three empty reopen_when entries. Operator notes on the purpose-checkability and testimony entries flag possible prior art in willow-gate, to be reconciled."
+}

@@ -125,6 +125,14 @@ jobs:
         # be named in stores/pending.json with a reason, same as an
         # unresolved apps/ build.
         #
+        # test_fleet_decisions.py guards stores/decisions/fleet.json — the
+        # fleet decision record (N9's boot chokepoint, store side): the real
+        # record is clean AND each covenant check catches a synthetic
+        # violation (reason required both ways, verified_by ≠ author,
+        # reopen_when written-not-omitted, superseded rows leave the
+        # standing law). Same proves-not-vacuous pattern as
+        # test_p1_keeping_records.py.
+        #
         # test_sap_gate / test_seam / test_session / test_principal /
         # test_quota are The Forge's store-side half (PR #161, D3-D6/D11):
         # the signed-manifest gate, the seam that enforces it, store-minted
@@ -150,7 +158,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest
           pip install -r stores/requirements.txt
-          python -m pytest tests/test_no_raw_soil_reads.py tests/test_no_fstring_schema_sql.py tests/test_no_inline_vault_root.py tests/test_no_unauthenticated_bind.py tests/test_promote_check.py tests/test_promote_check_record.py tests/test_vault_lint_vacuous_scan.py tests/test_tier_vocabulary.py tests/test_p1_keeping_records.py tests/test_p3_generated_catalog_fields.py tests/test_catalog_location.py tests/test_status_vocabulary_migration.py tests/test_catalog_top_level_keys.py tests/test_loose_repos.py tests/test_sap_gate.py tests/test_seam.py tests/test_session.py tests/test_principal.py tests/test_quota.py -q
+          python -m pytest tests/test_no_raw_soil_reads.py tests/test_no_fstring_schema_sql.py tests/test_no_inline_vault_root.py tests/test_no_unauthenticated_bind.py tests/test_promote_check.py tests/test_promote_check_record.py tests/test_vault_lint_vacuous_scan.py tests/test_tier_vocabulary.py tests/test_p1_keeping_records.py tests/test_p3_generated_catalog_fields.py tests/test_catalog_location.py tests/test_status_vocabulary_migration.py tests/test_catalog_top_level_keys.py tests/test_loose_repos.py tests/test_fleet_decisions.py tests/test_sap_gate.py tests/test_seam.py tests/test_session.py tests/test_principal.py tests/test_quota.py -q
 
   app-tests:
     runs-on: ubuntu-latest

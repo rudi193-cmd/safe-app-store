@@ -1,0 +1,145 @@
+{
+  "_contract": "The fleet's decision record - what a cold agent reads at boot. See README.md in this directory. Every decision carries the reason FOR it; every rejection carries the reason AGAINST and a reopen_when (empty = never, and empty is a deliberate act). verified_by differs from author on every entry - proposing and ratifying never rest in the same hand.",
+  "decisions": [
+    {
+      "question": "Which store should hold the fleet's decision graph?",
+      "commitment": "Nestor",
+      "reason": "only store in the fleet with a seal, a signature, and a hash chain - a decision recorded anywhere else is asserted, not ratified",
+      "author": "vishwakarma",
+      "verified_by": "rudi193",
+      "date": "2026-08-05",
+      "record": "nestor:docs/decision-memory.md (PR #30), nestor PR #31"
+    },
+    {
+      "question": "Should the unique index on decision rows be partial or full?",
+      "commitment": "partial - live rows only (WHERE superseded_by = '')",
+      "reason": "keeps the concurrent-seal race guard exactly as strong while superseded rows fall out of the index and accumulate as history",
+      "author": "vishwakarma",
+      "verified_by": "rudi193",
+      "date": "2026-08-05",
+      "record": "nestor PR #31; proven first in apps/aristarchus"
+    },
+    {
+      "question": "May the decision gate fail builds fail-closed?",
+      "commitment": "no - warn-mode only",
+      "reason": "N1 bench (apps/aristarchus/bench/results/n1.json): at 0.90 the matcher cries wolf one question in five; at 0.95 it sleeps through half",
+      "author": "vishwakarma",
+      "verified_by": "rudi193",
+      "date": "2026-08-05",
+      "record": "safe-app-store PR #162; apps/aristarchus/README.md"
+    },
+    {
+      "question": "Does a promoted app ship its knowledge corpus?",
+      "commitment": "no - ship the reader; the corpus stays with whoever grew it",
+      "reason": "the capability travels, the wood stays: a semantic-search seam over injectable knowledge, never a bundled copy",
+      "author": "vishwakarma",
+      "verified_by": "rudi193",
+      "date": "2026-07-31",
+      "record": "stores/README.md 'The one seam every store shares'"
+    },
+    {
+      "question": "May a model verify, rule, seal, or publish?",
+      "commitment": "no - a model may propose; only a person may verify, rule, seal, or publish",
+      "reason": "the fleet's most load-bearing principle exists everywhere as prose (CLAUDE.md 0.2, intake_desk_spec 4.1, promote_check verified_by != author, Nestor's seal, the fourth-store narrative) and nowhere as a sealed decision - found by asking Nestor, which correctly answered that nobody ever sealed it. The intake desk paid the tuition: a router with a careful vocabulary contract still emitted unearned conclusions through the middle of it, because every rule was about storage and none was about authorship.",
+      "author": "vishwakarma",
+      "verified_by": "rudi193",
+      "date": "2026-08-05",
+      "record": "docs/specs/intake_desk_spec.md 4.1; CLAUDE.md 0.2; stores/promote_check.py; docs/the-fourth-store.md; prior art found at reconciliation: willow-gate custody-ledger-spec header, 2026-07-11 - 'author: instance (proposes; operator ratifies)... nothing here is built without operator ratification'"
+    },
+    {
+      "question": "May the field recording why a boundary was crossed be free text?",
+      "commitment": "no - a closed set for writers, pinned by a test, permissive for readers",
+      "reason": "convergent law: three sessions fixed this same defect independently in one night (homestead R-7 and I-13, Nestor #32 closed by #33, willow-mcp #280's event_type note) - a control nothing can check is a label, and a typo'd kind is not an event type, it is a row silently absent from every review surface",
+      "author": "vishwakarma",
+      "verified_by": "rudi193",
+      "date": "2026-08-05",
+      "record": "nestor PR #33; homestead R-7/I-13; willow-mcp #280"
+    },
+    {
+      "question": "Must a declared purpose be checkable rather than a label?",
+      "commitment": "yes - a declared purpose is a control, and a control nothing can check is a label",
+      "reason": "homestead's Purpose accepted any non-blank string, so 'x' bought the same lift as 'medical'; the fleet-level generalization is that any declaration which grants reach must be enforceable at the point it grants it",
+      "author": "vishwakarma",
+      "verified_by": "rudi193",
+      "date": "2026-08-05",
+      "record": "homestead invariant I-13; PRIOR ART CONFIRMED (reconciled 2026-08-05): willow-gate's founding rule - 'trust is not asserted, it is bound... Elder is not a text field anyone can type' (README), check-out reconciles declared against observed, and hardening H2 demotes the text-scan to advisory in favor of a checkable lease. This entry is the fleet-level statement of willow-gate's law."
+    },
+    {
+      "question": "May a subject's testimony be published attributed under their name?",
+      "commitment": "only under its own explicit scope (testimony_publication) - granting it never implies kb_promotion, and granting kb_promotion never implies it",
+      "reason": "attributed testimony and de-identified structure are opposite movements: an oral-history desk publishes the naming as the record ('Names Given Not Chosen') while kb_promotion strips identity for a shared index - one consent must never quietly stand in for the other",
+      "author": "vishwakarma",
+      "verified_by": "rudi193",
+      "date": "2026-08-05",
+      "record": "libs/subject-consent core.py (the scope's own comment); apps/intake-desk; reconciled 2026-08-05: willow-gate H2 supplies the enforcement FRAME (three-key model: capability + consent + unexpired lease) but not this rule - the scope-independence of testimony_publication vs kb_promotion is genuinely new law."
+    },
+    {
+      "question": "Must the governance chain head be anchored outside the database?",
+      "commitment": "yes - hold verify()'s head somewhere the chain's writer cannot reach, and pass it back as expected_head",
+      "reason": "rechain() proves the migration and the forgery are the same operation, so internal consistency alone can never answer 'is this the same chain it was yesterday'; a mirror without an external anchor degrades from 'someone else remembers' to 'someone else has a copy that will agree with whatever it now says'",
+      "author": "vishwakarma",
+      "verified_by": "rudi193",
+      "date": "2026-08-05",
+      "record": "willow-mcp #280, PR #281; nestor ledger's expected_head precedent; prior art found at reconciliation: willow-gate custody-ledger-spec, 2026-07-11 - 'the ledger is the authority; the file is not... the lock lives where the handled thing cannot reach it', with the signed sidecar explicitly labeled weaker (authenticity, never completeness) - the rechain-marker bound, stated three weeks early"
+    }
+  ],
+  "rejections": [
+    {
+      "question": "Which store should hold the fleet's decision graph?",
+      "option": "SAPS1 / Willow",
+      "reason": "SAPS1 has atoms and edges but no seal, no signature, no hash chain - a decision recorded there is asserted rather than ratified",
+      "reopen_when": "SAPS1 grows a ratification primitive",
+      "verified_by": "rudi193",
+      "date": "2026-08-05"
+    },
+    {
+      "question": "Should the unique index on decision rows be partial or full?",
+      "option": "drop the uniqueness index entirely",
+      "reason": "it is the documented concurrent-seal race guard; dropping it trades a correctness property for a convenience",
+      "reopen_when": "",
+      "verified_by": "rudi193",
+      "date": "2026-08-05"
+    },
+    {
+      "question": "May the decision gate fail builds fail-closed?",
+      "option": "strict enforcement now",
+      "reason": "the N1 bench numbers do not support it",
+      "reopen_when": "a larger corpus or stronger encoder moves the 0.90-0.95 recall/false-match band",
+      "verified_by": "rudi193",
+      "date": "2026-08-05"
+    },
+    {
+      "question": "Should source code be eliminated in favor of AI-generated binaries?",
+      "option": "generate efficient binaries directly, no source intermediate",
+      "reason": "destroys the witness layer: source is the record, not the instructions - the only medium in which a second human can check the first; a model's derivation is neither deterministic nor reproducible, and opacity pools trust in whoever runs the model",
+      "reopen_when": "generation becomes deterministic, reproducible, and auditable end to end",
+      "verified_by": "rudi193",
+      "date": "2026-08-05",
+      "record": "docs/what-source-code-is-for.md"
+    },
+    {
+      "question": "May a model verify, rule, seal, or publish?",
+      "option": "the model reports 'corroborated by N sources' itself",
+      "reason": "measured, not argued: the intake router's corroboration claims were wrong on 89% of an adversarial pass, including a source that explicitly denied a claim reported as confirming it",
+      "reopen_when": "",
+      "verified_by": "rudi193",
+      "date": "2026-08-05"
+    },
+    {
+      "question": "May the field recording why a boundary was crossed be free text?",
+      "option": "close the set for readers too",
+      "reason": "an audit trail must never refuse to show what it already recorded - historical kinds that predate the set must verify and extend (nestor #33's reader-permissive half)",
+      "reopen_when": "",
+      "verified_by": "rudi193",
+      "date": "2026-08-05"
+    },
+    {
+      "question": "Must the governance chain head be anchored outside the database?",
+      "option": "the self-documenting rechain marker suffices on its own",
+      "reason": "a determined operator can delete the marker and relink again; the marker makes a quiet relink loud, only the external anchor makes it detectable",
+      "reopen_when": "",
+      "verified_by": "rudi193",
+      "date": "2026-08-05"
+    }
+  ]
+}
