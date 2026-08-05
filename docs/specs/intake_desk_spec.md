@@ -210,6 +210,51 @@ CREATE INDEX idx_docket_claim       ON docket_entries(claim_id);
 
 ---
 
+## 4.1 What a model may never do
+
+Every rule above says what the *system* refuses. None of them says what a
+**model** may never do, and that omission is the one that nearly hurt somebody.
+
+The router's first version shipped a careful contract about its *vocabulary* —
+five fixed sentences, nineteen forbidden words, a gate function — and then
+emitted an unearned *conclusion* straight through the middle of it. An
+adversarial pass measured "Corroborated by N sources" wrong on 89% of the
+corroborations it produced; on the worked example, a source that explicitly
+*denied* a claim was reported as confirming it. Nothing in the system objected,
+because every rule was about storage and none was about authorship.
+
+`nestor.serve` — Nestor's MCP surface for a model — is documented as
+**structurally unable to seal**. Not discouraged from sealing: unable. That is
+the sentence this spec was missing, so here it is for the desk:
+
+> **A model may propose. It may never verify, rule, seal, publish, or say that
+> something is agreed.** Every state transition that adds trust to a claim
+> requires a named human hand, and no model-facing surface exposes one.
+
+Concretely, and testable:
+
+1. **No model-reachable path writes `ruled_by`, `ruled_at`, `confidence`, or
+   moves a claim to `ruled`, `published`, or `uncheckable`.** The router's own
+   tests assert this; any future MCP or agent surface inherits the same
+   assertion, not merely the same intention.
+2. **A model may not author a sentence that asserts agreement.** The refusal
+   contract (§6) has no sentence for it, `corroborated` is a forbidden word, and
+   `verdict_language()` runs at write time rather than only in the suite.
+3. **A model may not name its own place on the ladder.** Anything a model
+   produces enters at the lowest tier and is labelled with the standard that
+   produced it — never with a tier it selected. (Jeles' `apply()` pins the
+   verification rung for exactly this reason: *"a claim must not be able to name
+   its own place on the ladder."*)
+4. **A model's proposal must be refusable without destroying the record.** A
+   rejected proposal is unofferable, reasoned, and kept — never silently
+   dropped.
+
+The distinction to hold onto: **a machine may say what it found. Only a person
+may say what is so.** Everything else in this document is downstream of that
+sentence, and the router shipped for two hours without it.
+
+---
+
 ## 5. The session — where the persona is load-bearing
 
 The finding from `nasa-archive`: **a persona is not a skin, it is an elicitation
@@ -418,8 +463,14 @@ Playground → promoted, per `stores/promote_check.py`:
 - [ ] bulk export fails closed on a single missing grant, tested
 - [ ] router emits no verdict language — asserted by a vocabulary test over its
       output strings
+- [ ] **no model-reachable surface can write `ruled_by`, `ruled_at`,
+      `confidence`, or reach `ruled` / `published` / `uncheckable` (§4.1)** —
+      asserted per surface, so a future MCP or agent binding inherits the
+      assertion rather than the intention
+- [ ] a rejected proposal is unofferable, reasoned, and kept (§4.1.4)
 - [ ] interviewer profile is injected, not hardcoded; `Riggs` is one file
-- [ ] disclosure chain verifies, including tail truncation (anchor present)
+- [ ] disclosure chain verifies, including tail truncation (anchor present), and
+      the chain head is surfaced somewhere a person can pin it
 - [ ] one real session end-to-end: intake → docket → ruling → export
 - [ ] own repo, injected seams, manifest, `verified_by ≠ author`
 
