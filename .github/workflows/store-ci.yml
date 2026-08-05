@@ -69,7 +69,7 @@ jobs:
         run: python tools/vault_leak_lint.py --strict
 
       - name: Compile sweep
-        run: python -m compileall -q apps libs stores tools scripts tui.py store_mcp.py _shot.py
+        run: python -m compileall -q apps libs stores tools scripts research tui.py store_mcp.py _shot.py
 
       - name: Drift-guards
         # Stdlib-only source scanners (no app deps): no app reads the shared
