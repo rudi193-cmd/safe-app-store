@@ -299,6 +299,22 @@ three that fires without anyone choosing to consult anything.
 
 ---
 
+## Follow-ups (agent log — fold into Nestor `IDEAS.md` §6 when this travels)
+
+- **The detection kit as infrastructure, not literature** — **open.** Sagan's
+  Baloney Detection Kit (*The Demon-Haunted World*, ch. 12) is the ratification
+  half of a working mind, externalized — and it shipped as a book chapter while
+  the *injection* side (feeds, engagement loops, generated slop) shipped as
+  planet-scale infrastructure. One kit got servers; the other got a paperback.
+  The open question: how much of the kit's nine tools can become **gates**
+  rather than advice — the way `nestor ledger verify` made "is the chain
+  intact?" an exit code. N9(1) (`nestor decision check`) is tool #4/#5
+  (multiple hypotheses, `verified_by ≠ author`) as a gate; tool #1
+  (independent confirmation) is the witness; tool #7 (every link holds) is the
+  hash chain; tool #9 (falsifiability) is `reopen_when` — an honest claim
+  states what would change it. Unmapped: #2, #3, #6, #8, and the fallacy
+  catalog. Raised 2026-08-05, in the conversation that produced this doc.
+
 ## Build order
 
 1. **N4 + N5** — two columns, no behaviour change. Independently correct.
