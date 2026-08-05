@@ -1,9 +1,12 @@
 # Nestor decision memory — the missing half
 b17: SAPS1
 
-*Draft. Authored here because `Nestor` is read-only from this seat; the change
-lands in `github.com/rudi193-cmd/Nestor`. Carried over as a design doc, not a
-patch. The narrative around it — why this wall stands — is
+*Carried home 2026-08-05: the canonical copy now lives in the Nestor repo at
+[`docs/decision-memory.md`](https://github.com/rudi193-cmd/nestor/blob/claude/decision-memory-design/docs/decision-memory.md)
+(branch `claude/decision-memory-design`), with its follow-ups folded into
+Nestor's `IDEAS.md` §6.11–§6.12. This copy stays as the keeping record of
+where the design came from — read the Nestor copy for the living text. The
+narrative around it — why this wall stands — is
 [`../the-fourth-store.md`](../the-fourth-store.md), sealed by the operator
 2026-08-05.*
 
