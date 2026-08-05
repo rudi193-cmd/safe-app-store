@@ -214,9 +214,40 @@ else. Trust tiers are WillowGate's existing `Rookie / Steady / Veteran`.
 |---|---|---|---|---|
 | `L1` | render | render | render, ≥ Rookie | render |
 | `L2` | render | render | render, ≥ Rookie | render |
-| `L3` | render | **derived** | **derived**, ≥ Steady | explicit act, ledgered |
+| `L3` | render | **derived** † | **derived**, ≥ Steady; payload on explicit act | explicit act, ledgered |
 | `L4` | **derived** unless purpose | **derived**, no exception | **derived**, ≥ Veteran + purpose | explicit act + purpose + ledgered |
 | `L5` | **never** | **never** | **never** | **never** |
+
+**The table is monotone, and that is a rule rather than an observation.** No
+cell may be stricter than the cell **below** it in the same column: whatever
+unlocks a rung on a surface also unlocks every lower rung on that surface. A
+cell that omits an unlock a higher rung has is an **error in this table**, not
+a denial.
+
+> **Correction, 2026-08-05 — the `S3` column was non-monotone as written, and
+> it was caught by an agent implementing from the table alone.**
+>
+> `L3 · S3` read *"**derived**, ≥ Steady"* with no unlock, while `L4 · S3`
+> read *"≥ Veteran + purpose"* — so cell-by-cell the **higher** rung was
+> servable where the lower one was not. That is **BUG-5's exact shape**, in
+> the normative table, on the surface that is an automated agent with no eyes
+> to be walked past.
+>
+> It was a reading error rather than a real inversion, but only for a reader
+> who brings outside knowledge: `L3`'s prose supplies the missing unlock
+> ("*unless an explicit act says otherwise*") and the cell did not. Two
+> statements in different registers, and one of them **alone** produces the
+> inversion — which is what a reader implementing from the table gets. The
+> cell now states its own unlock, and the monotonicity rule above makes the
+> next omission detectable instead of load-bearing.
+
+† **Open — `L3` on `S2` is a genuine contradiction, not a wording slip.** The
+table says a flat **derived** with no unlock; `L3`'s prose says `S2/S3/S4` are
+derived *"unless an explicit act says otherwise."* Monotonicity does not settle
+it — `L4 · S2` is a hard stop either way, so both readings are consistent — so
+this is a **product decision**: may a name ever reach a model prompt as a
+payload, on an explicit act? Phase 2's implementation followed the table and
+refuses. Recorded in `homestead/docs/PHASE2-SURFACES.md`; undecided here.
 
 Two deliberate hard stops. **`L4` never reaches a model prompt as a payload** —
 if a local model needs the diagnosis to do its job, that is a signal the job is
