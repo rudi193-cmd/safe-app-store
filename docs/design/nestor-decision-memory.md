@@ -3,7 +3,9 @@ b17: SAPS1
 
 *Draft. Authored here because `Nestor` is read-only from this seat; the change
 lands in `github.com/rudi193-cmd/Nestor`. Carried over as a design doc, not a
-patch.*
+patch. The narrative around it — why this wall stands — is
+[`../the-fourth-store.md`](../the-fourth-store.md), sealed by the operator
+2026-08-05.*
 
 **The question this answers:** how do decisions get made, rejected, **modified**,
 and how does that affect **future** decisions — held in a way that survives the
