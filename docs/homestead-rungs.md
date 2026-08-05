@@ -90,8 +90,16 @@ identity and no protected category. Counts, schedules, operational state.
 Names or resolves to a person — the operator, a child, the other party, a
 creditor, an employer, a witness.
 
-Rendered in full on **S1**. On **S2/S3/S4** it is `NULL` and a derived form is
-served in its place, unless an explicit act says otherwise.
+Rendered in full on **S1**. On **S3/S4** it is `NULL` and a derived form is
+served in its place, unless an explicit act says otherwise. On **S2 there is no
+such act** — a name never reaches a model prompt as a payload.
+
+> **Corrected 2026-08-05.** This sentence used to read "S2/S3/S4 … unless an
+> explicit act says otherwise", which contradicted the crossing table's flat
+> `derived` for `L3 · S2`. Two statements about one cell, in different
+> registers — the same defect that put a non-monotone `S3` column in the table,
+> and it was found the same way. The table was ruled correct; this sentence is
+> the one that has been changed.
 
 > *Worked example.* `Parenting time · Tue/Thu · minor child A.R.` The operator
 > sees it. The model prompt gets *"a recurring parenting-time obligation on
@@ -241,13 +249,24 @@ a denial.
 > cell now states its own unlock, and the monotonicity rule above makes the
 > next omission detectable instead of load-bearing.
 
-† **Open — `L3` on `S2` is a genuine contradiction, not a wording slip.** The
-table says a flat **derived** with no unlock; `L3`'s prose says `S2/S3/S4` are
-derived *"unless an explicit act says otherwise."* Monotonicity does not settle
-it — `L4 · S2` is a hard stop either way, so both readings are consistent — so
-this is a **product decision**: may a name ever reach a model prompt as a
-payload, on an explicit act? Phase 2's implementation followed the table and
-refuses. Recorded in `homestead/docs/PHASE2-SURFACES.md`; undecided here.
+† ~~**Open**~~ **Decided 2026-08-05 — the table wins. `L3` never reaches a model
+prompt as a payload.** The table said a flat **derived** with no unlock; `L3`'s
+prose said `S2/S3/S4` are derived *"unless an explicit act says otherwise."*
+Monotonicity did not settle it — `L4 · S2` is a hard stop under either reading.
+
+What an operator loses is narrower than it looks: **drafting is unaffected**,
+because `L3 · S4` already permits an explicit ledgered act, so a filed document
+can carry a real name. What is refused is *asking the model about a named
+person* — and for that the derived form is nearly always enough. A model does
+not need `"A.R."` to reason about a Tuesday/Thursday schedule.
+
+**The ruling carries a build item**, and without it the refusal is enforced but
+its justification is not yet true: **pseudonymise → reason → re-attach
+downstream**. With that path, `L3` never needs to reach `S2` and the cost rounds
+to zero. Without it, the cost is real and is being paid in silence. Phase 4/5.
+
+The `L3` prose above is now the one that is wrong; it says `S2` unlocks on an
+explicit act and it does not.
 
 Two deliberate hard stops. **`L4` never reaches a model prompt as a payload** —
 if a local model needs the diagnosis to do its job, that is a signal the job is
@@ -271,6 +290,28 @@ rung with an escape hatch is a label, not a control.
 
 That is the pattern worth noticing: **the right model makes the bug
 unrepresentable**, rather than making it a thing tests must catch.
+
+---
+
+## A refusal is information at the rung of the thing refused
+
+**Added 2026-08-05**, deciding whether the surface indicator may say `L5
+present`. It may not, on an ambient surface — and the reason generalises past
+the indicator, which is why it lives here rather than in a decision log.
+
+I-35 says an ambient surface cannot carry an `L4` **payload**. This says it
+cannot carry the **fact of an `L5`** either. On a shared machine, *"something is
+sealed here"* tells the person behind the chair that a record is being kept from
+them, and that is F-1's reader — the whole point of `L5` is that it is never
+rendered, and the existence of a sealed thing is rendered by saying so.
+
+On a surface the operator **deliberately opened**, the same disclosure is fine,
+by exactly the by-widget logic that settled the `L4` question the day before. So
+the rule is not "never say it" but *"say it only where the saying was asked
+for."*
+
+`"derived · L4 present"` stays legal on an ambient surface: that an `L4` exists
+is not itself protected at `L5`.
 
 ---
 
