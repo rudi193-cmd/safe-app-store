@@ -144,11 +144,43 @@ to the operator's own agents.
 Includes: any fact the operator marked **`do_not_use`**, and why; the content of
 a sealed record; export-ledger key material; anything under a protective order.
 
+**A regime does not classify; a datum in a matter does.** Noted here because this
+document says `L4` and `L5` about the same material in two places, and the
+disagreement has already been read the wrong way once.
+
+**42 CFR Part 2 is named as an `L4` category** in the `L4` clause above —
+alongside minors' data, immigration status and privileged communications — and it
+is **not** in the `Includes:` list here. That is deliberate. Part 2 is a
+disclosure-**consent** regime: it governs who may pass a record on and with whose
+permission. It is not a sealing order, and the four clauses `L5` turns on
+(reveals a refusal, exposes privileged strategy, discloses key material, breaches
+a sealing order) are not what a Part 2 record engages by existing.
+
+The two `L5` rows for substance-use material in the table below are **correct and
+should stay.** They are worked instances — a treatment record inside a live
+custody or workers' comp matter, where step 4 does apply — and over-classifying
+fails closed, which is this model's direction of error. What does **not** follow
+is the generalisation: *Part 2 material is `L5`*, therefore an act naming Part 2
+re-disclosure can never be performed. Run the procedure instead. Step 3 puts a
+substance-use record at `L4` by category; step 4 asks whether serving it breaches
+a sealing order, which for a Part 2 record *simpliciter* it does not; step 5 is
+the standing refutation of classifying by regime at all — *the same field is `L1`
+in a bankruptcy and `L3` in a family matter.*
+
+Recorded because the generalisation was made, against `homestead`'s
+`Purpose.REDISCLOSURE`, on the reasoning that its canonical datum is `L5` and
+`L5` has no override, so the member was dead. It is not: it is live at `L3` and
+`L4` on egress, and four of that enum's members have a canonical `L5` datum they
+cannot reach — which is `L5` working rather than a defect in a member.
+See `homestead/docs/DECISION-redisclosure.md`.
+
 ---
 
 ## Class → rung, for the three matter types
 
-Illustrative, not exhaustive; the procedure below governs.
+Illustrative, not exhaustive; the procedure below governs. **A row here is a
+worked instance, not a rule about the category it names** — see the note under
+`L5` for what happened when one was read as one.
 
 | Matter | Field | Rung | Why |
 |---|---|---|---|

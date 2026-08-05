@@ -225,6 +225,28 @@ The matter-type registry, then **custody only**. One pack proves the seam; three
 prove nothing that one does not.
 
 *Exit:* I-23 green. Adding a pack touches no navigation, queue, or briefing code.
+**The custody pack is classified at import, and an unclassified field in it fails
+the build** — a real schema, not the capability to refuse one.
+
+That last clause is Phase 2's exit line made load-bearing, and it is stated again
+here because Phase 2 met it in a way worth naming. `classify_schema` is
+implemented and heavily tested; it has **no callers**, and the package declares no
+field with a rung. So *"an unclassified field fails the build"* is currently
+satisfied the way a lock on an empty room is satisfied — correctly, and without
+evidence. Phase 3 is where the room gets something in it, so Phase 3 is where the
+criterion earns its keep. A green suite before that point is not evidence that
+any schema has ever been classified.
+
+Note also what the instrument is and is not. `classify_schema` **raises**;
+whether that is a *build* failure is a property of when a caller calls it, and
+nothing enforces import time. So "fail the build" and "fail the user" are not
+competing implementations to choose between — they are one function invoked from
+two places, and a product may do both. That matters if a pack is ever
+operator-authored rather than shipped, which is **not in v1** (all three packs
+here are project-authored, and D2 is deferred under *Deliberately not in v1*).
+Whether a household operator may extend a *shipped* pack is not the D2 case and
+is not answered anywhere; it is small and it is open.
+See `homestead/docs/DECISION-unclassified-field-instrument.md`.
 
 ### Phase 4 — surfaces
 
