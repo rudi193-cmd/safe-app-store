@@ -195,3 +195,72 @@ def test_queue_puts_contradictions_where_a_human_is_needed(vault):
     assert counts["contradicted"] == 1
     assert counts["unrouted"] == 1, "a claim nobody looked at is not a finding"
     assert b
+
+
+# ── the external anchor ───────────────────────────────────────────────────────
+#
+# willow-mcp #280: "A hash chain vouches for every line except the newest. The
+# close is a head recorded somewhere the chain's writer cannot reach." The desk
+# had the chain and not the anchor, so it caught a careless rewrite and called
+# that tamper-evidence.
+
+def test_chain_heads_are_readable_so_they_can_be_pinned(vault):
+    conn, store, sid = vault
+    heads = desk_db.chain_heads(store, [NARRATOR])
+    assert NARRATOR in heads and len(heads[NARRATOR]) == 64
+
+
+def test_an_absent_chain_is_not_reported_as_a_head(vault):
+    conn, store, sid = vault
+    assert "nobody" not in desk_db.chain_heads(store, ["nobody"])
+
+
+def test_verify_chains_is_clean_against_its_own_anchor(vault):
+    conn, store, sid = vault
+    anchor = desk_db.chain_heads(store, [NARRATOR])
+    res = desk_db.verify_chains(store, [NARRATOR], anchor)
+    assert res["valid"] and not res["tampered"] and not res["moved"]
+
+
+def test_the_head_moves_when_the_record_grows(vault):
+    """An honest append moves the head — which is why the anchor has to be
+    re-pinned deliberately, not refreshed automatically."""
+    conn, store, sid = vault
+    before = desk_db.chain_heads(store, [NARRATOR])
+    desk.file_statement(conn, consent_store=store, session_id="s2",
+                        narrator_id=NARRATOR, taker_id=TAKER, body="Another account.")
+    after = desk_db.chain_heads(store, [NARRATOR])
+    assert before[NARRATOR] != after[NARRATOR]
+    moved = desk_db.verify_chains(store, [NARRATOR], before)
+    assert not moved["valid"] and NARRATOR in moved["moved"]
+    assert not moved["tampered"], "an append is not corruption; it must not read as one"
+
+
+def test_a_careful_rewrite_of_BOTH_records_is_caught_only_by_the_anchor(vault):
+    """The attack the old claim could not survive.
+
+    Rewriting the body, its digest, AND the disclosure chain leaves every
+    in-box record agreeing with every other. Two records written by one hand
+    prove only that one hand wrote both — 'someone else has a copy that will
+    agree with whatever it now says' (willow-mcp #280). The externally-held
+    head is the only thing that still disagrees.
+    """
+    conn, store, sid = vault
+    anchor = desk_db.chain_heads(store, [NARRATOR])          # pinned outside
+
+    # rewrite everything inside the box, consistently
+    conn.execute("DROP TRIGGER statements_write_once")
+    conn.execute("UPDATE statements SET body=?, body_sha256=? WHERE id=?",
+                 ("rewritten", desk_db.body_digest("rewritten"), sid))
+    import shutil
+    shutil.rmtree(store)                                      # forge the chain too
+    consent_mod.grant_keeping(store, NARRATOR, granted_by="operator")
+    consent_mod.note_disclosure(store, NARRATOR, "statement_filed",
+                                f"session=s1 id={sid} sha256={desk_db.body_digest('rewritten')}")
+
+    assert desk_db.verify_bodies(conn) == [], "the row agrees with itself"
+    assert desk_db.verify_bodies(conn, store) == [], "and the chain agrees with the row"
+
+    res = desk_db.verify_chains(store, [NARRATOR], anchor)
+    assert not res["valid"], "the anchor is the only thing left that disagrees"
+    assert NARRATOR in res["moved"]

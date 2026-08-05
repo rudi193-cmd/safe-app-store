@@ -17,6 +17,7 @@ with a human doing all the checking, no amount of assistance saves it.
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -99,6 +100,10 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("queue", help="the desk queue")
 
+    an = sub.add_parser("anchor", help="print the chain heads to pin OUTSIDE this box")
+    an.add_argument("--expect", help="path to a previously saved anchor file; verify against it")
+    an.add_argument("--save", help="write the current heads to this path")
+
     e = sub.add_parser("export", help="egress — fails closed")
     e.add_argument("--format", choices=["json", "markdown"], default="json")
     e.add_argument("--out", required=True)
@@ -179,6 +184,30 @@ def main(argv: list[str] | None = None) -> int:
         elif args.cmd == "queue":
             for state, n in desk.queue(conn).items():
                 print(f"{state.upper():<16} {n}")
+        elif args.cmd == "anchor":
+            narrators = [r["narrator_id"] for r in conn.execute(
+                "SELECT DISTINCT narrator_id FROM statements")]
+            if args.expect:
+                expected = json.loads(Path(args.expect).read_text())
+                res = desk_db.verify_chains(store, narrators, expected)
+                for n in res["tampered"]:
+                    print(f"TAMPERED   {n}  (broken or truncated chain)")
+                for n, d in res["moved"].items():
+                    print(f"MOVED      {n}  anchored {d['expected'][:16]}… now {str(d['found'])[:16]}…")
+                if res["valid"]:
+                    print(f"intact — {len(res['heads'])} chain(s) match the anchor you held")
+                else:
+                    return 1
+            else:
+                heads = desk_db.chain_heads(store, narrators)
+                for n, h in heads.items():
+                    print(f"{h}  {n}")
+                if args.save:
+                    Path(args.save).write_text(json.dumps(heads, indent=2) + "\n")
+                    print(f"\nsaved to {args.save} — keep it somewhere this machine cannot reach.")
+                elif heads:
+                    print("\nHold these outside the box. A chain whose writer can also rewrite")
+                    print("its anchor vouches for nothing against that writer.")
         elif args.cmd == "export":
             fn = export.to_json if args.format == "json" else export.to_markdown
             print(fn(conn, consent_store=store, path=args.out))

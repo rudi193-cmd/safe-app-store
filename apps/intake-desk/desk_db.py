@@ -49,11 +49,21 @@ def body_digest(body: str) -> str:
     """The digest recorded for a verbatim statement.
 
     On its own this is a checksum, not a witness: it lives in the same row as
-    the body, so anything that can rewrite one can rewrite the other. It is
-    only evidence because `desk.file_statement` also writes it into the
-    subject's hash-chained disclosure record, which lives outside this file
-    and detects both edits and truncation. `verify_bodies` below compares the
-    two.
+    the body, so anything that can rewrite one can rewrite the other.
+    `desk.file_statement` also writes it into the subject's hash-chained
+    disclosure record, and `verify_bodies` compares the two.
+
+    Read the limit of that precisely. The chain lives outside this *file*; it
+    does not live outside this *trust boundary*. Both sit on one disk, written
+    by one process, under one set of permissions — so an attacker who can
+    rewrite a row can rewrite the chain, and two records that agree prove only
+    that one hand wrote both. willow-mcp's governance ledger (#280) states the
+    degraded case exactly: without an externally-held head, "someone else
+    remembers" becomes "someone else has a copy that will agree with whatever
+    it now says."
+
+    Two records catch a CARELESS rewrite. Only `chain_heads()`, pinned
+    somewhere this process cannot reach, catches a careful one.
     """
     return hashlib.sha256(body.encode("utf-8")).hexdigest()
 
@@ -162,3 +172,81 @@ def missing_statements(conn: sqlite3.Connection, consent_store,
             if entry.get("action") == "statement_filed" and "id=" in entry.get("detail", ""):
                 recorded.add(entry["detail"].split("id=")[1].split()[0])
     return sorted(recorded - held)
+
+
+# ── the external anchor ───────────────────────────────────────────────────────
+#
+# A hash chain vouches for every line except the newest, and a chain whose
+# writer can also rewrite the anchor vouches for nothing against that writer.
+# The close is a head held somewhere this process cannot reach: a CI variable,
+# a monitoring system, a printed page in a drawer. These two functions are the
+# desk's side of that contract; where the head is kept is the operator's.
+#
+# Shape and failure semantics follow willow-mcp's governance_ledger.verify():
+# a broken link and "internally consistent but not the chain you anchored" are
+# reported DIFFERENTLY, because the second is what an edit-plus-repair looks
+# like from outside and it must not read as ordinary corruption.
+
+
+def chain_heads(consent_store, narrators: "list[str] | set[str]") -> dict[str, str]:
+    """The anchored head hash per disclosure chain. Pin this OUTSIDE the box.
+
+    Returns {narrator_id: head_hash}. A narrator with no chain is omitted
+    rather than reported as empty — absent and emptied are different, and
+    `verify_chains` is where that distinction is enforced.
+    """
+    from subject_consent.core import FileBackend, _disclosure_chain
+
+    backend = FileBackend(consent_store) if not hasattr(consent_store, "read_anchor") \
+        else consent_store
+    out: dict[str, str] = {}
+    for narrator in sorted(narrators):
+        anchor = backend.read_anchor(_disclosure_chain(narrator))
+        if anchor and anchor.get("hash"):
+            out[narrator] = anchor["hash"]
+    return out
+
+
+def verify_chains(consent_store, narrators: "list[str] | set[str]",
+                  expected: "dict[str, str] | None" = None) -> dict:
+    """Walk each narrator's disclosure chain; optionally hold it to an anchor.
+
+    Without `expected` this answers only "is this internally consistent" —
+    which, per willow-mcp #280, internal consistency alone can never turn into
+    "is this the same chain it was yesterday."
+
+    With `expected` (a previous `chain_heads()` result, kept outside this
+    machine) a silent relink becomes a detected one.
+
+    Returns {"valid", "tampered": [...], "moved": {...}, "heads": {...}} where
+    `tampered` is a broken or truncated chain and `moved` is a chain that
+    verifies cleanly but no longer matches its anchor. They are separate keys
+    on purpose: the second is the interesting one.
+    """
+    from subject_consent import ChainTamperError, verify_consent_chain  # noqa: F401
+    from subject_consent.core import FileBackend, _disclosure_chain, _verify
+
+    backend = FileBackend(consent_store) if not hasattr(consent_store, "read_anchor") \
+        else consent_store
+    tampered: list[str] = []
+    heads: dict[str, str] = {}
+
+    for narrator in sorted(narrators):
+        chain = _disclosure_chain(narrator)
+        rows = backend.read_rows(chain)
+        if rows is None:
+            continue                      # absent: never written, not evidence
+        if not _verify(rows, backend.read_anchor(chain)):
+            tampered.append(narrator)     # includes the emptied-chain case
+            continue
+        heads[narrator] = rows[-1]["hash"]
+
+    moved: dict[str, dict] = {}
+    if expected is not None:
+        for narrator, want in expected.items():
+            got = heads.get(narrator)
+            if got != want:
+                moved[narrator] = {"expected": want, "found": got}
+
+    return {"valid": not tampered and not moved, "tampered": tampered,
+            "moved": moved, "heads": heads}

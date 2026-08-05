@@ -201,7 +201,14 @@ CREATE INDEX idx_docket_claim       ON docket_entries(claim_id);
 **Invariants, enforced in code and tested:**
 
 - `statements.body` is write-once. Any `UPDATE` is a bug; the test suite asserts
-  the trigger fires.
+  the trigger fires. The in-row digest is a checksum, not a witness, and the
+  disclosure chain beside it is outside the *file* but **not outside the trust
+  boundary** — one disk, one process, one set of permissions. Two records that
+  agree prove only that one hand wrote both. Only an externally-held chain head
+  (`chain_heads()`, pinned where this process cannot reach) survives a careful
+  rewrite; willow-mcp #280 states the degraded case exactly — without an
+  anchor, "someone else remembers" becomes "someone else has a copy that will
+  agree with whatever it now says."
 - A claim's span must resolve inside its statement's body. Orphan claims fail
   closed.
 - `ruled_by ∉ {narrator_id, taker_id}` for any claim leaving `ruled`. This is
@@ -470,7 +477,11 @@ Playground → promoted, per `stores/promote_check.py`:
 - [ ] a rejected proposal is unofferable, reasoned, and kept (§4.1.4)
 - [ ] interviewer profile is injected, not hardcoded; `Riggs` is one file
 - [ ] disclosure chain verifies, including tail truncation (anchor present), and
-      the chain head is surfaced somewhere a person can pin it
+      the chain head is **held outside the trust boundary that writes it** — a CI
+      variable, a monitoring system, a printed page — not merely displayed.
+      `verify_chains()` reports a broken chain and a *moved* one separately,
+      because the second is what an edit-plus-repair looks like from outside and
+      must not read as ordinary corruption
 - [ ] one real session end-to-end: intake → docket → ruling → export
 - [ ] own repo, injected seams, manifest, `verified_by ≠ author`
 
