@@ -9,5 +9,5 @@
   "maker": "USER",
   "lane": null,
   "state": "building",
-  "notes": "Playground test-build of the decision-memory design (Nestor docs/decision-memory.md, PR #30; narrative docs/the-fourth-store.md). Stdlib-only, imports nothing from Nestor by design - proves the four verbs (made/rejected/modified/affects-future) standalone so what goes back to Nestor is evidence, not speculation. Gate before promotion or any CI use: the N1 matcher bench (design doc open question 2)."
+  "notes": "Playground test-build of the decision-memory design (Nestor docs/decision-memory.md, PR #30; narrative docs/the-fourth-store.md). Stdlib-only, imports nothing from Nestor by design - proves the four verbs (made/rejected/modified/affects-future) standalone. N1 bench RUN 2026-08-05 (bench/results/n1.json): string and averaged-word-vector matchers all falsified - blind or reassuring; the sentence-encoder leg is unbenched (huggingface.co policy-denied in the build env). Gate stays closed: constraints_on() must not back any CI check until a sentence encoder is benched."
 }

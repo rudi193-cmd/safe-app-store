@@ -1,0 +1,49 @@
+{
+  "_comment": "N1 bench corpus. 20 stored decision questions (drawn from real fleet decisions), each with paraphrases a cold agent might plausibly type; 10 near-miss distractors that are DIFFERENT decisions wearing similar words (matching one of these to a stored key is a false match); 10 novel questions with no stored counterpart (resolving to ANY stored key is a false match). Synthetic and small - the number it produces is indicative, not definitive, and the bench README says so.",
+  "stored": [
+    {"key": "Which store should hold the decision graph?", "paraphrases": ["where should we keep the graph of decisions", "which system holds the decision records", "what store do decisions live in"]},
+    {"key": "Should the unique index on decisions be partial or full?", "paraphrases": ["partial or full unique index for the decisions table", "do we want the decisions unique index to be partial", "should decisions have a full unique index or a partial one"]},
+    {"key": "Where does the catalog live?", "paraphrases": ["where should the catalog file go", "what location holds the catalog", "where do we keep catalog.json"]},
+    {"key": "Should rejections be permanent?", "paraphrases": ["are rejections forever", "is a rejection permanent or can it lapse", "do rejections ever expire"]},
+    {"key": "What sandbox runs playground builds?", "paraphrases": ["which sandbox should playground builds run in", "what do we sandbox playground builds with", "sandbox choice for builds in the playground"]},
+    {"key": "One database per builder or domain tags in one shared database?", "paraphrases": ["per-builder database files or one shared db with domain tags", "should each builder get their own database", "single shared database with domains vs one db per builder"]},
+    {"key": "Should the audit ledger be split per builder?", "paraphrases": ["per-builder ledgers or one shared ledger", "does each builder need their own audit ledger", "split the ledger by builder or keep one chain"]},
+    {"key": "What signs a seal?", "paraphrases": ["what key signs the seals", "how is a seal signed", "what does the seal signature come from"]},
+    {"key": "Who may ratify a proposal?", "paraphrases": ["who is allowed to ratify proposals", "who can confirm a proposal", "which party ratifies a machine proposal"]},
+    {"key": "Should promoted apps ship their corpus?", "paraphrases": ["does a promoted app bundle its corpus", "should the corpus travel with a promoted app", "do we ship the knowledge corpus with promoted apps"]},
+    {"key": "Does the majors list need a browser store?", "paraphrases": ["should we add a browser major to the store list", "is a browser store missing from the majors", "do static html apps need their own major"]},
+    {"key": "How are stale builds handled?", "paraphrases": ["what happens to stale builds", "how do we deal with builds that go stale", "what do we do with abandoned builds"]},
+    {"key": "Should the almanac list be stored in the tree?", "paraphrases": ["do we keep a copy of the almanac list in the repo", "should the almanac list be written to the tree", "store the almanac list or fetch it live"]},
+    {"key": "What auth does the dev fallback use?", "paraphrases": ["how does dev fallback authentication work", "what does the dev auth fallback resolve against", "dev fallback auth mechanism"]},
+    {"key": "Should edges carry their own signature?", "paraphrases": ["do graph edges need their own signatures", "should an edge be signed separately", "does every edge carry a signature of its own"]},
+    {"key": "When is a build promoted?", "paraphrases": ["what qualifies a build for promotion", "when does a playground build get promoted", "what is the bar for promoting a build"]},
+    {"key": "Should CI run per app or store-wide?", "paraphrases": ["per-app CI workflows or one store-wide workflow", "does each app get its own ci or one shared pipeline", "ci per app versus whole-store ci"]},
+    {"key": "What happens on a broken ledger chain?", "paraphrases": ["what does the store do when the ledger chain breaks", "behaviour when ledger verification fails", "broken hash chain in the ledger - then what"]},
+    {"key": "Can a build widen its own reach?", "paraphrases": ["may a build grant itself more access", "can a playground build expand its own permissions", "is a build allowed to self-grant capabilities"]},
+    {"key": "Should the matcher be semantic or string-based?", "paraphrases": ["string matcher or semantic matcher", "do we need a semantic matcher instead of string matching", "semantic versus string-based matching"]}
+  ],
+  "distractors": [
+    {"question": "Which store should hold the embeddings cache?", "near": "Which store should hold the decision graph?"},
+    {"question": "Where does the ledger live?", "near": "Where does the catalog live?"},
+    {"question": "Should the unique index on rejections be partial or full?", "near": "Should the unique index on decisions be partial or full?"},
+    {"question": "Should seals be permanent?", "near": "Should rejections be permanent?"},
+    {"question": "What sandbox runs promoted apps?", "near": "What sandbox runs playground builds?"},
+    {"question": "Who may propose a decision?", "near": "Who may ratify a proposal?"},
+    {"question": "Should promoted apps ship their tests?", "near": "Should promoted apps ship their corpus?"},
+    {"question": "When is a build archived?", "near": "When is a build promoted?"},
+    {"question": "What happens on a broken database file?", "near": "What happens on a broken ledger chain?"},
+    {"question": "Can a build read another build's lane?", "near": "Can a build widen its own reach?"}
+  ],
+  "novel": [
+    {"question": "Should the TUI use Textual or Ink?"},
+    {"question": "What Python version is the floor?"},
+    {"question": "Do we vendor the fastembed model?"},
+    {"question": "Should the fleet use a message bus?"},
+    {"question": "How often does the almanac poll?"},
+    {"question": "What license applies to contributed scaffolds?"},
+    {"question": "Should the demo pause between beats?"},
+    {"question": "Do keeping records need a schema version?"},
+    {"question": "Should wakeups be cron or event-driven?"},
+    {"question": "What timezone do ledger timestamps use?"}
+  ]
+}

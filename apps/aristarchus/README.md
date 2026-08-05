@@ -42,13 +42,26 @@ pip install -e ".[dev]"
 ARISTARCHUS_SEAL_KEY=dev python -m pytest tests/ -q
 ```
 
-## What this is not, yet
+## The N1 bench — run, and the gate stays closed
 
-- **Not benched.** The Matcher is the load-bearing joint (N1): if it can't
-  recognize the same decision in different words, `constraints_on` returns
-  nothing and the system is worse than useless — it is *reassuring*. The
-  shipped `StringMatcher` is the dumb baseline; the bench against a semantic
-  matcher is the gate before any CI check trusts this (design doc, open
-  question 2).
-- **Not a gate.** `nestor decision check` (N9) needs the bench first.
+`bench/n1_bench.py` over `bench/corpus.json` (20 stored decisions × 3
+paraphrases, 10 near-miss distractors, 10 novel questions), through the real
+`constraints_on()` path. Results in `bench/results/n1.json`:
+
+| Matcher | Best usable point | Verdict |
+|---|---|---|
+| `StringMatcher` (difflib) | none — 0% recall @ 0.90; 67% recall costs 80% false-match @ 0.50 | **falsified** |
+| `TokenMatcher` (jaccard) | none — strictly worse | **falsified** |
+| spaCy `en_core_web_md` (averaged word vectors) | none — 63% recall @ 0.90 costs **60% false-match**; 100% false-match below that | **falsified** |
+| fastembed sentence encoder (the design's intended matcher) | — | **unbenched: huggingface.co policy-denied in this environment** |
+
+The failure mode is exactly the one the design doc predicted: every matcher
+runnable here is either blind (string) or *reassuring* (averaged vectors
+false-match near-topical questions at rates that would confidently serve
+wrong constraints). **So `constraints_on()` must not back any gate yet.**
+The sentence-encoder bench is still owed, from an environment that can reach
+the model.
+
+- **Not a gate.** `nestor decision check` (N9) waits on the sentence-encoder
+  number.
 - **Not Nestor.** By design, for now.
