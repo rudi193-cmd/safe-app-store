@@ -1,0 +1,28 @@
+name: Check links
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly sweep so dead links surface even when the list is quiet
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  lychee:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          # 429 = rate-limited, not dead; GitHub anchors are checked by lychee natively
+          args: >-
+            --no-progress
+            --accept 200..=206,429
+            --max-retries 3
+            README.md CONTRIBUTING.md
+          fail: true
