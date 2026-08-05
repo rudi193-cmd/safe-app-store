@@ -34,6 +34,35 @@ and `the-squirrel` (confidence-graded family narrative) — but each hardcodes i
 for one domain. The desk is that capability, generalized, with the domain
 injected.
 
+### What is actually novel here, and what is not
+
+Read against the rest of the fleet (`docs/the-house-already-knew.md`), most of
+this spec describes something that already exists elsewhere and is stronger:
+
+| This spec's | Already exists as | Standing |
+|---|---|---|
+| `filed → ruled → published` | Article IV — Contested / Frontier / Canonical | theirs adds a fresh-witness rule (IV.3) and evidenced demotion (IV.4); this has neither |
+| `ruled_by`, a string in a column | Nestor's cryptographic seal | forging a witness here is one `UPDATE`; there, a transplanted signature is refused |
+| `withheld` | Nestor's `reject_pair` | theirs makes a wrong answer *unofferable*, not merely unpublished |
+| the routing pass | `Jeles/conflict_scan` | theirs searches for what refutes; this searched for what resembles, and was 89% wrong until the verdict was deleted |
+
+Three things remain genuinely this desk's, and they are the reason it should
+continue to exist at all:
+
+1. **Consent for a subject who is not the operator.** Nestor has verifiers, not
+   subjects. Nothing in it asks whether the person a record is *about* agreed —
+   that axis is `libs/subject-consent`, and this is its first consumer that
+   takes testimony from third parties by design.
+2. **Verbatim capture with span-anchored claims.** The write-once statement, and
+   a claim that cannot exist without pointing back at the words it came from.
+3. **Elicitation as an injected protocol.** A persona is not a skin; it is what
+   makes a person answer at all, and the profile is a file the domain owns.
+
+Everything else should be evaluated for whether the desk ought to *consume* it
+rather than parallel it. That evaluation is open, and it blocks the desk view.
+The likely end state is a thin intake organ in front of Nestor, not a second
+system beside it.
+
 **Audiences, in build order.** Same pipeline, three clocks:
 
 | Audience | Clock | The account is | Publishing means |
