@@ -37,10 +37,13 @@ anything that opens the file:
 1. **`statements.body` is write-once**, along with everything that decides
    whose account it is (`narrator_id`, `taker_id`, `consent_ref`, `session_id`).
    The in-row digest is a **checksum, not a witness** — body and digest sit in
-   the same row, so anything that rewrites one rewrites the other. It is
-   evidence only because `file_statement` also writes the digest into the
-   subject's hash-chained disclosure record, outside this database;
-   `verify_bodies(conn, store)` compares the two.
+   the same row, so anything that rewrites one rewrites the other.
+   `file_statement` also writes the digest into the subject's hash-chained
+   disclosure record and `verify_bodies(conn, store)` compares the two — but
+   read that limit precisely. The chain is outside the *file*, not outside the
+   *trust boundary*: one disk, one process, one set of permissions. **Two
+   records agreeing proves only that one hand wrote both.** That catches a
+   careless rewrite. See the anchor, below, for the careful one.
 2. **Nothing is deleted.** `withhold` is the operation. Revocation stops the
    export and keeps the record.
 3. **A claim's span, statement and assertion are frozen.** Refused on the way
@@ -56,6 +59,30 @@ Every gate is doubled on INSERT and UPDATE, and `connect()` sets
 `PRAGMA recursive_triggers = ON` — without it `INSERT OR REPLACE` is a delete
 that does not fire the delete triggers. `connect()` also refuses to open a
 vault whose triggers have been removed or neutered.
+
+## The anchor — the only thing that survives a careful rewrite
+
+> A hash chain vouches for every line except the newest. The close is a head
+> recorded somewhere the chain's writer cannot reach.
+> — willow-mcp `governance_ledger` (#280)
+
+```bash
+python app.py anchor --save pinned.json     # then keep pinned.json OFF this machine
+python app.py anchor --expect pinned.json   # "is this the same chain it was yesterday?"
+```
+
+Rewrite the body, its digest, and the whole consent chain consistently and
+every record inside the box still agrees. The pinned head does not:
+
+```
+MOVED      slappy  anchored 8a0c6745459b4168… now bcedbdcd43dca45a…
+```
+
+`verify_chains()` reports **tampered** (broken or truncated) separately from
+**moved** (verifies cleanly, is not the chain you anchored). The second is what
+an edit-plus-repair looks like from outside, and it must not read as ordinary
+corruption. An honest append moves the head too — which is why re-pinning is a
+deliberate act, not an automatic refresh.
 
 ## Consent
 
@@ -111,7 +138,7 @@ python app.py export --format markdown --out testimony.md
 ```
 
 ```bash
-python -m pytest tests/ -q      # 73 passed
+python -m pytest tests/ -q      # 78 passed
 ```
 
 ## The router hands you candidates and stops
