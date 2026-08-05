@@ -1,0 +1,15 @@
+# The desk's core is stdlib-only: sqlite3 for the vault, tomllib for the
+# injected interviewer profile, hashlib for the tamper witness. No network.
+#
+# The one real dependency is the consent primitive, and it is deliberately a
+# path install rather than a vendored copy — libs/subject-consent is the
+# shared axis for "the person this data is about is not the operator", and a
+# second copy of a consent reader is exactly the drift that library was
+# extracted to end. It is stdlib-only itself, so this drags nothing in.
+#
+#   pip install -e ../../libs/subject-consent
+#
+# Left as a comment, not a line: `-e ../../libs/subject-consent` in a
+# requirements file resolves against the caller's working directory, not this
+# file, so it breaks for anyone who runs pip from the repo root. CI installs
+# it explicitly (see .github/workflows/store-ci.yml).

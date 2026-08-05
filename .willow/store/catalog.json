@@ -674,6 +674,25 @@
         "provenance",
         "nestor"
       ]
+    },
+    {
+      "id": "intake-desk",
+      "name": "The Intake Desk",
+      "description": "Takes an unverified human account, keeps it whole, breaks out the claims inside it, and refuses to publish anything on the word of the person who filed it. Write-once verbatim statements, claims anchored by span, consent as a hash-chained subject-consent record, and an egress gate that fails closed.",
+      "status": "building",
+      "version": "0.1.0",
+      "path": "apps/intake-desk",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "tags": [
+        "oral-history",
+        "provenance",
+        "consent",
+        "local-first",
+        "governance"
+      ]
     }
   ]
 }

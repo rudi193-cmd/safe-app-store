@@ -1,0 +1,13 @@
+{
+  "app_id": "intake-desk",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/intake-desk",
+  "maker": "USER",
+  "lane": null,
+  "state": "building",
+  "notes": "The desk from docs/specs/intake_desk_spec.md. Discipline core only - schema invariants as triggers, injected interviewer profile, fail-closed egress. The router (spec S6) is deliberately not built: assistance second, discipline first."
+}
