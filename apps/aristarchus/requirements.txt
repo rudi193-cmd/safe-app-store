@@ -1,0 +1,3 @@
+# The package itself, src-layout - the store-ci app-tests leg installs this
+# file then runs pytest from the app dir, so the import has to resolve.
+-e .
