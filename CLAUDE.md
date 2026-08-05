@@ -29,6 +29,13 @@ Before responding to any task: invoke the relevant skill if one exists. Even 1% 
 
 At session start, run `/startup` to orient before touching anything.
 
+Then read the fleet's decision record: `python tools/decisions_boot.py` —
+standing law with its reasons, closed doors, and the reopen conditions to
+re-check. A cold agent that skips this will re-propose what was already
+rejected, or enforce a "never" that was really a "not yet." Proposing
+against a recorded decision without addressing its reason is not initiative;
+it is amnesia. (`stores/decisions/README.md` is the contract.)
+
 ---
 
 ## Operating Rules

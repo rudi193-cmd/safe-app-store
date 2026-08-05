@@ -1,0 +1,76 @@
+{
+  "_contract": "The fleet's decision record - what a cold agent reads at boot. See README.md in this directory. Every decision carries the reason FOR it; every rejection carries the reason AGAINST and a reopen_when (empty = never, and empty is a deliberate act). verified_by differs from author on every entry - proposing and ratifying never rest in the same hand.",
+  "decisions": [
+    {
+      "question": "Which store should hold the fleet's decision graph?",
+      "commitment": "Nestor",
+      "reason": "only store in the fleet with a seal, a signature, and a hash chain - a decision recorded anywhere else is asserted, not ratified",
+      "author": "vishwakarma",
+      "verified_by": "rudi193",
+      "date": "2026-08-05",
+      "record": "nestor:docs/decision-memory.md (PR #30), nestor PR #31"
+    },
+    {
+      "question": "Should the unique index on decision rows be partial or full?",
+      "commitment": "partial - live rows only (WHERE superseded_by = '')",
+      "reason": "keeps the concurrent-seal race guard exactly as strong while superseded rows fall out of the index and accumulate as history",
+      "author": "vishwakarma",
+      "verified_by": "rudi193",
+      "date": "2026-08-05",
+      "record": "nestor PR #31; proven first in apps/aristarchus"
+    },
+    {
+      "question": "May the decision gate fail builds fail-closed?",
+      "commitment": "no - warn-mode only",
+      "reason": "N1 bench (apps/aristarchus/bench/results/n1.json): at 0.90 the matcher cries wolf one question in five; at 0.95 it sleeps through half",
+      "author": "vishwakarma",
+      "verified_by": "rudi193",
+      "date": "2026-08-05",
+      "record": "safe-app-store PR #162; apps/aristarchus/README.md"
+    },
+    {
+      "question": "Does a promoted app ship its knowledge corpus?",
+      "commitment": "no - ship the reader; the corpus stays with whoever grew it",
+      "reason": "the capability travels, the wood stays: a semantic-search seam over injectable knowledge, never a bundled copy",
+      "author": "vishwakarma",
+      "verified_by": "rudi193",
+      "date": "2026-07-31",
+      "record": "stores/README.md 'The one seam every store shares'"
+    }
+  ],
+  "rejections": [
+    {
+      "question": "Which store should hold the fleet's decision graph?",
+      "option": "SAPS1 / Willow",
+      "reason": "SAPS1 has atoms and edges but no seal, no signature, no hash chain - a decision recorded there is asserted rather than ratified",
+      "reopen_when": "SAPS1 grows a ratification primitive",
+      "verified_by": "rudi193",
+      "date": "2026-08-05"
+    },
+    {
+      "question": "Should the unique index on decision rows be partial or full?",
+      "option": "drop the uniqueness index entirely",
+      "reason": "it is the documented concurrent-seal race guard; dropping it trades a correctness property for a convenience",
+      "reopen_when": "",
+      "verified_by": "rudi193",
+      "date": "2026-08-05"
+    },
+    {
+      "question": "May the decision gate fail builds fail-closed?",
+      "option": "strict enforcement now",
+      "reason": "the N1 bench numbers do not support it",
+      "reopen_when": "a larger corpus or stronger encoder moves the 0.90-0.95 recall/false-match band",
+      "verified_by": "rudi193",
+      "date": "2026-08-05"
+    },
+    {
+      "question": "Should source code be eliminated in favor of AI-generated binaries?",
+      "option": "generate efficient binaries directly, no source intermediate",
+      "reason": "destroys the witness layer: source is the record, not the instructions - the only medium in which a second human can check the first; a model's derivation is neither deterministic nor reproducible, and opacity pools trust in whoever runs the model",
+      "reopen_when": "generation becomes deterministic, reproducible, and auditable end to end",
+      "verified_by": "rudi193",
+      "date": "2026-08-05",
+      "record": "docs/what-source-code-is-for.md"
+    }
+  ]
+}
