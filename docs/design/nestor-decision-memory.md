@@ -1,9 +1,9 @@
 # Nestor decision memory — the missing half
 b17: SAPS1
 
-*Carried home 2026-08-05: the canonical copy now lives in the Nestor repo at
-[`docs/decision-memory.md`](https://github.com/rudi193-cmd/nestor/blob/claude/decision-memory-design/docs/decision-memory.md)
-(branch `claude/decision-memory-design`), with its follow-ups folded into
+*Carried home 2026-08-05: the canonical copy lives in the Nestor repo at
+[`docs/decision-memory.md`](https://github.com/rudi193-cmd/nestor/blob/master/docs/decision-memory.md)
+(PR #30, merged to master same day), with its follow-ups folded into
 Nestor's `IDEAS.md` §6.11–§6.12. This copy stays as the keeping record of
 where the design came from — read the Nestor copy for the living text. The
 narrative around it — why this wall stands — is
