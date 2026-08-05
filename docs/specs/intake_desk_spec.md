@@ -34,6 +34,35 @@ and `the-squirrel` (confidence-graded family narrative) — but each hardcodes i
 for one domain. The desk is that capability, generalized, with the domain
 injected.
 
+### What is actually novel here, and what is not
+
+Read against the rest of the fleet (`docs/the-house-already-knew.md`), most of
+this spec describes something that already exists elsewhere and is stronger:
+
+| This spec's | Already exists as | Standing |
+|---|---|---|
+| `filed → ruled → published` | Article IV — Contested / Frontier / Canonical | theirs adds a fresh-witness rule (IV.3) and evidenced demotion (IV.4); this has neither |
+| `ruled_by`, a string in a column | Nestor's cryptographic seal | forging a witness here is one `UPDATE`; there, a transplanted signature is refused |
+| `withheld` | Nestor's `reject_pair` | theirs makes a wrong answer *unofferable*, not merely unpublished |
+| the routing pass | `Jeles/conflict_scan` | theirs searches for what refutes; this searched for what resembles, and was 89% wrong until the verdict was deleted |
+
+Three things remain genuinely this desk's, and they are the reason it should
+continue to exist at all:
+
+1. **Consent for a subject who is not the operator.** Nestor has verifiers, not
+   subjects. Nothing in it asks whether the person a record is *about* agreed —
+   that axis is `libs/subject-consent`, and this is its first consumer that
+   takes testimony from third parties by design.
+2. **Verbatim capture with span-anchored claims.** The write-once statement, and
+   a claim that cannot exist without pointing back at the words it came from.
+3. **Elicitation as an injected protocol.** A persona is not a skin; it is what
+   makes a person answer at all, and the profile is a file the domain owns.
+
+Everything else should be evaluated for whether the desk ought to *consume* it
+rather than parallel it. That evaluation is open, and it blocks the desk view.
+The likely end state is a thin intake organ in front of Nestor, not a second
+system beside it.
+
 **Audiences, in build order.** Same pipeline, three clocks:
 
 | Audience | Clock | The account is | Publishing means |
@@ -201,7 +230,14 @@ CREATE INDEX idx_docket_claim       ON docket_entries(claim_id);
 **Invariants, enforced in code and tested:**
 
 - `statements.body` is write-once. Any `UPDATE` is a bug; the test suite asserts
-  the trigger fires.
+  the trigger fires. The in-row digest is a checksum, not a witness, and the
+  disclosure chain beside it is outside the *file* but **not outside the trust
+  boundary** — one disk, one process, one set of permissions. Two records that
+  agree prove only that one hand wrote both. Only an externally-held chain head
+  (`chain_heads()`, pinned where this process cannot reach) survives a careful
+  rewrite; willow-mcp #280 states the degraded case exactly — without an
+  anchor, "someone else remembers" becomes "someone else has a copy that will
+  agree with whatever it now says."
 - A claim's span must resolve inside its statement's body. Orphan claims fail
   closed.
 - `ruled_by ∉ {narrator_id, taker_id}` for any claim leaving `ruled`. This is
@@ -470,7 +506,11 @@ Playground → promoted, per `stores/promote_check.py`:
 - [ ] a rejected proposal is unofferable, reasoned, and kept (§4.1.4)
 - [ ] interviewer profile is injected, not hardcoded; `Riggs` is one file
 - [ ] disclosure chain verifies, including tail truncation (anchor present), and
-      the chain head is surfaced somewhere a person can pin it
+      the chain head is **held outside the trust boundary that writes it** — a CI
+      variable, a monitoring system, a printed page — not merely displayed.
+      `verify_chains()` reports a broken chain and a *moved* one separately,
+      because the second is what an edit-plus-repair looks like from outside and
+      must not read as ordinary corruption
 - [ ] one real session end-to-end: intake → docket → ruling → export
 - [ ] own repo, injected seams, manifest, `verified_by ≠ author`
 

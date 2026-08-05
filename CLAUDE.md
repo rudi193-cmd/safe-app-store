@@ -72,6 +72,14 @@ it is amnesia. (`stores/decisions/README.md` is the contract.)
 9. **The catalog is a status map, not a shelf.** It tracks builds across both tiers (playground / promoted) in `.willow/store/` — keep `catalog.json` in sync. It records where a thing is in its becoming, not an inventory for sale.
 10. **`apps/<name>/` self-containment and `app_id = directory name` describe a build only while it is in the playground.** They exist so SAFE dev-fallback auth resolves during testing. Once promoted, the app is its own repo with its own identity. `make run app=<name>` runs a playground build.
 
+### Before you build it, find out whether the house already did
+
+11. **Search before writing. The promoted organs are the first place to look, not the last.** In one session (2026-08-05, [`docs/the-house-already-knew.md`](docs/the-house-already-knew.md)) four separate pieces were built that already existed and were better: a retrieval pass Jeles had solved in July (`conflict_scan` — *search for what refutes, not what resembles*; the rebuilt version measured 89% wrong), a promotion ladder Article IV already defined, a witness Nestor already made cryptographic, and a tamper claim willow-mcp disproved the same day. None was hidden. All were unfindable *at the moment of building*, which is a different failure from being undocumented.
+
+    So, before writing a mechanism: check `Nestor` (has a human checked this — seal, durable rejection, ledger), `Jeles` (verified corpus in front of live search; `conflict_scan` for prior art), `libs/` (the extracted primitives — consent, paths, pipeline), `willow/CONSTITUTION.md` (Article IV governs anything that promotes knowledge), and this store's own `docs/`. **Rediscovery is the fleet's largest tax and the one it is best equipped to stop paying** — every organ that would close the gap is built and currently pointed outward.
+
+    Corollary: when you find the house already knew, say so in the commit. A rediscovery recorded is a search path for the next seat; a rediscovery quietly deleted is the same cost paid twice.
+
 ---
 
 ## Handoff Format
