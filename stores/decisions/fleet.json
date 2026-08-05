@@ -44,7 +44,7 @@
       "author": "vishwakarma",
       "verified_by": "rudi193",
       "date": "2026-08-05",
-      "record": "docs/specs/intake_desk_spec.md 4.1; CLAUDE.md 0.2; stores/promote_check.py; docs/the-fourth-store.md"
+      "record": "docs/specs/intake_desk_spec.md 4.1; CLAUDE.md 0.2; stores/promote_check.py; docs/the-fourth-store.md; prior art found at reconciliation: willow-gate custody-ledger-spec header, 2026-07-11 - 'author: instance (proposes; operator ratifies)... nothing here is built without operator ratification'"
     },
     {
       "question": "May the field recording why a boundary was crossed be free text?",
@@ -62,7 +62,7 @@
       "author": "vishwakarma",
       "verified_by": "rudi193",
       "date": "2026-08-05",
-      "record": "homestead invariant I-13; operator note at sealing: possible prior art in willow-gate - to be reconciled"
+      "record": "homestead invariant I-13; PRIOR ART CONFIRMED (reconciled 2026-08-05): willow-gate's founding rule - 'trust is not asserted, it is bound... Elder is not a text field anyone can type' (README), check-out reconciles declared against observed, and hardening H2 demotes the text-scan to advisory in favor of a checkable lease. This entry is the fleet-level statement of willow-gate's law."
     },
     {
       "question": "May a subject's testimony be published attributed under their name?",
@@ -71,7 +71,7 @@
       "author": "vishwakarma",
       "verified_by": "rudi193",
       "date": "2026-08-05",
-      "record": "libs/subject-consent core.py (the scope's own comment); apps/intake-desk; operator note at sealing: possible prior art in willow-gate - to be reconciled"
+      "record": "libs/subject-consent core.py (the scope's own comment); apps/intake-desk; reconciled 2026-08-05: willow-gate H2 supplies the enforcement FRAME (three-key model: capability + consent + unexpired lease) but not this rule - the scope-independence of testimony_publication vs kb_promotion is genuinely new law."
     },
     {
       "question": "Must the governance chain head be anchored outside the database?",
@@ -80,7 +80,7 @@
       "author": "vishwakarma",
       "verified_by": "rudi193",
       "date": "2026-08-05",
-      "record": "willow-mcp #280, PR #281; nestor ledger's expected_head precedent"
+      "record": "willow-mcp #280, PR #281; nestor ledger's expected_head precedent; prior art found at reconciliation: willow-gate custody-ledger-spec, 2026-07-11 - 'the ledger is the authority; the file is not... the lock lives where the handled thing cannot reach it', with the signed sidecar explicitly labeled weaker (authenticity, never completeness) - the rechain-marker bound, stated three weeks early"
     }
   ],
   "rejections": [
