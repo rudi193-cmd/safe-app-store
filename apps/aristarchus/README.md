@@ -42,26 +42,39 @@ pip install -e ".[dev]"
 ARISTARCHUS_SEAL_KEY=dev python -m pytest tests/ -q
 ```
 
-## The N1 bench — run, and the gate stays closed
+## The N1 bench — all legs run; the gate opens to advisory, not enforcement
 
 `bench/n1_bench.py` over `bench/corpus.json` (20 stored decisions × 3
 paraphrases, 10 near-miss distractors, 10 novel questions), through the real
-`constraints_on()` path. Results in `bench/results/n1.json`:
+`constraints_on()` path. Results + provenance in `bench/results/n1.json`
+(the fastembed leg ran in a huggingface-reachable environment; this one
+denies the host).
 
 | Matcher | Best usable point | Verdict |
 |---|---|---|
 | `StringMatcher` (difflib) | none — 0% recall @ 0.90; 67% recall costs 80% false-match @ 0.50 | **falsified** |
 | `TokenMatcher` (jaccard) | none — strictly worse | **falsified** |
-| spaCy `en_core_web_md` (averaged word vectors) | none — 63% recall @ 0.90 costs **60% false-match**; 100% false-match below that | **falsified** |
-| fastembed sentence encoder (the design's intended matcher) | — | **unbenched: huggingface.co policy-denied in this environment** |
+| spaCy `en_core_web_md` (averaged word vectors) | none — 63% recall @ 0.90 costs 60% false-match | **falsified** |
+| **fastembed sentence encoder** | **0.90: 88.3% recall / 20% false-match · 0.95: 51.7% / 5%** | **viable band, advisory only** |
 
-The failure mode is exactly the one the design doc predicted: every matcher
-runnable here is either blind (string) or *reassuring* (averaged vectors
-false-match near-topical questions at rates that would confidently serve
-wrong constraints). **So `constraints_on()` must not back any gate yet.**
-The sentence-encoder bench is still owed, from an environment that can reach
-the model.
+Two findings in the fastembed curve worth their weight:
 
-- **Not a gate.** `nestor decision check` (N9) waits on the sentence-encoder
-  number.
+1. **`wrong_key` is 0.0 at every threshold.** When the encoder matches a
+   paraphrase, it *never* picks the wrong stored decision — every false
+   match comes from intruders (near-miss/novel questions), not from
+   cross-wiring two known decisions.
+2. **There is a real operating band (0.90–0.95)** — the first matcher with
+   one. But its floor is 20% false-match at the recall end, 48% missed
+   decisions at the precision end.
+
+**Ruling:** `constraints_on()` with the sentence encoder is fit for
+**advisory** use — surfacing constraints to an agent, warn-mode CI — using
+Nestor's own serve/queue split: ≥0.95 served as a confident match, 0.85–0.95
+surfaced as "possible match — check." It is **not yet fit to fail a build
+fail-closed**: a hard gate at 0.90 cries wolf on one question in five, and
+one at 0.95 sleeps through half. Enforcement waits on a larger corpus and/or
+a stronger encoder — margin is already known-mostly-falsified (Nestor IDEAS
+§1.1), so threshold and corpus are the honest knobs.
+
+- **Warn-mode gate (N9) is now unblocked.** Fail-closed is not.
 - **Not Nestor.** By design, for now.
