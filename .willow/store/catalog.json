@@ -657,6 +657,23 @@
         "meta",
         "design-phase"
       ]
+    },
+    {
+      "id": "aristarchus",
+      "name": "Aristarchus",
+      "description": "Decision memory that keeps the lineage and the rejections - never vs. not-yet as schema. Test-build of Nestor's decision-memory design.",
+      "status": "building",
+      "path": "apps/aristarchus",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "tags": [
+        "memory",
+        "decisions",
+        "provenance",
+        "nestor"
+      ]
     }
   ]
 }

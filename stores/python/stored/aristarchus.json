@@ -1,0 +1,13 @@
+{
+  "app_id": "aristarchus",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/aristarchus",
+  "maker": "USER",
+  "lane": null,
+  "state": "building",
+  "notes": "Playground test-build of the decision-memory design (Nestor docs/decision-memory.md, PR #30; narrative docs/the-fourth-store.md). Stdlib-only, imports nothing from Nestor by design - proves the four verbs standalone. N1 bench COMPLETE 2026-08-05 (bench/results/n1.json, fastembed leg via worker session, carried by operator after push denial): string and word-vector matchers falsified; fastembed sentence encoder has a viable 0.90-0.95 band (88.3%/20% to 51.7%/5% recall/false-match, wrong_key 0 throughout). Ruling: constraints_on() fit for ADVISORY use and warn-mode CI via a serve/queue split (>=0.95 confident, 0.85-0.95 check); fail-closed enforcement waits on a larger corpus or stronger encoder."
+}

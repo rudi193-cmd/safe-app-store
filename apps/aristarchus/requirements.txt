@@ -1,0 +1,5 @@
+# Stdlib-only on purpose (D13). The package itself is NOT installed here:
+# conftest.py puts src/ on sys.path for the tests, because the CI matrix
+# installs this file from the repo root and pip resolves '-e .' against its
+# cwd, not this file's directory. 'pip install -e .' remains the human path
+# to the aristarchus CLI.

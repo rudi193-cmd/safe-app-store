@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-aristarchus"
+version = "0.1.0"
+description = "Decision memory that keeps the lineage and the rejections. Playground test-build of Nestor docs/decision-memory.md."
+requires-python = ">=3.10"
+# Stdlib only, deliberately (D13 discipline: dependency-light, import-pure
+# core). Nestor is NOT a dependency here - this build exists to prove the
+# design standalone before any of it goes back to Nestor as core changes.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+# The N1 bench falsified string matching for rewording; advisory-quality
+# checks need the sentence encoder. Optional because the core (and the
+# tests) run without it - the CLI falls back loudly, never silently.
+semantic = ["fastembed>=0.4"]
+
+[project.scripts]
+aristarchus = "aristarchus.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

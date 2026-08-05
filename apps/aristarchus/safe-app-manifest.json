@@ -1,0 +1,16 @@
+{
+  "app_id": "aristarchus",
+  "name": "aristarchus",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "agent_type": "tool",
+  "description": "Decision memory that keeps the lineage and the rejections - never vs. not-yet as schema. Playground test-build of Nestor docs/decision-memory.md; stdlib-only, imports nothing from Nestor by design.",
+  "author": "USER",
+  "data_streams": [],
+  "permissions": [],
+  "privacy_tier": "local_first",
+  "local_processing": 1.0,
+  "entry_point": "aristarchus:DecisionMemory",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/rudi193-cmd/safe-app-store"
+}
