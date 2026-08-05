@@ -152,6 +152,24 @@ which is picking. Narrator-supplied text is sanitised before it enters a
 sentence, and `verdict_language()` now runs **at write time**, not only in the
 test suite where it used to live.
 
+## A model may propose. Only a person may verify
+
+Spec §4.1. Every other rule here says what the *system* refuses; this one says
+what a **model** may never do, and it is the rule the router shipped without.
+
+> A model may propose. It may never verify, rule, seal, publish, or say that
+> something is agreed.
+
+No model-reachable path writes `ruled_by`, `ruled_at` or `confidence`, or moves
+a claim to `ruled`, `published` or `uncheckable`. The refusal contract has no
+sentence for agreement and `corroborated` is a forbidden word. Anything a model
+produces enters at the lowest tier labelled with the standard that produced it,
+never with a tier it chose for itself — Nestor's model surface (`nestor.serve`)
+is documented as *structurally unable to seal*, and this is the desk's version
+of that sentence.
+
+**A machine may say what it found. Only a person may say what is so.**
+
 Three things it cannot do, by construction:
 
 - **It never rules.** Nothing writes `ruled_by`, `confidence`, or a terminal
