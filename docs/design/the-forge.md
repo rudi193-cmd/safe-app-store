@@ -1145,9 +1145,24 @@ half, `stores/checkpoint_memory.py`, D12, already exists):
   **Easy** (verified live: next review pushed ~10 days out), a declined one
   **Good** (~10 min), a thin one **Hard** (~5 min). Non-punitive and
   duck-typed: the hold is never blocked, and a Responder without `justify`
-  reverts to the pre-wire Good. Still open: `#67`'s mid-session nudge
-  (willow-mcp has the scanner, not the injection timing). The original bite-3
-  sketch follows.
+  reverts to the pre-wire Good.
+- **`#67` — the mid-session nudge. ✅ LANDED 2026-08-11.** The last willow-mcp
+  reuse for this loop, and the injection timing the reuse-map said was missing.
+  `stores/checkpoint_nudge.py`, two monitors, both pure signals that never
+  block: `SessionMirrorMonitor` wires the *unused* half of `friction_floor.py`
+  (`FrictionFloor.scan`, `#67`'s mirror detector) over the maker↔Forge
+  transcript — nudging once when the Forge's side stops pushing back while the
+  maker escalates, de-duped by the tripping turn across incremental re-scans;
+  and `EngagementRunMonitor` mirrors that window/episode/re-arm shape over the
+  per-checkpoint engagement stream (a *run* of rubber-stamps), reusing
+  `checkpoint_engagement.RUBBER_STAMP_FLOOR`. Verified live: a mirroring
+  session flags once at turn 7; a run of thin decisions nudges once per
+  sustained episode, and nudges again only after the trailing-window mean
+  actually clears the floor (a single moderate decision mid-run does not
+  re-arm — deliberate, so it nudges rather than nags). The mirror monitor
+  watches real dialogue once D7's model lands
+  (stubbed today, as in bites 0-1). With this, every willow-mcp piece the
+  reuse-map named for the loop is wired. The original bite-3 sketch follows.
 - **Bite 3 (original sketch) — the engagement gate.** `#66`/`#67`'s friction-floor / mirror
   detector as the non-circular "did they actually decide vs rubber-stamp"
   signal at seal-time — also already shipped in willow-mcp, to be reused.
