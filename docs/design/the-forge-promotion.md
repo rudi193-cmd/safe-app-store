@@ -29,15 +29,19 @@ at import (`pure_core = forge`).
 - **PASS** — own_repo, manifest (pyproject, library-clean), tests_green (**154
   passed, 1 skipped** in place), vault_leak, import_pure_core (`forge`
   network-free at import), inversion (host not imported), semantic_seam
-  (`forge.checkpoint_memory:CheckpointMemory`).
-- **FAIL (structural, not mine)** — `witnessed` (`verified_by` empty — a second
-  seat sets it, §0.2) and `host_repointed` (not true until safe-app-store
-  consumes the package).
+  (`forge.checkpoint_memory:CheckpointMemory`), and **`witnessed`** —
+  `verified_by = rudi193` (the human operator ratifies; distinct from the author
+  `vishwakarma`, §0.2). Recorded on the forge feature branch 2026-08-11.
+- **FAIL — the last gate** — `host_repointed` (not true until safe-app-store
+  consumes the package). **Held by USER** pending the engine landing on forge's
+  default branch, then the repoint (delete the `stores/` model-side modules +
+  their tests, declare `the-forge` a dependency — rule 8, code not duplicated).
 
-What remains: (6) repoint the host and flip `host_repointed`; (7) a second seat
-sets `verified_by`, runs `promote_check --record`, writing
-`stores/python/promoted/the-forge.json`. Everything the author's hand can green
-is green.
+What remains: (6) land the engine on forge `main` (the ratifying push — auto-
+blocked for the author, so it's the operator's act or an explicit grant); (7)
+repoint the host and flip `host_repointed`; (8) run `promote_check --record`,
+writing `stores/python/promoted/the-forge.json`. Only `host_repointed` is not
+yet green — every other gate passes.
 
 ## Destination
 
