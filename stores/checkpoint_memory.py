@@ -97,6 +97,26 @@ the same honest-environment-disclosure convention
 `apps/the-forge/tests/test_sandbox_runner.py` uses for its own "no bwrap in
 this container" note.
 
+**Nestor is a SOFT dependency at IMPORT time, a HARD one at OPERATION
+time — added 2026-08-11, docs/design/the-forge.md's "Verification-as-
+learning" section, bite 1 of the D8/D9/D12 build order.** Mirroring
+`oakenscrolls-office` PR #3 ("make the Nestor citation seam soft"): `nestor`
+used to be imported at module scope, so merely `import checkpoint_memory`
+crashed in any environment without Nestor installed — including a caller
+that only wants `nestor_available()` to decide whether to even attempt
+memory-backed routing at all (`stores/checkpoint.py`'s D8 orchestrator does
+exactly this). `_nestor()` (below) now imports Nestor lazily, on first real
+use, and caches it; `nestor_available()` tries that same import and reports
+True/False without ever raising. None of the OPERATIONS this module
+provides got weaker: `has_sealed`/`check`/`seal`/`reject_match`/
+`reject_pair`/`open_checkpoint_memory` still refuse outright — via
+`CheckpointMemoryError`, the exact informative message the old module-level
+`ImportError` used to give — the moment any of them actually needs Nestor
+and it is not there. Only the ability to *import this module at all*
+changed; deciding what to do when Nestor is absent (e.g. "fall back to full
+Socratic") is the orchestrator's job, not this module's — see D8's
+orchestrator module for that half.
+
 Not in scope, deliberately — the boundary this module stops at:
   * D8's actual Socratic checkpoint UX — the question a builder sees, the
     follow-up that tests whether they understood (not just picked an
@@ -144,6 +164,7 @@ import json
 import os
 import re
 import sys
+import types
 from pathlib import Path
 from typing import Any
 
@@ -192,28 +213,6 @@ _principal_spec.loader.exec_module(principal)
 _principal_check_builder_id = principal._check_builder_id
 
 
-# ── import Nestor ────────────────────────────────────────────────────────────
-#
-# A real, informative failure if Nestor is not on the path, rather than a
-# bare ImportError a future maintainer has to go spelunking for. See the
-# module docstring's "Real packaging fact" section and stores/requirements.txt.
-try:
-    from nestor import cascade as _nestor_cascade
-    from nestor import memory as _nestor_memory
-    from nestor.entity import EntityResolver as _EntityResolver
-    from nestor.sqlite_store import SqliteStore as _SqliteStore
-except ImportError as _e:  # pragma: no cover — exercised by a real missing-dep env
-    raise ImportError(
-        "stores/checkpoint_memory.py requires Nestor, which is NOT on PyPI "
-        "(see this module's docstring and stores/requirements.txt). For "
-        "local dev/testing, install it editable from the sibling checkout: "
-        "`pip install -e /workspace/nestor` (verify that path exists in your "
-        "environment first — `ls /workspace/nestor`). For a real deployment, "
-        "install from the pinned git SHA in stores/requirements.txt once one "
-        "is recorded at promotion time."
-    ) from _e
-
-
 class CheckpointMemoryError(Exception):
     """Fail-closed refusal — bad `builder_id`/`decision_type`, a Nestor-level
     exception this module caught at its boundary, or a store that did not
@@ -247,6 +246,87 @@ class CheckpointRejected(CheckpointMemoryError):
     """Wraps `nestor.memory.RejectedPairError`: this decision wording was
     previously rejected and will not be re-sealed implicitly. A caller that
     wants to proceed anyway passes `override_rejection=True`."""
+
+
+# ── Nestor: a soft dependency (lazy import, cached) ─────────────────────────
+#
+# Import strategy ONLY — see module docstring's "Nestor is a SOFT dependency
+# at IMPORT time, a HARD one at OPERATION time" section for the full
+# reasoning. Nothing below weakens what an OPERATION requires; it only moves
+# *when* the ImportError-equivalent happens, from "the moment this module is
+# imported" to "the moment something in it actually needs Nestor."
+
+_NESTOR_MISSING_MSG = (
+    "stores/checkpoint_memory.py requires Nestor, which is NOT on PyPI "
+    "(see this module's docstring and stores/requirements.txt). For "
+    "local dev/testing, install it editable from the sibling checkout: "
+    "`pip install -e /workspace/nestor` (verify that path exists in your "
+    "environment first — `ls /workspace/nestor`). For a real deployment, "
+    "install from the pinned git SHA in stores/requirements.txt once one "
+    "is recorded at promotion time."
+)
+
+# `None` until the first successful `_nestor()` call — deliberately only
+# caches SUCCESS, never failure. A failed attempt raises fresh every time
+# rather than pinning "Nestor is absent" for the rest of the process: cheap
+# (the import machinery itself already caches a failed `import nestor` in
+# `sys.modules`-adjacent state per CPython's own import cache, so a repeat
+# failed attempt here is not doing real work over again) and correct for the
+# one caller that actually depends on re-checking working — the degraded
+# test in `tests/test_checkpoint.py` evicts `nestor` from `sys.modules` and
+# installs a blocking meta-path finder *after* this module is already
+# imported, then expects `nestor_available()` to observe the new failure
+# rather than serve a stale cached `True`.
+_nestor_cache: "types.SimpleNamespace | None" = None
+
+
+def _nestor() -> "types.SimpleNamespace":
+    """Import Nestor on first real use and cache the result — mirrors
+    `oakenscrolls-office` PR #3's `_matcher()` pattern (lazy import, cached
+    after the first success). Every memory OPERATION in this module
+    (`has_sealed`/`check`/`seal`/`reject_match`/`reject_pair`/
+    `open_checkpoint_memory`) routes through this rather than importing
+    `nestor` itself, so there is exactly one place this module's Nestor
+    dependency is declared. Raises `CheckpointMemoryError` — never a bare
+    `ImportError` — with the exact message the old module-level import used
+    to give verbatim, so a caller of this module never needs to `import
+    nestor` or catch `ImportError` itself: the same "one exception type at
+    the call site" discipline `CheckpointMemoryError`'s own docstring
+    already states for every other Nestor-level failure this module wraps.
+    """
+    global _nestor_cache
+    if _nestor_cache is None:
+        try:
+            from nestor import cascade
+            from nestor import memory
+            from nestor.entity import EntityResolver
+            from nestor.sqlite_store import SqliteStore
+        except ImportError as e:
+            raise CheckpointMemoryError(_NESTOR_MISSING_MSG) from e
+        _nestor_cache = types.SimpleNamespace(
+            cascade=cascade, memory=memory, EntityResolver=EntityResolver, SqliteStore=SqliteStore,
+        )
+    return _nestor_cache
+
+
+def nestor_available() -> bool:
+    """True if Nestor can be imported right now, False otherwise — never
+    raises, in either direction. This is the soft-Nestor GATE a caller
+    checks BEFORE doing anything else with this module — D8's checkpoint
+    orchestrator (`stores/checkpoint.py`) calls this first and skips memory
+    entirely (straight to full Socratic) when it's False, rather than let
+    `open_checkpoint_memory` raise partway through a flow. Deliberately
+    routes through the same `_nestor()` cache/import path the real
+    operations use, not a separate bare `import nestor` probe — a partial
+    install (`nestor` importable but `nestor.entity`/`nestor.sqlite_store`
+    broken) reports False here too, which is the honest case a caller
+    actually needs to hear, not a probe that would say True and then have
+    the real operation fail moments later anyway."""
+    try:
+        _nestor()
+    except CheckpointMemoryError:
+        return False
+    return True
 
 
 # ── validation ───────────────────────────────────────────────────────────────
@@ -358,13 +438,17 @@ class CheckpointMemory:
     this module, not something an external caller should be doing.
     """
 
-    def __init__(self, builder_id: str, decision_type: str, store: "_SqliteStore"):
+    def __init__(self, builder_id: str, decision_type: str, store: "types.SimpleNamespace"):
         self.builder_id = builder_id
         self.decision_type = decision_type
         self.domain = _domain(builder_id, decision_type)
         self._store = store
         try:
-            self._resolver = _EntityResolver(self._store, domain=self.domain)
+            nestor = _nestor()  # raises CheckpointMemoryError verbatim if absent — see _nestor()
+            self._resolver = nestor.EntityResolver(self._store, domain=self.domain)
+        except CheckpointMemoryError:
+            self._store.close()
+            raise
         except Exception as e:  # noqa: BLE001 — boundary: see CheckpointMemoryError
             self._store.close()
             raise CheckpointMemoryError(
@@ -388,7 +472,7 @@ class CheckpointMemory:
         """
         try:
             candidates = self._store.memory_candidates(self.domain, self.domain)
-            return any(_nestor_memory.is_verified_seal(row) for row in candidates)
+            return any(_nestor().memory.is_verified_seal(row) for row in candidates)
         except Exception as e:  # noqa: BLE001 — boundary
             raise self._wrap(e) from e
 
@@ -440,9 +524,9 @@ class CheckpointMemory:
                 override_conflict=override_conflict,
                 override_rejection=override_rejection,
             )
-        except _nestor_memory.ConflictingSealError as e:
+        except _nestor().memory.ConflictingSealError as e:
             raise CheckpointConflict(str(e)) from e
-        except _nestor_memory.RejectedPairError as e:
+        except _nestor().memory.RejectedPairError as e:
             raise CheckpointRejected(str(e)) from e
         except Exception as e:  # noqa: BLE001 — boundary
             raise self._wrap(e) from e
@@ -466,7 +550,7 @@ class CheckpointMemory:
         `nestor.memory.reject_match` itself."""
         verifier = self.builder_id if verifier is None else verifier
         try:
-            return _nestor_memory.reject_match(
+            return _nestor().memory.reject_match(
                 decision_description,
                 self.domain,
                 self.domain,
@@ -498,7 +582,7 @@ class CheckpointMemory:
         wrong for one specific query."""
         verifier = self.builder_id if verifier is None else verifier
         try:
-            _nestor_memory.reject_pair(pair_id, verifier=verifier, reason=reason, store=self._store)
+            _nestor().memory.reject_pair(pair_id, verifier=verifier, reason=reason, store=self._store)
         except Exception as e:  # noqa: BLE001 — boundary
             raise self._wrap(e) from e
 
@@ -553,7 +637,7 @@ class CheckpointMemory:
 # which gives each test its own `tmp_path`.
 def _point_ledger_at(root: Path) -> None:
     root.mkdir(parents=True, exist_ok=True)
-    _nestor_cascade.set_ledger_path(root / "ledger.jsonl")
+    _nestor().cascade.set_ledger_path(root / "ledger.jsonl")
 
 
 def open_checkpoint_memory(
@@ -578,6 +662,14 @@ def open_checkpoint_memory(
     """
     builder_id = _check_builder_id(builder_id)
     decision_type = _check_decision_type(decision_type)
+    # Nestor availability is checked here — after input validation (cheap,
+    # no I/O, and a caller deserves "bad builder_id" over "no Nestor" when
+    # both are true), but BEFORE any filesystem write. Same "no file left
+    # behind on hostile input" discipline this docstring already claims,
+    # extended to "no file left behind when Nestor itself is absent" — a
+    # caller with Nestor missing gets `CheckpointMemoryError` here, not a
+    # partially-created `.checkpoints/` directory with nothing usable in it.
+    nestor = _nestor()
     root = Path(root)
     if root.is_symlink():
         raise CheckpointMemoryError(f"refusing to use a symlinked checkpoint root: {root}")
@@ -587,7 +679,7 @@ def open_checkpoint_memory(
 
     db_path = checkpoint_db_path(builder_id, root=root)
     try:
-        store = _SqliteStore(str(db_path))
+        store = nestor.SqliteStore(str(db_path))
     except Exception as e:  # noqa: BLE001 — boundary
         raise CheckpointMemoryError(
             f"failed to open checkpoint store at {db_path}: {type(e).__name__}: {e}"

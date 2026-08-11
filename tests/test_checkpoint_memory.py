@@ -372,6 +372,25 @@ def test_resealing_a_rejected_pair_raises_checkpoint_rejected(tmp_path):
 
 # ── ledger: sanity, not a re-test of Nestor's own hash-chain suite ─────────
 
+# ── the soft-Nestor import strategy (2026-08-11, bite 1 of D8/D9/D12) ──────
+#
+# Not a re-test of the degraded-Nestor CASE — that belongs to
+# `tests/test_checkpoint.py` (the orchestrator that actually has to behave
+# differently when Nestor is absent), and needs a meta-path-finder /
+# sys.modules eviction this file's own `_open` fixtures don't set up. This
+# is only the structural claim this file's own docstring above now depends
+# on: importing `checkpoint_memory` no longer requires Nestor to be
+# importable, and `nestor_available()` exists and returns a plain bool.
+# Since Nestor genuinely IS installed in this test environment (see this
+# file's own module docstring), this deliberately does NOT assert which way
+# `nestor_available()` comes back — only that the import-without-crashing
+# path and the public function exist and behave, covering the code path
+# structurally without needing to fake Nestor's absence here.
+
+def test_module_imports_and_nestor_available_returns_a_bool_without_asserting_nestor_presence():
+    assert isinstance(checkpoint_memory.nestor_available(), bool)
+
+
 def test_sealing_writes_to_this_root_own_ledger_not_the_process_cwd(tmp_path):
     root = tmp_path / "checkpoints"
     with _open(tmp_path) as cm:
