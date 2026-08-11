@@ -35,6 +35,13 @@ Python, no backend. Its suite is five independent per-game checks (one file
 each under `test/suites/`) rather than one integrated suite, since the games
 share nothing at runtime.
 
+`marching-arts-shell.yml` is the third: no Python, so it can't join the
+`app-tests` matrix either. Two jobs, split the way browser-resolver and
+browser-mechanisms are split — the gates that don't need a browser stay
+runnable without one, and only the one that does gets its own Chromium job,
+since a skip-guarded test still exits 0 and reports green having compared
+nothing.
+
 ## Where a new app's tests go
 
 - Tests exist, plain `requirements.txt`, no OS-specific surface → add the app
