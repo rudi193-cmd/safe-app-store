@@ -211,6 +211,50 @@ def test_isolation_provenance_is_reported_honestly_under_plain_fallback(tmp_path
     assert any("NO ISOLATION" in w for w in report["warnings"])
 
 
+# ── the CLI presents every denial type uniformly (bite 0 follow-up) ───────
+
+def test_cli_presents_a_sandbox_denial_uniformly_not_as_a_traceback(tmp_path, capsys):
+    """bite 0's own recorded follow-up: the `build` CLI caught SeamError and
+    GateError for a clean `DENIED: ...` line but let SandboxError/PlanError
+    escape as a raw traceback. On this bwrap-less host the default
+    (require_isolation=True) path raises SandboxError before any signing or
+    seam stage — so it is the honest way to reach that catch — and the CLI
+    must now present it the same way: `DENIED: ...` on stderr, exit 1, no
+    traceback, nothing written."""
+    rc = forge_build.main([
+        "build", "hello",
+        "--apps-root", str(tmp_path / "apps"),
+        "--key-root", str(tmp_path / "keys"),
+        "--ledger", str(tmp_path / "ledger.jsonl"),
+        # No --no-require-isolation on purpose: isolation is required, and this
+        # container has no bwrap, so run_scoped_build raises SandboxError.
+    ])
+    assert rc == 1
+    err = capsys.readouterr().err
+    assert "DENIED:" in err
+    # It never crossed the seam, so nothing landed under the scoped app tree.
+    assert not (tmp_path / "apps" / "dev" / "hello").exists()
+
+
+def test_cli_happy_path_returns_zero_and_prints_the_report(tmp_path, capsys):
+    """The other side of the same CLI branch: a clean build (plain fallback,
+    since no bwrap) exits 0 and prints the report JSON, so the uniform-denial
+    change above did not swallow a success."""
+    rc = forge_build.main([
+        "build", "hello",
+        "--apps-root", str(tmp_path / "apps"),
+        "--key-root", str(tmp_path / "keys"),
+        "--ledger", str(tmp_path / "ledger.jsonl"),
+        "--no-require-isolation",
+    ])
+    assert rc == 0
+    out = capsys.readouterr().out
+    report = json.loads(out)
+    assert report["builder_id"] == "dev"
+    assert {Path(p).name for p in report["written"]} == {"README.md", "app.py"}
+    assert report["isolated"] is False
+
+
 # ── idempotent-ish / re-cross ─────────────────────────────────────────────
 
 def test_a_second_build_overwrites_within_its_own_tree_and_stays_contained(tmp_path):
