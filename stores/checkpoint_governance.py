@@ -232,7 +232,11 @@ def route_nudge(
             f"human_required kind — a nudge is one of those, not {kind!r}"
         )
     store = _store(builder_id, root)
-    for existing in human_loop.list_queue(store, status="open", kind=k, limit=1000):
+    # Scan ALL open items of this kind for the dedup, not a capped page — a
+    # capped scan would silently admit a duplicate once the open queue grew past
+    # the cap. `human_loop.list_queue` has no "unbounded" sentinel, so pass a
+    # bound far above any realistic open-queue size for one builder.
+    for existing in human_loop.list_queue(store, status="open", kind=k, limit=1_000_000):
         if existing.get("source_ref") == source_ref:
             return None  # already an open item for this episode — dedupe
     return human_loop.enqueue(

@@ -85,6 +85,27 @@ def test_put_without_an_id_is_rejected(tmp_path):
         s.put("things", {"no": "id"})
 
 
+def test_put_rejects_a_record_id_that_disagrees_with_record_id_field(tmp_path):
+    s = soil_store.FilesystemSoilStore(BUILDER_A, root=tmp_path / "soil")
+    with pytest.raises(soil_store.SoilStoreError):
+        s.put("things", {"id": "Y"}, record_id="X")  # would make get(X)/get(Y) diverge
+
+
+def test_a_symlinked_builder_file_is_refused(tmp_path):
+    """A symlinked leaf `<a>.soil.json -> <b>.soil.json` would cross the
+    one-file-per-builder boundary; both read and write must refuse it."""
+    root = tmp_path / "soil"
+    b = soil_store.FilesystemSoilStore(BUILDER_B, root=root)
+    b.put("things", {"id": "secret"}, record_id="secret")  # B's file now exists
+    # point A's file at B's file
+    a = soil_store.FilesystemSoilStore(BUILDER_A, root=root)
+    a.path.symlink_to(b.path)
+    with pytest.raises(soil_store.SoilStoreError):
+        a.get("things", "secret")          # read refused
+    with pytest.raises(soil_store.SoilStoreError):
+        a.put("things", {"id": "x"}, record_id="x")  # write refused (would clobber B)
+
+
 # ── the vendored human_loop actually works over this store ───────────────────
 
 def test_human_loop_attestation_round_trips_over_the_store(tmp_path):

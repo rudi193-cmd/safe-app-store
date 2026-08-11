@@ -317,12 +317,15 @@ class CheckpointOutcome:
     `checkpoint_engagement.RUBBER_STAMP_FLOOR` — a SIGNAL, never a block: the
     answer is sealed regardless (see that module's "never blocks"). Always
     False when `engagement` is None.
-    `attestation_id`: the id of the non-forgeable `human_loop` attestation this
-    commit wrote alongside the Nestor seal (governance — "the maker signed
-    this," `docs/design/the-forge-human-loop.md`). `""` only when nothing was
-    durably sealed to attest — i.e. the soft-Nestor path
-    (`memory_available=False`), which has no `pair_id` to key an attestation on.
-    Every memory-backed commit (auto / recognize / socratic) attests.
+    `attestation_id`: the id of the `human_loop` attestation this commit wrote
+    alongside the Nestor seal (governance — "the maker signed this,"
+    `docs/design/the-forge-human-loop.md`). `""` only when nothing was durably
+    sealed to attest — i.e. the soft-Nestor path (`memory_available=False`),
+    which has no `pair_id` to key an attestation on. Every memory-backed commit
+    (auto / recognize / socratic) attests. Whether the attestation counts as a
+    *human* sign-off (`by_human`) is the caller's binding, default False — see
+    `run_checkpoint`'s `by_human` and `_attest`; without a D11 identity the Forge
+    cannot prove a human answered, so it does not claim one by default.
     """
 
     decision_type: str
@@ -389,20 +392,34 @@ def _deferred_canonical(chosen_label: str) -> str:
     return f"[deferred] {chosen_label} — maker reviewed the tradeoff and handed the call to the Forge"
 
 
-def _attest(builder_id: str, pair_id: str | None, chosen: str, root: Path) -> str:
+def _attest(builder_id: str, pair_id: str | None, chosen: str, root: Path, by_human: bool) -> str:
     """Write the non-forgeable governance attestation for a just-committed
     decision, keyed by its Nestor `pair_id` (docs/design/the-forge-human-loop.md
-    D-HL-4). `by_human=True`: `run_checkpoint` is the ATTENDED path — a real
-    maker answered (the async/unattended path is `park`/`resume`, which sets its
-    own binding). Returns the attestation id, or `""` if there is no `pair_id`
-    to key on (the soft-Nestor path, which never reaches here). The attestation
-    rides ALONGSIDE the seal: it is written after `cm.seal`, off the same
-    committed decision, and a governance write failing propagates rather than
-    silently dropping the record — the seal is already durable, and a
-    half-recorded governance state should be loud, not swallowed."""
+    D-HL-4). Returns the attestation id, or `""` if there is no `pair_id` to key
+    on (the soft-Nestor path, which never reaches here).
+
+    `by_human` is the CALLER's human-presence binding, threaded through from
+    `run_checkpoint`, and defaults to **False** — because nothing in the Forge
+    can yet *prove* a human answered (there is no D11 identity/seat; a
+    `Responder` is just as easily a model or a test script). Stamping `True`
+    unconditionally, as the first cut did, made
+    `has_decision_attestation(require_human=True)` a lie — an automated
+    responder would satisfy "a person signed this." Honest default: we don't
+    know it's a human, so `by_human=False` and the `require_human` gate is
+    correctly unsatisfiable until a real human-bound caller (a UI, post-D11)
+    passes `by_human=True`. The record is still written and `attested_by` is
+    still bound to `builder_id` — only the *human* claim waits for a binding
+    that can back it. (This honesty fix came out of the adversarial audit.)
+
+    The attestation rides ALONGSIDE the seal, written after `cm.seal`; a
+    governance write failing propagates rather than silently dropping the
+    record — the seal is durable, and a half-recorded governance state should
+    be loud, not swallowed."""
     if not pair_id:
         return ""
-    rec = checkpoint_governance.attest_decision(builder_id, pair_id, chosen=chosen, by_human=True, root=root)
+    rec = checkpoint_governance.attest_decision(
+        builder_id, pair_id, chosen=chosen, by_human=by_human, root=root
+    )
     return rec["id"]
 
 
@@ -413,6 +430,7 @@ def _seal_socratic_answer(
     *,
     builder_id: str,
     root: Path,
+    by_human: bool,
 ) -> CheckpointOutcome:
     """Run a full Socratic pass, seal the result, and attest it — the shared
     tail every path that falls through to full Socratic (a fresh decision-type,
@@ -423,7 +441,7 @@ def _seal_socratic_answer(
     cm.seal(decision.surface, canonical)
     engagement, rubber_stamp = _engagement_fields(rationale, deferred, decision.surface)
     pair_id = cm.check(decision.surface).get("provenance", {}).get("pair_id")
-    attestation_id = _attest(builder_id, pair_id, canonical, root)
+    attestation_id = _attest(builder_id, pair_id, canonical, root, by_human)
     return CheckpointOutcome(
         decision_type=decision.decision_type,
         chosen=chosen_label,
@@ -445,6 +463,7 @@ def run_checkpoint(
     responder: Responder,
     root: Path = checkpoint_memory.DEFAULT_CHECKPOINT_ROOT,
     recognize_threshold: float = DEFAULT_RECOGNIZE_THRESHOLD,
+    by_human: bool = False,
 ) -> CheckpointOutcome:
     """The D8 checkpoint, end to end: soft-Nestor gate, then route by band,
     present/confirm accordingly, seal what needs sealing. See module
@@ -497,7 +516,7 @@ def run_checkpoint(
                 # needed, but "on this date the maker re-affirmed X" is a real
                 # attestation) — keyed by the tier-1 hit's own pair_id.
                 attestation_id = _attest(
-                    builder_id, result.get("provenance", {}).get("pair_id"), canonical, root
+                    builder_id, result.get("provenance", {}).get("pair_id"), canonical, root, by_human
                 )
                 return CheckpointOutcome(
                     decision_type=decision.decision_type,
@@ -519,7 +538,7 @@ def run_checkpoint(
                 pair_id=pair_id,
                 reason="maker said this was not the same call as the prior sealed answer",
             )
-            return _seal_socratic_answer(cm, decision, responder, builder_id=builder_id, root=root)
+            return _seal_socratic_answer(cm, decision, responder, builder_id=builder_id, root=root, by_human=by_human)
 
         # ── recognize band: a real, sub-threshold hit ───────────────────
         # `canonical` is always None below Nestor's own seal threshold (see
@@ -539,7 +558,7 @@ def run_checkpoint(
                 # "loose recognition" line.
                 cm.seal(decision.surface, prior_canonical)
                 pair_id = cm.check(decision.surface).get("provenance", {}).get("pair_id")
-                attestation_id = _attest(builder_id, pair_id, prior_canonical, root)
+                attestation_id = _attest(builder_id, pair_id, prior_canonical, root, by_human)
                 return CheckpointOutcome(
                     decision_type=decision.decision_type,
                     chosen=prior_canonical,
@@ -559,10 +578,10 @@ def run_checkpoint(
                 target_text=prior_canonical,
                 reason="maker said this was not the same call as the recognized prior seal",
             )
-            return _seal_socratic_answer(cm, decision, responder, builder_id=builder_id, root=root)
+            return _seal_socratic_answer(cm, decision, responder, builder_id=builder_id, root=root, by_human=by_human)
 
         # ── socratic band: low confidence, or nothing sealed yet at all ──
-        return _seal_socratic_answer(cm, decision, responder, builder_id=builder_id, root=root)
+        return _seal_socratic_answer(cm, decision, responder, builder_id=builder_id, root=root, by_human=by_human)
 
 
 # ── the async pause seam (D-HL-5) ──────────────────────────────────────────────
@@ -603,6 +622,7 @@ def resume_checkpoint(
     builder_id: str,
     responder: Responder,
     root: Path = checkpoint_memory.DEFAULT_CHECKPOINT_ROOT,
+    by_human: bool = False,
 ) -> CheckpointOutcome:
     """A human is now present for a parked item: rebuild the `Decision` from the
     stored evidence, run the FULL `run_checkpoint` flow (band routing + seal +
@@ -632,12 +652,22 @@ def resume_checkpoint(
         options=tuple(Option(label=label, tradeoff=tradeoff) for label, tradeoff in parked["options"]),
         recommended=parked.get("recommended"),
     )
-    outcome = run_checkpoint(decision, builder_id=builder_id, responder=responder, root=root)
-    checkpoint_governance.resolve_item(
-        builder_id, item_id, resolved_by=builder_id, status="resolved",
-        note=f"resumed by a human; attestation {outcome.attestation_id or '(none — soft-Nestor)'}",
-        root=root,
+    outcome = run_checkpoint(
+        decision, builder_id=builder_id, responder=responder, root=root, by_human=by_human
     )
+    # Only CONSUME the parked item if the decision actually committed. If
+    # run_checkpoint took its soft-Nestor path (sealed=False, no attestation),
+    # resolving anyway would close a human_required item with no seal and no
+    # governance record — and single-use would then block any retry, losing the
+    # decision permanently. Leave it OPEN instead: the human's answer couldn't
+    # be committed (memory was down), so the item stays parked for a real retry
+    # once memory is back. (Found by the adversarial audit of the first cut.)
+    if outcome.sealed:
+        checkpoint_governance.resolve_item(
+            builder_id, item_id, resolved_by=builder_id, status="resolved",
+            note=f"resumed; attestation {outcome.attestation_id or '(none)'}",
+            root=root,
+        )
     return outcome
 
 

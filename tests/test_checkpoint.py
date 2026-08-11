@@ -592,19 +592,48 @@ def _pair_id(builder_id, decision_type, surface, root):
         return cm.check(surface)["provenance"]["pair_id"]
 
 
-def test_socratic_commit_writes_a_non_forgeable_human_attestation(tmp_path):
-    root = tmp_path / "checkpoints"
-    decision = Decision(
+def _schema_decision():
+    return Decision(
         decision_type="schema-normalization-tradeoff",
         surface="Should the orders table be normalized or denormalized?",
         options=(Option("normalized", "cleaner writes"), Option("denormalized", "fast reporting")),
     )
+
+
+def test_socratic_commit_attests_but_not_as_human_by_default(tmp_path):
+    """A commit writes an attestation bound to the builder, but does NOT claim a
+    human signed it: a ScriptedResponder is a machine, the Forge has no D11
+    identity to prove otherwise, so `by_human` defaults False and
+    `require_human=True` is honestly unsatisfiable. (The first cut stamped
+    by_human=True unconditionally — an automated responder minted a 'human'
+    attestation; the adversarial audit caught it.)"""
+    root = tmp_path / "checkpoints"
+    decision = _schema_decision()
     responder = ScriptedResponder(
         choose_answers=[ChoiceResult(chosen_label="normalized", rationale="writes dominate this table")]
     )
     outcome = checkpoint.run_checkpoint(decision, builder_id=BUILDER_A, responder=responder, root=root)
 
-    assert outcome.attestation_id  # a governance record was written
+    assert outcome.attestation_id  # a governance record was written...
+    pid = _pair_id(BUILDER_A, decision.decision_type, decision.surface, root)
+    assert _gov.has_decision_attestation(BUILDER_A, pid, root=root) is True
+    # ...but it is NOT a human sign-off, because nothing proved a human answered
+    assert _gov.has_decision_attestation(BUILDER_A, pid, require_human=True, root=root) is False
+
+
+def test_an_explicit_human_binding_produces_a_human_attestation(tmp_path):
+    """When a caller CAN establish human presence (a real UI, post-D11), it
+    passes by_human=True and the attestation counts under require_human — the
+    property is real, driven by a binding, not stamped by default."""
+    root = tmp_path / "checkpoints"
+    decision = _schema_decision()
+    responder = ScriptedResponder(
+        choose_answers=[ChoiceResult(chosen_label="normalized", rationale="writes dominate")]
+    )
+    outcome = checkpoint.run_checkpoint(
+        decision, builder_id=BUILDER_A, responder=responder, root=root, by_human=True
+    )
+    assert outcome.attestation_id
     pid = _pair_id(BUILDER_A, decision.decision_type, decision.surface, root)
     assert _gov.has_decision_attestation(BUILDER_A, pid, require_human=True, root=root) is True
 
@@ -666,3 +695,29 @@ def test_resume_an_unknown_item_raises(tmp_path):
             "no-such-item", builder_id=BUILDER_A,
             responder=ScriptedResponder(), root=tmp_path / "checkpoints",
         )
+
+
+def test_resume_leaves_the_item_open_when_the_seal_fails(tmp_path, monkeypatch):
+    """If memory is unavailable at resume time, run_checkpoint can't seal — the
+    parked item must NOT be consumed (resolving it with no seal + no attestation
+    would lose the decision permanently, since single-use blocks a retry). It
+    stays open for a real retry once memory is back. (Bug caught by the
+    adversarial audit of the first cut.)"""
+    root = tmp_path / "checkpoints"
+    decision = Decision(decision_type=DECISION_TYPE, surface=ORIGINAL_SURFACE, options=AUTH_OPTIONS)
+    item_id = checkpoint.park_checkpoint(decision, builder_id=BUILDER_A, root=root)
+
+    def _unsealed(decision, *, builder_id, responder, root, by_human=False):
+        return checkpoint.CheckpointOutcome(
+            decision_type=decision.decision_type, chosen="x", rationale="", band="socratic",
+            deferred=False, sealed=False, memory_available=False,
+        )
+
+    monkeypatch.setattr(checkpoint, "run_checkpoint", _unsealed)
+    outcome = checkpoint.resume_checkpoint(
+        item_id, builder_id=BUILDER_A, responder=ScriptedResponder(), root=root
+    )
+    assert outcome.sealed is False
+    # NOT consumed: still open, and the parked decision is still retrievable
+    assert len(_gov.open_items(BUILDER_A, root=root)) == 1
+    assert _gov.get_parked_decision(BUILDER_A, item_id, root=root) is not None

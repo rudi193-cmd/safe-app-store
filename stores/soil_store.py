@@ -79,6 +79,12 @@ class FilesystemSoilStore:
         rid = record_id or (record.get("id") if isinstance(record, dict) else None)
         if not rid or not isinstance(rid, str):
             raise SoilStoreError("put needs a record_id (or a record with a str 'id')")
+        # A record carrying its own 'id' that disagrees with the key it's stored
+        # under is a caller bug that would make get(record_id) and
+        # get(record['id']) diverge — refuse it rather than store the footgun.
+        inner = record.get("id") if isinstance(record, dict) else None
+        if isinstance(inner, str) and inner != rid:
+            raise SoilStoreError(f"record_id {rid!r} disagrees with record['id'] {inner!r}")
         data = self._load()
         data.setdefault(collection, {})[rid] = record
         self._save(data)
@@ -92,7 +98,17 @@ class FilesystemSoilStore:
 
     # -- storage ------------------------------------------------------------
 
+    def _reject_symlinked_file(self) -> None:
+        """A symlinked leaf file would let builder A's `<a>.soil.json` point at
+        builder B's file, so a read or write would cross the one-file-per-builder
+        boundary the root-symlink guard alone doesn't close — `write_text`
+        follows the link. Checked before every read and write. (Gap named by the
+        adversarial audit; the root-symlink guard in __init__ missed the leaf.)"""
+        if self.path.is_symlink():
+            raise SoilStoreError(f"refusing a symlinked SOIL file: {self.path}")
+
     def _load(self) -> dict:
+        self._reject_symlinked_file()
         if not self.path.exists():
             return {}
         try:
@@ -106,5 +122,6 @@ class FilesystemSoilStore:
     def _save(self, data: dict) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         os.chmod(self.root, 0o700)
+        self._reject_symlinked_file()
         self.path.write_text(json.dumps(data, indent=2, sort_keys=True))
         os.chmod(self.path, 0o600)
