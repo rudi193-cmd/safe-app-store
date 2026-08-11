@@ -6,6 +6,31 @@
 > is a different seat. Every gate below is `stores/promote_check.py`, run
 > fail-closed. Facts marked *(grounded)* were measured, not assumed.
 
+## STATUS — enrollment done (2026-08-11)
+
+Both forks settled (model side as a library; real package imports). The package
+was extracted (`tools/extract_forge_pkg.py`) and pushed to
+**`rudi193-cmd/forge`, branch `claude/continuing-projects-o0jm9a`** — NOT the
+default branch, so merging it is the ratifier's act. Layout: `forge/core/` (the
+import-pure core, 15 modules + vendored `_ids.py`), `forge/model_route.py` +
+`forge/model_egress.py` (the routing adapter), `tests/` (12 files), plus
+`pyproject.toml` + `promotion.json`.
+
+`promote_check` run against the pushed tree:
+
+- **PASS** — own_repo, manifest (pyproject, library-clean), tests_green (**154
+  passed, 1 skipped** in place), vault_leak, import_pure_core (`forge.core`
+  network-free at import), inversion (host not imported), semantic_seam
+  (`forge.core.checkpoint_memory:CheckpointMemory`).
+- **FAIL (structural, not mine)** — `witnessed` (`verified_by` empty — a second
+  seat sets it, §0.2) and `host_repointed` (not true until safe-app-store
+  consumes the package).
+
+What remains: (6) repoint the host and flip `host_repointed`; (7) a second seat
+sets `verified_by`, runs `promote_check --record`, writing
+`stores/python/promoted/the-forge.json`. Everything the author's hand can green
+is green.
+
 ## Destination
 
 `rudi193-cmd/Forge` already exists (public, pushable) — promotion is an
