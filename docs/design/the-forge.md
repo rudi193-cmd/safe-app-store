@@ -1050,7 +1050,7 @@ willow-mcp), not new build (🌱 proposed there too)**:
 | 2 · Make them decide, not rubber-stamp | `#66` sycophancy score `friction_floor.py`; `#67` mid-session mirror nudge; `#69` devil's-advocate on zero friction | ✅ / 🟡 / 🌱 |
 | 3 · Seal it (option + rationale) | `#2` "why do I believe this?" `lineage.py`; `#11` Grove growth-rings `the_grove.py` | ✅ |
 | 4 · Catch contradiction (calibration signal) | `#3` contradiction detector; fleet `conflict_scan` (Jeles) | 🌱 |
-| 5 · Resurface & recalibrate over time | `#12` lesson-regression tests; `#1` memory decay/freshness `engram`; `#15` lightning-strike lessons; `#39` conscience/second-guess | 🌱 + ✅(#1) |
+| 5 · Resurface & recalibrate over time | `#12` lesson-regression tests; `#1` memory decay/freshness (scheduling); `#15` lightning-strike lessons; `#39` conscience/second-guess | 🌱 + 🌱(#1, `py-fsrs`) |
 | 6 · Deferred decisions ("I don't know, you choose") | `#41` commitment escalation `commitment_surface`; `#42` commitment SLA | ✅ / 🌱 |
 | 7 · Show the maker their own calibration | `#70` unified `willow_status` home-screen | 🟡 |
 
@@ -1073,7 +1073,8 @@ willow-mcp), not new build (🌱 proposed there too)**:
   follow-up — the model grading the maker is circular.
 - **How a checkpoint is calibrated: by lesson-regression (`#12`), not a
   scorer.** A seal is not graded at seal-time. It is **resurfaced later**
-  (`#12` over `#1`'s decay/freshness scheduling), and a maker *contradicting*
+  (`#12` over a `py-fsrs` decay/freshness scheduler — see the correction note
+  below), and a maker *contradicting*
   a prior seal (`#3`) is the signal to re-open and recalibrate. Oakenscroll's
   Office's `calibration.py` (Brier/reliability math) becomes an **optional
   refinement over that signal**, not the load-bearing mechanism — closing D9's
@@ -1101,10 +1102,24 @@ half, `stores/checkpoint_memory.py`, D12, already exists):
   "you choose" deferral. Driven by explicit (stubbed) decisions, single-tenant
   — the same posture bite 0's stub build took for D7.
 - **Bite 2 — the calibration engine.** `#12` (resurface a seal, assert it
-  still holds) + `#3` (contradiction detector) over `#1`'s already-shipped
-  decay/freshness scheduling. This is what turns a pile of seals into
-  *learning* — and the "is it due for review" half is a **reuse** of
-  willow-mcp's `engram`, not a py-fsrs build.
+  still holds) + `#3` (contradiction detector) over a decay/freshness
+  scheduler. This is what turns a pile of seals into *learning*. The "is it
+  due for review" half is **`py-fsrs`** (PyPI `fsrs`, MIT, Apache-compatible)
+  — the same spaced-repetition library D9 named at the start — **not** a reuse
+  of a willow-mcp `engram`. See the correction note directly below.
+
+  > **Correction (2026-08-11, rule-11 corollary — record the rediscovery).**
+  > An earlier pass of this roadmap claimed the bite-2 scheduler was a *reuse*
+  > of a shipped willow-mcp `engram`/`mengram` decay-and-freshness module. The
+  > Apache-compat reuse-map pass (`docs/design/the-forge-reuse-map.md`) went
+  > looking for that module to depend on it and **could not find it — it does
+  > not exist in willow-mcp**. It was a phantom self-citation: idea `#1` in the
+  > pile is a *proposal* for decay/freshness (🌱), not shipped code (✅). The
+  > house did **not** already know this one. The verified pick is `py-fsrs`,
+  > which is a real, MIT-licensed, dependency-light library — and, tellingly,
+  > exactly what D9 wrote down before the phantom-reuse detour. Recorded here
+  > rather than quietly edited so the next seat sees the false-reuse trap, per
+  > rule 11: "a rediscovery quietly deleted is the same cost paid twice."
 - **Bite 3 — the engagement gate.** `#66`/`#67`'s friction-floor / mirror
   detector as the non-circular "did they actually decide vs rubber-stamp"
   signal at seal-time — also already shipped in willow-mcp, to be reused.
