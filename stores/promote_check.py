@@ -38,6 +38,10 @@ mechanism.
 
 Stdlib only. Nestor and Jeles are the worked standard: run this against either
 and it should pass.
+
+Fleet placement: this gate travels with the stores law into **forge-play** when
+that face stands up. Until then it lives here — see stores/README.md
+"Fleet placement — still here on purpose".
 """
 from __future__ import annotations
 
