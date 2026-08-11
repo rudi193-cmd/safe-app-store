@@ -11,17 +11,25 @@
 Both forks settled (model side as a library; real package imports). The package
 was extracted (`tools/extract_forge_pkg.py`) and pushed to
 **`rudi193-cmd/forge`, branch `claude/continuing-projects-o0jm9a`** — NOT the
-default branch, so merging it is the ratifier's act. Layout: `forge/core/` (the
-import-pure core, 15 modules + vendored `_ids.py`), `forge/model_route.py` +
-`forge/model_egress.py` (the routing adapter), `tests/` (12 files), plus
-`pyproject.toml` + `promotion.json`.
+default branch, so merging it is the ratifier's act.
+
+**Structured to the homestead convention** (per USER: "look at the root
+homestead folder"): the base repo holds ONLY the engine, **flat in `forge/`**
+(as `homestead` holds `homestead.keep`), and all runtime state hangs off one
+shared home, **`~/.forge`** (override `FORGE_HOME`), resolved in one place
+(`forge/paths.py`) the way homestead-law and homestead-ledger share
+`~/.homestead`. Modules that pin the engine are separate repos, later. 18 engine
+modules flat + `paths.py` + vendored `_ids.py`; `tests/` (12 files); README in
+the house style; `pyproject.toml` + `promotion.json`. `model_egress`'s
+`socket`/`urlparse` are moved to lazy so the whole flat package is network-free
+at import (`pure_core = forge`).
 
 `promote_check` run against the pushed tree:
 
 - **PASS** — own_repo, manifest (pyproject, library-clean), tests_green (**154
-  passed, 1 skipped** in place), vault_leak, import_pure_core (`forge.core`
+  passed, 1 skipped** in place), vault_leak, import_pure_core (`forge`
   network-free at import), inversion (host not imported), semantic_seam
-  (`forge.core.checkpoint_memory:CheckpointMemory`).
+  (`forge.checkpoint_memory:CheckpointMemory`).
 - **FAIL (structural, not mine)** — `witnessed` (`verified_by` empty — a second
   seat sets it, §0.2) and `host_repointed` (not true until safe-app-store
   consumes the package).

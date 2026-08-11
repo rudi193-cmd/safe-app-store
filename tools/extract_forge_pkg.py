@@ -1,22 +1,25 @@
 #!/usr/bin/env python3
-# tools/extract_forge_pkg.py — the one-shot extraction that enrolled The Forge
-# model side into rudi193-cmd/forge (docs/design/the-forge-promotion.md).
-# Re-runnable: "python tools/extract_forge_pkg.py <out-dir>" rebuilds the
-# forge/ package from the current stores/ modules. Kept so the extraction is
-# auditable and the ratifier can reproduce it, not a mystery diff.
+# tools/extract_forge_pkg.py - the one-shot extraction that enrolled The Forge
+# engine into rudi193-cmd/forge (docs/design/the-forge-promotion.md).
+# Re-runnable: "python tools/extract_forge_pkg.py <out-dir>" rebuilds the flat
+# forge/ package (homestead convention) from the current stores/ modules.
+# Kept so the extraction is auditable and the ratifier can reproduce it.
 """Build the `forge` library package from the store-side model-side modules.
 
 Transforms the monorepo spec_from_file_location sibling-loads into real package
 imports. Line-based (not one big regex) so arbitrary spec-var names, interleaved
 comments, and in-function lazy imports all transform reliably.
 
-Layout produced:
+Layout produced (flat, homestead.keep convention — the repo holds ONLY the
+engine, and all state hangs off ~/.forge via forge/paths.py):
   Forge/
     forge/__init__.py
-    forge/model_route.py, model_egress.py         (the impure adapter, top level)
-    forge/core/__init__.py, _ids.py, <15 pure modules>   (pure_core = forge.core)
+    forge/paths.py              (the one ~/.forge home resolver)
+    forge/_ids.py               (vendored builder-id charset)
+    forge/<18 engine modules>   (checkpoint loop + measuring panel + routing)
     tests/<converted test files>
-    pyproject.toml, promotion.json, README.md
+  pure_core = forge (whole flat package network-free at import; model_egress's
+  socket/urlparse are moved to lazy so it stays import-pure).
 """
 import re, shutil, sys
 from pathlib import Path
@@ -35,9 +38,9 @@ CORE = [
 TOP = ["model_route", "model_egress"]
 ALL_MODS = set(CORE + TOP)
 
+# Flat engine, homestead.keep-style: every module sits directly in forge/.
 # module -> the dotted package it lives in (for tests' absolute imports)
-PKG_OF = {m: "forge.core" for m in CORE}
-PKG_OF.update({m: "forge" for m in TOP})
+PKG_OF = {m: "forge" for m in ALL_MODS}
 
 
 def _consume_spec_block(lines, i):
@@ -202,6 +205,34 @@ def _probe_patch(text, probe_name, shared_local):
     return new
 
 
+def patch_module(modname, text):
+    """Post-transform surgery on specific engine modules for the flat, homestead-
+    style package."""
+    if modname == "model_egress":
+        # Make it import-pure: socket/urlparse are used only inside functions, so
+        # move them there. The whole flat forge/ is then network-free at import
+        # (pure_core = forge), while is_local_host still resolves at call time.
+        text = text.replace("import ipaddress\nimport os\nimport socket\nfrom urllib.parse import urlparse\n",
+                            "import ipaddress\nimport os\n")
+        text = text.replace(
+            "    try:\n        infos = socket.getaddrinfo(hostname, None)",
+            "    import socket\n    try:\n        infos = socket.getaddrinfo(hostname, None)")
+        text = text.replace(
+            "    try:\n        hostname = urlparse(host_url).hostname",
+            "    from urllib.parse import urlparse\n    try:\n        hostname = urlparse(host_url).hostname")
+        assert "import socket\n    try:\n        infos" in text, "model_egress socket move failed"
+        assert "from urllib.parse import urlparse\n    try:\n        hostname" in text, "model_egress urlparse move failed"
+    if modname == "checkpoint_memory":
+        # Root the engine's default state under ~/.forge (the shared home), via
+        # the one path resolver — the homestead.keep/paths.py discipline.
+        old = 'DEFAULT_CHECKPOINT_ROOT = Path(__file__).resolve().parent / ".checkpoints"'
+        new = ('from . import paths as _forge_paths\n'
+               'DEFAULT_CHECKPOINT_ROOT = _forge_paths.home() / "checkpoints"')
+        assert old in text, "checkpoint_memory DEFAULT_CHECKPOINT_ROOT line not found"
+        text = text.replace(old, new)
+    return text
+
+
 def patch_test(stem, text):
     if stem == "test_checkpoint":
         return _probe_patch(text, "checkpoint_degraded_probe", "checkpoint")
@@ -220,18 +251,63 @@ def patch_test(stem, text):
 # ── build ────────────────────────────────────────────────────────────────────
 if OUT.exists():
     shutil.rmtree(OUT)
-(OUT / "forge" / "core").mkdir(parents=True)
+(OUT / "forge").mkdir(parents=True)
 (OUT / "tests").mkdir()
 
-for m in CORE:
-    dst = OUT / "forge" / "core" / f"{m}.py"
-    dst.write_text(transform_module(STORES.joinpath(f"{m}.py").read_text(), m))
-for m in TOP:
-    dst = OUT / "forge" / f"{m}.py"
-    dst.write_text(transform_module(STORES.joinpath(f"{m}.py").read_text(), m))
+# flat: every engine module sits directly in forge/ (homestead.keep style)
+for m in CORE + TOP:
+    text = patch_module(m, transform_module(STORES.joinpath(f"{m}.py").read_text(), m))
+    (OUT / "forge" / f"{m}.py").write_text(text)
+
+# the one path resolver — ~/.forge home, homestead/keep/paths.py discipline
+(OUT / "forge" / "paths.py").write_text('''\
+"""forge/paths.py — the one path resolver. All Forge state hangs off home().
+
+Mirrors homestead.keep.paths: this is the ONLY module permitted to resolve a
+home directory, and `Path.home()` is the only spelling it may use — the store's
+vault-leak linter can SEE `Path.home() / ...` but a bare `~`/`expanduser` string
+disappears from its report (homestead's I-20), and a write the tooling cannot see
+is exactly the leak that discipline exists to prevent. No fixed-location default:
+`FORGE_HOME` exists for tests and for an operator who deliberately moves the root,
+not as a convenience override (homestead's I-19).
+"""
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+__all__ = ["home", "ensure"]
+
+_ROOT_ENV = "FORGE_HOME"
+_ROOT_NAME = ".forge"
+
+
+def home() -> Path:
+    """The Forge root. `$FORGE_HOME`, else `<home>/.forge` — the shared home the
+    checkpoint memory, calibration ledger, soil store and schedules all hang off,
+    the way homestead-law and homestead-ledger share `~/.homestead`."""
+    override = os.environ.get(_ROOT_ENV)
+    if override:
+        return Path(override)
+    return Path.home() / _ROOT_NAME
+
+
+def ensure(path: Path | str) -> Path:
+    """Create a directory under the root; refuse anything outside it. Resolves
+    before checking (Path.parents is lexical and would admit `home()/..`), and
+    resolve() also follows symlinks — the other half of the same guard."""
+    root = home().resolve()
+    candidate = Path(path)
+    target = candidate if candidate.is_absolute() else root / candidate
+    target = target.resolve()
+    if target != root and root not in target.parents:
+        raise ValueError(f"refusing to create {target} outside {root}")
+    target.mkdir(parents=True, exist_ok=True)
+    return target
+''')
 
 # vendored _ids.py (principal._check_builder_id charset)
-(OUT / "forge" / "core" / "_ids.py").write_text('''\
+(OUT / "forge" / "_ids.py").write_text('''\
 """forge/core/_ids.py — builder-id charset (vendored from safe-app-store principal.py).
 
 The model side keys every per-builder record on a builder_id; principal.py (D2/D11)
@@ -266,8 +342,7 @@ def _check_builder_id(builder_id: Any) -> str:
     return builder_id
 ''')
 
-(OUT / "forge" / "__init__.py").write_text('"""The Forge — a refuse-a-confident-wrong-answer harness (model side)."""\n')
-(OUT / "forge" / "core" / "__init__.py").write_text('"""The Forge core — checkpoint loop + measuring panel, import-pure."""\n')
+(OUT / "forge" / "__init__.py").write_text('"""The Forge — a refuse-a-confident-wrong-answer harness (the engine)."""\n')
 
 # tests
 skip = {"test_forge_build", "test_no_raw_soil_reads"}
