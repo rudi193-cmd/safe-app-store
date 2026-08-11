@@ -1193,6 +1193,24 @@ half, `stores/checkpoint_memory.py`, D12, already exists):
   Forge ever needs per-invocation net authority). `stores/model_route.py` is the
   policy; store-side (D1). This is the gate the real vLLM/LiteLLM call consults
   once D7's model exists.
+- **The measuring panel (model side, layer 1). ✅ LANDED 2026-08-11**
+  (`docs/design/the-forge-measure.md`). Prompted by the box
+  (`rudi193-cmd/quick-stupids` PR #5): the checkpoint loop governs the *watched*
+  decision, but the box's real disease (a committed `error_log`) was one
+  *nobody decided* — caught only because four blind instruments *converged* on
+  it. `stores/measure_panel.py` runs measuring **instruments** across a build,
+  treats **convergence** (≥2 instruments naming one artifact) as the alarm,
+  routes convergent findings into the `human_required` queue (reusing
+  `route_nudge`), and — the sigmap lesson — **reports its own coverage**: every
+  run names the classes it did *not* measure, with the fleet tool for each, so
+  a green run is never mistaken for a sound build. Ships the framework + two
+  dependency-free instruments (`census`, `hygiene`); the fleet's real
+  instruments (`codebase-memory-mcp` call-graph — confirmed installable —
+  `kartikeya` execution, `oakenscrolls-office` calibration) are the wired-next
+  adapters, named as uncovered classes until then (rule 11: reuse the tools
+  that made willow). Needs no live model — runs on any build dir. Store-side
+  (D1); `apps/the-forge/` untouched. Decision-extraction is the model side's
+  layer 2, next.
 - **Bite 3 (original sketch) — the engagement gate.** `#66`/`#67`'s friction-floor / mirror
   detector as the non-circular "did they actually decide vs rubber-stamp"
   signal at seal-time — also already shipped in willow-mcp, to be reused.
