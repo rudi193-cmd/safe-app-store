@@ -97,3 +97,37 @@ def test_permits_reads_the_manifest_permission_list():
     assert model_route.permits(_manifest([_PERM])) is True
     assert model_route.permits(_manifest([])) is False
     assert model_route.permits({"app_id": "x"}) is False  # missing permissions key -> False
+
+
+# ── scheme-less OLLAMA_HOST (the standard config) stays local ────────────────
+# Regression for the audit's §3: a bare host:port / localhost must not read as
+# off-machine (which would pressure cloud_llm_fallback on for a local build).
+
+def test_scheme_less_loopback_hosts_route_local():
+    for h in ("127.0.0.1:11434", "127.0.0.1", "localhost:11434", "localhost"):
+        d = model_route.route(_manifest([]), model_host=h)
+        assert d.target == "local", h
+        assert d.allow_net is False, h
+        assert d.denial is None, h
+
+
+def test_scheme_less_off_machine_host_is_still_refused():
+    d = model_route.route(_manifest([]), model_host="10.0.0.5:11434")
+    assert d.target is None
+    assert d.allow_net is False
+    assert d.denial is not None
+
+
+# ── loopback-confusion / SSRF forms fail in the safe direction ───────────────
+
+def test_userinfo_splice_reads_the_real_host_not_the_loopback_prefix():
+    # the connect target is 10.0.0.5; the 127.0.0.1 is only URL userinfo
+    d = model_route.route(_manifest([]), model_host="http://127.0.0.1@10.0.0.5/")
+    assert d.target is None       # refused — not fooled into "local"
+    assert d.denial is not None
+
+
+def test_zero_host_is_not_treated_as_loopback():
+    d = model_route.route(_manifest([]), model_host="0.0.0.0:11434")
+    assert d.target is None       # 0.0.0.0 is not loopback -> refuse (safe over-refusal)
+    assert d.denial is not None

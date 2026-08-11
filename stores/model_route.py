@@ -80,6 +80,22 @@ class RouteDecision:
     host: str
 
 
+def _ensure_scheme(host: str) -> str:
+    """`is_local_host`/`urlparse` need a scheme to extract a hostname — a bare
+    `host:port` or `localhost` (the STANDARD scheme-less `OLLAMA_HOST` form)
+    otherwise parses with the host as the URL *scheme*, yielding `hostname=None`
+    and reading as off-machine. That over-refusal is worse than cosmetic: the
+    only way to unblock a purely-local ollama pointed at by a scheme-less env
+    var would be to declare `cloud_llm_fallback` and take `allow_net=True` — an
+    over-grant. So normalize here (the Forge's own adaptation; the vendored
+    detector stays byte-identical) by prepending `http://` when no scheme is
+    present. A value that already has a scheme is left alone."""
+    h = (host or "").strip()
+    if "://" not in h:
+        h = "http://" + h
+    return h
+
+
 def permits(manifest: dict) -> bool:
     """True iff `manifest` declares the cloud-fallback permission. Reads the
     permission list only — the manifest's SIGNATURE is the D4 gate's job, not
@@ -96,8 +112,16 @@ def route(manifest: dict, *, model_host: str | None = None) -> RouteDecision:
 
     Local (all-loopback host) → `local`, no net, always allowed. Off-machine →
     `cloud` with net IF the manifest declares `CLOUD_FALLBACK_PERMISSION`, else a
-    refusal with no net (declared, not ambient)."""
-    host = model_host or model_egress.model_host()
+    refusal with no net (declared, not ambient).
+
+    Known limit (inherent to gate-time detection, carried from the vendored
+    detector's own upstream note): resolution happens HERE, the connection
+    happens later in the eventual client, so a hostname that resolves to
+    loopback now and to a public address at connect time (DNS rebinding /
+    TOCTOU) reads as `local` with no permission. Closing that needs a
+    socket-time check in the client that actually makes the model call; this
+    layer cannot."""
+    host = _ensure_scheme(model_host if model_host is not None else model_egress.model_host())
 
     if model_egress.is_local_host(host):
         return RouteDecision(target="local", allow_net=False, denial=None, host=host)
@@ -124,6 +148,11 @@ def route(manifest: dict, *, model_host: str | None = None) -> RouteDecision:
 # ── CLI ──────────────────────────────────────────────────────────────────────
 
 def _cmd_route(args: argparse.Namespace) -> int:
+    # DEV INSPECTOR ONLY: this reads a manifest file WITHOUT verifying its D4
+    # signature — it exists to eyeball what route() would decide, not to gate a
+    # live run. The live caller (the eventual model-invocation path) must pass a
+    # manifest that seam/sap_gate already verified; route() is policy over a
+    # verified permission, not the signature check (see module docstring).
     manifest = json.loads(Path(args.manifest).read_text()) if args.manifest else {"permissions": []}
     d = route(manifest, model_host=args.host)
     print(json.dumps(
