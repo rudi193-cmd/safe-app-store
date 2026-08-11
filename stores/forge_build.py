@@ -55,14 +55,21 @@ _FORGE_SRC = str(_REPO / "apps" / "the-forge" / "src")
 if _FORGE_SRC not in sys.path:
     sys.path.insert(0, _FORGE_SRC)
 
-from the_forge.mount_policy import run_scoped_build  # noqa: E402
-from the_forge.sandbox_runner import BuildResult, BuildTask  # noqa: E402
+from the_forge.mount_policy import MountPolicyError, run_scoped_build  # noqa: E402
+from the_forge.plan import PlanError  # noqa: E402
+from the_forge.sandbox_runner import BuildResult, BuildTask, SandboxError  # noqa: E402
 from the_forge.stub_builder import hello_world_command  # noqa: E402
-# SandboxError/PlanError are NOT imported or caught here — they propagate
-# out of build_and_cross() uncaught, same as SeamError/GateError do when the
-# CLI below doesn't happen to be the caller. A caller (this CLI, or a test)
-# that wants to handle every stage's denial explicitly imports these itself;
-# this module doesn't pre-narrow what a caller is allowed to catch.
+# build_and_cross() itself catches NONE of these: every stage's denial —
+# SandboxError/PlanError/MountPolicyError from the sandbox side, GateError/
+# SeamError from the store side — propagates out of the library function
+# uncaught, so a denial can never come back disguised as a return value a caller
+# forgets to check. The CLI (_cmd_build) is the top-level caller and catches
+# them all to present them uniformly as `DENIED: ...`; a library caller that
+# wants per-stage handling catches the specific type itself. (These are imported
+# for that CLI catch — `SeamError`/`GateError` are aliased further down, off the
+# loaded seam/gate. The D3 content-scan's `ScanError` is not listed here on
+# purpose: `seam.cross()` wraps it as `SeamError` at its source, so it arrives
+# as one.)
 
 # `stores/seam.py` has no relative imports of its own — spec_from_file_location
 # is how it loads `sap_gate.py`, and it's how we load `seam.py` itself here,
@@ -171,7 +178,18 @@ def _cmd_build(args: argparse.Namespace) -> int:
             ledger=ledger,
             require_isolation=not args.no_require_isolation,
         )
-    except (SeamError, GateError) as e:
+    except (SandboxError, MountPolicyError, PlanError, GateError, SeamError) as e:
+        # Every stage's denial, one uniform line — ordered the way a build
+        # passes through them: sandbox side first (MountPolicyError: a bad
+        # builder_id/app_name or a scoped path that would escape apps_root,
+        # raised by run_scoped_build before the build runs; SandboxError: no
+        # isolation, or the build failed/timed out; PlanError: a malformed or
+        # out-of-scope plan) then store side (GateError: signature/gate;
+        # SeamError: refused at the seam — including the D3 content-scan's
+        # ScanError, which cross() wraps as SeamError at its source). Before
+        # this, only GateError/SeamError printed cleanly and the rest fell
+        # through as raw tracebacks — bite 0's follow-up, closed and then
+        # completed after an audit caught MountPolicyError and ScanError too.
         print(f"DENIED: {e}", file=sys.stderr)
         return 1
 

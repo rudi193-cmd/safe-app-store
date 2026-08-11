@@ -17,10 +17,17 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import shutil
 import sys
 from pathlib import Path
 
 import pytest
+
+# Same convention as apps/the-forge/tests/test_sandbox_runner.py: the
+# no-isolation denial path can only be exercised where bwrap is absent. On a
+# bwrap-equipped host require_isolation=True would succeed and the build would
+# proceed, so guard rather than assert-and-fail there.
+_HAS_BWRAP = shutil.which("bwrap") is not None
 
 _REPO = Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location("forge_build", _REPO / "stores" / "forge_build.py")
@@ -78,6 +85,21 @@ def _absolute_escaping_plan_command(app_name: str) -> str:
         "app_name": app_name,
         "entries": [
             {"kind": "file_write", "dest_path": "/etc/evil", "content": "pwned = True\n"},
+        ],
+    }
+    script = f"import json; print(json.dumps({payload!r}))"
+    return f"python3 -c {_shell_quote(script)}"
+
+
+def _unparseable_py_command(app_name: str) -> str:
+    """A build that emits a well-formed, in-scope plan whose `app.py` does not
+    parse as Python — the D3 content-scan (`scan_plan`) refuses it with a
+    `ScanError`. Pins that the seam wraps that as `SeamError` at its source
+    (the audit found it escaping raw otherwise)."""
+    payload = {
+        "app_name": app_name,
+        "entries": [
+            {"kind": "file_write", "dest_path": "app.py", "content": "def broken(:\n    pass\n"},
         ],
     }
     script = f"import json; print(json.dumps({payload!r}))"
@@ -209,6 +231,95 @@ def test_isolation_provenance_is_reported_honestly_under_plain_fallback(tmp_path
 
     assert report["isolated"] is False
     assert any("NO ISOLATION" in w for w in report["warnings"])
+
+
+# ── the CLI presents every denial type uniformly (bite 0 follow-up) ───────
+
+@pytest.mark.skipif(_HAS_BWRAP, reason="bwrap IS installed — require_isolation=True would succeed, so the SandboxError path can't be exercised")
+def test_cli_presents_a_sandbox_denial_uniformly_not_as_a_traceback(tmp_path, capsys):
+    """bite 0's own recorded follow-up: the `build` CLI caught SeamError and
+    GateError for a clean `DENIED: ...` line but let SandboxError/PlanError
+    escape as a raw traceback. On a bwrap-less host the default
+    (require_isolation=True) path raises SandboxError before any signing or
+    seam stage — so it is the honest way to reach that catch — and the CLI
+    must now present it the same way: `DENIED: ...` on stderr, exit 1, no
+    traceback, nothing written."""
+    rc = forge_build.main([
+        "build", "hello",
+        "--apps-root", str(tmp_path / "apps"),
+        "--key-root", str(tmp_path / "keys"),
+        "--ledger", str(tmp_path / "ledger.jsonl"),
+        # No --no-require-isolation on purpose: isolation is required, and this
+        # container has no bwrap, so run_scoped_build raises SandboxError.
+    ])
+    assert rc == 1
+    err = capsys.readouterr().err
+    assert "DENIED:" in err
+    # It never crossed the seam, so nothing landed under the scoped app tree.
+    assert not (tmp_path / "apps" / "dev" / "hello").exists()
+
+
+def test_cli_happy_path_returns_zero_and_prints_the_report(tmp_path, capsys):
+    """The other side of the same CLI branch: a clean build (plain fallback,
+    since no bwrap) exits 0 and prints the report JSON, so the uniform-denial
+    change above did not swallow a success."""
+    rc = forge_build.main([
+        "build", "hello",
+        "--apps-root", str(tmp_path / "apps"),
+        "--key-root", str(tmp_path / "keys"),
+        "--ledger", str(tmp_path / "ledger.jsonl"),
+        "--no-require-isolation",
+    ])
+    assert rc == 0
+    out = capsys.readouterr().out
+    report = json.loads(out)
+    assert report["builder_id"] == "dev"
+    assert {Path(p).name for p in report["written"]} == {"README.md", "app.py"}
+    assert report["isolated"] is False
+
+
+def test_cli_presents_a_mount_policy_denial_uniformly(tmp_path, capsys):
+    """An audit follow-up: a bad app_name makes run_scoped_build raise
+    MountPolicyError before the build ever runs — it is a sandbox-side denial
+    and must present as `DENIED: ...`, not a raw traceback. `../escape` fails
+    the path-safety charset the mount policy enforces. (No bwrap dependency:
+    the mount policy validates before isolation is even attempted.)"""
+    rc = forge_build.main([
+        "build", "../escape",
+        "--apps-root", str(tmp_path / "apps"),
+        "--key-root", str(tmp_path / "keys"),
+        "--ledger", str(tmp_path / "ledger.jsonl"),
+        "--no-require-isolation",
+    ])
+    assert rc == 1
+    assert "DENIED:" in capsys.readouterr().err
+
+
+def test_scan_error_is_wrapped_as_a_seam_denial_not_raised_raw(tmp_path):
+    """An audit follow-up, fixed at the source: a plan whose `.py` FileWrite
+    does not parse makes `scan_plan` raise `ScanError` inside `seam.cross()`.
+    The seam now wraps it as `SeamError` (the D3 'pre-crossing scan refused'
+    denial), so it crosses the one fail-closed boundary every caller already
+    catches — rather than escaping raw past `_cmd_build` and `seam._cmd_cross`
+    alike."""
+    keystore, ledger, apps_root = _rig(tmp_path)
+
+    with pytest.raises(seam.SeamError) as excinfo:
+        build_and_cross(
+            builder_id="dev",
+            app_name="hello",
+            command=_unparseable_py_command("hello"),
+            apps_root=apps_root,
+            keystore=keystore,
+            ledger=ledger,
+            **DEV_NO_ISOLATION,
+        )
+    assert "scan refused" in str(excinfo.value)
+
+    # Denied all-or-nothing — the app's own tree holds nothing.
+    scoped_root = apps_root / "dev" / "hello"
+    if scoped_root.exists():
+        assert list(scoped_root.rglob("*")) == []
 
 
 # ── idempotent-ish / re-cross ─────────────────────────────────────────────
