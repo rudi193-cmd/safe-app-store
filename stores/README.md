@@ -76,6 +76,19 @@ scaffold ships the **semantic-search socket**; the document store is
 **injected**. The capability travels; the corpus does not. *Ship the mold and
 the reader; the wood stays with whoever grew it.* (The vault is the key.)
 
+## Fleet placement — still here on purpose
+
+This monorepo (the stores law, `promote_check.py`, the majors, the playground
+`apps/`) is the **Forge · Play** piece that has not yet moved. Destination face
+is org **`forge-play`** (seat `forge`); until that transfer, the gate and the
+provision-house stay in `safe-app-store-public`. Do not lift `promote_check`
+into Nestor, Hornbook, or the charter — those are candidates or other faces;
+this file is the bar that graduates them.
+
+Open on the charter side: willow `governance/FLEET_PLACEMENT_DRAFT.md` §10
+(*`SAFE` / `safe-app-store-public` — which org when promoted*). No work required
+here beyond keeping that destination named.
+
 ---
 
 *The head of this house is the architect, not a shopkeeper. `ΔΣ=42`*
