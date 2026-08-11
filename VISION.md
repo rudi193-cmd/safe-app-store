@@ -12,6 +12,11 @@ description: "A sovereign personal operating system — own your data, trust you
 >
 > ΔΣ=42 · Decided 2026-06-08. See `docs/app_store_vision_and_gaps.md` for the full audit and
 > the decisions that locked this in.
+>
+> **Refreshed 2026-08-11:** the "Current state" section below was rewritten against the live
+> catalog (41 apps, up from the handful this doc names) — facts, not new strategy. The direction,
+> flagships, and roadmap are unchanged from June; a model can propose a re-ratification, not make
+> one (`stores/decisions/README.md`), so the drift this refresh found is flagged, not resolved.
 
 ---
 
@@ -60,6 +65,10 @@ What this means in practice:
 source-trail folds into ask-jeles (provenance becomes a feature, not a standalone app).
 Jane GM (game) is a parallel track — off the core data thesis but worth investing in.
 dating-wellbeing is parked until a clean local-first rebuild.
+
+*(As of the 2026-08-11 refresh: the-binder — named here as a flagship and the Pattern-3
+keystone below — is `stalled` in the catalog and hasn't moved since June. That's a fact,
+not a re-vote; see "Current state" for what's actually true today.)*
 
 ---
 
@@ -123,7 +132,7 @@ know about each other's schemas. They speak to Jeles.
 
 ---
 
-## Current state (as of 2026-06-09)
+## Current state (as of 2026-06-09, superseded below)
 
 **Shipped:**
 - Store TUI (`tui.py` at repo root) — browse, install, uninstall, consent gates
@@ -143,6 +152,69 @@ know about each other's schemas. They speak to Jeles.
 - Personas lack a shared source of truth (drift across apps)
 - Game (Jane GM) crashes — 14 catalogued bugs before real GM logic can be designed
 
+## Current state (refreshed 2026-08-11)
+
+The catalog has grown from the handful of apps this doc names to **41**: 14
+`gated` (real, CI-verified test suites), 18 `building`, 6 `stalled`, 3
+`archived`. See [`README.md`](README.md) or `.willow/store/catalog.json` for
+the full roster — this section only re-checks the apps already named above,
+plus what's materially new.
+
+**The four flagships, today:**
+- **story-timeline** — `gated`.
+- **ask-jeles** — `gated`. June's "75%, verification and web UI gaps" note is
+  gone; it now clears the same CI bar story-timeline does.
+- **private-ledger** — `gated`.
+- **the-binder** — `stalled`. Still a read-only shell per June's note — it
+  hasn't gained the write path or connection engine Phase 1 calls for, and
+  it's the one flagship that regressed rather than progressed. Both its
+  flagship status (above) and its role as the Pattern-3 keystone (below)
+  rest on this not staying stalled.
+
+**Also moved since June:**
+- **law-gazelle** is `gated` in this repo, but the case-management product
+  is being rebuilt from scratch in separate repos —
+  `rudi193-cmd/homestead`, `homestead-law`, `homestead-ledger` (see
+  `docs/STATE.md`: Phase 0 remediated, Phase 1 landed, 406 tests passing).
+  This repo's law-gazelle isn't being deleted, but new legal-case-management
+  work no longer lands here.
+- **semantic-translator** is `building`, not the "shipped, full pipeline"
+  state claimed above — that claim predates the status-vocabulary migration
+  (`docs/store_refit_plan.md`) that made catalog statuses honest, i.e. it was
+  optimistic even in June.
+- **ratatosk** ("sovereign Claude Code replacement") is `building`, and is
+  now Grove-wired: direct Anthropic API, full tool loop, JSONL sessions, MCP
+  client.
+- **genealogy** isn't a separate app anymore — it merged into **the-squirrel**
+  (`gated`).
+- **llmphysics** and **llmphysics-bot** are `archived`, not "live,
+  cloud-hosted." The gerald-bot ambiguity Phase 0 (below) flagged for
+  resolution is documented — not fixed — at
+  `stores/node/stored/llmphysics-bot.json`.
+- **field-notes**, **dating-wellbeing**, **game**, **public-ledger**,
+  **nasa-archive** are `building`/`stalled`, consistent with where this doc
+  already had them (parked, needs the pipeline, crash bugs).
+
+**New since June, not yet reconciled with the architecture above:** four
+clusters this doc doesn't account for — a marching-arts family
+(`marching-arts`, `marching-arts-shell`, `field-acoustics`,
+`band-camp-arcade`); fleet/build tooling that isn't a consumer app
+(`the-forge`, `aristarchus`, `grove`, `willow-grove`); consent/provenance
+explorations that extend Patterns 1–2 rather than break them (`playgate`,
+`intake-desk`, `terpsi-chat`, `bureau`); and single-purpose local tools
+(`civics-check`, `jarvis`, `kitchen-pudding`, `oakenscrolls-office`,
+`the-nightstand`, `njord`, `nest-seed`, `homestead-health`,
+`UTETY-Reddit-Bots`). None of it contradicts sovereign-first — if anything
+it's more evidence for it — but the three-pattern framing was written before
+most of it existed and nobody has checked it against them yet.
+
+**Parked / gaps from the June audit — rechecked:**
+- The Knowledge OS pipeline is still narrative-only. Unchanged.
+- Private ⇄ public ledger pairing: still not implemented (public-ledger is
+  now `stalled`, private-ledger `gated` — the gap widened, not narrowed).
+- Personas lack a shared source of truth: not rechecked this pass.
+- Game (Jane GM): still `stalled`. Bug count not reverified.
+
 ---
 
 ## The roadmap
@@ -153,6 +225,19 @@ Fix broken entry points (`game`, `public-ledger`, `nasa-archive`). Resolve `llmp
 (fill or delete). Make catalog statuses honest. Align nasa-archive manifest copy to actual content.
 
 *Outcome: the catalog stops lying.*
+
+**2026-08-11 recheck:** catalog statuses are honest now — the state-vocabulary
+migration (`docs/store_refit_plan.md`) replaced the old `stable`/`beta`/`coming_soon`
+vocabulary with the same `seeded · building · gated · stalled · archived` enum
+everywhere. `llmphysics-bot`/`gerald-bot` was **documented, not resolved** — its
+keeping record (`stores/node/stored/llmphysics-bot.json`) names the one-record-
+two-things problem rather than filling or deleting gerald-bot. The `game` and
+`public-ledger` entry points are still broken exactly as described: both
+manifests declare `entry_point: "safe_integration:status"`, but `game`'s
+`safe_integration.py` defines no `status` symbol, and `public-ledger`'s only
+exists under `_archived/`, not at the path the manifest names. `nasa-archive`'s
+manifest-copy alignment wasn't reverified in this pass. Phase 0 is partially
+done, not done.
 
 @phase phase-1-standalone-flagships
 ### Phase 1 — Standalone flagships

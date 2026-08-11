@@ -7,24 +7,36 @@ Local-first apps built on the SAFE framework. No ports. No servers. No subscript
 
 ## Apps
 
-| App | Status | Description |
-|-----|--------|-------------|
-| [story-timeline](apps/story-timeline/) | gated | Literary knowledge base for books, authors, notes, projects, and their connections |
-| [utety-chat](apps/utety-chat/) | gated | Chat with UTETY faculty personas |
-| [ask-jeles](apps/ask-jeles/) | gated | Local-first search with verified sources when you need the world |
-| [private-ledger](apps/private-ledger/) | gated | Local-first private financial ledger |
-| [field-notes](apps/field-notes/) | building | Plain-text field notes and observations |
-| [law-gazelle](apps/law-gazelle/) | gated | Legal case management and document analysis |
-| [civics-check](apps/civics-check/) | gated | America's 250th civics fair — naturalization test, pavilion quizzes, offline Python TUI |
+41 apps in the catalog: 14 `gated`, 18 `building`, 6 `stalled`, 3 `archived`
+(`make list` prints the live count and won't drift from this table the way
+prose does). The `gated` ones below have a real, CI-verified test suite —
+not a claim that they're feature-complete or polished:
 
-`gated` means the app has a real, CI-verified test suite — not a claim that
-it's feature-complete or polished. `building` means it's actively worked on
-without a CI gate yet. See `docs/store_refit_plan.md`'s status-vocabulary
-migration note for the full five-word enum and what each means.
+| App | Description |
+|-----|-------------|
+| [ask-jeles](apps/ask-jeles/) | SAFE search engine — local stacks first, verified sources when you need the world |
+| [band-camp-arcade](apps/band-camp-arcade/) | Five small local browser toys for marching band kids — no accounts, no network calls |
+| [bureau](apps/bureau/) | A Bureaucracy homage at UTETY — a closed requirement graph and a deadlock proved by fixpoint |
+| [civics-check](apps/civics-check/) | America's 250th civics quiz — naturalization test, timeline sort, quote matching, offline |
+| [field-acoustics](apps/field-acoustics/) | Design-time acoustic model for marching drill — what the audience hears when the form turns |
+| [jarvis](apps/jarvis/) | Voice-first browser assistant with an indexed, provenance-tracked fact store |
+| [law-gazelle](apps/law-gazelle/) | Legal case management and document analysis |
+| [marching-arts](apps/marching-arts/) | Authorization core for a marching-program platform — sealed grants, one compiled SQL predicate |
+| [private-ledger](apps/private-ledger/) | Local-first private financial ledger — no cloud, no subscriptions |
+| [source-trail](apps/source-trail/) | Track and audit data sources |
+| [story-timeline](apps/story-timeline/) | Track events, characters, and locations across a narrative timeline |
+| [terpsi-chat](apps/terpsi-chat/) | Schema and gates for messaging between under-18s in a youth-arts org |
+| [the-squirrel](apps/the-squirrel/) | Genealogy companion — local-first, your tree stays in your tree |
+| [utety-chat](apps/utety-chat/) | Chat with 11 AI faculty members, including Gerald (a headless rotisserie chicken) |
 
-See [`.willow/store/catalog.json`](.willow/store/catalog.json) for the full
+`building`, `stalled`, and `archived` apps (field-notes, njord, ratatosk,
+the-forge, and 23 more) aren't listed here — they're real work, just not yet
+past the CI-verified bar. See
+[`.willow/store/catalog.json`](.willow/store/catalog.json) for the full
 catalog — the root [`catalog.json`](catalog.json) is a pointer to it, not a
-copy (`docs/store_refit_plan.md` P3).
+copy (`docs/store_refit_plan.md` P3) — or run `make list`. `docs/store_refit_plan.md`'s
+status-vocabulary migration note has the full five-word enum
+(`seeded · building · gated · stalled · archived`) and what each means.
 
 ## How the store works
 
@@ -36,7 +48,7 @@ answerable for the code:
   app. The house's only record of it is a **keeping record** at
   `stores/<major>/stored/<app_id>.json` — `majors`, `relation` (if it spans
   more than one craft), `location`, `maker`, `lane`, and `state` (the same
-  five-word enum as the `Status` column above). The record is not a second
+  five-word enum used for catalog `status`, above). The record is not a second
   copy of the code: **the code is not duplicated, the record is what
   `stores/` stores.**
 - **Promoted** — a full SAFE app, in its own repo, held to the bar in
