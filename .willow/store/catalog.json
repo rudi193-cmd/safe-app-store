@@ -693,6 +693,25 @@
         "local-first",
         "governance"
       ]
+    },
+    {
+      "id": "homestead-health",
+      "name": "Homestead Health",
+      "description": "Family health records the household holds itself \u2014 module three on Homestead \u00b7 Affairs, pinning homestead.keep. Bite 1: the seat. Immunizations first; every field carries a rung; nothing dials.",
+      "status": "building",
+      "version": "0.0.1",
+      "path": "apps/homestead-health",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "tags": [
+        "health",
+        "records",
+        "homestead",
+        "local-first",
+        "rungs"
+      ]
     }
   ]
 }
