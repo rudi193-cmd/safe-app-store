@@ -96,6 +96,38 @@ def test_mirror_incremental_turns_surface_the_nudge_once_at_the_right_point():
     assert surfaced[0].at == 7
 
 
+def test_mirror_surfaces_a_second_distinct_episode_once_each():
+    """The headline dedup property: a NEW episode after a recovery is
+    surfaced, while the first is not re-reported. MIRROR (trips) -> HEALTHY
+    (recovers, re-arms FrictionFloor) -> MIRROR (trips again) yields two
+    distinct nudges, at two distinct turns, each exactly once."""
+    # full-scan
+    m = _feed(checkpoint_nudge.SessionMirrorMonitor(), _MIRRORING + _HEALTHY + _MIRRORING)
+    nudges = m.check()
+    ats = [n.at for n in nudges]
+    assert len(ats) == 2
+    assert len(set(ats)) == 2      # two DISTINCT episodes
+    assert m.check() == []          # neither re-surfaces
+
+    # incremental — same two, each once, never duplicated as turns arrive
+    m2 = checkpoint_nudge.SessionMirrorMonitor()
+    surfaced = []
+    for role, text in _MIRRORING + _HEALTHY + _MIRRORING:
+        m2.add_turn(role, text)
+        surfaced.extend(m2.check())
+    assert sorted(n.at for n in surfaced) == sorted(ats)
+
+
+def test_mirror_extending_the_same_episode_does_not_re_report_it():
+    """Appending more low-friction turns to a still-open episode (no recovery
+    between) must not mint a second nudge for the same episode."""
+    m = _feed(checkpoint_nudge.SessionMirrorMonitor(), _MIRRORING)
+    assert len(m.check()) == 1
+    m.add_turn("user", "still the greatest, unstoppable, I proved everything")
+    m.add_turn("agent", "yes, unstoppable and perfect")
+    assert m.check() == []  # same episode extended, not a new one
+
+
 # ── EngagementRunMonitor ─────────────────────────────────────────────────────
 
 def test_engagement_run_nudges_after_a_window_of_rubber_stamps():
@@ -141,6 +173,32 @@ def test_engagement_run_rearms_after_a_recovery():
     assert m.observe(0.1) is not None
 
 
+def test_engagement_run_a_single_moderate_score_does_not_rearm_mid_run():
+    """The re-arm is on the WINDOW MEAN, not a single reading (mirrors
+    FrictionFloor). One moderate decision amid a rubber-stamp run does not
+    lift the trailing-window mean over the floor, so it does NOT re-arm and
+    the maker gets ONE nudge for that sustained episode, not two. This pins
+    the behavior the commit narrative had overstated as 'recovers on a
+    healthy score.'"""
+    m = checkpoint_nudge.EngagementRunMonitor(window=3)
+    fired = [i for i, s in enumerate([0.1, 0.1, 0.1, 0.5, 0.1, 0.1, 0.1]) if m.observe(s)]
+    assert fired == [2]  # one nudge only — the lone 0.5 never clears the window mean
+
+
+def test_engagement_run_out_of_range_values_are_clamped_not_trusted():
+    """A spurious out-of-[0,1] reading must not silently blind the detector.
+    Clamped to 1.0, a garbage 100.0 behaves like one maximally-engaged
+    decision (the intended window-mean softening), not an unbounded mask."""
+    # clamp high: 100 -> 1.0; window [0.0, 1.0] mean 0.5 >= floor -> no nudge (as a real 1.0 would)
+    m = checkpoint_nudge.EngagementRunMonitor(window=2)
+    assert m.observe(0.0) is None
+    assert m.observe(100.0) is None
+    # clamp low: a negative reads as a rock-bottom rubber-stamp, still nudges
+    m2 = checkpoint_nudge.EngagementRunMonitor(window=2)
+    m2.observe(-5.0)
+    assert m2.observe(0.1) is not None
+
+
 def test_engagement_run_fewer_than_window_never_nudges():
     m = checkpoint_nudge.EngagementRunMonitor(window=4)
     assert m.observe(0.0) is None
@@ -161,9 +219,10 @@ def test_monitors_only_signal_never_gate():
     verdict, never blocks' ethos. A tripped monitor changes nothing but what
     it hands back."""
     m = _feed(checkpoint_nudge.SessionMirrorMonitor(), _MIRRORING)
+    before = len(m._turns)
     nudges = m.check()
     assert isinstance(nudges, list)
-    # the transcript is untouched by scanning it
+    assert len(m._turns) == before  # scanning does not mutate the transcript
     e = checkpoint_nudge.EngagementRunMonitor(window=2)
     e.observe(0.1)
     assert e.observe(0.1) is not None  # returns a nudge, no exception, no gate

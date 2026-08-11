@@ -1156,8 +1156,11 @@ half, `stores/checkpoint_memory.py`, D12, already exists):
   and `EngagementRunMonitor` mirrors that window/episode/re-arm shape over the
   per-checkpoint engagement stream (a *run* of rubber-stamps), reusing
   `checkpoint_engagement.RUBBER_STAMP_FLOOR`. Verified live: a mirroring
-  session flags once at turn 7; a run of thin decisions nudges, recovers, and
-  nudges again. The mirror monitor watches real dialogue once D7's model lands
+  session flags once at turn 7; a run of thin decisions nudges once per
+  sustained episode, and nudges again only after the trailing-window mean
+  actually clears the floor (a single moderate decision mid-run does not
+  re-arm — deliberate, so it nudges rather than nags). The mirror monitor
+  watches real dialogue once D7's model lands
   (stubbed today, as in bites 0-1). With this, every willow-mcp piece the
   reuse-map named for the loop is wired. The original bite-3 sketch follows.
 - **Bite 3 (original sketch) — the engagement gate.** `#66`/`#67`'s friction-floor / mirror

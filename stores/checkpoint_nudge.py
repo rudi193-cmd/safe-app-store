@@ -162,11 +162,24 @@ class EngagementRunMonitor:
     the floor (and no nudge is already standing for this episode), else None.
 
     Mirrors `FrictionFloor`'s own shape — a `window`-wide mean, one nudge per
-    episode, re-armed once the mean climbs back to/above the floor — but over
-    scalars, for the reasons in the module docstring. `engagement is None`
-    (an auto/recognize confirm or a deferral — no rationale to score) is
-    SKIPPED: it is not a rubber-stamp, so it neither fills the window nor
-    breaks a run; only genuinely-measured rationales move this detector.
+    episode, re-armed once the TRAILING-WINDOW MEAN climbs back to/above the
+    floor — but over scalars, for the reasons in the module docstring. The
+    re-arm is on the window mean, not on a single reading: one genuinely-engaged
+    decision in the middle of a rubber-stamp run does NOT re-arm on its own
+    (its window still averages below the floor), so a maker who makes one real
+    decision amid coasting gets one nudge for that episode, not a fresh one —
+    the window has to actually clear before a later run can nudge again. That is
+    deliberate (nudge once per sustained coasting episode, don't nag), and it is
+    what `test_...single_moderate_score_does_not_rearm` and
+    `test_...rearms_after_a_recovery` pin from both sides.
+
+    `engagement is None` (an auto/recognize confirm or a deferral — no rationale
+    to score) is SKIPPED: it is not a rubber-stamp, so it neither fills the
+    window nor breaks a run; only genuinely-measured rationales move this
+    detector. A measured reading is clamped to [0,1] (engagement_score already
+    returns that range; the clamp defends against an out-of-band upstream value
+    silently masking a run — an unbounded high number would otherwise blind the
+    window mean).
 
     `floor` defaults to `checkpoint_engagement.RUBBER_STAMP_FLOOR`, so a *run*
     of rubber-stamps is judged by the same line a single one is (bite 3)."""
@@ -186,6 +199,10 @@ class EngagementRunMonitor:
         self._index += 1
         if engagement is None:
             return None  # no rationale to score — not a rubber-stamp, skip
+        # Clamp to [0,1]: engagement_score already returns that range, but an
+        # out-of-band value from some other caller must not silently blind the
+        # window mean (a spurious 100 would mask a real run of rubber-stamps).
+        engagement = 0.0 if engagement < 0.0 else 1.0 if engagement > 1.0 else engagement
         self._measured.append(engagement)
         if len(self._measured) < self.window:
             return None
