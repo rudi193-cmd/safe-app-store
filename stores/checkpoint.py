@@ -148,6 +148,18 @@ checkpoint_engagement = importlib.util.module_from_spec(_eng_spec)
 sys.modules["checkpoint_engagement"] = checkpoint_engagement
 _eng_spec.loader.exec_module(checkpoint_engagement)
 
+# The governance layer (human_loop adoption, docs/design/the-forge-human-loop.md):
+# the non-forgeable attestation that rides alongside the Nestor seal on every
+# committed checkpoint, plus the park/resume async seam. Loaded spec-style; it
+# imports soil_store + the vendored human_loop, never checkpoint (this module
+# imports IT), so there is no cycle.
+_gov_spec = importlib.util.spec_from_file_location(
+    "checkpoint_governance", _REPO / "stores" / "checkpoint_governance.py"
+)
+checkpoint_governance = importlib.util.module_from_spec(_gov_spec)
+sys.modules["checkpoint_governance"] = checkpoint_governance
+_gov_spec.loader.exec_module(checkpoint_governance)
+
 DEFAULT_RECOGNIZE_THRESHOLD = 0.6
 
 Band = Literal["auto", "recognize", "socratic"]
@@ -305,6 +317,12 @@ class CheckpointOutcome:
     `checkpoint_engagement.RUBBER_STAMP_FLOOR` — a SIGNAL, never a block: the
     answer is sealed regardless (see that module's "never blocks"). Always
     False when `engagement` is None.
+    `attestation_id`: the id of the non-forgeable `human_loop` attestation this
+    commit wrote alongside the Nestor seal (governance — "the maker signed
+    this," `docs/design/the-forge-human-loop.md`). `""` only when nothing was
+    durably sealed to attest — i.e. the soft-Nestor path
+    (`memory_available=False`), which has no `pair_id` to key an attestation on.
+    Every memory-backed commit (auto / recognize / socratic) attests.
     """
 
     decision_type: str
@@ -316,6 +334,7 @@ class CheckpointOutcome:
     memory_available: bool
     engagement: float | None = None
     rubber_stamp: bool = False
+    attestation_id: str = ""
 
 
 # ── the flow ─────────────────────────────────────────────────────────────────
@@ -370,17 +389,41 @@ def _deferred_canonical(chosen_label: str) -> str:
     return f"[deferred] {chosen_label} — maker reviewed the tradeoff and handed the call to the Forge"
 
 
+def _attest(builder_id: str, pair_id: str | None, chosen: str, root: Path) -> str:
+    """Write the non-forgeable governance attestation for a just-committed
+    decision, keyed by its Nestor `pair_id` (docs/design/the-forge-human-loop.md
+    D-HL-4). `by_human=True`: `run_checkpoint` is the ATTENDED path — a real
+    maker answered (the async/unattended path is `park`/`resume`, which sets its
+    own binding). Returns the attestation id, or `""` if there is no `pair_id`
+    to key on (the soft-Nestor path, which never reaches here). The attestation
+    rides ALONGSIDE the seal: it is written after `cm.seal`, off the same
+    committed decision, and a governance write failing propagates rather than
+    silently dropping the record — the seal is already durable, and a
+    half-recorded governance state should be loud, not swallowed."""
+    if not pair_id:
+        return ""
+    rec = checkpoint_governance.attest_decision(builder_id, pair_id, chosen=chosen, by_human=True, root=root)
+    return rec["id"]
+
+
 def _seal_socratic_answer(
-    cm: "checkpoint_memory.CheckpointMemory", decision: Decision, responder: Responder
+    cm: "checkpoint_memory.CheckpointMemory",
+    decision: Decision,
+    responder: Responder,
+    *,
+    builder_id: str,
+    root: Path,
 ) -> CheckpointOutcome:
-    """Run a full Socratic pass and seal the result — the shared tail every
-    path that falls through to full Socratic (a fresh decision-type, or
-    either band's own "it's different" escape) ends on. `cm` must already
-    be open; this never opens or closes it."""
+    """Run a full Socratic pass, seal the result, and attest it — the shared
+    tail every path that falls through to full Socratic (a fresh decision-type,
+    or either band's own "it's different" escape) ends on. `cm` must already be
+    open; this never opens or closes it."""
     chosen_label, rationale, deferred = _full_socratic(decision, responder)
     canonical = _deferred_canonical(chosen_label) if deferred else f"{chosen_label}: {rationale}"
     cm.seal(decision.surface, canonical)
     engagement, rubber_stamp = _engagement_fields(rationale, deferred, decision.surface)
+    pair_id = cm.check(decision.surface).get("provenance", {}).get("pair_id")
+    attestation_id = _attest(builder_id, pair_id, canonical, root)
     return CheckpointOutcome(
         decision_type=decision.decision_type,
         chosen=chosen_label,
@@ -391,6 +434,7 @@ def _seal_socratic_answer(
         memory_available=True,
         engagement=engagement,
         rubber_stamp=rubber_stamp,
+        attestation_id=attestation_id,
     )
 
 
@@ -449,6 +493,12 @@ def run_checkpoint(
                 f"— you chose: {canonical}. Same call here?"
             )
             if responder.confirm(prompt):
+                # A confirm is a fresh sign-off on the prior seal (no re-seal
+                # needed, but "on this date the maker re-affirmed X" is a real
+                # attestation) — keyed by the tier-1 hit's own pair_id.
+                attestation_id = _attest(
+                    builder_id, result.get("provenance", {}).get("pair_id"), canonical, root
+                )
                 return CheckpointOutcome(
                     decision_type=decision.decision_type,
                     chosen=canonical,
@@ -457,6 +507,7 @@ def run_checkpoint(
                     deferred=False,
                     sealed=True,  # already sealed going in — no re-seal, still a true fact
                     memory_available=True,
+                    attestation_id=attestation_id,
                 )
             # "Not this" -> the recognize-band "different" path, restated
             # for the auto band's own identifying handle: a real tier-1 hit
@@ -468,7 +519,7 @@ def run_checkpoint(
                 pair_id=pair_id,
                 reason="maker said this was not the same call as the prior sealed answer",
             )
-            return _seal_socratic_answer(cm, decision, responder)
+            return _seal_socratic_answer(cm, decision, responder, builder_id=builder_id, root=root)
 
         # ── recognize band: a real, sub-threshold hit ───────────────────
         # `canonical` is always None below Nestor's own seal threshold (see
@@ -487,6 +538,8 @@ def run_checkpoint(
                 # exact phrasing is an auto hit, per the design doc's own
                 # "loose recognition" line.
                 cm.seal(decision.surface, prior_canonical)
+                pair_id = cm.check(decision.surface).get("provenance", {}).get("pair_id")
+                attestation_id = _attest(builder_id, pair_id, prior_canonical, root)
                 return CheckpointOutcome(
                     decision_type=decision.decision_type,
                     chosen=prior_canonical,
@@ -495,6 +548,7 @@ def run_checkpoint(
                     deferred=False,
                     sealed=True,
                     memory_available=True,
+                    attestation_id=attestation_id,
                 )
             # "It's different" -> teach the memory not to conflate the two,
             # then fall through to full Socratic. No pair_id available at
@@ -505,10 +559,86 @@ def run_checkpoint(
                 target_text=prior_canonical,
                 reason="maker said this was not the same call as the recognized prior seal",
             )
-            return _seal_socratic_answer(cm, decision, responder)
+            return _seal_socratic_answer(cm, decision, responder, builder_id=builder_id, root=root)
 
         # ── socratic band: low confidence, or nothing sealed yet at all ──
-        return _seal_socratic_answer(cm, decision, responder)
+        return _seal_socratic_answer(cm, decision, responder, builder_id=builder_id, root=root)
+
+
+# ── the async pause seam (D-HL-5) ──────────────────────────────────────────────
+
+def park_checkpoint(
+    decision: Decision,
+    *,
+    builder_id: str,
+    root: Path = checkpoint_memory.DEFAULT_CHECKPOINT_ROOT,
+) -> str:
+    """Park a decision reached with NO human present: enqueue the model's full
+    proposal (surface + options + tradeoffs + recommended) as `human_required`
+    EVIDENCE, and return the queue item id. Nothing seals, nothing attests —
+    parking is not deciding (docs/design/the-forge-human-loop.md D-HL-5). A
+    human later completes it via `resume_checkpoint`. The parked evidence is the
+    model's narrative and stays evidence until a human acts: it cannot self-seal
+    or time out into a default. Refuses an optionless `Decision` the same way
+    `run_checkpoint` does — a decision with nothing to choose between is not a
+    decision to park."""
+    if not decision.options:
+        raise CheckpointError(
+            f"Decision {decision.decision_type!r} has no options — nothing to park"
+        )
+    item = checkpoint_governance.park_decision(
+        builder_id,
+        decision_type=decision.decision_type,
+        surface=decision.surface,
+        options=[(o.label, o.tradeoff) for o in decision.options],
+        recommended=decision.recommended,
+        root=root,
+    )
+    return item["id"]
+
+
+def resume_checkpoint(
+    item_id: str,
+    *,
+    builder_id: str,
+    responder: Responder,
+    root: Path = checkpoint_memory.DEFAULT_CHECKPOINT_ROOT,
+) -> CheckpointOutcome:
+    """A human is now present for a parked item: rebuild the `Decision` from the
+    stored evidence, run the FULL `run_checkpoint` flow (band routing + seal +
+    attest + engagement — a resumed decision is decided for real, by the human
+    now present), and resolve the queue item in place (states-not-deletions).
+    Returns the `CheckpointOutcome`. Raises `CheckpointError` if `item_id` has
+    no parked decision (already resumed, or never parked)."""
+    parked = checkpoint_governance.get_parked_decision(builder_id, item_id, root=root)
+    if parked is None:
+        raise CheckpointError(
+            f"no parked decision for item_id={item_id!r} — never parked"
+        )
+    # Single-use (D-HL-5): the queue item's own status is the source of truth
+    # for "already acted on." A resolved/dismissed item must not be resumed a
+    # second time — that would re-seal and re-attest a decision the record
+    # already shows was made, minting a duplicate governance trail. Mirrors
+    # egress_authorization's single-use-per-row property.
+    qitem = checkpoint_governance.get_queue_item(builder_id, item_id, root=root)
+    if qitem is None or qitem.get("status") != "open":
+        raise CheckpointError(
+            f"parked item {item_id!r} is not open (status="
+            f"{qitem.get('status') if qitem else 'missing'!r}) — already resumed or resolved"
+        )
+    decision = Decision(
+        decision_type=parked["decision_type"],
+        surface=parked["surface"],
+        options=tuple(Option(label=label, tradeoff=tradeoff) for label, tradeoff in parked["options"]),
+        recommended=parked.get("recommended"),
+    )
+    outcome = run_checkpoint(decision, builder_id=builder_id, responder=responder, root=root)
+    checkpoint_governance.resolve_item(
+        builder_id, item_id, resolved_by=builder_id, status="resolved",
+        note=f"resumed by a human; attestation {outcome.attestation_id or '(none — soft-Nestor)'}",
+        root=root,
+    )
+    return outcome
 
 
 # ── CLI (optional; a scripted demo, mirroring forge_build.py's shape) ──────
@@ -567,6 +697,7 @@ def _cmd_demo(args: argparse.Namespace) -> int:
             "memory_available": outcome.memory_available,
             "engagement": outcome.engagement,
             "rubber_stamp": outcome.rubber_stamp,
+            "attestation_id": outcome.attestation_id,
         },
         indent=2,
     ))

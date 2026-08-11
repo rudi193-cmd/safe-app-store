@@ -1162,7 +1162,24 @@ half, `stores/checkpoint_memory.py`, D12, already exists):
   re-arm — deliberate, so it nudges rather than nags). The mirror monitor
   watches real dialogue once D7's model lands
   (stubbed today, as in bites 0-1). With this, every willow-mcp piece the
-  reuse-map named for the loop is wired. The original bite-3 sketch follows.
+  reuse-map named for the loop is wired.
+- **D7-B foundation — `human_loop` adopted under checkpoint. ✅ LANDED
+  2026-08-11** (`docs/design/the-forge-human-loop.md`). The D12 move at the
+  governance layer: the Nestor **seal** is memory (does the maker recognize
+  this?); willow-mcp's vendored **`human_loop`** adds the non-forgeable
+  **attestation** (the maker signed THIS, and were they human?) and the
+  **`human_required` queue**. "Authorship is not authority" — the model may
+  propose the whole `Decision`, but the maker's on-the-record sign-off is what
+  commits it. `run_checkpoint` now attests on every memory-backed commit
+  (`attestation_id` on the outcome); `stores/checkpoint_governance.py` +
+  `stores/soil_store.py` back it. Two more pieces: the **async pause seam**
+  (`park_checkpoint` enqueues the model's proposal as evidence when no human is
+  present; `resume_checkpoint` lets a human seal+attest it later, single-use —
+  a bug caught in self-audit and fixed), and the **nudge outbox** (`route_nudge`
+  persists bite 3 / #67's signals as `review`/`overload` queue items, closing
+  #67's durability gap). Store-side (D1); `apps/the-forge/` untouched. This is
+  the substrate D7's real model routing plugs into: a parked decision is exactly
+  what an unattended model produces.
 - **Bite 3 (original sketch) — the engagement gate.** `#66`/`#67`'s friction-floor / mirror
   detector as the non-circular "did they actually decide vs rubber-stamp"
   signal at seal-time — also already shipped in willow-mcp, to be reused.
