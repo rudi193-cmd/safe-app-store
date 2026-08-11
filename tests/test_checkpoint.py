@@ -407,6 +407,8 @@ def test_soft_nestor_degradation_runs_full_socratic_without_crashing(tmp_path):
     assert outcome.deferred is False
     assert outcome.chosen == "binary heap"
     assert outcome.rationale == "no range queries needed here"
+    # No seal, so nothing to attest — governance stays empty on this path.
+    assert outcome.attestation_id == ""
     # Never touched the filesystem either — no memory to write to.
     assert not root.exists()
 
@@ -577,3 +579,145 @@ def test_a_deferral_is_not_a_rubber_stamp(tmp_path):
     assert outcome.deferred is True
     assert outcome.engagement is None
     assert outcome.rubber_stamp is False
+
+
+# ── 8. governance: attestation under the seal + the park/resume async seam ───
+#     (human_loop adoption, docs/design/the-forge-human-loop.md)
+
+_gov = checkpoint.checkpoint_governance
+
+
+def _pair_id(builder_id, decision_type, surface, root):
+    with checkpoint.checkpoint_memory.open_checkpoint_memory(builder_id, decision_type, root=root) as cm:
+        return cm.check(surface)["provenance"]["pair_id"]
+
+
+def _schema_decision():
+    return Decision(
+        decision_type="schema-normalization-tradeoff",
+        surface="Should the orders table be normalized or denormalized?",
+        options=(Option("normalized", "cleaner writes"), Option("denormalized", "fast reporting")),
+    )
+
+
+def test_socratic_commit_attests_but_not_as_human_by_default(tmp_path):
+    """A commit writes an attestation bound to the builder, but does NOT claim a
+    human signed it: a ScriptedResponder is a machine, the Forge has no D11
+    identity to prove otherwise, so `by_human` defaults False and
+    `require_human=True` is honestly unsatisfiable. (The first cut stamped
+    by_human=True unconditionally — an automated responder minted a 'human'
+    attestation; the adversarial audit caught it.)"""
+    root = tmp_path / "checkpoints"
+    decision = _schema_decision()
+    responder = ScriptedResponder(
+        choose_answers=[ChoiceResult(chosen_label="normalized", rationale="writes dominate this table")]
+    )
+    outcome = checkpoint.run_checkpoint(decision, builder_id=BUILDER_A, responder=responder, root=root)
+
+    assert outcome.attestation_id  # a governance record was written...
+    pid = _pair_id(BUILDER_A, decision.decision_type, decision.surface, root)
+    assert _gov.has_decision_attestation(BUILDER_A, pid, root=root) is True
+    # ...but it is NOT a human sign-off, because nothing proved a human answered
+    assert _gov.has_decision_attestation(BUILDER_A, pid, require_human=True, root=root) is False
+
+
+def test_an_explicit_human_binding_produces_a_human_attestation(tmp_path):
+    """When a caller CAN establish human presence (a real UI, post-D11), it
+    passes by_human=True and the attestation counts under require_human — the
+    property is real, driven by a binding, not stamped by default."""
+    root = tmp_path / "checkpoints"
+    decision = _schema_decision()
+    responder = ScriptedResponder(
+        choose_answers=[ChoiceResult(chosen_label="normalized", rationale="writes dominate")]
+    )
+    outcome = checkpoint.run_checkpoint(
+        decision, builder_id=BUILDER_A, responder=responder, root=root, by_human=True
+    )
+    assert outcome.attestation_id
+    pid = _pair_id(BUILDER_A, decision.decision_type, decision.surface, root)
+    assert _gov.has_decision_attestation(BUILDER_A, pid, require_human=True, root=root) is True
+
+
+def test_auto_confirm_attests_the_reaffirmation(tmp_path):
+    root = tmp_path / "checkpoints"
+    _seal_original_auth_decision(root)
+    outcome = checkpoint.run_checkpoint(
+        Decision(decision_type=DECISION_TYPE, surface=ORIGINAL_SURFACE, options=AUTH_OPTIONS),
+        builder_id=BUILDER_A, responder=ScriptedResponder(confirm_answers=[True]), root=root,
+    )
+    assert outcome.band == "auto"
+    assert outcome.attestation_id  # a confirm is a fresh on-the-record sign-off
+
+
+def test_park_checkpoint_enqueues_evidence_and_seals_nothing(tmp_path):
+    root = tmp_path / "checkpoints"
+    decision = Decision(
+        decision_type=DECISION_TYPE, surface=ORIGINAL_SURFACE, options=AUTH_OPTIONS,
+        recommended="session cookie + CSRF",
+    )
+    item_id = checkpoint.park_checkpoint(decision, builder_id=BUILDER_A, root=root)
+    assert item_id
+    assert len(_gov.open_items(BUILDER_A, root=root)) == 1  # a human_required item is waiting
+    # parking is not deciding — nothing sealed, nothing attested
+    with checkpoint.checkpoint_memory.open_checkpoint_memory(BUILDER_A, DECISION_TYPE, root=root) as cm:
+        assert cm.check(ORIGINAL_SURFACE)["sealed"] is False
+
+
+def test_resume_checkpoint_seals_attests_and_resolves_the_item(tmp_path):
+    root = tmp_path / "checkpoints"
+    decision = Decision(decision_type=DECISION_TYPE, surface=ORIGINAL_SURFACE, options=AUTH_OPTIONS)
+    item_id = checkpoint.park_checkpoint(decision, builder_id=BUILDER_A, root=root)
+
+    responder = ScriptedResponder(
+        choose_answers=[ChoiceResult(chosen_label="session cookie + CSRF", rationale="server-rendered form")]
+    )
+    outcome = checkpoint.resume_checkpoint(item_id, builder_id=BUILDER_A, responder=responder, root=root)
+
+    assert outcome.sealed is True
+    assert outcome.attestation_id
+    assert _gov.open_items(BUILDER_A, root=root) == []  # resolved in place, not left open
+    with checkpoint.checkpoint_memory.open_checkpoint_memory(BUILDER_A, DECISION_TYPE, root=root) as cm:
+        assert cm.check(ORIGINAL_SURFACE)["sealed"] is True  # now durably decided
+
+    # single-use: the same parked item cannot be resumed a second time (it would
+    # mint a duplicate seal+attestation for a decision already on the record)
+    with pytest.raises(checkpoint.CheckpointError):
+        checkpoint.resume_checkpoint(
+            item_id, builder_id=BUILDER_A,
+            responder=ScriptedResponder(choose_answers=[ChoiceResult(chosen_label="JWT bearer token", rationale="x")]),
+            root=root,
+        )
+
+
+def test_resume_an_unknown_item_raises(tmp_path):
+    with pytest.raises(checkpoint.CheckpointError):
+        checkpoint.resume_checkpoint(
+            "no-such-item", builder_id=BUILDER_A,
+            responder=ScriptedResponder(), root=tmp_path / "checkpoints",
+        )
+
+
+def test_resume_leaves_the_item_open_when_the_seal_fails(tmp_path, monkeypatch):
+    """If memory is unavailable at resume time, run_checkpoint can't seal — the
+    parked item must NOT be consumed (resolving it with no seal + no attestation
+    would lose the decision permanently, since single-use blocks a retry). It
+    stays open for a real retry once memory is back. (Bug caught by the
+    adversarial audit of the first cut.)"""
+    root = tmp_path / "checkpoints"
+    decision = Decision(decision_type=DECISION_TYPE, surface=ORIGINAL_SURFACE, options=AUTH_OPTIONS)
+    item_id = checkpoint.park_checkpoint(decision, builder_id=BUILDER_A, root=root)
+
+    def _unsealed(decision, *, builder_id, responder, root, by_human=False):
+        return checkpoint.CheckpointOutcome(
+            decision_type=decision.decision_type, chosen="x", rationale="", band="socratic",
+            deferred=False, sealed=False, memory_available=False,
+        )
+
+    monkeypatch.setattr(checkpoint, "run_checkpoint", _unsealed)
+    outcome = checkpoint.resume_checkpoint(
+        item_id, builder_id=BUILDER_A, responder=ScriptedResponder(), root=root
+    )
+    assert outcome.sealed is False
+    # NOT consumed: still open, and the parked decision is still retrievable
+    assert len(_gov.open_items(BUILDER_A, root=root)) == 1
+    assert _gov.get_parked_decision(BUILDER_A, item_id, root=root) is not None
