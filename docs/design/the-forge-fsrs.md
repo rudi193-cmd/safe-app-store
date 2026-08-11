@@ -34,12 +34,25 @@ the placeholder never had to make.
 
 ## D-FSRS-1 — Where the per-seal card state lives: **a Forge-owned sidecar, not the Nestor seal**
 
-**Decision: a sidecar store the calibration layer owns**, keyed by
-`(builder_id, decision_type, surface_norm)` — the *question*, not the answer —
+**Decision: a sidecar store the calibration layer owns**, keyed by the
+resurfaced decision's **Nestor `pair_id`** — the *question*, not the answer —
 holding one `Card.to_dict()` blob per resurfaceable decision. It sits under the
 same checkpoint root the memory layer already uses
-(`checkpoint_memory.DEFAULT_CHECKPOINT_ROOT`), in its **own file**
-(`schedule.json`), never inside Nestor's store.
+(`checkpoint_memory.DEFAULT_CHECKPOINT_ROOT`), in its **own per-builder file**
+(`<builder_id>.schedule.json`), never inside Nestor's store.
+
+> **Build-time refinement (2026-08-11):** the design first said key by
+> `(builder_id, decision_type, surface_norm)`. Verified empirically that
+> `resolve()` returns a stable `pair_id` in its provenance, and — because a
+> regression reseals *in place* (bite 2's own finding: same verifier → same
+> `pair_id`, only `target_text` changes) — **that `pair_id` is stable across a
+> held→regressed→held cycle** (measured: id unchanged, canonical flipped
+> `session cookie + CSRF` → `JWT bearer`). Keying on it is the faithful
+> realization of "key by the question": one card follows the decision through
+> every review, so regression grading the *same* card `Again` (D-FSRS-2) falls
+> out for free, and the surface-normalization / reword-matching question never
+> has to be answered. `surface_norm` would have fragmented the card the moment
+> a maker reworded — `pair_id` doesn't.
 
 **Why not inside the Nestor seal (the rejected door):**
 - A Nestor seal is a **signed, human-witnessed commitment** — its schema is
@@ -126,7 +139,13 @@ record_review(card_state | None, outcome, now, *, engagement=None)
 
 ---
 
-## D-FSRS-4 — Dependency posture: **soft FSRS, fixed-interval fallback (mirror soft-Nestor)** — *the one I want a ruling on*
+## D-FSRS-4 — Dependency posture: **soft FSRS, fixed-interval fallback (mirror soft-Nestor)** — *settled 2026-08-11: SOFT*
+
+**Ruling: soft dependency**, the recommended option below. `fsrs` in an
+optional extra; when present, real FSRS scheduling; when absent, `is_due` /
+`record_review` degrade to a fixed-interval fallback (held grows the interval,
+regressed resets it) so the resurface flow never depends on a heavy install —
+the same soft-everything posture bite 1 set for Nestor.
 
 Two defensible options; I recommend the first but this is the live fork:
 

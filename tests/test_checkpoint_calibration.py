@@ -17,7 +17,7 @@ from __future__ import annotations
 import contextlib
 import importlib.util
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -274,30 +274,61 @@ def test_conflicting_seal_from_a_different_verifier_raises_checkpoint_conflict(t
             )
 
 
-# ── 5. is_due — placeholder scheduler, pure logic ───────────────────────────
+# ── 5. resurface advances the FSRS schedule (bite 2 fold-in) ─────────────────
+# The scheduler's own math (interval growth/reset, fallback) is exercised in
+# tests/test_checkpoint_schedule.py; these pin only the WIRING — that resurface
+# records a review, keyed on the decision's pair_id, and reports next_due.
 
-def test_is_due_before_interval_is_false():
-    last = "2026-08-01T00:00:00+00:00"
-    now = "2026-08-05T00:00:00+00:00"
-    assert checkpoint_calibration.is_due(last, now, interval_days=7) is False
-
-
-def test_is_due_after_interval_is_true():
-    last = "2026-08-01T00:00:00+00:00"
-    now = "2026-08-10T00:00:00+00:00"
-    assert checkpoint_calibration.is_due(last, now, interval_days=7) is True
+_T0 = datetime(2026, 8, 11, 12, 0, 0, tzinfo=timezone.utc)
 
 
-def test_is_due_at_exact_boundary_is_true():
-    last = datetime(2026, 8, 1, tzinfo=None)
-    now = last + timedelta(days=7)
-    assert checkpoint_calibration.is_due(last.isoformat(), now.isoformat(), interval_days=7) is True
+def test_resurface_held_records_a_future_due_date_and_persists_a_card(tmp_path):
+    root = tmp_path / "checkpoints"
+    _seal_original_auth_decision(root)
+    outcome = checkpoint_calibration.resurface(
+        builder_id=BUILDER_A, decision_type=DECISION_TYPE, surface=ORIGINAL_SURFACE,
+        responder=ScriptedResponder(confirm_answers=[True]), root=root, now=_T0,
+    )
+    assert outcome.next_due
+    assert datetime.fromisoformat(outcome.next_due) > _T0
+
+    # a card was persisted, keyed by the decision's Nestor pair_id
+    with checkpoint_memory.open_checkpoint_memory(BUILDER_A, DECISION_TYPE, root=root) as cm:
+        pair_id = cm.check(ORIGINAL_SURFACE)["provenance"]["pair_id"]
+    card = checkpoint_calibration.checkpoint_schedule.load_card(BUILDER_A, pair_id, root=root)
+    assert card is not None
+    assert card["due"] == outcome.next_due
 
 
-def test_is_due_just_under_boundary_is_false():
-    last = datetime(2026, 8, 1, tzinfo=None)
-    now = last + timedelta(days=7) - timedelta(seconds=1)
-    assert checkpoint_calibration.is_due(last.isoformat(), now.isoformat(), interval_days=7) is False
+def test_resurface_regressed_records_a_review_too(tmp_path):
+    root = tmp_path / "checkpoints"
+    _seal_original_auth_decision(root)
+    outcome = checkpoint_calibration.resurface(
+        builder_id=BUILDER_A, decision_type=DECISION_TYPE, surface=ORIGINAL_SURFACE,
+        responder=ScriptedResponder(
+            confirm_answers=[False],
+            choose_answers=[checkpoint.ChoiceResult(chosen_label="JWT bearer token", rationale="public API now")],
+        ),
+        root=root, now=_T0,
+    )
+    assert outcome.regressed is True
+    assert outcome.next_due
+    assert datetime.fromisoformat(outcome.next_due) > _T0
+
+
+def test_two_held_resurfaces_advance_the_same_card(tmp_path):
+    root = tmp_path / "checkpoints"
+    _seal_original_auth_decision(root)
+    o1 = checkpoint_calibration.resurface(
+        builder_id=BUILDER_A, decision_type=DECISION_TYPE, surface=ORIGINAL_SURFACE,
+        responder=ScriptedResponder(confirm_answers=[True]), root=root, now=_T0,
+    )
+    o2 = checkpoint_calibration.resurface(
+        builder_id=BUILDER_A, decision_type=DECISION_TYPE, surface=ORIGINAL_SURFACE,
+        responder=ScriptedResponder(confirm_answers=[True]), root=root, now=_T0 + timedelta(days=3),
+    )
+    # the schedule advanced on the same card — second due is later than first
+    assert datetime.fromisoformat(o2.next_due) > datetime.fromisoformat(o1.next_due)
 
 
 # ── 6. soft-Nestor on resurface ──────────────────────────────────────────────

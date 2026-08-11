@@ -1120,6 +1120,16 @@ half, `stores/checkpoint_memory.py`, D12, already exists):
   > exactly what D9 wrote down before the phantom-reuse detour. Recorded here
   > rather than quietly edited so the next seat sees the false-reuse trap, per
   > rule 11: "a rediscovery quietly deleted is the same cost paid twice."
+
+  > **FSRS fold-in landed (2026-08-11).** The scheduler above is now built,
+  > not just named: `stores/checkpoint_schedule.py` (with its own design doc,
+  > `docs/design/the-forge-fsrs.md`, settling four forks). `resurface` records
+  > an FSRS review after every held (→ Good) / regressed (→ Again) outcome,
+  > keyed on the decision's stable Nestor `pair_id`, and reports the next
+  > `due` date on `ResurfaceOutcome.next_due`. `fsrs` (PyPI, MIT) is a SOFT
+  > dependency — absent, scheduling degrades to fixed intervals — so nothing
+  > gained a hard third-party import. Bite 2's fixed-interval `is_due`
+  > placeholder is retired.
 - **Bite 3 — the engagement gate.** `#66`/`#67`'s friction-floor / mirror
   detector as the non-circular "did they actually decide vs rubber-stamp"
   signal at seal-time — also already shipped in willow-mcp, to be reused.

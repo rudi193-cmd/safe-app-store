@@ -31,12 +31,15 @@ not a new semantic-similarity matcher (see "Reuse discipline" below).
     already-built: a **regressed resurface** (the maker saying "no" to their
     own prior seal), which is `reject_match` + a fresh seal — both bite-1/D12
     primitives, not new ones.
-  * **Scheduling ("is it due for review") is DEFERRED.** `is_due` below is a
-    trivial, pure, stdlib-only placeholder — explicitly NOT py-fsrs, NOT
-    `engram`, NOT any real spaced-repetition scheduler. A separate agent is
-    mapping which Apache-compatible scheduler the fleet should adopt for
-    this; nothing in this module depends on a specific one. Swap `is_due`'s
-    body out, not its callers, once that reuse-map lands.
+  * **Scheduling ("is it due for review") is now FOLDED IN**, in its own
+    module `stores/checkpoint_schedule.py` (the reuse-map named the scheduler:
+    py-fsrs, MIT — docs/design/the-forge-fsrs.md). `resurface` records a
+    review there after every held/regressed outcome (held -> FSRS Good,
+    regressed -> FSRS Again), keyed on the decision's Nestor `pair_id`, and
+    reports the next `due` date on `ResurfaceOutcome.next_due`. Bite 2's old
+    fixed-interval `is_due` placeholder is gone; `checkpoint_schedule.is_due`
+    (card-driven) replaces it. FSRS is a SOFT dependency there — absent, it
+    degrades to fixed intervals — so `resurface` gains no hard `fsrs` import.
 
 **The `reject_match` vs `reject_pair` choice on a regression — verified
 against the real Nestor library, not guessed.** A regression needs to do two
@@ -133,6 +136,7 @@ import importlib.util
 import json
 import sys
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 _REPO = Path(__file__).resolve().parent.parent
@@ -146,6 +150,22 @@ _spec.loader.exec_module(checkpoint)
 # module docstring's "Loaded modules" section for why this is not a second,
 # independently-cached load.
 checkpoint_memory = checkpoint.checkpoint_memory
+
+# The FSRS scheduler (bite 2's deferred "is it due" half, now folded in —
+# docs/design/the-forge-fsrs.md). Loaded the same spec way; its own Nestor
+# dependency is nil (it only borrows checkpoint_memory's _check_builder_id and
+# root), so we repoint its checkpoint_memory at OUR already-loaded copy rather
+# than let it keep the second one its own module-level load created — one
+# checkpoint_memory object across this whole load chain, same "reuse the
+# sibling's loaded copy" discipline this module already applies to
+# checkpoint_memory itself.
+_sched_spec = importlib.util.spec_from_file_location(
+    "checkpoint_schedule", _REPO / "stores" / "checkpoint_schedule.py"
+)
+checkpoint_schedule = importlib.util.module_from_spec(_sched_spec)
+sys.modules["checkpoint_schedule"] = checkpoint_schedule
+_sched_spec.loader.exec_module(checkpoint_schedule)
+checkpoint_schedule.checkpoint_memory = checkpoint_memory
 
 
 class CalibrationError(Exception):
@@ -176,6 +196,10 @@ class ResurfaceOutcome:
     `resealed`: True iff this run left a NEW canonical durably sealed for
     `surface` — False for `held` (nothing needed re-recording; the light
     confirm is not a re-seal, same reasoning as bite 1's auto band).
+    `next_due`: ISO-8601 timestamp for when this decision is next due for
+    review, from the FSRS schedule advanced this run (held -> Good graduates
+    it, regressed -> Again resets it). Always set — every resurface records a
+    review. See `stores/checkpoint_schedule.py`.
     """
 
     decision_type: str
@@ -184,6 +208,7 @@ class ResurfaceOutcome:
     prior: str
     new: str
     resealed: bool
+    next_due: str = ""
 
 
 # ── the flow ─────────────────────────────────────────────────────────────────
@@ -195,6 +220,7 @@ def resurface(
     surface: str,
     responder: "checkpoint.Responder",
     root: Path = checkpoint_memory.DEFAULT_CHECKPOINT_ROOT,
+    now: "datetime | None" = None,
 ) -> ResurfaceOutcome:
     """Resurface ONE previously-sealed decision and find out whether the
     maker still holds it. Raises `CalibrationError` for either shape of
@@ -202,7 +228,13 @@ def resurface(
     `checkpoint_memory.CheckpointMemoryError`/`CheckpointConflict`/
     `CheckpointRejected` propagate unwrapped for everything memory-side —
     same exception discipline `checkpoint.py`'s `run_checkpoint` uses.
+
+    `now` is the review timestamp fed to the FSRS schedule; injected here at
+    the boundary (D-FSRS-3: the schedule module itself never reads the wall
+    clock). Defaults to `datetime.now(timezone.utc)` when a caller — like the
+    CLI — declines to supply one; the tests always inject it for determinism.
     """
+    now = now or datetime.now(timezone.utc)
     # ── soft-Nestor gate — checked first, same posture as
     # checkpoint.run_checkpoint's own gate, but resurface has no honest
     # degraded outcome to hand back (see module docstring), so it refuses
@@ -232,9 +264,15 @@ def resurface(
                 f"docstring's 'Nothing to resurface' section)"
             )
         prior = result["canonical"]
+        # The decision's stable identity in Nestor — the FSRS card key (see
+        # module docstring / docs/design/the-forge-fsrs.md D-FSRS-1). Stable
+        # across a held->regressed->held cycle because a same-verifier reseal
+        # is in-place (same pair_id), so one card follows the decision.
+        pair_id = result.get("provenance", {}).get("pair_id")
 
         prompt = f"You decided {prior!r} for {decision_type!r}. Does that still hold?"
         if responder.confirm(prompt):
+            next_due = _record_review(builder_id, pair_id, checkpoint_schedule.OUTCOME_HELD, now, root)
             return ResurfaceOutcome(
                 decision_type=decision_type,
                 held=True,
@@ -242,6 +280,7 @@ def resurface(
                 prior=prior,
                 new="",
                 resealed=False,
+                next_due=next_due,
             )
 
         # ── regressed: the practical #3 contradiction signal ────────────
@@ -282,6 +321,8 @@ def resurface(
         )
         cm.seal(surface, new_canonical)
 
+        # Same pair_id (the reseal was in-place); grade the SAME card Again.
+        next_due = _record_review(builder_id, pair_id, checkpoint_schedule.OUTCOME_REGRESSED, now, root)
         return ResurfaceOutcome(
             decision_type=decision_type,
             held=False,
@@ -289,7 +330,22 @@ def resurface(
             prior=prior,
             new=new_canonical,
             resealed=True,
+            next_due=next_due,
         )
+
+
+def _record_review(builder_id, pair_id, outcome, now, root) -> str:
+    """Advance and persist the FSRS schedule for this decision, returning the
+    next-due ISO timestamp. No-ops to "" if Nestor handed back no `pair_id`
+    (there is nothing stable to key the card on) — the resurface still stands;
+    only the schedule half is skipped, and that is honestly reported as an
+    empty `next_due` rather than a guessed key."""
+    if not pair_id:
+        return ""
+    prior_card = checkpoint_schedule.load_card(builder_id, pair_id, root=root)
+    new_card = checkpoint_schedule.record_review(prior_card, outcome, now)
+    checkpoint_schedule.save_card(builder_id, pair_id, new_card, root=root)
+    return new_card["due"]
 
 
 def contradictions(
@@ -309,27 +365,11 @@ def contradictions(
     return cm.seal(decision_description, chosen_option_and_rationale, **seal_kwargs)
 
 
-# ── is_due — PLACEHOLDER scheduler, pending the reuse-map ──────────────────
-
-def is_due(last_reviewed_iso: str, now_iso: str, *, interval_days: float) -> bool:
-    """Trivial, pure, stdlib-only placeholder for "is this seal due for
-    review" — explicitly NOT py-fsrs, NOT `engram`, NOT any real
-    spaced-repetition scheduler. See module docstring's "Scheduling" section:
-    a separate agent is mapping which Apache-compatible scheduler the fleet
-    reuses for this; nothing else in this module calls `is_due` or depends
-    on its internals, so swapping it for the real thing later is a
-    same-signature drop-in, not a caller-side rewrite.
-
-    `last_reviewed_iso`/`now_iso` are ISO-8601 strings (`datetime.fromisoformat`
-    — both naive or both aware; mixing the two raises `TypeError` from the
-    subtraction below, the same way stdlib `datetime` itself would). True iff
-    `now >= last_reviewed + interval_days`, boundary inclusive.
-    """
-    from datetime import datetime, timedelta
-
-    last = datetime.fromisoformat(last_reviewed_iso)
-    now = datetime.fromisoformat(now_iso)
-    return now >= last + timedelta(days=interval_days)
+# `is_due` used to live here as a fixed-interval placeholder; bite 2's FSRS
+# fold-in moved it (card-driven) to `stores/checkpoint_schedule.py`. Reach for
+# `checkpoint_schedule.is_due(card, now)` — a caller with a resurfaced
+# decision's `pair_id` loads its card via `checkpoint_schedule.load_card` and
+# asks from there.
 
 
 # ── CLI (optional; a scripted demo, mirroring checkpoint.py's own shape) ────
@@ -379,6 +419,7 @@ def _cmd_resurface(args: argparse.Namespace) -> int:
             "prior": outcome.prior,
             "new": outcome.new,
             "resealed": outcome.resealed,
+            "next_due": outcome.next_due,
         },
         indent=2,
     ))
