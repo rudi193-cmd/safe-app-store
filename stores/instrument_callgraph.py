@@ -37,10 +37,18 @@ from pathlib import Path
 
 _REPO = Path(__file__).resolve().parent.parent
 
-_mp_spec = importlib.util.spec_from_file_location("measure_panel", _REPO / "stores" / "measure_panel.py")
-measure_panel = importlib.util.module_from_spec(_mp_spec)
-sys.modules["measure_panel"] = measure_panel
-_mp_spec.loader.exec_module(measure_panel)
+# Reuse the ONE already-loaded measure_panel if present — a second spec-load
+# would give a DISTINCT InstrumentUnavailable class, so run_panel would catch
+# this instrument's unavailability under its generic handler and mislabel it
+# "errored" instead of "could not run" (found live). One module, one exception
+# identity.
+if "measure_panel" in sys.modules:
+    measure_panel = sys.modules["measure_panel"]
+else:
+    _mp_spec = importlib.util.spec_from_file_location("measure_panel", _REPO / "stores" / "measure_panel.py")
+    measure_panel = importlib.util.module_from_spec(_mp_spec)
+    sys.modules["measure_panel"] = measure_panel
+    _mp_spec.loader.exec_module(measure_panel)
 
 Finding = measure_panel.Finding
 InstrumentUnavailable = measure_panel.InstrumentUnavailable

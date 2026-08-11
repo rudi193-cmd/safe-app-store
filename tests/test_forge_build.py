@@ -210,13 +210,13 @@ def test_signing_refuses_a_manifest_whose_maker_does_not_match_builder_id(tmp_pa
 
 # ── isolation provenance is honest ───────────────────────────────────────
 
+@pytest.mark.skipif(_HAS_BWRAP, reason="bwrap IS installed — require_isolation=False still isolates, so the plain-fallback provenance path can't be exercised here")
 def test_isolation_provenance_is_reported_honestly_under_plain_fallback(tmp_path):
     """A build that wasn't actually contained must say so in the report —
     D10's 'a seam-side record that doesn't say whether the build was
-    contained is recording half a fact,' applied here. This container has
-    no bwrap, so require_isolation=False runs kartikeya's plain fallback,
-    and the report must reflect that rather than silently reading as
-    isolated."""
+    contained is recording half a fact,' applied here. On a bwrap-less host
+    require_isolation=False runs kartikeya's plain fallback, and the report
+    must reflect that rather than silently reading as isolated."""
     keystore, ledger, apps_root = _rig(tmp_path)
 
     report = build_and_cross(
@@ -260,9 +260,11 @@ def test_cli_presents_a_sandbox_denial_uniformly_not_as_a_traceback(tmp_path, ca
 
 
 def test_cli_happy_path_returns_zero_and_prints_the_report(tmp_path, capsys):
-    """The other side of the same CLI branch: a clean build (plain fallback,
-    since no bwrap) exits 0 and prints the report JSON, so the uniform-denial
-    change above did not swallow a success."""
+    """The other side of the same CLI branch: a clean build exits 0 and prints
+    the report JSON, so the uniform-denial change above did not swallow a
+    success. Isolation provenance is asserted against the host's real bwrap
+    availability so this happy-path coverage holds whether or not bwrap is
+    present."""
     rc = forge_build.main([
         "build", "hello",
         "--apps-root", str(tmp_path / "apps"),
@@ -275,7 +277,7 @@ def test_cli_happy_path_returns_zero_and_prints_the_report(tmp_path, capsys):
     report = json.loads(out)
     assert report["builder_id"] == "dev"
     assert {Path(p).name for p in report["written"]} == {"README.md", "app.py"}
-    assert report["isolated"] is False
+    assert report["isolated"] is _HAS_BWRAP  # bwrap present -> really isolated; absent -> honest plain fallback
 
 
 def test_cli_presents_a_mount_policy_denial_uniformly(tmp_path, capsys):

@@ -363,6 +363,13 @@ DEFAULT_INSTRUMENTS: list[Instrument] = [CensusInstrument(), HygieneInstrument()
 # ── CLI ──────────────────────────────────────────────────────────────────────
 
 def _cmd_measure(args: argparse.Namespace) -> int:
+    # When this file runs as __main__ (CLI), it is registered under "__main__",
+    # NOT "measure_panel". A lazily spec-loaded instrument below would then load
+    # a SECOND copy of this module — a distinct InstrumentUnavailable class,
+    # which run_panel's `except InstrumentUnavailable` would miss, mislabeling a
+    # real coverage gap as "errored". Register this live module under the name
+    # the instruments look up so they share our exception identity.
+    sys.modules.setdefault("measure_panel", sys.modules[__name__])
     instruments = list(DEFAULT_INSTRUMENTS)
     if args.with_callgraph:
         # Lazy import: instrument_callgraph imports THIS module, so importing it
@@ -375,6 +382,14 @@ def _cmd_measure(args: argparse.Namespace) -> int:
         sys.modules["instrument_callgraph"] = icg
         spec.loader.exec_module(icg)
         instruments.append(icg.CallGraphInstrument())
+    if args.with_execution:
+        spec = importlib.util.spec_from_file_location(
+            "instrument_execution", _REPO / "stores" / "instrument_execution.py"
+        )
+        iex = importlib.util.module_from_spec(spec)
+        sys.modules["instrument_execution"] = iex
+        spec.loader.exec_module(iex)
+        instruments.append(iex.ExecutionInstrument(require_isolation=not args.no_require_isolation))
     report = run_panel(Path(args.build_dir), instruments)
     print(json.dumps({
         "convergent": [
@@ -397,6 +412,10 @@ def build_parser() -> argparse.ArgumentParser:
     m.add_argument("build_dir")
     m.add_argument("--with-callgraph", action="store_true",
                    help="also run the codebase-memory-mcp call-graph instrument (needs the binary)")
+    m.add_argument("--with-execution", action="store_true",
+                   help="also run the kartikeya per-file parse instrument (needs a sandbox)")
+    m.add_argument("--no-require-isolation", action="store_true",
+                   help="with --with-execution: accept a plain parse-only run when no sandbox is available")
     m.set_defaults(func=_cmd_measure)
     return p
 
