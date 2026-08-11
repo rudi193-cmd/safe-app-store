@@ -1,0 +1,13 @@
+{
+  "app_id": "homestead-health",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/homestead-health",
+  "maker": "USER",
+  "lane": null,
+  "state": "building",
+  "notes": "Module three on Homestead \u00b7 Affairs; incubating toward promotion to rudi193-cmd/homestead-health (the law-gazelle path). Design: homestead/docs/PLAN-homestead-health.md. Bite 1 (the seat) built; H-1..H-5 pending as strict xfails."
+}

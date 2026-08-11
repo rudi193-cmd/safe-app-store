@@ -166,7 +166,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [aristarchus, bureau, civics-check, field-acoustics, intake-desk,
+        app: [aristarchus, bureau, civics-check, field-acoustics,
+              homestead-health, intake-desk,
               law-gazelle, marching-arts, playgate, terpsi-chat, the-squirrel,
               utety-chat]
         include:
