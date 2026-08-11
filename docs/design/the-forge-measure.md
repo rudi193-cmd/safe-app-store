@@ -78,18 +78,51 @@ classes and their fleet tools (`ASPIRATIONAL_CLASSES` in the module):
 | **calibration** | `oakenscrolls-office` (grade the model's own confidence) | the model's own overconfidence |
 
 The framework + the two dependency-free instruments (`census`, `hygiene`)
-shipped first. **The first REAL fleet instrument, `codebase-memory-mcp`'s call
-graph, is now wired** (`stores/instrument_callgraph.py`, opt-in via the panel
-CLI's `--with-callgraph`): it drives the tool one-shot (`cli --json`), computes
-dead code as the SET DIFFERENCE `all_functions - called - entry_points -
-builtins` (its OPTIONAL-count aggregate is broken — returns 1 for an
-unmatched match — so fan_in can't be read from one query), and emits a per-file
-`fan_in=0` finding. Verified end-to-end: it flags the box's decoy (a
-`check_login`-shaped function nothing calls) that census/hygiene and any ranker
-cannot see. It degrades to `InstrumentUnavailable` when the binary is absent —
-so the panel names `call-graph` covered only when it truly ran. `kartikeya`
-(execution) and `oakenscrolls-office` (calibration) are the remaining classes,
-still named as uncovered until wired.
+shipped first, then the three real fleet instruments — one per remaining class.
+
+**`codebase-memory-mcp`'s call graph** (`stores/instrument_callgraph.py`, opt-in
+via `--with-callgraph`): drives the tool one-shot (`cli --json`), computes dead
+code as the SET DIFFERENCE `all_functions - called - entry_points - builtins`
+(its OPTIONAL-count aggregate is broken — returns 1 for an unmatched match — so
+fan_in can't be read from one query), and emits a per-file `fan_in=0` finding.
+Verified end-to-end: it flags the box's decoy (a `check_login`-shaped function
+nothing calls) that census/hygiene and any ranker cannot see.
+
+**`kartikeya`'s per-file parse** (`stores/instrument_execution.py`, opt-in via
+`--with-execution`): the box's load-bearing discipline — *run it, don't read it*
+— as an instrument. Each source file is run through its language's PARSER
+(`ast.parse`, `php -l`, `node --check`, `bash -n`) inside bite 0's sandbox; a
+file that does not parse is ground truth a static reading misses. Parse, not
+run: none of these EXECUTE the file's code. The file's CONTENT is shipped
+base64'd into a sandbox temp (the build dir is never mounted or run in place —
+strictly safer than mounting), and it is SAFE BY DEFAULT: `require_isolation=True`
+raises `InstrumentUnavailable` rather than parse untrusted code with no real
+sandbox, so a bwrap-less host honestly names `execution` uncovered instead of
+running unprotected. Verified live on bwrap: flags a syntax-broken file, passes a
+clean one, converges per-file with census/hygiene.
+
+**`oakenscrolls-office`'s confidence mirror** (`stores/calibration.py` +
+`stores/calibration_ledger.py`): the `calibration` class is NOT a per-build
+instrument — calibration is a claim about the model ACROSS builds — so it is a
+longitudinal ledger, not a directory measurement. A prediction is a
+`(confidence, outcome)` pair: the model states P(true) for a claim it makes
+while building, ground truth later settles it, and the vendored oakenscrolls math
+(`brier`/`log_score`/`bins`) grades stated confidence against what happened. The
+one signal that matters — `overconfidence` (mean stated confidence − hit rate) —
+routes a deduped `review` nudge through `route_nudge` when the model
+persistently promises more than it delivers. Verified live: 5 predictions stated
+at 0.9 that hit 0.4 grade overconfidence +0.5 and route one standing
+`human_required` review item; never blocks.
+
+Each of the three degrades to `InstrumentUnavailable` when its fleet tool or
+sandbox is absent — so the panel names a class covered ONLY when it truly ran.
+One subtlety the wiring had to get right: an instrument that spec-loads its own
+second copy of `measure_panel` gets a DISTINCT `InstrumentUnavailable` class,
+which `run_panel`'s `except InstrumentUnavailable` would miss — mislabeling a
+real coverage gap as "errored". The instruments now reuse the one already-loaded
+`measure_panel` (and the CLI registers its `__main__` module under that name), so
+"could not run" and "errored" stay honestly distinct — the sigmap lesson applied
+to the panel's own plumbing.
 
 ## Where this sits in the model side
 
@@ -105,8 +138,10 @@ layers together are the model side.
 
 ## Not in scope (this bite)
 
-- The heavier real instruments (`codebase-memory-mcp`, `kartikeya`,
-  `oakenscrolls-office`) — named as uncovered classes, wired next.
 - Decision-extraction and the build loop itself (the model writing a `Plan`).
 - Any judgement about a *design decision* — the panel measures artifacts; the
   checkpoint governs decisions.
+- Wiring the calibration ledger's `record_prediction` into a live model's own
+  stated confidences (it needs the model side's decision-extraction to have
+  something to record); the ledger + math + signal stand ready, driven by CLI
+  and tests until then.
