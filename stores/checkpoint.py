@@ -232,16 +232,28 @@ class Responder(Protocol):
         an option (by returning its label as `chosen_label` plus a
         `rationale`), or defer (`deferred=True`).
 
-    Deliberately NOT required: anything about follow-up questions that test
-    whether the maker actually understood (vs. just picked) — D8's own
-    "not just picked an option — explained why" bar is a real, undesigned
-    UX question the module docstring's "Not in scope" section already
-    defers to a later bite, not something this Protocol pre-guesses.
+      * `justify(prompt) -> str` — OPTIONAL. The "it still holds — why?"
+        rationale a *resurface-held* review (bite 3's engagement→grade wire,
+        `checkpoint_calibration.resurface`) asks for after the maker confirms a
+        prior decision still stands. Returning `""` declines (a bare hold, no
+        re-argument — scored as no signal, grades FSRS Good). A substantive
+        answer grades Easy (push the next review out); a thin one grades Hard
+        (resurface sooner). `run_checkpoint` (bite 1) never calls this — it is
+        duck-typed via `getattr` by `resurface`, so a `Responder` that omits
+        it simply never gets asked, and resurface-held behaves exactly as it
+        did before the wire (engagement `None` → Good).
+
+    Deliberately NOT required beyond confirm/choose: `justify` is optional (see
+    above), and anything about follow-up questions that test whether the maker
+    actually understood a FRESH pick (vs. just chose) stays out — bite 3 scores
+    the rationale a maker volunteers, it does not interrogate.
     """
 
     def confirm(self, prompt: str) -> bool: ...
 
     def choose(self, decision: Decision) -> ChoiceResult: ...
+
+    def justify(self, prompt: str) -> str: ...
 
 
 # ── the outcome ──────────────────────────────────────────────────────────────

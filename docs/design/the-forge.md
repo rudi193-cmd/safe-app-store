@@ -1139,11 +1139,15 @@ half, `stores/checkpoint_memory.py`, D12, already exists):
   the outcome — a pure SIGNAL that never blocks a seal (the primitive's own
   ethos). The `RUBBER_STAMP_FLOOR` (0.34) is the same line `grade()` uses for
   Hard, so the seal-time signal and the FSRS grade band can't disagree.
-  Still open (next increments, not this bite): `#67`'s mid-session nudge
-  (willow-mcp has the scanner, not the injection timing), and moving the FSRS
-  grade off engagement on a *resurface-held* review (ask "it still holds —
-  why?" so a re-argued hold grades Easy and a thin one Hard). The original
-  bite-3 sketch follows.
+  **Engagement→grade wire CLOSED 2026-08-11:** a *resurface-held* review now
+  asks "it still holds — why?" (the Responder's optional `justify`), scores
+  that rationale, and feeds `grade(held, engagement)` — a re-argued hold grades
+  **Easy** (verified live: next review pushed ~10 days out), a declined one
+  **Good** (~10 min), a thin one **Hard** (~5 min). Non-punitive and
+  duck-typed: the hold is never blocked, and a Responder without `justify`
+  reverts to the pre-wire Good. Still open: `#67`'s mid-session nudge
+  (willow-mcp has the scanner, not the injection timing). The original bite-3
+  sketch follows.
 - **Bite 3 (original sketch) — the engagement gate.** `#66`/`#67`'s friction-floor / mirror
   detector as the non-circular "did they actually decide vs rubber-stamp"
   signal at seal-time — also already shipped in willow-mcp, to be reused.

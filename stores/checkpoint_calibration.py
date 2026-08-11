@@ -34,12 +34,22 @@ not a new semantic-similarity matcher (see "Reuse discipline" below).
   * **Scheduling ("is it due for review") is now FOLDED IN**, in its own
     module `stores/checkpoint_schedule.py` (the reuse-map named the scheduler:
     py-fsrs, MIT — docs/design/the-forge-fsrs.md). `resurface` records a
-    review there after every held/regressed outcome (held -> FSRS Good,
-    regressed -> FSRS Again), keyed on the decision's Nestor `pair_id`, and
-    reports the next `due` date on `ResurfaceOutcome.next_due`. Bite 2's old
-    fixed-interval `is_due` placeholder is gone; `checkpoint_schedule.is_due`
-    (card-driven) replaces it. FSRS is a SOFT dependency there — absent, it
-    degrades to fixed intervals — so `resurface` gains no hard `fsrs` import.
+    review there after every held/regressed outcome, keyed on the decision's
+    Nestor `pair_id`, and reports the next `due` date on
+    `ResurfaceOutcome.next_due`. Bite 2's old fixed-interval `is_due`
+    placeholder is gone; `checkpoint_schedule.is_due` (card-driven) replaces
+    it. FSRS is a SOFT dependency there — absent, it degrades to fixed
+    intervals — so `resurface` gains no hard `fsrs` import.
+  * **The engagement→grade wire (bite 3) is now LIVE on a held review.** After
+    a maker confirms a decision still holds, `resurface` asks "why does it
+    still hold?" (the Responder's optional `justify`) and scores that rationale
+    via `checkpoint_engagement`: a re-argued hold grades FSRS **Easy** (next
+    review pushed well out), a thin or declined one grades **Good/Hard**
+    (sooner). This is what makes bite 3's signal actually move the schedule,
+    not just annotate it. Regressed is always **Again** regardless (you did not
+    hold it); the new answer's engagement is surfaced but does not bend that.
+    Duck-typed and non-punitive: a Responder without `justify` reverts to the
+    pre-wire behavior (engagement None -> Good), and a hold is never blocked.
 
 **The `reject_match` vs `reject_pair` choice on a regression — verified
 against the real Nestor library, not guessed.** A regression needs to do two
@@ -167,6 +177,13 @@ sys.modules["checkpoint_schedule"] = checkpoint_schedule
 _sched_spec.loader.exec_module(checkpoint_schedule)
 checkpoint_schedule.checkpoint_memory = checkpoint_memory
 
+# The engagement gate (bite 3) — reuse checkpoint.py's OWN already-loaded copy
+# (same "reuse the sibling's loaded copy" discipline as checkpoint_memory
+# above), rather than a fourth spec load. `resurface` uses it to score the
+# "it still holds — why?" rationale and feed grade() (the engagement->grade
+# wire). engagement_score is pure, so which copy is irrelevant to the value.
+checkpoint_engagement = checkpoint.checkpoint_engagement
+
 
 class CalibrationError(Exception):
     """Refused by THIS module's own bite-2 orchestration — never a re-wrap
@@ -197,9 +214,17 @@ class ResurfaceOutcome:
     `surface` — False for `held` (nothing needed re-recording; the light
     confirm is not a re-seal, same reasoning as bite 1's auto band).
     `next_due`: ISO-8601 timestamp for when this decision is next due for
-    review, from the FSRS schedule advanced this run (held -> Good graduates
-    it, regressed -> Again resets it). Always set — every resurface records a
-    review. See `stores/checkpoint_schedule.py`.
+    review, from the FSRS schedule advanced this run. This is where bite 3's
+    engagement→grade wire shows up: a HELD review the maker justified
+    substantively grades FSRS Easy (next_due pushed well out), a thinly- or
+    un-justified hold grades Good/Hard (sooner); a regression is always Again
+    (soonest). See `stores/checkpoint_schedule.py`'s `grade`.
+    `engagement`: the [0,1] score of the rationale the maker gave THIS run —
+    for a held review, their answer to "it still holds — why?"; for a
+    regression, the rationale for the new answer. `None` when there was none to
+    score (the maker declined to justify a hold, or the responder can't be
+    asked — see `resurface`). This is the same signal `checkpoint_engagement`
+    produces at seal-time, now also read on resurface and fed to `grade`.
     """
 
     decision_type: str
@@ -209,6 +234,7 @@ class ResurfaceOutcome:
     new: str
     resealed: bool
     next_due: str = ""
+    engagement: float | None = None
 
 
 # ── the flow ─────────────────────────────────────────────────────────────────
@@ -272,7 +298,25 @@ def resurface(
 
         prompt = f"You decided {prior!r} for {decision_type!r}. Does that still hold?"
         if responder.confirm(prompt):
-            next_due = _record_review(builder_id, pair_id, checkpoint_schedule.OUTCOME_HELD, now, root)
+            # ── the engagement→grade wire (bite 3) ──────────────────────────
+            # A bare "yes it holds" is the rubber-stamp bite 3 exists to catch.
+            # So after the confirm, ask WHY it still holds and score that
+            # rationale: a re-argued hold grades FSRS Easy (resurface later), a
+            # thin one Hard (sooner), and declining to justify is no signal ->
+            # Good (unchanged from before the wire). Duck-typed: a Responder
+            # without `justify` is simply never asked, and this degrades to the
+            # pre-wire behavior (engagement None -> Good). Never punitive, never
+            # a block — the maker's hold is honored regardless; only the review
+            # cadence bends.
+            held_rationale = _ask_justification(responder, prior, decision_type)
+            engagement = (
+                checkpoint_engagement.engagement_score(held_rationale, surface)
+                if held_rationale
+                else None
+            )
+            next_due = _record_review(
+                builder_id, pair_id, checkpoint_schedule.OUTCOME_HELD, now, root, engagement=engagement
+            )
             return ResurfaceOutcome(
                 decision_type=decision_type,
                 held=True,
@@ -281,6 +325,7 @@ def resurface(
                 new="",
                 resealed=False,
                 next_due=next_due,
+                engagement=engagement,
             )
 
         # ── regressed: the practical #3 contradiction signal ────────────
@@ -321,8 +366,21 @@ def resurface(
         )
         cm.seal(surface, new_canonical)
 
+        # The new answer's own engagement, surfaced for observability. It does
+        # NOT bend the grade here: a regression is `Again` regardless (grade()
+        # short-circuits on regressed before looking at engagement — you did
+        # not hold it, so how hard you argued the replacement doesn't change
+        # that this one lapsed). A deferral ("you choose") has no rationale to
+        # score -> None.
+        engagement = (
+            checkpoint_engagement.engagement_score(rationale, surface)
+            if (rationale and not deferred)
+            else None
+        )
         # Same pair_id (the reseal was in-place); grade the SAME card Again.
-        next_due = _record_review(builder_id, pair_id, checkpoint_schedule.OUTCOME_REGRESSED, now, root)
+        next_due = _record_review(
+            builder_id, pair_id, checkpoint_schedule.OUTCOME_REGRESSED, now, root, engagement=engagement
+        )
         return ResurfaceOutcome(
             decision_type=decision_type,
             held=False,
@@ -331,19 +389,39 @@ def resurface(
             new=new_canonical,
             resealed=True,
             next_due=next_due,
+            engagement=engagement,
         )
 
 
-def _record_review(builder_id, pair_id, outcome, now, root) -> str:
+def _ask_justification(responder, prior: str, decision_type: str) -> str:
+    """Ask a held decision's "why does it still hold?" via the Responder's
+    OPTIONAL `justify` (see `checkpoint.Responder`). Duck-typed: a responder
+    without it is never asked and this returns "" (a bare hold — no signal,
+    grades Good). Returns "" for a non-string/blank answer too, so a declining
+    maker and an absent method land in the same honest place."""
+    justify = getattr(responder, "justify", None)
+    if not callable(justify):
+        return ""
+    prompt = (
+        f"You still hold {prior!r} for {decision_type!r}. Why does it still hold? "
+        f"(leave blank to skip)"
+    )
+    answer = justify(prompt)
+    return answer if isinstance(answer, str) else ""
+
+
+def _record_review(builder_id, pair_id, outcome, now, root, *, engagement=None) -> str:
     """Advance and persist the FSRS schedule for this decision, returning the
-    next-due ISO timestamp. No-ops to "" if Nestor handed back no `pair_id`
-    (there is nothing stable to key the card on) — the resurface still stands;
-    only the schedule half is skipped, and that is honestly reported as an
-    empty `next_due` rather than a guessed key."""
+    next-due ISO timestamp. `engagement` (bite 3) bends a HELD review's grade
+    (Easy/Good/Hard); it is ignored for a regression (always Again). No-ops to
+    "" if Nestor handed back no `pair_id` (there is nothing stable to key the
+    card on) — the resurface still stands; only the schedule half is skipped,
+    and that is honestly reported as an empty `next_due` rather than a guessed
+    key."""
     if not pair_id:
         return ""
     prior_card = checkpoint_schedule.load_card(builder_id, pair_id, root=root)
-    new_card = checkpoint_schedule.record_review(prior_card, outcome, now)
+    new_card = checkpoint_schedule.record_review(prior_card, outcome, now, engagement=engagement)
     checkpoint_schedule.save_card(builder_id, pair_id, new_card, root=root)
     return new_card["due"]
 
@@ -379,16 +457,25 @@ class _ScriptedResumeResponder:
     "still holds" unless `--regress` is passed, in which case it answers
     "no" once and then picks the first option with a fixed rationale for the
     fresh Socratic pass — mirrors `checkpoint.py`'s own `_ScriptedResponder`.
-    Not used by the test suite (which scripts its own responders)."""
+    On a held confirm it also demonstrates the engagement→grade wire by
+    justifying the hold with `--justification` (default: a substantive one, so
+    the demo shows an Easy grade / pushed-out next_due). Not used by the test
+    suite (which scripts its own responders)."""
 
-    def __init__(self, regress: bool):
+    def __init__(self, regress: bool, justification: str = ""):
         self._regress = regress
+        self._justification = justification
 
     def confirm(self, prompt: str) -> bool:
         print(f"[confirm] {prompt}")
         answer = not self._regress
         print(f"[confirm] -> {'yes' if answer else 'no'}")
         return answer
+
+    def justify(self, prompt: str) -> str:
+        print(f"[justify] {prompt}")
+        print(f"[justify] -> {self._justification!r}")
+        return self._justification
 
     def choose(self, decision: "checkpoint.Decision") -> "checkpoint.ChoiceResult":
         print(f"[choose] {decision.surface}")
@@ -405,7 +492,7 @@ def _cmd_resurface(args: argparse.Namespace) -> int:
             builder_id=args.builder_id,
             decision_type=args.decision_type,
             surface=args.surface,
-            responder=_ScriptedResumeResponder(regress=args.regress),
+            responder=_ScriptedResumeResponder(regress=args.regress, justification=args.justification),
             root=Path(args.root),
         )
     except CalibrationError as e:
@@ -420,6 +507,7 @@ def _cmd_resurface(args: argparse.Namespace) -> int:
             "new": outcome.new,
             "resealed": outcome.resealed,
             "next_due": outcome.next_due,
+            "engagement": outcome.engagement,
         },
         indent=2,
     ))
@@ -439,6 +527,11 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--surface", required=True)
     r.add_argument("--root", default=str(checkpoint_memory.DEFAULT_CHECKPOINT_ROOT))
     r.add_argument("--regress", action="store_true", help="script the maker as no longer holding the prior seal")
+    r.add_argument(
+        "--justification",
+        default="I re-measured it: the reporting query runs 1.2s with joins versus 40ms denormalized, the write rate has not changed, and the tests still pass",
+        help="the 'why does it still hold' rationale for a held review (blank to skip; a substantive one grades Easy)",
+    )
     r.set_defaults(func=_cmd_resurface)
 
     return p
