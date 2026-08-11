@@ -77,14 +77,19 @@ classes and their fleet tools (`ASPIRATIONAL_CLASSES` in the module):
 | **execution** | `kartikeya` (run it, don't read it — bite 0's sandbox) | a confident reading that execution refutes |
 | **calibration** | `oakenscrolls-office` (grade the model's own confidence) | the model's own overconfidence |
 
-**This bite ships the framework + the two dependency-free instruments
-(`census`, `hygiene`)** — enough to demonstrate convergence and honest coverage
-on a real build. `codebase-memory-mcp` is confirmed pip-installable and driven
-via `cli --json <tool>`; it is the next instrument, being the one that caught
-the box's decoy that ranking and extraction cannot. `kartikeya` (execution) and
-`oakenscrolls-office` (calibration) follow. Until each is wired, the panel names
-it as an uncovered class — so a green run is honestly incomplete, never a false
-all-clear.
+The framework + the two dependency-free instruments (`census`, `hygiene`)
+shipped first. **The first REAL fleet instrument, `codebase-memory-mcp`'s call
+graph, is now wired** (`stores/instrument_callgraph.py`, opt-in via the panel
+CLI's `--with-callgraph`): it drives the tool one-shot (`cli --json`), computes
+dead code as the SET DIFFERENCE `all_functions - called - entry_points -
+builtins` (its OPTIONAL-count aggregate is broken — returns 1 for an
+unmatched match — so fan_in can't be read from one query), and emits a per-file
+`fan_in=0` finding. Verified end-to-end: it flags the box's decoy (a
+`check_login`-shaped function nothing calls) that census/hygiene and any ranker
+cannot see. It degrades to `InstrumentUnavailable` when the binary is absent —
+so the panel names `call-graph` covered only when it truly ran. `kartikeya`
+(execution) and `oakenscrolls-office` (calibration) are the remaining classes,
+still named as uncovered until wired.
 
 ## Where this sits in the model side
 

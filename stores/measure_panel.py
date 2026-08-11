@@ -363,7 +363,19 @@ DEFAULT_INSTRUMENTS: list[Instrument] = [CensusInstrument(), HygieneInstrument()
 # ── CLI ──────────────────────────────────────────────────────────────────────
 
 def _cmd_measure(args: argparse.Namespace) -> int:
-    report = run_panel(Path(args.build_dir), DEFAULT_INSTRUMENTS)
+    instruments = list(DEFAULT_INSTRUMENTS)
+    if args.with_callgraph:
+        # Lazy import: instrument_callgraph imports THIS module, so importing it
+        # at module scope would cycle. It is opt-in because it needs the
+        # external codebase-memory-mcp binary (the panel's DEFAULT stays pure).
+        spec = importlib.util.spec_from_file_location(
+            "instrument_callgraph", _REPO / "stores" / "instrument_callgraph.py"
+        )
+        icg = importlib.util.module_from_spec(spec)
+        sys.modules["instrument_callgraph"] = icg
+        spec.loader.exec_module(icg)
+        instruments.append(icg.CallGraphInstrument())
+    report = run_panel(Path(args.build_dir), instruments)
     print(json.dumps({
         "convergent": [
             {"artifact": c.artifact, "instruments": list(c.instruments)} for c in report.convergent
@@ -383,6 +395,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(dest="command", required=True)
     m = sub.add_parser("measure", help="run the measuring panel across a build directory")
     m.add_argument("build_dir")
+    m.add_argument("--with-callgraph", action="store_true",
+                   help="also run the codebase-memory-mcp call-graph instrument (needs the binary)")
     m.set_defaults(func=_cmd_measure)
     return p
 
