@@ -1180,6 +1180,19 @@ half, `stores/checkpoint_memory.py`, D12, already exists):
   #67's durability gap). Store-side (D1); `apps/the-forge/` untouched. This is
   the substrate D7's real model routing plugs into: a parked decision is exactly
   what an unattended model produces.
+- **D7-A — declared-not-ambient model routing. ✅ LANDED 2026-08-11.** The
+  routing GATE (not the inference call — the model stays stubbed). `route(manifest)`
+  decides LOCAL (loopback vLLM, no net) vs CLOUD, and refuses cloud unless the
+  build's manifest declares a `cloud_llm_fallback` permission — only then does
+  the run get Kart's `allow_net`. Two reuses: detection is willow-mcp's
+  fail-closed `is_local_host` (vendored into `stores/model_egress.py`, the 3
+  detection functions byte-identical to upstream); authorization is NOT a
+  separate signed envelope — the permission rides inside the **D4-signed
+  manifest**, so the sap-gate signature already binds it to the maker (willow-mcp's
+  `egress_authorization` per-task signing is noted as a later hardening if the
+  Forge ever needs per-invocation net authority). `stores/model_route.py` is the
+  policy; store-side (D1). This is the gate the real vLLM/LiteLLM call consults
+  once D7's model exists.
 - **Bite 3 (original sketch) — the engagement gate.** `#66`/`#67`'s friction-floor / mirror
   detector as the non-circular "did they actually decide vs rubber-stamp"
   signal at seal-time — also already shipped in willow-mcp, to be reused.
