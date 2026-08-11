@@ -1031,3 +1031,84 @@ Pin Nestor at promotion time the way terpsi's `FLEET-READS.md` pins Nestor SHA.
   relay / edge replicas) may be worth a closer read once D6's tenant-isolation
   shape firms up, since it's the same "how little can the shared surface be
   trusted" question this doc keeps landing on.
+
+## Verification-as-learning — the willow-mcp reuse map (D8/D9/D12 build order, 2026-08-11)
+
+**The architectural truth this section records:** the Forge's learning layer is
+`willow-mcp`'s verification-as-learning machinery **re-pointed from the agent's
+own lessons to the maker's design decisions.** The Grove stores what an agent
+learned; the Forge stores what a builder decided and understood — same loop,
+different subject. That is why so much of `willow-mcp`'s idea pile
+(`willow-mcp` PR #338, `docs/ideas.md`) already has the primitive the Forge
+needs: the fleet grew it once, for agents. Graded through that lens, the loop
+has seven stages, and most of what feeds them is **reuse (✅ shipped in
+willow-mcp), not new build (🌱 proposed there too)**:
+
+| Stage | willow-mcp piece | reuse / build |
+|-------|------------------|---------------|
+| 1 · Route the decision (confirm / recognize / Socratic) | `#19` confidence-scored routing → `human_required`; `#46` route explainability | ✅ pattern / 🟡 |
+| 2 · Make them decide, not rubber-stamp | `#66` sycophancy score `friction_floor.py`; `#67` mid-session mirror nudge; `#69` devil's-advocate on zero friction | ✅ / 🟡 / 🌱 |
+| 3 · Seal it (option + rationale) | `#2` "why do I believe this?" `lineage.py`; `#11` Grove growth-rings `the_grove.py` | ✅ |
+| 4 · Catch contradiction (calibration signal) | `#3` contradiction detector; fleet `conflict_scan` (Jeles) | 🌱 |
+| 5 · Resurface & recalibrate over time | `#12` lesson-regression tests; `#1` memory decay/freshness `engram`; `#15` lightning-strike lessons; `#39` conscience/second-guess | 🌱 + ✅(#1) |
+| 6 · Deferred decisions ("I don't know, you choose") | `#41` commitment escalation `commitment_surface`; `#42` commitment SLA | ✅ / 🌱 |
+| 7 · Show the maker their own calibration | `#70` unified `willow_status` home-screen | 🟡 |
+
+**Decisions settled (2026-08-11), the ones D8/D9 left open:**
+
+- **Recognition is LOOSE.** A reworded-but-same decision (measured: the auth
+  decision reworded scored 0.65 confidence in Nestor, below Nestor's own seal
+  threshold) should still trigger the lighter confirm, not a fresh Socratic
+  pass. Safe *because the confirm is never a silent commit* — it is always
+  "you chose X before, say so if it's different," and "it's different" is a
+  `reject_match` that teaches the memory not to conflate the two again. Loose
+  recognition therefore cannot commit the wrong thing; worst case is one extra
+  "actually, different" that makes the system smarter. **The recognition
+  threshold lives in the Forge's checkpoint layer, not in Nestor** — Nestor's
+  own `sealed` flag stays at its threshold; the Forge reads the raw
+  `confidence` and applies its own three-band split (high → auto-confirm,
+  ~0.6–0.85 → recognize-and-ask, low → full Socratic).
+- **What gets sealed:** the chosen option + a one-line rationale (exactly what
+  `stores/checkpoint_memory.py`'s `seal` already stores). NOT a graded
+  follow-up — the model grading the maker is circular.
+- **How a checkpoint is calibrated: by lesson-regression (`#12`), not a
+  scorer.** A seal is not graded at seal-time. It is **resurfaced later**
+  (`#12` over `#1`'s decay/freshness scheduling), and a maker *contradicting*
+  a prior seal (`#3`) is the signal to re-open and recalibrate. Oakenscroll's
+  Office's `calibration.py` (Brier/reliability math) becomes an **optional
+  refinement over that signal**, not the load-bearing mechanism — closing D9's
+  own "what resolves a checkpoint as true/false" open question without the
+  circular grader.
+- **Nestor is a SOFT dependency.** Mirroring `oakenscrolls-office` PR #3
+  ("make the Nestor citation seam soft") — lazy import, a `nestor_available()`
+  check, Nestor in an optional extra. When Nestor is absent the checkpoint
+  layer **degrades to full-Socratic every time** (no loose recognition, but it
+  still works), matching the store's own "no Willow checkout, no network
+  required" ethos. `stores/checkpoint_memory.py` currently hard-imports Nestor
+  and raises; softening it is part of bite 1.
+- **"I don't know, you choose" is a legitimate, sealed-as-taught deferral**,
+  not a block — the maker saw the tradeoff and deliberately handed it back;
+  sealing it means we don't re-badger them, and it becomes a `#41`-style
+  commitment to revisit.
+
+**The bite ladder for the learning layer** (each builds on the last; the memory
+half, `stores/checkpoint_memory.py`, D12, already exists):
+
+- **Bite 1 — the checkpoint interaction.** The three-band orchestrator
+  (`#19`'s confidence-routing pattern folded in) on top of
+  `checkpoint_memory`: route → present (full Socratic / recognize-and-confirm /
+  auto) → capture → `seal`, with the soft-Nestor degradation and the
+  "you choose" deferral. Driven by explicit (stubbed) decisions, single-tenant
+  — the same posture bite 0's stub build took for D7.
+- **Bite 2 — the calibration engine.** `#12` (resurface a seal, assert it
+  still holds) + `#3` (contradiction detector) over `#1`'s already-shipped
+  decay/freshness scheduling. This is what turns a pile of seals into
+  *learning* — and the "is it due for review" half is a **reuse** of
+  willow-mcp's `engram`, not a py-fsrs build.
+- **Bite 3 — the engagement gate.** `#66`/`#67`'s friction-floor / mirror
+  detector as the non-circular "did they actually decide vs rubber-stamp"
+  signal at seal-time — also already shipped in willow-mcp, to be reused.
+
+Three of the four next-tier pieces are reuse, not build — the loop paying off:
+the Forge keeps landing on machinery the fleet already grew for agents, and
+only has to re-point it at makers.
