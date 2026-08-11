@@ -84,6 +84,20 @@ def test_h1_a_subject_reference_never_carries_a_name():
     # fragment of the name survives into it, the roster has minted a datum as
     # a reference and H-1 is not built, whatever else is.
     assert "Synthetic" not in str(ref) and "Child" not in str(ref)
+    # **Tightened after the bite-1 audit**, which showed the substring check
+    # alone accepts `subj-01-<base64 of the name>` — no fragment survives,
+    # the whole name does, trivially reversible. So the stronger claim: the
+    # id must not *depend on* the name at all. Two fresh rosters, same
+    # position, different names — an id derived from the name differs; an id
+    # minted by the roster (a counter, per the plan's own `subj-01`) cannot.
+    # An implementation that wants non-deterministic ids must come back to
+    # this test with a mechanism argument, which is exactly the conversation
+    # H-1 wants to force.
+    other = Roster().add(name="Entirely Different Person", minor=True)
+    assert str(ref) == str(other), (
+        "an id that varies with the name is derived from the name — the "
+        "roster mints ids; the datum does not"
+    )
 
 
 # ── H-2 · the app never advises care ─────────────────────────────────────────

@@ -124,29 +124,173 @@ def test_i30_nothing_listens():
     assert not offenders, f"nothing may listen. Found: {offenders}"
 
 
-def test_i19_i20_no_second_resolver():
-    """Every path this module ever touches comes from `homestead.keep.paths`.
+# ── I-19 / I-20 · no second resolver, by any mechanism ───────────────────────
+#
+# **Rewritten after the bite-1 audit (2026-08-11), which earned its keep the
+# way the Phase 0 audit did.** The first version of this scan banned three
+# call *names* and advertised itself as "the engine's own scans … the same
+# checks". It was not: the engine's `tests/test_invariants_paths.py` was
+# itself rewritten after the Phase 0 audit because a call-name scan let
+# `Path(os.environ["HOME"]) / "Desktop" / "Nest"` — the Desktop leak, F-1,
+# in idiomatic pathlib — pass the whole suite (`os.environ[...]` is a
+# Subscript, not a call; `/ "Desktop"` contains no slash). The audit planted
+# the engine's own regression payload here and this file stayed green while
+# the engine's caught it twice. The copy below is the engine's mechanism
+# scan ported whole — home-reaching calls *and* environment subscripts *and*
+# user-directory literals in path context — with the engine's regression
+# test kept, so the next weakened copy is caught by its own suite.
 
-    Two spellings are banned outright (I-20's lesson: `expanduser` is
-    invisible to the store's vault-leak linter), and `Path.home` with them —
-    a module that can reach a home directory has a second resolver, whatever
-    it calls it.
+HOME_CALLS = {"expanduser", "expandvars", "getenv"}
+HOME_ENV_KEYS = {"HOME", "USERPROFILE", "HOMEPATH", "HOMEDRIVE"}
+BANNED_SEGMENTS = {"desktop", "documents", "downloads", "users", "home", "~"}
+
+
+def _dotted(node: ast.AST) -> str:
+    """`Path.home` from a `Path.home()` call; `paths.home` from `paths.home()`."""
+    if isinstance(node, ast.Attribute):
+        return f"{_dotted(node.value)}.{node.attr}".lstrip(".")
+    if isinstance(node, ast.Name):
+        return node.id
+    return ""
+
+
+def _docstring_ids(tree: ast.AST) -> set[int]:
+    """Docstrings are excluded from the literal scan — the engine's lesson: a
+    scanner that fires on its own documentation gets switched off."""
+    ids: set[int] = set()
+    holders = (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+    for node in ast.walk(tree):
+        if isinstance(node, holders) and node.body:
+            first = node.body[0]
+            if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant) \
+                    and isinstance(first.value.value, str):
+                ids.add(id(first.value))
+    return ids
+
+
+def _home_reaches(tree: ast.AST) -> list[tuple[int, str]]:
+    """Every construct in this tree that reaches a home directory."""
+    hits: list[tuple[int, str]] = []
+    for node in ast.walk(tree):
+        # Path.home(), os.path.expanduser(...), os.getenv("HOME"),
+        # os.path.expandvars("$HOME"), and any aliased binding of them.
+        # `paths.home` is exempt: that is the engine's resolver, which is the
+        # one legitimate way for this module to hold a root at all.
+        if isinstance(node, ast.Call):
+            dotted = _dotted(node.func)
+            leaf = dotted.rsplit(".", 1)[-1]
+            if leaf == "home" and dotted != "paths.home":
+                hits.append((node.lineno, dotted or "home"))
+            elif leaf in HOME_CALLS:
+                hits.append((node.lineno, dotted or leaf))
+        # os.environ["HOME"] / environ.get("HOME") — a Subscript, not a call,
+        # which is exactly how the Desktop leak walked through a name scan.
+        elif isinstance(node, ast.Subscript):
+            if "environ" in _dotted(node.value):
+                key = getattr(node.slice, "value", None)
+                if isinstance(key, str) and key.upper() in HOME_ENV_KEYS:
+                    hits.append((node.lineno, f"environ[{key!r}]"))
+    return hits
+
+
+def _path_context_strings(tree: ast.AST) -> list[tuple[int, str]]:
+    """String literals used to *build a path* — an operand of `/`, an argument
+    to `Path(...)`, or any string carrying a separator. The engine's scoping,
+    for the engine's reason: broad enough to catch `/ "Desktop"`, narrow
+    enough not to fire on a symbol named "home" in `__all__`."""
+    out: list[tuple[int, str]] = []
+    skip = _docstring_ids(tree)
+
+    def note(node):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str) \
+                and id(node) not in skip:
+            out.append((node.lineno, node.value))
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+            note(node.left)
+            note(node.right)
+        elif isinstance(node, ast.Call) and _dotted(node.func).rsplit(".", 1)[-1] == "Path":
+            for arg in node.args:
+                note(arg)
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str) \
+                and id(node) not in skip:
+            if "/" in node.value or "\\" in node.value:
+                out.append((node.lineno, node.value))
+    return out
+
+
+def test_i19_i20_nothing_here_reaches_home():
+    """No module in this package may reach a home directory, by any means.
+
+    Stricter than the engine's version of the same scan on purpose: the
+    engine exempts its own resolver file, and this package has no resolver
+    file to exempt — the resolver is the engine's (`homestead.keep.paths`),
+    one dependency over.
     """
-    banned_calls = {"expanduser", "expandvars", "home"}
     offenders = []
     for mod in _modules():
-        for node in ast.walk(ast.parse(mod.read_text(encoding="utf-8"))):
-            if isinstance(node, ast.Call):
-                f = node.func
-                name = f.attr if isinstance(f, ast.Attribute) else getattr(f, "id", "")
-                if name in banned_calls:
-                    offenders.append(f"{mod.relative_to(APP)}:{node.lineno} {name}")
+        for lineno, how in _home_reaches(ast.parse(mod.read_text(encoding="utf-8"))):
+            offenders.append(f"{mod.relative_to(APP)}:{lineno} {how}")
     assert not offenders, (
-        f"the one resolver is the engine's (homestead.keep.paths). Found: {offenders}"
+        "only the engine's resolver (homestead.keep.paths) may reach a home "
+        f"directory. Found: {offenders}"
     )
     # And the one resolver exists to be used: the claim is "use the engine's",
     # which is only honest while the engine has one.
     assert importlib.util.find_spec("homestead.keep.paths") is not None
+
+
+def test_i20_the_invisible_spelling_is_banned_everywhere():
+    """`expanduser` is invisible to the store's vault-leak linter, so it is
+    banned in every spelling and every position — the engine's rule, verbatim."""
+    offenders = []
+    for mod in _modules():
+        for node in ast.walk(ast.parse(mod.read_text(encoding="utf-8"))):
+            if isinstance(node, ast.Call) \
+                    and _dotted(node.func).rsplit(".", 1)[-1] == "expanduser":
+                offenders.append(f"{mod.relative_to(APP)}:{node.lineno}")
+    assert not offenders, f"expanduser() is invisible to the linter. Found: {offenders}"
+
+
+def test_i19_no_user_directory_literals():
+    """Segment-wise and in path context — `/ "Desktop" / "Nest"` contains no
+    slash and a substring scan never sees it."""
+    offenders = []
+    for mod in _modules():
+        for lineno, value in _path_context_strings(ast.parse(mod.read_text(encoding="utf-8"))):
+            segments = {s.strip().lower() for s in value.replace("\\", "/").split("/")}
+            hit = segments & BANNED_SEGMENTS
+            if hit:
+                offenders.append(
+                    f"{mod.relative_to(APP)}:{lineno} {value!r} ({sorted(hit)})"
+                )
+    assert not offenders, f"user-directory literals are forbidden. Found: {offenders}"
+
+
+def test_i19_regression_desktop_leak(tmp_path):
+    """The engine's regression payload, held against *this* file's scans.
+
+    The bite-1 audit planted exactly this in a scratch copy of the package
+    and the first version of this suite stayed green — the same defect the
+    engine's Phase 0 audit found in its first path scan, reintroduced by
+    copying the weaker version. Both scans must catch it, here, forever.
+    """
+    leak = tmp_path / "leaky.py"
+    leak.write_text(
+        "import os\n"
+        "from pathlib import Path\n"
+        '_LEAK = Path(os.environ["HOME"]) / "Desktop" / "Nest"\n'
+    )
+    tree = ast.parse(leak.read_text())
+
+    assert _home_reaches(tree), "the mechanism scan must catch os.environ['HOME']"
+
+    caught = [
+        v for _, v in _path_context_strings(tree)
+        if {s.lower() for s in v.split("/")} & BANNED_SEGMENTS
+    ]
+    assert caught, "the literal scan must catch a bare 'Desktop' segment"
 
 
 def test_i27_every_third_party_import_is_declared():
