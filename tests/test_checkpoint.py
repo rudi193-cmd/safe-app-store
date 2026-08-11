@@ -473,3 +473,107 @@ def test_recognize_threshold_is_the_forges_own_not_nestors(tmp_path):
 
     assert outcome.band == "socratic"
     assert len(responder.choose_calls) == 1
+
+
+# ── 7. engagement signal (bite 3) — a seal-time signal, never a block ────────
+
+def test_socratic_with_a_substantive_rationale_scores_high_engagement_not_rubber_stamp(tmp_path):
+    root = tmp_path / "checkpoints"
+    decision = Decision(
+        decision_type="schema-normalization-tradeoff",
+        surface="Should the orders table be normalized or denormalized for reporting?",
+        options=(Option("normalized", "cleaner writes"), Option("denormalized", "fast reporting")),
+    )
+    responder = ScriptedResponder(
+        choose_answers=[ChoiceResult(
+            chosen_label="denormalized",
+            rationale=("I measured the reporting query at 1.2s with joins and tested a denormalized "
+                       "copy at 40ms; writes are rare here so the duplication risk is acceptable"),
+        )]
+    )
+    outcome = checkpoint.run_checkpoint(decision, builder_id=BUILDER_A, responder=responder, root=root)
+
+    assert outcome.band == "socratic"
+    assert outcome.sealed is True
+    assert outcome.engagement is not None and outcome.engagement > 0.34
+    assert outcome.rubber_stamp is False
+
+
+def test_socratic_with_a_thin_rationale_is_flagged_rubber_stamp_but_still_seals(tmp_path):
+    """The whole point: a rubber-stamp is a SIGNAL, not a gate — the seal
+    happens anyway (checkpoint_engagement's "never blocks")."""
+    root = tmp_path / "checkpoints"
+    decision = Decision(
+        decision_type="cache-eviction-policy",
+        surface="Which cache eviction policy should this build use?",
+        options=(Option("LRU", "recency"), Option("LFU", "frequency")),
+    )
+    responder = ScriptedResponder(
+        choose_answers=[ChoiceResult(chosen_label="LRU", rationale="sure")]
+    )
+    outcome = checkpoint.run_checkpoint(decision, builder_id=BUILDER_A, responder=responder, root=root)
+
+    assert outcome.rubber_stamp is True
+    assert outcome.engagement is not None and outcome.engagement < 0.34
+    assert outcome.sealed is True  # NEVER blocked
+    # and it really is durably sealed despite the thin rationale
+    with checkpoint.checkpoint_memory.open_checkpoint_memory(BUILDER_A, decision.decision_type, root=root) as cm:
+        assert cm.check(decision.surface)["sealed"] is True
+
+
+def test_an_empty_rationale_is_the_loudest_rubber_stamp(tmp_path):
+    root = tmp_path / "checkpoints"
+    decision = Decision(
+        decision_type="log-format-choice",
+        surface="What log format should this build emit?",
+        options=(Option("json", "machine-readable"), Option("text", "human-readable")),
+    )
+    responder = ScriptedResponder(choose_answers=[ChoiceResult(chosen_label="json", rationale="")])
+    outcome = checkpoint.run_checkpoint(decision, builder_id=BUILDER_A, responder=responder, root=root)
+    assert outcome.engagement == 0.0
+    assert outcome.rubber_stamp is True
+    assert outcome.sealed is True
+
+
+def test_auto_and_recognize_confirms_have_no_engagement_reading(tmp_path):
+    """Reusing a PRIOR seal (auto/recognize confirm) means the maker gave no
+    fresh rationale — engagement is None, not a fabricated 0.0, and never a
+    rubber-stamp."""
+    root = tmp_path / "checkpoints"
+    _seal_original_auth_decision(root)
+
+    # auto: same wording, a light confirm
+    auto = checkpoint.run_checkpoint(
+        Decision(decision_type=DECISION_TYPE, surface=ORIGINAL_SURFACE, options=AUTH_OPTIONS),
+        builder_id=BUILDER_A, responder=ScriptedResponder(confirm_answers=[True]), root=root,
+    )
+    assert auto.band == "auto"
+    assert auto.engagement is None
+    assert auto.rubber_stamp is False
+
+    # recognize: reworded, a light confirm
+    rec = checkpoint.run_checkpoint(
+        Decision(decision_type=DECISION_TYPE, surface=REWORDED_SURFACE, options=AUTH_OPTIONS),
+        builder_id=BUILDER_A, responder=ScriptedResponder(confirm_answers=[True]), root=root,
+    )
+    assert rec.band == "recognize"
+    assert rec.engagement is None
+    assert rec.rubber_stamp is False
+
+
+def test_a_deferral_is_not_a_rubber_stamp(tmp_path):
+    """"You choose" is a legitimate taught handoff — no rationale to score,
+    so engagement is None and rubber_stamp is False, never conflated with a
+    thin-rationale rubber-stamp."""
+    root = tmp_path / "checkpoints"
+    decision = Decision(
+        decision_type="serialization-format",
+        surface="Which serialization format should this build use on the wire?",
+        options=(Option("protobuf", "compact, needs a schema"), Option("json", "ubiquitous, larger")),
+        recommended="protobuf",
+    )
+    responder = ScriptedResponder(choose_answers=[ChoiceResult(deferred=True)])
+    outcome = checkpoint.run_checkpoint(decision, builder_id=BUILDER_A, responder=responder, root=root)
+    assert outcome.deferred is True
+    assert outcome.engagement is None
+    assert outcome.rubber_stamp is False

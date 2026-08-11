@@ -1130,7 +1130,21 @@ half, `stores/checkpoint_memory.py`, D12, already exists):
   > dependency — absent, scheduling degrades to fixed intervals — so nothing
   > gained a hard third-party import. Bite 2's fixed-interval `is_due`
   > placeholder is retired.
-- **Bite 3 — the engagement gate.** `#66`/`#67`'s friction-floor / mirror
+- **Bite 3 — the engagement gate. ✅ LANDED 2026-08-11.** `#66`'s sycophancy
+  scorer, reused: `stores/friction_floor.py` is vendored byte-for-byte from
+  willow-mcp (a second Apache-2.0 vendor hop; willow-gate → willow-mcp →
+  here), and `stores/checkpoint_engagement.py` points it at the *maker's*
+  rationale instead of an agent's turn. `run_checkpoint` now scores every
+  fresh socratic rationale and surfaces `engagement` (0–1) + `rubber_stamp` on
+  the outcome — a pure SIGNAL that never blocks a seal (the primitive's own
+  ethos). The `RUBBER_STAMP_FLOOR` (0.34) is the same line `grade()` uses for
+  Hard, so the seal-time signal and the FSRS grade band can't disagree.
+  Still open (next increments, not this bite): `#67`'s mid-session nudge
+  (willow-mcp has the scanner, not the injection timing), and moving the FSRS
+  grade off engagement on a *resurface-held* review (ask "it still holds —
+  why?" so a re-argued hold grades Easy and a thin one Hard). The original
+  bite-3 sketch follows.
+- **Bite 3 (original sketch) — the engagement gate.** `#66`/`#67`'s friction-floor / mirror
   detector as the non-circular "did they actually decide vs rubber-stamp"
   signal at seal-time — also already shipped in willow-mcp, to be reused.
 
