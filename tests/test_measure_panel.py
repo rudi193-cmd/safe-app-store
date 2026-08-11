@@ -115,6 +115,53 @@ def test_convergence_frame_is_instrument_agnostic():
     assert conv == {"y.py": {"i1", "i2", "i3"}}   # only y.py named by >=2
 
 
+class _Fake(measure_panel.Instrument):
+    def __init__(self, name, arts):
+        self._n, self._a = name, arts
+    @property
+    def name(self):
+        return self._n
+    def measure(self, build_dir):
+        return [Finding(instrument=self._n, artifact=a, metric="m", value=1, severity="med", detail="") for a in self._a]
+
+
+def test_convergence_survives_differently_spelled_paths(tmp_path):
+    """The audit's top finding: two instruments naming the SAME file with
+    different spellings (relative vs ./-prefixed vs absolute) must still
+    converge — else wiring a real adapter (codebase-memory emits absolute
+    paths) silently swallows the alarm."""
+    build = tmp_path / "build"
+    (build / "src").mkdir(parents=True)
+    abs_path = (build / "src" / "x.py").as_posix()
+    report = measure_panel.run_panel(build, [
+        _Fake("census", ["src/x.py"]),
+        _Fake("call-graph", ["./src/x.py"]),
+        _Fake("execution", [abs_path]),          # absolute, under build
+    ])
+    assert len(report.convergent) == 1
+    c = report.convergent[0]
+    assert c.artifact == "src/x.py"              # canonicalized key
+    assert set(c.instruments) == {"census", "call-graph", "execution"}
+
+
+def test_a_symlink_alias_cannot_mask_the_census_alarm(tmp_path):
+    """A symlink aliasing the dominating file used to defeat the census
+    (others_max became the alias's size, so share < 2x). Symlinks are now
+    skipped, so the alarm still fires."""
+    build = tmp_path / "build"
+    build.mkdir()
+    (build / "a.py").write_text("x = 1\n")
+    (build / "b.py").write_text("y = 2\n")
+    (build / "error_log").write_text("scan\n" * 5000)
+    (build / "error_log.alias").symlink_to(build / "error_log")   # the mask
+    findings = measure_panel.CensusInstrument().measure(build)
+    assert any("error_log" == f.artifact for f in findings)       # still flagged
+    # hygiene does not double-flag the alias either
+    hyg = {f.artifact for f in measure_panel.HygieneInstrument().measure(build)}
+    assert "error_log" in hyg
+    assert "error_log.alias" not in hyg
+
+
 # ── honest coverage (the sigmap health-vs-coverage lesson) ───────────────────
 
 def test_report_names_the_instruments_that_ran(tmp_path):

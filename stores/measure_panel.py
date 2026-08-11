@@ -48,9 +48,10 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
 import sys
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Protocol, runtime_checkable
 
 _REPO = Path(__file__).resolve().parent.parent
@@ -126,7 +127,7 @@ class PanelReport:
         note = f"panel coverage: ran [{ran}]"
         if self.unavailable:
             gaps = "; ".join(f"{n} ({why})" for n, why in self.unavailable)
-            note += f" — DECLARED UNAVAILABLE [{gaps}]"
+            note += f" — COULD NOT RUN [{gaps}]"  # InstrumentUnavailable OR errored (reason says which)
         if self.not_covered:
             missing = "; ".join(f"{cls} <- {tool}" for cls, tool in self.not_covered)
             note += f" — NOT COVERED AT ALL [{missing}]"
@@ -152,7 +153,52 @@ class Instrument(Protocol):
 
     # `covers`: which ASPIRATIONAL_CLASSES label this instrument satisfies, so
     # the panel can name the classes left uncovered. Optional — the panel falls
-    # back to the instrument's own name when absent.
+    # back to the instrument's own name when absent. CONTRACT: set `covers` only
+    # if this instrument really measures that class. The panel counts a class
+    # covered when an instrument declaring it RAN (did not raise) — it cannot
+    # tell a real measurement from a no-op stub, so a stub that sets `covers`
+    # without measuring would falsely claim coverage. That honesty is the
+    # adapter author's to keep; the panel names what it can and cannot verify.
+
+
+# ── shared helpers ─────────────────────────────────────────────────────────
+
+def _iter_files(build_dir: Path):
+    """Yield the real files under `build_dir`, NOT following symlinks and
+    skipping `.git`. Uses `os.walk(followlinks=False)` (rglob follows symlinked
+    directories on 3.11) and skips symlinked FILES too — so a symlink aliasing
+    the dominator can't mask the census alarm, and hygiene can't phantom-flag an
+    alias. (Both holes were found by the adversarial audit of the first cut.)"""
+    build_dir = Path(build_dir)
+    for root, dirs, files in os.walk(build_dir, followlinks=False):
+        dirs[:] = [d for d in dirs if d != ".git"]  # prune .git subtrees
+        for name in files:
+            p = Path(root) / name
+            if p.is_symlink():
+                continue  # skip alias/symlink files — they double-count and can mask
+            yield p
+
+
+def canonical_artifact(artifact: str, build_dir: Path) -> str:
+    """The convergence key for an artifact path — normalized so two instruments
+    naming the SAME file with different spellings still converge. WITHOUT this,
+    `codebase-memory-mcp` emitting `/abs/build/src/x.py` and the census emitting
+    `src/x.py` would never converge, silently swallowing the alarm the panel
+    exists to raise (the audit's top finding). Normalizes: backslashes → `/`,
+    an absolute path under `build_dir` → relative, a leading `./`, and collapsed
+    separators. An absolute path OUTSIDE build_dir is left as-is (posix)."""
+    s = str(artifact).replace("\\", "/")
+    p = Path(s)
+    if p.is_absolute():
+        try:
+            p = p.relative_to(Path(build_dir).resolve())
+        except ValueError:
+            try:
+                p = p.relative_to(Path(build_dir))
+            except ValueError:
+                return PurePosixPath(s).as_posix()  # genuinely outside — keep, normalized
+    parts = [part for part in PurePosixPath(str(p).replace("\\", "/")).parts if part not in (".", "")]
+    return PurePosixPath(*parts).as_posix() if parts else ""
 
 
 # ── the panel ────────────────────────────────────────────────────────────────
@@ -181,10 +227,12 @@ def run_panel(build_dir: Path, instruments: list[Instrument]) -> PanelReport:
         ran.append(inst.name)
         findings.extend(got)
 
-    # convergence: group by artifact, keep those named by >=2 distinct instruments
+    # convergence: group by the CANONICAL artifact key (so differently-spelled
+    # paths for the same file still converge — see canonical_artifact), keep
+    # those named by >=2 distinct instruments.
     by_artifact: dict[str, list[Finding]] = {}
     for f in findings:
-        by_artifact.setdefault(f.artifact, []).append(f)
+        by_artifact.setdefault(canonical_artifact(f.artifact, build_dir), []).append(f)
     convergent: list[ConvergentFinding] = []
     for artifact, fs in by_artifact.items():
         names = sorted({f.instrument for f in fs})
@@ -253,7 +301,7 @@ class CensusInstrument:
         self.min_files = min_files
 
     def measure(self, build_dir: Path) -> list[Finding]:
-        files = [p for p in Path(build_dir).rglob("*") if p.is_file() and ".git" not in p.parts]
+        files = list(_iter_files(build_dir))  # real files, no symlinks, no .git
         if len(files) < self.min_files:
             return []
         sizes = {p: p.stat().st_size for p in files}
@@ -285,15 +333,14 @@ class HygieneInstrument:
     name = "hygiene"
     covers = "hygiene"
 
-    _SUFFIXES = {".log", ".bak", ".old", ".tmp", ".swp", ".orig", ".tar", ".tgz", ".gz", ".zip", ".mdb", ".ldb", ".db"}
+    _SUFFIXES = {".log", ".bak", ".old", ".tmp", ".swp", ".orig", ".tar", ".tgz",
+                 ".gz", ".bz2", ".xz", ".7z", ".rar", ".zip", ".mdb", ".ldb", ".db"}
     _NAMES = {"error_log", "thumbs.db", ".ds_store", "do_not_delete.txt", "npdblock.net"}
     _NAME_CONTAINS = ("do_not_delete", "final_v2", "_backup", "copy of ")
 
     def measure(self, build_dir: Path) -> list[Finding]:
         out: list[Finding] = []
-        for p in Path(build_dir).rglob("*"):
-            if not p.is_file() or ".git" in p.parts:
-                continue
+        for p in _iter_files(build_dir):  # real files, no symlinks, no .git
             name = p.name.lower()
             hit = (
                 p.suffix.lower() in self._SUFFIXES
