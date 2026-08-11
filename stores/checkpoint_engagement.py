@@ -47,11 +47,16 @@ do not overclaim:**
 engagement=...)` (bite 2's FSRS fold-in) already accepts an engagement lever:
 a held decision the maker barely engaged with grades `Hard` (resurface
 sooner), a re-argued one grades `Easy` (push it out). `RUBBER_STAMP_FLOOR`
-below is the SAME line grade() uses for its Hard cutoff (0.34), so
-"rubber_stamp" and "would grade Hard" can never disagree. Bite 3 makes the
-PRODUCER of that engagement signal exist; wiring it onto a *resurface-held*
-review (asking "it still holds — why?") is the next increment, called out in
-the design doc, not folded in here.
+below is the SINGLE source of truth for that Hard cutoff — `checkpoint_schedule`
+IMPORTS this constant for its Hard band (`_HARD_MAX_ENGAGEMENT =
+checkpoint_engagement.RUBBER_STAMP_FLOOR`), rather than repeating the number, so
+"rubber_stamp" and "would grade Hard" are the same comparison by construction
+and cannot drift. (The first cut of bite 3 duplicated the literal in both
+modules and claimed they matched; an audit caught it, and this is the fix —
+one owned constant, referenced.) Bite 3 makes the PRODUCER of that engagement
+signal exist; wiring it onto a *resurface-held* review (asking "it still holds
+— why?") is the next increment, called out in the design doc, not folded in
+here.
 
 Store-side authority (D1), same trust level as the rest of the learning layer:
 `apps/the-forge/` never imports this module. The maker being scored is an
@@ -87,11 +92,15 @@ friction_floor = importlib.util.module_from_spec(_ff_spec)
 sys.modules["friction_floor"] = friction_floor
 _ff_spec.loader.exec_module(friction_floor)
 
-# The same line checkpoint_schedule.grade() uses for its Hard cutoff — see
-# module docstring. Below this, a held decision's rationale is thin enough that
-# the FSRS grade drops from Good to Hard (resurface sooner). One threshold,
-# referenced from both places, so the "rubber_stamp" flag and the grade band
-# are provably the same decision.
+# The SINGLE source of truth for "engagement this thin is a rubber-stamp."
+# checkpoint_schedule.grade() imports THIS constant for its FSRS "Hard" cutoff
+# (`_HARD_MAX_ENGAGEMENT = checkpoint_engagement.RUBBER_STAMP_FLOOR`) — it is
+# defined once, here, and referenced there, so the "rubber_stamp" flag and the
+# "would grade Hard" band are the same comparison and cannot drift. Below this,
+# a held decision's rationale is thin enough that the FSRS grade drops from
+# Good to Hard (resurface sooner). test_checkpoint_schedule.py asserts the two
+# agree across the boundary, so a change to either side that broke the
+# relationship would fail a test, not just this comment.
 RUBBER_STAMP_FLOOR = 0.34
 
 

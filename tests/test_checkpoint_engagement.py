@@ -82,7 +82,31 @@ def test_is_rubber_stamp_floor_is_configurable():
     assert checkpoint_engagement.is_rubber_stamp("", SURFACE, floor=0.0) is False
 
 
-def test_rubber_stamp_floor_aligns_with_the_fsrs_hard_grade_cutoff():
-    # the default floor is the same line grade() uses for Hard (engagement <
-    # 0.34 -> Hard), so "rubber_stamp" and "would grade Hard" never disagree
-    assert checkpoint_engagement.RUBBER_STAMP_FLOOR == pytest.approx(0.34)
+def test_rubber_stamp_flag_and_fsrs_hard_grade_agree_across_the_boundary():
+    """The real guard the invariant needs — not `FLOOR == 0.34` (which would
+    pass even if grade()'s cutoff drifted). Loads checkpoint_schedule and
+    asserts, across a sweep that straddles the boundary, that a held rationale
+    grades FSRS Hard for EXACTLY the engagement scores is_rubber_stamp flags.
+    checkpoint_schedule imports RUBBER_STAMP_FLOOR for its Hard cutoff, so this
+    can't drift — and if someone broke the relationship (e.g. flipped a `<` to
+    `<=`, or repeated the literal and changed one), this fails."""
+    spec = importlib.util.spec_from_file_location(
+        "checkpoint_schedule", _REPO / "stores" / "checkpoint_schedule.py"
+    )
+    checkpoint_schedule = importlib.util.module_from_spec(spec)
+    sys.modules["checkpoint_schedule"] = checkpoint_schedule
+    spec.loader.exec_module(checkpoint_schedule)
+
+    floor = checkpoint_engagement.RUBBER_STAMP_FLOOR
+    hard_rating = 2  # fsrs Rating.Hard
+    held = checkpoint_schedule.OUTCOME_HELD
+    for x in (0.0, 0.2, 0.33, floor - 1e-6, floor, floor + 1e-6, 0.5, 0.66, 0.9, 1.0):
+        rubber_stamp = x < floor
+        grades_hard = checkpoint_schedule.grade(held, engagement=x) == hard_rating
+        assert rubber_stamp == grades_hard, f"disagreement at engagement={x}"
+
+    # and the Hard cutoff really IS engagement's constant, not a coincidental
+    # copy — proven within schedule's own module graph (its own engagement copy
+    # and its Hard cutoff are the same object), plus value-equal to ours
+    assert checkpoint_schedule._HARD_MAX_ENGAGEMENT is checkpoint_schedule.checkpoint_engagement.RUBBER_STAMP_FLOOR
+    assert checkpoint_schedule._HARD_MAX_ENGAGEMENT == floor

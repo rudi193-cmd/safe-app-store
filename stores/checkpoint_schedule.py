@@ -88,6 +88,20 @@ checkpoint_memory = importlib.util.module_from_spec(_cm_spec)
 sys.modules["checkpoint_memory"] = checkpoint_memory
 _cm_spec.loader.exec_module(checkpoint_memory)
 
+# The engagement gate (bite 3) OWNS the "thin engagement" line — its
+# RUBBER_STAMP_FLOOR. grade()'s Hard cutoff below is not a second copy of that
+# number; it IS that constant, imported here, so the two can never drift (the
+# audit of bite 3 caught them as two coincidental `0.34` literals with nothing
+# tying them together — this closes that). checkpoint_engagement is pure/
+# model-free (it only pulls the vendored friction_floor), so importing it adds
+# no Nestor/fsrs weight, and there is no cycle: engagement never imports this.
+_eng_spec = importlib.util.spec_from_file_location(
+    "checkpoint_engagement", _REPO / "stores" / "checkpoint_engagement.py"
+)
+checkpoint_engagement = importlib.util.module_from_spec(_eng_spec)
+sys.modules["checkpoint_engagement"] = checkpoint_engagement
+_eng_spec.loader.exec_module(checkpoint_engagement)
+
 DEFAULT_CHECKPOINT_ROOT = checkpoint_memory.DEFAULT_CHECKPOINT_ROOT
 
 OUTCOME_HELD = "held"
@@ -100,6 +114,16 @@ _RATING_AGAIN = 1
 _RATING_HARD = 2
 _RATING_GOOD = 3
 _RATING_EASY = 4
+
+# The two engagement band cutoffs grade() splits a HELD review on. The Hard
+# cutoff is the SINGLE source of truth for "engagement this thin is a
+# rubber-stamp," owned by checkpoint_engagement and referenced here — a held
+# decision whose rationale scores below it grades Hard (resurface sooner),
+# exactly the decisions is_rubber_stamp() flags. The Easy cutoff is this
+# module's own (a strong, re-argued hold pushes the interval out); engagement
+# has no equivalent, so it stays a local constant.
+_HARD_MAX_ENGAGEMENT = checkpoint_engagement.RUBBER_STAMP_FLOOR
+_EASY_MIN_ENGAGEMENT = 0.66
 
 # Fixed-interval fallback constants (only reached when `fsrs` is absent).
 FIXED_BASE_INTERVAL_DAYS = 1.0
@@ -166,21 +190,27 @@ def grade(outcome: str, engagement: float | None = None) -> int:
       * `held`      -> Good (3)  — graduate the interval
       * `regressed` -> Again (1) — a lapse; FSRS resets stability
 
-    The `engagement` parameter is the RESERVED seam for bite 3's
-    friction/mirror signal (`#66`/`#67`): a held decision the maker barely
-    re-engaged with is a weaker hold (Hard, resurface sooner) than one they
-    re-argued (Easy, push it out). Implemented but dormant — nothing in bite 2
-    passes a non-None engagement. A regression is `Again` regardless of
-    engagement: you did not hold it, so how hard you thought about it doesn't
-    enter. Kept non-circular by construction — see module docstring."""
+    The `engagement` parameter is bite 3's friction/mirror signal (`#66`):
+    a held decision the maker barely re-engaged with is a weaker hold (Hard,
+    resurface sooner) than one they re-argued (Easy, push it out). The Hard
+    cutoff `_HARD_MAX_ENGAGEMENT` IS `checkpoint_engagement.RUBBER_STAMP_FLOOR`
+    (imported, not a second literal), so a held rationale grades Hard for
+    exactly the scores `checkpoint_engagement.is_rubber_stamp` flags — the two
+    can't drift. `checkpoint_calibration.resurface` doesn't yet feed a non-None
+    engagement here (the resurface-held path captures no rationale to score —
+    the named next increment), so today it is reached with `engagement=None`;
+    bite 3 built the producer of this signal. A regression is `Again`
+    regardless of engagement: you did not hold it, so how hard you thought
+    about it doesn't enter. Kept non-circular by construction — see module
+    docstring."""
     if outcome == OUTCOME_REGRESSED:
         return _RATING_AGAIN
     if outcome == OUTCOME_HELD:
         if engagement is None:
             return _RATING_GOOD
-        if engagement < 0.34:
+        if engagement < _HARD_MAX_ENGAGEMENT:  # == checkpoint_engagement.RUBBER_STAMP_FLOOR
             return _RATING_HARD
-        if engagement > 0.66:
+        if engagement > _EASY_MIN_ENGAGEMENT:
             return _RATING_EASY
         return _RATING_GOOD
     raise ScheduleError(
