@@ -83,10 +83,15 @@ def test_only_files_with_a_known_parser_are_run(tmp_path):
         seen.append(cmd)
         return _isolated_ok(cmd, cwd=cwd, timeout=timeout)
     iex.ExecutionInstrument(runner=spy).measure(d)
-    assert len(seen) == 1  # only a.py was run; md/bin have no parser
+    # the isolation probe ('true') runs first, then exactly ONE file-parse
+    # command (a.py); md/bin have no parser. Count the content commands, not the
+    # probe.
+    assert "true" in seen
+    parse_cmds = [c for c in seen if "base64" in c]
+    assert len(parse_cmds) == 1
     # and the shipped content decodes back to a.py's source
     import base64, re
-    m = re.search(r"printf %s '([A-Za-z0-9+/=]+)'", seen[0])
+    m = re.search(r"printf %s '([A-Za-z0-9+/=]+)'", parse_cmds[0])
     assert m and base64.b64decode(m.group(1)) == b"x=1\n"
 
 
@@ -96,12 +101,42 @@ def test_a_missing_parser_binary_is_skipped_not_flagged(tmp_path):
     assert iex.ExecutionInstrument(runner=_parser_missing).measure(d) == []
 
 
+def test_a_parse_failure_whose_message_contains_not_found_is_still_flagged(tmp_path):
+    # regression (audit #1): a real SyntaxError echoes the offending SOURCE line,
+    # which here contains the words "not found" — that must NOT be mistaken for a
+    # missing parser binary. Only exit 127 means the binary is absent; a real
+    # parse fail (exit 1) is flagged no matter what its text says.
+    d = _proj(tmp_path, {"app.py": "def not found():\n"})
+    def echoes_not_found(cmd, *, cwd, timeout):
+        if cmd == "true":
+            return {"sandbox": "bwrap", "error": None, "returncode": 0, "stdout": "", "stderr": ""}
+        return {"sandbox": "bwrap", "error": None, "returncode": 1, "stdout": "",
+                "stderr": '  File "T", line 1\n    def not found():\n            ^\nSyntaxError: invalid syntax'}
+    findings = iex.ExecutionInstrument(runner=echoes_not_found).measure(d)
+    assert len(findings) == 1 and findings[0].value == "fail"
+
+
 # ── isolation safety: no sandbox -> unavailable, never runs unsandboxed ───────
 
 def test_no_sandbox_raises_instrument_unavailable_by_default(tmp_path):
     d = _proj(tmp_path, {"app.py": "x = 1\n"})
     with pytest.raises(iex.InstrumentUnavailable):
         iex.ExecutionInstrument(runner=_no_bwrap).measure(d)  # require_isolation defaults True
+
+
+def test_isolation_is_probed_before_any_file_content_is_run(tmp_path):
+    # regression (audit #2): the isolation gate must fire BEFORE the first file's
+    # content is handed to a non-isolated runner. A plain (unsandboxed) runner
+    # must raise on the trivial probe, having dispatched NO file-parse command.
+    d = _proj(tmp_path, {"app.py": "x = 1\n"})
+    seen = []
+    def plain(cmd, *, cwd, timeout):
+        seen.append(cmd)
+        return {"sandbox": "plain", "error": None, "returncode": 0, "stdout": "", "stderr": ""}
+    with pytest.raises(iex.InstrumentUnavailable):
+        iex.ExecutionInstrument(runner=plain).measure(d)
+    assert seen == ["true"]  # only the probe ran
+    assert all("base64" not in c for c in seen)  # no file content was ever dispatched
 
 
 def test_require_isolation_false_allows_a_plain_run(tmp_path):

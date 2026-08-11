@@ -60,7 +60,12 @@ _iter_files = measure_panel._iter_files  # real files, no symlinks, no .git — 
 # mounted or run in place, only its text is parsed. Python uses `ast.parse` (no
 # `__pycache__`); the others are file-based linters that never execute the code.
 _PARSER_ON_TEMP: dict[str, str] = {
-    ".py": "python3 -c 'import ast,sys; ast.parse(open(sys.argv[1]).read())'",
+    # Read the source as BYTES: `open().read()` would decode with the sandbox's
+    # locale, so a valid UTF-8 file with a non-ASCII comment/string would raise
+    # UnicodeDecodeError under a C-locale sandbox and read as a false "does not
+    # parse". `ast.parse(bytes)` honors the file's own coding cookie/BOM, the way
+    # real Python compilation does.
+    ".py": "python3 -c 'import ast,sys; ast.parse(open(sys.argv[1], \"rb\").read())'",
     ".php": "php -l",
     ".js": "node --check",
     ".mjs": "node --check",
@@ -103,13 +108,15 @@ def _is_isolated(res: dict) -> bool:
 
 
 def _parser_missing(res: dict) -> bool:
-    """The parser binary itself is absent (e.g. no `php`) — exit 127 / a
-    shell 'not found'. NOT a parse error: we simply cannot check this file's
-    language here, so it is skipped, not flagged."""
-    if res.get("returncode") == 127:
-        return True
-    blob = f"{res.get('stderr', '')} {res.get('stdout', '')}".lower()
-    return "command not found" in blob or "not found" in blob
+    """The parser binary itself is absent (e.g. no `php`) — the shell exits 127,
+    the universal 'command not found' convention across bash/dash/sh. We key
+    ONLY on that exit code. A textual scan of the parser's OWN diagnostics is
+    unsafe: a real SyntaxError echoes the offending SOURCE line, which may itself
+    contain the words 'not found' (`def not found():`, a `"widget not found"`
+    literal) — matching that text would mask the very parse failures this
+    instrument exists to catch. NOT a parse error (no parse-checker returns 127):
+    we cannot check this file's language here, so it is skipped, not flagged."""
+    return res.get("returncode") == 127
 
 
 class ExecutionInstrument:
@@ -126,12 +133,31 @@ class ExecutionInstrument:
 
     def measure(self, build_dir: Path) -> list["Finding"]:
         build_dir = Path(build_dir)
+        targets = [
+            (p, parser)
+            for p in _iter_files(build_dir)
+            if (parser := _PARSER_ON_TEMP.get(p.suffix.lower()))
+        ]
+        if not targets:
+            return []  # nothing to parse — no sandbox probe, no coverage claim
         runner = self._runner or _kartikeya_runner()  # may raise InstrumentUnavailable
+
+        if self.require_isolation:
+            # Fail closed BEFORE any untrusted file is handed to the runner.
+            # kartikeya runs in PLAIN mode when bwrap is unavailable, so checking
+            # isolation only after a real run would already have parsed the first
+            # file unsandboxed. Probe once with a trivial no-op, raise here, and
+            # no file content is ever dispatched to a non-isolated runner.
+            probe = runner("true", cwd=str(build_dir), timeout=self.timeout)
+            if not _is_isolated(probe):
+                raise InstrumentUnavailable(
+                    f"execution grounding needs a working sandbox — kartikeya did not "
+                    f"isolate ({probe.get('error') or probe.get('sandbox')!r}); no bwrap? "
+                    f"Pass require_isolation=False to accept a plain parse-only run."
+                )
+
         out: list[Finding] = []
-        for p in _iter_files(build_dir):
-            parser = _PARSER_ON_TEMP.get(p.suffix.lower())
-            if not parser:
-                continue  # no parser for this language — not a coverage claim for it
+        for p, parser in targets:
             rel = p.relative_to(build_dir).as_posix()
             try:
                 content = p.read_bytes()
@@ -139,15 +165,6 @@ class ExecutionInstrument:
                 continue  # unreadable — cannot check, do not flag
             cmd = _parse_command(content, parser)
             res = runner(cmd, cwd=str(build_dir), timeout=self.timeout)
-
-            if self.require_isolation and not _is_isolated(res):
-                # Fail closed on the FIRST real run: never parse untrusted code
-                # unsandboxed. The panel records `execution` as a coverage gap.
-                raise InstrumentUnavailable(
-                    f"execution grounding needs a working sandbox — kartikeya did not "
-                    f"isolate ({res.get('error') or res.get('sandbox')!r}); no bwrap? "
-                    f"Pass require_isolation=False to accept a plain parse-only run."
-                )
             if _parser_missing(res):
                 continue  # parser binary absent — cannot check, do not flag
             if res.get("returncode", 0) != 0:
