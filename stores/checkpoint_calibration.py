@@ -31,12 +31,25 @@ not a new semantic-similarity matcher (see "Reuse discipline" below).
     already-built: a **regressed resurface** (the maker saying "no" to their
     own prior seal), which is `reject_match` + a fresh seal — both bite-1/D12
     primitives, not new ones.
-  * **Scheduling ("is it due for review") is DEFERRED.** `is_due` below is a
-    trivial, pure, stdlib-only placeholder — explicitly NOT py-fsrs, NOT
-    `engram`, NOT any real spaced-repetition scheduler. A separate agent is
-    mapping which Apache-compatible scheduler the fleet should adopt for
-    this; nothing in this module depends on a specific one. Swap `is_due`'s
-    body out, not its callers, once that reuse-map lands.
+  * **Scheduling ("is it due for review") is now FOLDED IN**, in its own
+    module `stores/checkpoint_schedule.py` (the reuse-map named the scheduler:
+    py-fsrs, MIT — docs/design/the-forge-fsrs.md). `resurface` records a
+    review there after every held/regressed outcome, keyed on the decision's
+    Nestor `pair_id`, and reports the next `due` date on
+    `ResurfaceOutcome.next_due`. Bite 2's old fixed-interval `is_due`
+    placeholder is gone; `checkpoint_schedule.is_due` (card-driven) replaces
+    it. FSRS is a SOFT dependency there — absent, it degrades to fixed
+    intervals — so `resurface` gains no hard `fsrs` import.
+  * **The engagement→grade wire (bite 3) is now LIVE on a held review.** After
+    a maker confirms a decision still holds, `resurface` asks "why does it
+    still hold?" (the Responder's optional `justify`) and scores that rationale
+    via `checkpoint_engagement`: a re-argued hold grades FSRS **Easy** (next
+    review pushed well out), a thin or declined one grades **Good/Hard**
+    (sooner). This is what makes bite 3's signal actually move the schedule,
+    not just annotate it. Regressed is always **Again** regardless (you did not
+    hold it); the new answer's engagement is surfaced but does not bend that.
+    Duck-typed and non-punitive: a Responder without `justify` reverts to the
+    pre-wire behavior (engagement None -> Good), and a hold is never blocked.
 
 **The `reject_match` vs `reject_pair` choice on a regression — verified
 against the real Nestor library, not guessed.** A regression needs to do two
@@ -133,6 +146,7 @@ import importlib.util
 import json
 import sys
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 _REPO = Path(__file__).resolve().parent.parent
@@ -146,6 +160,29 @@ _spec.loader.exec_module(checkpoint)
 # module docstring's "Loaded modules" section for why this is not a second,
 # independently-cached load.
 checkpoint_memory = checkpoint.checkpoint_memory
+
+# The FSRS scheduler (bite 2's deferred "is it due" half, now folded in —
+# docs/design/the-forge-fsrs.md). Loaded the same spec way; its own Nestor
+# dependency is nil (it only borrows checkpoint_memory's _check_builder_id and
+# root), so we repoint its checkpoint_memory at OUR already-loaded copy rather
+# than let it keep the second one its own module-level load created — one
+# checkpoint_memory object across this whole load chain, same "reuse the
+# sibling's loaded copy" discipline this module already applies to
+# checkpoint_memory itself.
+_sched_spec = importlib.util.spec_from_file_location(
+    "checkpoint_schedule", _REPO / "stores" / "checkpoint_schedule.py"
+)
+checkpoint_schedule = importlib.util.module_from_spec(_sched_spec)
+sys.modules["checkpoint_schedule"] = checkpoint_schedule
+_sched_spec.loader.exec_module(checkpoint_schedule)
+checkpoint_schedule.checkpoint_memory = checkpoint_memory
+
+# The engagement gate (bite 3) — reuse checkpoint.py's OWN already-loaded copy
+# (same "reuse the sibling's loaded copy" discipline as checkpoint_memory
+# above), rather than a fourth spec load. `resurface` uses it to score the
+# "it still holds — why?" rationale and feed grade() (the engagement->grade
+# wire). engagement_score is pure, so which copy is irrelevant to the value.
+checkpoint_engagement = checkpoint.checkpoint_engagement
 
 
 class CalibrationError(Exception):
@@ -176,6 +213,18 @@ class ResurfaceOutcome:
     `resealed`: True iff this run left a NEW canonical durably sealed for
     `surface` — False for `held` (nothing needed re-recording; the light
     confirm is not a re-seal, same reasoning as bite 1's auto band).
+    `next_due`: ISO-8601 timestamp for when this decision is next due for
+    review, from the FSRS schedule advanced this run. This is where bite 3's
+    engagement→grade wire shows up: a HELD review the maker justified
+    substantively grades FSRS Easy (next_due pushed well out), a thinly- or
+    un-justified hold grades Good/Hard (sooner); a regression is always Again
+    (soonest). See `stores/checkpoint_schedule.py`'s `grade`.
+    `engagement`: the [0,1] score of the rationale the maker gave THIS run —
+    for a held review, their answer to "it still holds — why?"; for a
+    regression, the rationale for the new answer. `None` when there was none to
+    score (the maker declined to justify a hold, or the responder can't be
+    asked — see `resurface`). This is the same signal `checkpoint_engagement`
+    produces at seal-time, now also read on resurface and fed to `grade`.
     """
 
     decision_type: str
@@ -184,6 +233,8 @@ class ResurfaceOutcome:
     prior: str
     new: str
     resealed: bool
+    next_due: str = ""
+    engagement: float | None = None
 
 
 # ── the flow ─────────────────────────────────────────────────────────────────
@@ -195,6 +246,7 @@ def resurface(
     surface: str,
     responder: "checkpoint.Responder",
     root: Path = checkpoint_memory.DEFAULT_CHECKPOINT_ROOT,
+    now: "datetime | None" = None,
 ) -> ResurfaceOutcome:
     """Resurface ONE previously-sealed decision and find out whether the
     maker still holds it. Raises `CalibrationError` for either shape of
@@ -202,7 +254,13 @@ def resurface(
     `checkpoint_memory.CheckpointMemoryError`/`CheckpointConflict`/
     `CheckpointRejected` propagate unwrapped for everything memory-side —
     same exception discipline `checkpoint.py`'s `run_checkpoint` uses.
+
+    `now` is the review timestamp fed to the FSRS schedule; injected here at
+    the boundary (D-FSRS-3: the schedule module itself never reads the wall
+    clock). Defaults to `datetime.now(timezone.utc)` when a caller — like the
+    CLI — declines to supply one; the tests always inject it for determinism.
     """
+    now = now or datetime.now(timezone.utc)
     # ── soft-Nestor gate — checked first, same posture as
     # checkpoint.run_checkpoint's own gate, but resurface has no honest
     # degraded outcome to hand back (see module docstring), so it refuses
@@ -232,9 +290,33 @@ def resurface(
                 f"docstring's 'Nothing to resurface' section)"
             )
         prior = result["canonical"]
+        # The decision's stable identity in Nestor — the FSRS card key (see
+        # module docstring / docs/design/the-forge-fsrs.md D-FSRS-1). Stable
+        # across a held->regressed->held cycle because a same-verifier reseal
+        # is in-place (same pair_id), so one card follows the decision.
+        pair_id = result.get("provenance", {}).get("pair_id")
 
         prompt = f"You decided {prior!r} for {decision_type!r}. Does that still hold?"
         if responder.confirm(prompt):
+            # ── the engagement→grade wire (bite 3) ──────────────────────────
+            # A bare "yes it holds" is the rubber-stamp bite 3 exists to catch.
+            # So after the confirm, ask WHY it still holds and score that
+            # rationale: a re-argued hold grades FSRS Easy (resurface later), a
+            # thin one Hard (sooner), and declining to justify is no signal ->
+            # Good (unchanged from before the wire). Duck-typed: a Responder
+            # without `justify` is simply never asked, and this degrades to the
+            # pre-wire behavior (engagement None -> Good). Never punitive, never
+            # a block — the maker's hold is honored regardless; only the review
+            # cadence bends.
+            held_rationale = _ask_justification(responder, prior, decision_type)
+            engagement = (
+                checkpoint_engagement.engagement_score(held_rationale, surface)
+                if held_rationale
+                else None
+            )
+            next_due = _record_review(
+                builder_id, pair_id, checkpoint_schedule.OUTCOME_HELD, now, root, engagement=engagement
+            )
             return ResurfaceOutcome(
                 decision_type=decision_type,
                 held=True,
@@ -242,6 +324,8 @@ def resurface(
                 prior=prior,
                 new="",
                 resealed=False,
+                next_due=next_due,
+                engagement=engagement,
             )
 
         # ── regressed: the practical #3 contradiction signal ────────────
@@ -282,6 +366,21 @@ def resurface(
         )
         cm.seal(surface, new_canonical)
 
+        # The new answer's own engagement, surfaced for observability. It does
+        # NOT bend the grade here: a regression is `Again` regardless (grade()
+        # short-circuits on regressed before looking at engagement — you did
+        # not hold it, so how hard you argued the replacement doesn't change
+        # that this one lapsed). A deferral ("you choose") has no rationale to
+        # score -> None.
+        engagement = (
+            checkpoint_engagement.engagement_score(rationale, surface)
+            if (rationale and not deferred)
+            else None
+        )
+        # Same pair_id (the reseal was in-place); grade the SAME card Again.
+        next_due = _record_review(
+            builder_id, pair_id, checkpoint_schedule.OUTCOME_REGRESSED, now, root, engagement=engagement
+        )
         return ResurfaceOutcome(
             decision_type=decision_type,
             held=False,
@@ -289,7 +388,42 @@ def resurface(
             prior=prior,
             new=new_canonical,
             resealed=True,
+            next_due=next_due,
+            engagement=engagement,
         )
+
+
+def _ask_justification(responder, prior: str, decision_type: str) -> str:
+    """Ask a held decision's "why does it still hold?" via the Responder's
+    OPTIONAL `justify` (see `checkpoint.Responder`). Duck-typed: a responder
+    without it is never asked and this returns "" (a bare hold — no signal,
+    grades Good). Returns "" for a non-string/blank answer too, so a declining
+    maker and an absent method land in the same honest place."""
+    justify = getattr(responder, "justify", None)
+    if not callable(justify):
+        return ""
+    prompt = (
+        f"You still hold {prior!r} for {decision_type!r}. Why does it still hold? "
+        f"(leave blank to skip)"
+    )
+    answer = justify(prompt)
+    return answer if isinstance(answer, str) else ""
+
+
+def _record_review(builder_id, pair_id, outcome, now, root, *, engagement=None) -> str:
+    """Advance and persist the FSRS schedule for this decision, returning the
+    next-due ISO timestamp. `engagement` (bite 3) bends a HELD review's grade
+    (Easy/Good/Hard); it is ignored for a regression (always Again). No-ops to
+    "" if Nestor handed back no `pair_id` (there is nothing stable to key the
+    card on) — the resurface still stands; only the schedule half is skipped,
+    and that is honestly reported as an empty `next_due` rather than a guessed
+    key."""
+    if not pair_id:
+        return ""
+    prior_card = checkpoint_schedule.load_card(builder_id, pair_id, root=root)
+    new_card = checkpoint_schedule.record_review(prior_card, outcome, now, engagement=engagement)
+    checkpoint_schedule.save_card(builder_id, pair_id, new_card, root=root)
+    return new_card["due"]
 
 
 def contradictions(
@@ -309,27 +443,11 @@ def contradictions(
     return cm.seal(decision_description, chosen_option_and_rationale, **seal_kwargs)
 
 
-# ── is_due — PLACEHOLDER scheduler, pending the reuse-map ──────────────────
-
-def is_due(last_reviewed_iso: str, now_iso: str, *, interval_days: float) -> bool:
-    """Trivial, pure, stdlib-only placeholder for "is this seal due for
-    review" — explicitly NOT py-fsrs, NOT `engram`, NOT any real
-    spaced-repetition scheduler. See module docstring's "Scheduling" section:
-    a separate agent is mapping which Apache-compatible scheduler the fleet
-    reuses for this; nothing else in this module calls `is_due` or depends
-    on its internals, so swapping it for the real thing later is a
-    same-signature drop-in, not a caller-side rewrite.
-
-    `last_reviewed_iso`/`now_iso` are ISO-8601 strings (`datetime.fromisoformat`
-    — both naive or both aware; mixing the two raises `TypeError` from the
-    subtraction below, the same way stdlib `datetime` itself would). True iff
-    `now >= last_reviewed + interval_days`, boundary inclusive.
-    """
-    from datetime import datetime, timedelta
-
-    last = datetime.fromisoformat(last_reviewed_iso)
-    now = datetime.fromisoformat(now_iso)
-    return now >= last + timedelta(days=interval_days)
+# `is_due` used to live here as a fixed-interval placeholder; bite 2's FSRS
+# fold-in moved it (card-driven) to `stores/checkpoint_schedule.py`. Reach for
+# `checkpoint_schedule.is_due(card, now)` — a caller with a resurfaced
+# decision's `pair_id` loads its card via `checkpoint_schedule.load_card` and
+# asks from there.
 
 
 # ── CLI (optional; a scripted demo, mirroring checkpoint.py's own shape) ────
@@ -339,16 +457,25 @@ class _ScriptedResumeResponder:
     "still holds" unless `--regress` is passed, in which case it answers
     "no" once and then picks the first option with a fixed rationale for the
     fresh Socratic pass — mirrors `checkpoint.py`'s own `_ScriptedResponder`.
-    Not used by the test suite (which scripts its own responders)."""
+    On a held confirm it also demonstrates the engagement→grade wire by
+    justifying the hold with `--justification` (default: a substantive one, so
+    the demo shows an Easy grade / pushed-out next_due). Not used by the test
+    suite (which scripts its own responders)."""
 
-    def __init__(self, regress: bool):
+    def __init__(self, regress: bool, justification: str = ""):
         self._regress = regress
+        self._justification = justification
 
     def confirm(self, prompt: str) -> bool:
         print(f"[confirm] {prompt}")
         answer = not self._regress
         print(f"[confirm] -> {'yes' if answer else 'no'}")
         return answer
+
+    def justify(self, prompt: str) -> str:
+        print(f"[justify] {prompt}")
+        print(f"[justify] -> {self._justification!r}")
+        return self._justification
 
     def choose(self, decision: "checkpoint.Decision") -> "checkpoint.ChoiceResult":
         print(f"[choose] {decision.surface}")
@@ -365,7 +492,7 @@ def _cmd_resurface(args: argparse.Namespace) -> int:
             builder_id=args.builder_id,
             decision_type=args.decision_type,
             surface=args.surface,
-            responder=_ScriptedResumeResponder(regress=args.regress),
+            responder=_ScriptedResumeResponder(regress=args.regress, justification=args.justification),
             root=Path(args.root),
         )
     except CalibrationError as e:
@@ -379,6 +506,8 @@ def _cmd_resurface(args: argparse.Namespace) -> int:
             "prior": outcome.prior,
             "new": outcome.new,
             "resealed": outcome.resealed,
+            "next_due": outcome.next_due,
+            "engagement": outcome.engagement,
         },
         indent=2,
     ))
@@ -398,6 +527,11 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--surface", required=True)
     r.add_argument("--root", default=str(checkpoint_memory.DEFAULT_CHECKPOINT_ROOT))
     r.add_argument("--regress", action="store_true", help="script the maker as no longer holding the prior seal")
+    r.add_argument(
+        "--justification",
+        default="I re-measured it: the reporting query runs 1.2s with joins versus 40ms denormalized, the write rate has not changed, and the tests still pass",
+        help="the 'why does it still hold' rationale for a held review (blank to skip; a substantive one grades Easy)",
+    )
     r.set_defaults(func=_cmd_resurface)
 
     return p

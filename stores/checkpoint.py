@@ -92,13 +92,20 @@ orchestrator's own — a `Decision` with no options to present, or a
 `Responder` whose answer doesn't make sense — never as a re-skin of a
 lower layer's exception.
 
+The seal-time engagement signal (`#66`, bite 3) IS wired here now: a fresh
+socratic answer's `rationale` is scored by `checkpoint_engagement` and
+surfaced on the outcome (`engagement`, `rubber_stamp`) — a pure signal that
+never blocks a seal. See that module. `#67`'s mid-session nudge (re-prompting
+on a thin rationale) is still out of scope, as is moving the FSRS grade off it
+on a resurface-held review (the next increment — see the design doc).
+
 Not in scope, deliberately (see docs/design/the-forge.md's own bite
 ladder): calibration/resurfacing (`#12` lesson-regression, `#3`
-contradiction detection — bite 2), the engagement/friction gate (`#66`/
-`#67` — bite 3), and wiring this to D7's real model routing or bite 0's
-actual build path — every `Decision` this module sees is an EXPLICIT,
-already-formed input (a stub standing in for D7's not-yet-existent model,
-exactly as bite 0's `stub_builder` stood in for the same thing).
+contradiction detection — bite 2, `checkpoint_calibration.py`), and wiring
+this to D7's real model routing or bite 0's actual build path — every
+`Decision` this module sees is an EXPLICIT, already-formed input (a stub
+standing in for D7's not-yet-existent model, exactly as bite 0's
+`stub_builder` stood in for the same thing).
 
 Usage (dev CLI, mirroring `forge_build.py`'s shape):
     python stores/checkpoint.py demo <builder_id> <decision_type> \\
@@ -129,6 +136,17 @@ _spec = importlib.util.spec_from_file_location(
 checkpoint_memory = importlib.util.module_from_spec(_spec)
 sys.modules["checkpoint_memory"] = checkpoint_memory
 _spec.loader.exec_module(checkpoint_memory)
+
+# The engagement gate (bite 3) — the seal-time "did they actually decide vs
+# rubber-stamp" signal, reusing willow-mcp's #66 sycophancy scorer. Pure and
+# model-free (no Nestor, no network), so loading it here adds no dependency the
+# soft-Nestor gate has to worry about. Loaded the same spec way.
+_eng_spec = importlib.util.spec_from_file_location(
+    "checkpoint_engagement", _REPO / "stores" / "checkpoint_engagement.py"
+)
+checkpoint_engagement = importlib.util.module_from_spec(_eng_spec)
+sys.modules["checkpoint_engagement"] = checkpoint_engagement
+_eng_spec.loader.exec_module(checkpoint_engagement)
 
 DEFAULT_RECOGNIZE_THRESHOLD = 0.6
 
@@ -214,16 +232,28 @@ class Responder(Protocol):
         an option (by returning its label as `chosen_label` plus a
         `rationale`), or defer (`deferred=True`).
 
-    Deliberately NOT required: anything about follow-up questions that test
-    whether the maker actually understood (vs. just picked) — D8's own
-    "not just picked an option — explained why" bar is a real, undesigned
-    UX question the module docstring's "Not in scope" section already
-    defers to a later bite, not something this Protocol pre-guesses.
+      * `justify(prompt) -> str` — OPTIONAL. The "it still holds — why?"
+        rationale a *resurface-held* review (bite 3's engagement→grade wire,
+        `checkpoint_calibration.resurface`) asks for after the maker confirms a
+        prior decision still stands. Returning `""` declines (a bare hold, no
+        re-argument — scored as no signal, grades FSRS Good). A substantive
+        answer grades Easy (push the next review out); a thin one grades Hard
+        (resurface sooner). `run_checkpoint` (bite 1) never calls this — it is
+        duck-typed via `getattr` by `resurface`, so a `Responder` that omits
+        it simply never gets asked, and resurface-held behaves exactly as it
+        did before the wire (engagement `None` → Good).
+
+    Deliberately NOT required beyond confirm/choose: `justify` is optional (see
+    above), and anything about follow-up questions that test whether the maker
+    actually understood a FRESH pick (vs. just chose) stays out — bite 3 scores
+    the rationale a maker volunteers, it does not interrogate.
     """
 
     def confirm(self, prompt: str) -> bool: ...
 
     def choose(self, decision: Decision) -> ChoiceResult: ...
+
+    def justify(self, prompt: str) -> str: ...
 
 
 # ── the outcome ──────────────────────────────────────────────────────────────
@@ -264,6 +294,17 @@ class CheckpointOutcome:
     `memory_available`: mirrors `checkpoint_memory.nestor_available()` at
     the START of this run — the soft-Nestor gate's own honest record,
     independent of `sealed`.
+    `engagement`: the bite-3 seal-time engagement signal — how substantively
+    the maker's FRESH `rationale` engaged this decision, on [0,1] (see
+    `checkpoint_engagement`). `None` when there was no fresh rationale to
+    measure: an `auto`/`recognize` confirm reuses a PRIOR seal (the maker gave
+    no new rationale), and a `deferred` "you choose" is a legitimate taught
+    handoff, not a rationale to score. A real socratic choice always has one
+    scored — including an empty rationale, which scores 0.0 (see `rubber_stamp`).
+    `rubber_stamp`: True iff `engagement` is not None and below
+    `checkpoint_engagement.RUBBER_STAMP_FLOOR` — a SIGNAL, never a block: the
+    answer is sealed regardless (see that module's "never blocks"). Always
+    False when `engagement` is None.
     """
 
     decision_type: str
@@ -273,6 +314,8 @@ class CheckpointOutcome:
     deferred: bool
     sealed: bool
     memory_available: bool
+    engagement: float | None = None
+    rubber_stamp: bool = False
 
 
 # ── the flow ─────────────────────────────────────────────────────────────────
@@ -302,6 +345,20 @@ def _full_socratic(decision: Decision, responder: Responder) -> tuple[str, str, 
     return choice.chosen_label, choice.rationale, False
 
 
+def _engagement_fields(rationale: str, deferred: bool, surface: str) -> tuple[float | None, bool]:
+    """The bite-3 seal-time engagement signal for a FRESH answer. A `deferred`
+    "you choose" has no rationale to measure and is a legitimate taught
+    handoff, not a rubber-stamp — returns `(None, False)`. Any real choice is
+    scored, INCLUDING an empty rationale (picked an option, explained nothing),
+    which scores 0.0 and flags `rubber_stamp=True` — the loudest rubber-stamp
+    there is. A pure signal: the caller seals regardless (see
+    `checkpoint_engagement`'s "never blocks")."""
+    if deferred:
+        return None, False
+    score = checkpoint_engagement.engagement_score(rationale, surface)
+    return score, score < checkpoint_engagement.RUBBER_STAMP_FLOOR
+
+
 def _deferred_canonical(chosen_label: str) -> str:
     """The canonical text a taught deferral seals — records that the maker
     saw the tradeoff and deliberately handed it back, per the design doc's
@@ -323,6 +380,7 @@ def _seal_socratic_answer(
     chosen_label, rationale, deferred = _full_socratic(decision, responder)
     canonical = _deferred_canonical(chosen_label) if deferred else f"{chosen_label}: {rationale}"
     cm.seal(decision.surface, canonical)
+    engagement, rubber_stamp = _engagement_fields(rationale, deferred, decision.surface)
     return CheckpointOutcome(
         decision_type=decision.decision_type,
         chosen=chosen_label,
@@ -331,6 +389,8 @@ def _seal_socratic_answer(
         deferred=deferred,
         sealed=True,
         memory_available=True,
+        engagement=engagement,
+        rubber_stamp=rubber_stamp,
     )
 
 
@@ -365,6 +425,7 @@ def run_checkpoint(
     # through a flow the caller had no way to have avoided starting.
     if not checkpoint_memory.nestor_available():
         chosen_label, rationale, deferred = _full_socratic(decision, responder)
+        engagement, rubber_stamp = _engagement_fields(rationale, deferred, decision.surface)
         return CheckpointOutcome(
             decision_type=decision.decision_type,
             chosen=chosen_label,
@@ -373,6 +434,8 @@ def run_checkpoint(
             deferred=deferred,
             sealed=False,
             memory_available=False,
+            engagement=engagement,
+            rubber_stamp=rubber_stamp,
         )
 
     with checkpoint_memory.open_checkpoint_memory(builder_id, decision.decision_type, root=root) as cm:
@@ -502,6 +565,8 @@ def _cmd_demo(args: argparse.Namespace) -> int:
             "deferred": outcome.deferred,
             "sealed": outcome.sealed,
             "memory_available": outcome.memory_available,
+            "engagement": outcome.engagement,
+            "rubber_stamp": outcome.rubber_stamp,
         },
         indent=2,
     ))

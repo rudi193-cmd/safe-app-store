@@ -1120,7 +1120,35 @@ half, `stores/checkpoint_memory.py`, D12, already exists):
   > exactly what D9 wrote down before the phantom-reuse detour. Recorded here
   > rather than quietly edited so the next seat sees the false-reuse trap, per
   > rule 11: "a rediscovery quietly deleted is the same cost paid twice."
-- **Bite 3 — the engagement gate.** `#66`/`#67`'s friction-floor / mirror
+
+  > **FSRS fold-in landed (2026-08-11).** The scheduler above is now built,
+  > not just named: `stores/checkpoint_schedule.py` (with its own design doc,
+  > `docs/design/the-forge-fsrs.md`, settling four forks). `resurface` records
+  > an FSRS review after every held (→ Good) / regressed (→ Again) outcome,
+  > keyed on the decision's stable Nestor `pair_id`, and reports the next
+  > `due` date on `ResurfaceOutcome.next_due`. `fsrs` (PyPI, MIT) is a SOFT
+  > dependency — absent, scheduling degrades to fixed intervals — so nothing
+  > gained a hard third-party import. Bite 2's fixed-interval `is_due`
+  > placeholder is retired.
+- **Bite 3 — the engagement gate. ✅ LANDED 2026-08-11.** `#66`'s sycophancy
+  scorer, reused: `stores/friction_floor.py` is vendored byte-for-byte from
+  willow-mcp (a second Apache-2.0 vendor hop; willow-gate → willow-mcp →
+  here), and `stores/checkpoint_engagement.py` points it at the *maker's*
+  rationale instead of an agent's turn. `run_checkpoint` now scores every
+  fresh socratic rationale and surfaces `engagement` (0–1) + `rubber_stamp` on
+  the outcome — a pure SIGNAL that never blocks a seal (the primitive's own
+  ethos). The `RUBBER_STAMP_FLOOR` (0.34) is the same line `grade()` uses for
+  Hard, so the seal-time signal and the FSRS grade band can't disagree.
+  **Engagement→grade wire CLOSED 2026-08-11:** a *resurface-held* review now
+  asks "it still holds — why?" (the Responder's optional `justify`), scores
+  that rationale, and feeds `grade(held, engagement)` — a re-argued hold grades
+  **Easy** (verified live: next review pushed ~10 days out), a declined one
+  **Good** (~10 min), a thin one **Hard** (~5 min). Non-punitive and
+  duck-typed: the hold is never blocked, and a Responder without `justify`
+  reverts to the pre-wire Good. Still open: `#67`'s mid-session nudge
+  (willow-mcp has the scanner, not the injection timing). The original bite-3
+  sketch follows.
+- **Bite 3 (original sketch) — the engagement gate.** `#66`/`#67`'s friction-floor / mirror
   detector as the non-circular "did they actually decide vs rubber-stamp"
   signal at seal-time — also already shipped in willow-mcp, to be reused.
 

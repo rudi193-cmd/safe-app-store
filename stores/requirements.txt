@@ -25,3 +25,15 @@ cryptography>=41.0
 #   pip install -e /workspace/nestor
 # (verify that path in your own environment first — `ls /workspace/nestor`
 # — it is not guaranteed to be there or at that path).
+
+# stores/checkpoint_schedule.py (bite 2's FSRS fold-in, D9 / docs/design/
+# the-forge-fsrs.md) uses py-fsrs for real spaced-repetition review
+# scheduling. UNLIKE Nestor above, this is a SOFT/OPTIONAL dependency
+# (D-FSRS-4, settled soft): the module imports `fsrs` lazily and, when it is
+# absent, degrades to a fixed-interval fallback — the resurface flow never
+# requires it. It IS on PyPI, MIT-licensed, and dependency-light (only
+# typing-extensions). Left commented so the stdlib-only default `pip install
+# -r` stays clean; install it to get real FSRS scheduling instead of the
+# fallback. Pin caps the major (FSRS majors change the algorithm/params, the
+# same reason the engine caps at <1.0):
+#   fsrs>=6.3,<7
