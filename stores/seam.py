@@ -61,7 +61,7 @@ if _FORGE_SRC not in sys.path:
     sys.path.insert(0, _FORGE_SRC)
 
 from the_forge.plan import FileWrite, McpCall, Plan, PlanError, plan_from_dict, validate_plan  # noqa: E402
-from the_forge.scan import scan_plan  # noqa: E402
+from the_forge.scan import ScanError, scan_plan  # noqa: E402
 from the_forge.mcp_registry import McpRegistry  # noqa: E402
 
 # sap_gate.py has no relative imports of its own — same
@@ -105,7 +105,17 @@ def cross(*, signed_manifest: "sap_gate.SignedManifest", plan: Plan,
     except PlanError as e:
         raise SeamError(f"plan out of scope: {e}") from e
 
-    findings = scan_plan(plan.entries)
+    try:
+        findings = scan_plan(plan.entries)
+    except ScanError as e:
+        # An unparseable `.py` FileWrite (or any scan-level refusal) is a
+        # pre-crossing-scan denial exactly like a positive finding is — the
+        # seam is refusing the plan for a content reason either way. Wrap it as
+        # SeamError so it crosses this module's one fail-closed boundary rather
+        # than escaping raw past every caller (`_cmd_cross` here, and
+        # `stores/forge_build.py`'s CLI both only catch SeamError). Found by an
+        # audit of the forge_build CLI, 2026-08-11.
+        raise SeamError(f"pre-crossing scan refused: {e}") from e
     if findings:
         detail = "; ".join(f"{path}:{f.line} {f.rule}" for path, fs in findings.items() for f in fs)
         raise SeamError(f"pre-crossing scan refused: {detail}")
