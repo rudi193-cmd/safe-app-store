@@ -20,13 +20,28 @@ The candidate dir must contain a `promotion.json` attestation:
       "core_module":   "nestor",          # the import-pure core package to scan
       "semantic_seam": "nestor.matcher:Matcher",   # module:symbol of the search seam
       "host_repointed": true,             # the host now consumes it as a dependency
-      "major": "python"                   # optional; which store --record files under
+      "major": "python",                  # optional; which store --record files under
+      "trust": {                          # OPTIONAL — upgrades `witnessed` to a seal
+        "custody":     "trust/custody.jsonl",
+        "checkpoint":  "trust/checkpoint.json",
+        "author_id":   "agent:vishwakarma",
+        "verifier_id": "loki"             # == verified_by; key resolved from NESTOR_KEYRING
+      }
     }
 
 Two kinds of gate:
   [M] mechanical — this script verifies it directly (tests, AST scans, symbols).
   [A] attested   — a human/witness asserts it in promotion.json; the script
                    enforces the assertion's *shape* and fails closed if absent.
+
+The `witnessed [M]` gate has two tiers (see _witnessed()). Its FLOOR is the
+string check — verified_by set and ≠ author — and that is all a promotion needs
+by default. When the attestation carries a `trust` block it CLAIMS a
+cryptographic ratification, and the gate then demands `forge.trust.witnessed()`
+pass (the author's provisional seal in a hash-verified custody ledger, covered by
+a checkpoint signed by the verifier's keyring key). A claimed seal that cannot be
+verified here FAILS — it never falls back to the floor. The seam is imported
+lazily, so a promotion with no `trust` block keeps this script stdlib-only.
 
 `--record` is the store refit's P2 (docs/store_refit_plan.md): a passing run
 writes stores/{major}/promoted/<app_id>.json so the passage leaves a mark
@@ -163,6 +178,126 @@ def _vault_leak_gate(cand: Path) -> Result:
     return ("vault_leak [M]", False, f"user data at fixed path: {detail}")
 
 
+def _within(cand: Path, rel: str) -> Path | None:
+    """Resolve an attestation-supplied, candidate-relative path — or None if it
+    is empty or escapes the candidate dir. A `trust` block path is human-authored
+    and used to open a file, so it gets the same treatment as `app_id` on the
+    write path (`_APP_ID_PATTERN`): an external field that addresses the
+    filesystem is not trusted to point outside the thing being promoted."""
+    if not rel:
+        return None
+    try:
+        p = (cand / rel).resolve()
+        p.relative_to(cand.resolve())
+    except (ValueError, OSError):
+        return None
+    return p
+
+
+def _witnessed(cand: Path, att: dict) -> Result:
+    """§0.2 — proposing and ratifying never rest in the same hand.
+
+    FLOOR (stdlib, always runs): `verified_by` must be set and differ from
+    `author`. That is the baseline every promotion clears, and it is exactly the
+    hollow check this fleet already got burned by — a name typed into a JSON
+    field is not a ratification.
+
+    SEAL (opt-in, fail-closed): when the attestation carries a `trust` block the
+    name is no longer enough. The promotion now CLAIMS a cryptographic
+    ratification, and a claimed seal this gate cannot verify is a FAILURE, never a
+    silent fallback to the floor. The claim is checked through
+    `forge.trust.witnessed()` — the forge's own promotion-trust seam, reused
+    wholesale (rule 11): the author's provisional seal must sit in a hash-verified
+    custody ledger, and a checkpoint signed by the verifier's key must cover it.
+    The verifier's PUBLIC key is resolved from the fleet keyring (`NESTOR_KEYRING`)
+    by `verifier_id` — never from the candidate — so identity is anchored to the
+    gate, not to whatever key material a candidate chose to ship.
+
+        "trust": {
+          "custody":     "trust/custody.jsonl",   # candidate-relative; loaded + hash-verified
+          "checkpoint":  "trust/checkpoint.json",  # the ratify() checkpoint event
+          "author_id":   "agent:vishwakarma",      # who provisionally sealed (actor in the ledger)
+          "verifier_id": "rudi193"                 # whose key ratified; MUST equal verified_by
+        }
+
+    The whole seal path is lazily imported: `promote_check` stays stdlib-only, and
+    a promotion without a `trust` block never touches the cloud seam at all.
+    """
+    author = att.get("author", "")
+    verifier = att.get("verified_by", "")
+    string_ok = bool(author) and bool(verifier) and author != verifier
+    trust = att.get("trust")
+
+    if not trust:
+        return ("witnessed [M]", string_ok,
+                f"author={author!r} verified_by={verifier!r} (attested — no seal declared)"
+                + ("" if string_ok else " — verifier must be set and differ from author"))
+
+    # A seal is CLAIMED. Every branch from here is fail-closed: a claimed-but-
+    # unverifiable ratification denies the promotion, it does not fall through.
+    if not isinstance(trust, dict):
+        return ("witnessed [M]", False, "trust block is not an object (fail-closed)")
+    if not string_ok:
+        return ("witnessed [M]", False,
+                f"seal declared but the §0.2 floor fails: author={author!r} verified_by={verifier!r}")
+
+    verifier_id = trust.get("verifier_id", "")
+    author_id = trust.get("author_id", "")
+    if verifier_id != verifier:
+        return ("witnessed [M]", False,
+                f"trust.verifier_id={verifier_id!r} must equal verified_by={verifier!r} "
+                f"(the hand named in the seal is the hand recorded as verifier)")
+    if not author_id:
+        return ("witnessed [M]", False, "trust.author_id missing — who provisionally sealed?")
+
+    cpath = _within(cand, trust.get("custody", ""))
+    kpath = _within(cand, trust.get("checkpoint", ""))
+    if cpath is None or kpath is None:
+        return ("witnessed [M]", False,
+                "trust custody/checkpoint path missing or escapes the candidate (fail-closed)")
+
+    try:  # LAZY — the gate is stdlib-only until a promotion opts into the seal
+        from willow_gate.custody import ChainError, CustodyLedger
+        from forge.trust import witnessed as trust_witnessed
+        from nestor.keyring import get_keyring
+        from nestor.signing import _verifies_with
+    except ImportError as e:
+        return ("witnessed [M]", False,
+                f"seal declared but the cloud seam (forge.trust + willow-gate + nestor) "
+                f"is not installed at this end (fail-closed): {e}")
+
+    ring = get_keyring()
+    if ring is None:
+        return ("witnessed [M]", False,
+                "seal declared but no fleet keyring is configured — set NESTOR_KEYRING (fail-closed)")
+    entry = ring.verifying_entry(verifier_id)
+    if entry is None:
+        return ("witnessed [M]", False,
+                f"verifier {verifier_id!r} is not trusted in the keyring "
+                f"(unknown, revoked-compromised) — fail-closed")
+
+    class _KeyringVerifier:
+        """Verify-only signer over the keyring's PUBLIC key — `witnessed()` →
+        `verify_checkpoint()` only ever calls `.verify()`, never `.sign()`."""
+        def verify(self, data: bytes, sig: str) -> bool:
+            return _verifies_with(entry.kind, entry.key, data, sig)
+
+    try:
+        led = CustodyLedger.load(str(cpath))
+    except (ChainError, OSError, ValueError) as e:
+        return ("witnessed [M]", False, f"custody ledger failed to load/verify: {e}")
+    try:
+        checkpoint_event = json.loads(kpath.read_text())
+    except Exception as e:
+        return ("witnessed [M]", False, f"checkpoint event unreadable: {e}")
+
+    app_id = att.get("app_id") or cand.name
+    w = trust_witnessed(led, checkpoint_event, _KeyringVerifier(),
+                        author_id=author_id, verifier_id=verifier_id, app_id=app_id)
+    return ("witnessed [M]", bool(w.ok),
+            f"sealed: {w.reason}" if w.ok else f"seal rejected: {w.reason}")
+
+
 def check(cand: Path) -> list[Result]:
     out: list[Result] = []
     att = _load_attestation(cand)
@@ -180,10 +315,9 @@ def check(cand: Path) -> list[Result]:
     seam = att.get("semantic_seam", "")
 
     # ── [M] witnessed: proposing and ratifying are different hands (§0.2) ──────
-    ok = bool(author) and bool(verifier) and author != verifier
-    out.append(("witnessed [M]", ok,
-                f"author={author!r} verified_by={verifier!r}"
-                + ("" if ok else " — verifier must be set and differ from author")))
+    # Floor is the string check; an opt-in `trust` block upgrades it to a
+    # verified cryptographic seal (fail-closed) — see _witnessed().
+    out.append(_witnessed(cand, att))
 
     # ── [A] own repo: an extraction, not still in the store monorepo ──────────
     repo = att.get("repo_url", "")
