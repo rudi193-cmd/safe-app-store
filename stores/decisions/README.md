@@ -34,6 +34,45 @@ covenant; `tests/test_fleet_decisions.py` is the CI gate that keeps the
 record well-formed. A violation fails the build: a malformed law is worse
 than no law, because it is *reassuring*.
 
+## Consulting Nestor — the MCP wiring (2026-08-13 give-back)
+
+CLAUDE.md rule 11 says to check `Nestor` before writing a mechanism — *"has a
+human checked this — seal, durable rejection, ledger."* Until this give-back
+that was prose only: `.mcp.json` had no `nestor` entry and nothing read from
+it. Two pieces close the gap, and both keep the covenant this directory
+states above — the machine may ask and propose; it may never seal.
+
+- **`.mcp.json`'s `"nestor"` entry** runs `nestor serve` (the real Nestor MCP
+  server, `nestor/serve.py` — stdlib-only, JSON-RPC 2.0 over stdio) keyed to
+  `--source-lang decision --target-lang decision`, so a model in this repo
+  can ask `nestor_ask`/`nestor_check`/`nestor_provenance`/
+  `nestor_ledger_verify`/`nestor_propose` about a decision by its question
+  text without passing domain tags on every call. It is **not** started
+  `--read-only`: `nestor_propose` (queue a draft for a human) is meant to be
+  reachable from here. No sealing tool is ever exposed — that is `serve.py`'s
+  own `WITHHELD` set, not a flag this repo could accidentally flip.
+  Requires the `nestor` console script on `PATH`, pinned:
+  `pip install "nestor @ git+https://github.com/rudi193-cmd/Nestor@v0.2.0"`
+  (Nestor is not on PyPI — see `stores/requirements.txt`'s own note for
+  `stores/checkpoint_memory.py`, a sibling, unrelated consumer of the same
+  package). The server's db/ledger live under `stores/decisions/.nestor/`,
+  gitignored — the operator's local vault, not repo content, same as
+  `stores/.principals/` and its siblings.
+- **`tools/decisions_boot.py`'s best-effort cross-check** (`_consult_nestor`)
+  spawns that same `nestor serve` subprocess and asks it, over the literal
+  MCP protocol, whether each live decision in this file is already known to
+  the operator's Nestor vault — a second, independent read of "has a human
+  checked this," alongside this file's own `verified_by` field. It is
+  **fail-open by construction**: no `nestor` on `PATH`, no response inside
+  the timeout, or a malformed reply all report `unknown` — never a false
+  "clean," and never a build failure. `--strict`'s covenant gate (the
+  `question`/`commitment`/`reason`/`verified_by`/`reopen_when` checks above)
+  does not depend on Nestor being reachable at all; the cross-check is an
+  additional signal printed alongside the render, not a new way to fail CI
+  (this directory's own decision: *"May the decision gate fail builds
+  fail-closed? no - warn-mode only"*). Skip it with `--no-nestor` for a
+  faster/offline run.
+
 ## How to change it
 
 - A new decision: append with reason, author, verifier. The verifier is not

@@ -150,6 +150,16 @@ jobs:
         # (D12/D13). Listing it here would fail collection on every run.
         # It goes in the moment the pin lands.
         #
+        # tests/test_decisions_boot_nestor.py IS listed, unlike the file
+        # above, because it never imports the real `nestor` package —
+        # tools/decisions_boot.py's Nestor MCP cross-check (stores/decisions/
+        # README.md, "Consulting Nestor") shells out to a `nestor` on PATH as
+        # a subprocess, and this suite exercises that against a tiny
+        # stdlib-only fake server it writes to tmp_path, never a real
+        # install. A test that isn't named here doesn't run in CI at all —
+        # this file's own house history is the reason that's spelled out
+        # rather than assumed (docs/the-house-already-knew.md).
+        #
         # pip install -r stores/requirements.txt: stores/sap_gate.py needs
         # real asymmetric signing, so `pip install pytest` alone no longer
         # collects. The Nestor line in that file is commented out, so this
@@ -158,7 +168,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest
           pip install -r stores/requirements.txt
-          python -m pytest tests/test_no_raw_soil_reads.py tests/test_no_fstring_schema_sql.py tests/test_no_inline_vault_root.py tests/test_no_unauthenticated_bind.py tests/test_promote_check.py tests/test_promote_check_record.py tests/test_vault_lint_vacuous_scan.py tests/test_tier_vocabulary.py tests/test_p1_keeping_records.py tests/test_p3_generated_catalog_fields.py tests/test_catalog_location.py tests/test_status_vocabulary_migration.py tests/test_catalog_top_level_keys.py tests/test_loose_repos.py tests/test_fleet_decisions.py tests/test_sap_gate.py tests/test_seam.py tests/test_session.py tests/test_principal.py tests/test_quota.py -q
+          python -m pytest tests/test_no_raw_soil_reads.py tests/test_no_fstring_schema_sql.py tests/test_no_inline_vault_root.py tests/test_no_unauthenticated_bind.py tests/test_promote_check.py tests/test_promote_check_record.py tests/test_vault_lint_vacuous_scan.py tests/test_tier_vocabulary.py tests/test_p1_keeping_records.py tests/test_p3_generated_catalog_fields.py tests/test_catalog_location.py tests/test_status_vocabulary_migration.py tests/test_catalog_top_level_keys.py tests/test_loose_repos.py tests/test_fleet_decisions.py tests/test_decisions_boot_nestor.py tests/test_sap_gate.py tests/test_seam.py tests/test_session.py tests/test_principal.py tests/test_quota.py -q
 
   app-tests:
     runs-on: ubuntu-latest
