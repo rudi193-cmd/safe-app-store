@@ -23,6 +23,19 @@
         "WILLOW_STORE_ROOT": "/home/sean-campbell/github/safe-app-store-public/.willow/store"
       }
     },
+    "nestor": {
+      "type": "stdio",
+      "command": "nestor",
+      "args": [
+        "serve",
+        "--db", "${HOME}/github/safe-app-store-public/stores/decisions/.nestor/vault.db",
+        "--source-lang", "decision",
+        "--target-lang", "decision"
+      ],
+      "env": {
+        "NESTOR_LEDGER": "${HOME}/github/safe-app-store-public/stores/decisions/.nestor/ledger.jsonl"
+      }
+    },
     "law-gazelle": {
       "type": "stdio",
       "command": "python3",

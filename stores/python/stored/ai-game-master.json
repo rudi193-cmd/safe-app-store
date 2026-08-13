@@ -1,0 +1,13 @@
+{
+  "app_id": "ai-game-master",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/ai-game-master",
+  "maker": "USER / Claude",
+  "lane": "user-{uuid}/ai-game-master/**",
+  "state": "building",
+  "notes": "The willow-data-vault pattern applied to game-mastering: a blueprint (schema/ + bootstrap/), never a campaign. Stdlib-only, import-pure core (a promotion-bar property). Guards proven in tests/ (the SEALED-needs-a-human / propose-carries-no-seal / CC-BY-needs-attribution CHECKs, the --self-test tamper refusal, the --canon machine-seal refusal) and run in the app-tests CI matrix. Landed here 'for now' because its own repo (github.com/rudi193-cmd/ai-game-master) could not be created from-session (API 403); promotion lifts it out into that repo when it exists — Nestor and Jeles are the worked standard. The Vander campaign that proved it out is DATA and lives in a private box (sean-data-vault), never in this build."
+}

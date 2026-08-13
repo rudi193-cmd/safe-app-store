@@ -25,6 +25,14 @@ cryptography>=41.0
 #   pip install -e /workspace/nestor
 # (verify that path in your own environment first — `ls /workspace/nestor`
 # — it is not guaranteed to be there or at that path).
+#
+# A SEPARATE, unrelated consumer: `.mcp.json`'s "nestor" entry and
+# tools/decisions_boot.py's best-effort cross-check (stores/decisions/
+# README.md, "Consulting Nestor") need the `nestor` CONSOLE SCRIPT on PATH,
+# not a Python import — they shell out to `nestor serve` as a subprocess and
+# speak MCP/JSON-RPC to it, so they need no line in THIS file. That wiring is
+# pinned independently, already at a real tag rather than waiting for
+# promotion: `pip install "nestor @ git+https://github.com/rudi193-cmd/Nestor@v0.2.0"`.
 
 # stores/checkpoint_schedule.py (bite 2's FSRS fold-in, D9 / docs/design/
 # the-forge-fsrs.md) uses py-fsrs for real spaced-repetition review

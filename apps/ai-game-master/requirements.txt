@@ -1,0 +1,8 @@
+# ai-game-master is stdlib-only by design — the whole point is a dependency-light,
+# import-pure core (a promotion-bar requirement; see docs/DECISION.md).
+# The schemas apply with the sqlite3 CLI or Python's stdlib sqlite3; the verifier
+# and the PoC use nothing outside the standard library. No runtime deps.
+#
+# (Ed25519 ruling signatures are OPTIONAL and box-side — a box that wants them
+#  installs `cryptography` there, not here; the verifier degrades to reporting
+#  signed-vs-unsigned counts when it is absent, never a false "all good".)
