@@ -1,0 +1,44 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# THE SAFETY GUARANTEE: this repo is a BLUEPRINT, never a CAMPAIGN.
+# Nothing populated may ever be committed. Repo = how to build a campaign vault.
+# Box = the actual played campaign, which stays home. If any of these ever
+# appear in `git status`, something is wrong — stop and investigate before
+# committing. (The Vander campaign lives in a private box — sean-data-vault —
+# NOT here.)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# The book of record and every populated store — a table's real game.
+*.db
+*.sqlite
+*.sqlite3
+*-journal
+*.db-wal
+*.db-shm
+*.ledger.jsonl
+campaign.db
+
+# A provisioned box, wherever it lands.
+/box/
+box/
+/run/
+
+# The signing keys for rulings/seals — the crypto root, generated locally, 0600.
+keys/
+*.key
+*.pem
+
+# A grown corpus is DATA (a table's canon, house rules, guests) or licensed
+# text a table assembled — never the blueprint. The reader ships; the corpus
+# stays with whoever grew it.
+corpus/
+!corpus/.gitkeep
+
+# Anything with a real person's name in it does not belong in a blueprint.
+players/
+*.private.*
+
+# Python noise
+__pycache__/
+*.pyc
+.venv/
+venv/

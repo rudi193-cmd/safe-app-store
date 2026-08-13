@@ -1,0 +1,20 @@
+{
+  "app_id": "ai-game-master",
+  "name": "AI Game Master",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "agent_type": "tool",
+  "description": "The blueprint for an AI Game Master's campaign vault — schemas + bootstrap only, never a campaign. A yes-and bookkeeper, not a rules referee: the machine proposes, rolls, and remembers; a named human at the head of the table seals canon. Built from fleet organs (Nestor ledger + signed decisions, terpsi seal state machine, Jeles corpus reader).",
+  "author": "USER",
+  "permissions": [
+    "store_read",
+    "store_write"
+  ],
+  "privacy_tier": "local",
+  "local_processing": 1.0,
+  "entry_point": "docs/poc_vander_room.py",
+  "license": "Apache-2.0",
+  "store_scope": "user-{uuid}/ai-game-master/**",
+  "repository": "https://github.com/rudi193-cmd/ai-game-master",
+  "notes": "Playground build awaiting promotion into its own repo (github.com/rudi193-cmd/ai-game-master could not be created from this session — API 403). This is the willow-data-vault pattern applied to game-mastering: repo = how to build a campaign vault; box = the played campaign that stays home. The Vander valley campaign that proved it out lives in a private box (sean-data-vault), NOT in this build. No campaign data ships here — .gitignore refuses it. Schemas are pattern-ports (no verbatim code; source named in each header): Nestor ledger.py v0.2.0 (Apache-2.0), terpsi-music sealing.py, Nestor entity.py + decision.py + signing.py, Jeles corpus. Reuse tier = SRD 5.1/5.2 (CC-BY 4.0, attribution enforced); inject tier = the fleet's memory + sealed-canon authority."
+}
