@@ -1,0 +1,13 @@
+{
+  "app_id": "game-lab",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/game-lab",
+  "maker": "USER / Claude",
+  "lane": "n/a — static reference corpus (rules/ + sims/ + baselines/); no runtime, no SOIL writes, no user lane",
+  "state": "seeded",
+  "notes": "Reference companion to apps/ai-game-master: the games that engine can run, each with official cited rules (rules/COMPENDIUM.md, rules/uno-official.md), a self-play reference simulator (sims/), and a measured N=500 null-model baseline (baselines/). Not a runnable SAFE app — no app_id auth, no safe-app-manifest.json, no user data — which is why it is 'seeded' rather than 'building': it is placed reference material, not a build being carried toward promotion. Held to the fleet covenant that every number traces to a real run: the two headline findings (all-John reveals turn-order structure random hides; N=500 vs N=100 changes answers) are reproducible from sims/run_added_games.py and sims/baseline_core.py, and baselines/PROVENANCE.md seals the correction where some agent-produced rows were published before being run, caught, and replaced with measured values. The eleven added-game engines are stdlib-only; the core-five path (baseline_core.py, chess_selfplay.py) needs python-chess (requirements.txt). CI gate: sims/ci_smoke.py runs the eleven engines under both policies at low N and asserts well-formed measured output (store-ci.yml, game-lab-sims job)."
+}
