@@ -22,6 +22,7 @@ Exit 1 = at least one did not; the offending engine is named on stderr.
 from __future__ import annotations
 
 import importlib
+import py_compile
 import sys
 
 # The eleven stdlib engines run_added_games.py drives. Kept in step with that
@@ -32,9 +33,22 @@ STDLIB_ENGINES = [
     "cribbage", "go_fish", "hearts", "crazy_eights", "spades", "war",
 ]
 
-# Import-only: these pull in python-chess (see requirements.txt). CI installs
-# it and imports them so a broken import is caught without paying for a run.
-IMPORT_ONLY = ["baseline_core", "chess_selfplay"]
+# The core-five path pulls in python-chess (see requirements.txt). CI installs
+# it, so these checks are real rather than skipped. Two different checks,
+# because the two files are different shapes:
+#
+#   IMPORT_CHECK — a proper module: importing it runs no work, so an import
+#     verifies python-chess is wired in correctly (a stronger check than
+#     syntax).
+#   COMPILE_CHECK — chess_selfplay.py is a *script*, not a module: its whole
+#     body runs at import (it plays 13 games and writes to a hardcoded
+#     /root/_chess_res.md, which is PermissionError on a normal runner). It
+#     cannot be safely imported, so it gets a syntax gate only. This is the
+#     honest boundary of what CI exercises here: chess_selfplay's runtime
+#     behavior and its hardcoded output path are NOT checked by this job — see
+#     the note in requirements.txt / the store-ci.yml comment.
+IMPORT_CHECK = ["baseline_core"]
+COMPILE_CHECK = ["chess_selfplay"]
 
 POLICIES = ("random", "john")
 SMOKE_N = 40
@@ -80,11 +94,20 @@ def run_smoke(n: int = SMOKE_N) -> list[str]:
 
 def check_imports() -> list[str]:
     problems: list[str] = []
-    for name in IMPORT_ONLY:
+    for name in IMPORT_CHECK:
         try:
             importlib.import_module(name)
         except Exception as exc:  # noqa: BLE001
             problems.append(f"{name}: import failed: {exc!r}")
+    for name in COMPILE_CHECK:
+        # py_compile parses without executing — the only safe check for a
+        # side-effecting script (see COMPILE_CHECK comment above).
+        try:
+            py_compile.compile(f"{name}.py", doraise=True)
+        except py_compile.PyCompileError as exc:
+            problems.append(f"{name}: does not compile: {exc.msg}")
+        except OSError as exc:
+            problems.append(f"{name}: cannot read {name}.py: {exc!r}")
     return problems
 
 
@@ -119,9 +142,11 @@ def main(argv: list[str]) -> int:
         for p in problems:
             print(f"  - {p}", file=sys.stderr)
         return 1
-    checked = len(STDLIB_ENGINES) * len(POLICIES) + len(IMPORT_ONLY)
+    core_checks = len(IMPORT_CHECK) + len(COMPILE_CHECK)
+    checked = len(STDLIB_ENGINES) * len(POLICIES) + core_checks
     print(f"game-lab sims smoke OK: {len(STDLIB_ENGINES)} engines x {len(POLICIES)} policies "
-          f"at N={SMOKE_N} + {len(IMPORT_ONLY)} import checks ({checked} checks)")
+          f"at N={SMOKE_N} + {core_checks} core-five checks "
+          f"({len(IMPORT_CHECK)} import, {len(COMPILE_CHECK)} compile) = {checked} checks")
     return 0
 
 

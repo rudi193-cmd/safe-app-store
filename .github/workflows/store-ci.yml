@@ -265,10 +265,16 @@ jobs:
   #
   # requirements.txt names python-chess, the one real dependency (the core-five
   # path: baseline_core.py, chess_selfplay.py). It is installed here so
-  # ci_smoke.py's import checks over those two are real rather than skipped — a
-  # gate that skips its dependency-bearing checks and exits 0 is the failure
-  # this store keeps naming. If the install breaks, this job goes red, which is
-  # honest.
+  # ci_smoke.py's core-five checks are real rather than skipped — a gate that
+  # skips its dependency-bearing checks and exits 0 is the failure this store
+  # keeps naming. If the install breaks, this job goes red, which is honest.
+  #
+  # What this job does NOT check, said plainly (the store's "say what your
+  # harness structurally cannot see" rule): baseline_core.py gets a real import
+  # check, but chess_selfplay.py is a script whose whole body runs at import
+  # (it plays 13 games and writes a hardcoded /root/_chess_res.md), so it gets
+  # a compile/syntax check only — its runtime and that hardcoded path are not
+  # exercised here.
   game-lab-sims:
     runs-on: ubuntu-latest
     timeout-minutes: 10
