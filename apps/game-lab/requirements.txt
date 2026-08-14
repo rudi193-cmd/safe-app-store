@@ -1,0 +1,10 @@
+# game-lab runtime dependencies.
+#
+# The eleven added-game engines (coup, skull, spades, war, ... — driven by
+# sims/run_added_games.py) and their smoke gate (sims/ci_smoke.py) are
+# stdlib-only and need nothing here.
+#
+# The core-five path is the exception: sims/baseline_core.py and
+# sims/chess_selfplay.py use python-chess for legal-move generation. It is a
+# pure-Python package, so it installs anywhere the sims run.
+chess>=1.10

@@ -731,6 +731,25 @@
         "canon",
         "blueprint"
       ]
+    },
+    {
+      "id": "game-lab",
+      "name": "Game Lab",
+      "description": "Reference companion to AI Game Master: the games that engine can run, each with official cited rules, a stdlib self-play reference simulator, and a measured N=500 null-model baseline. Two findings it exists to show — an identical competent policy reveals turn-order structure random seating hides, and N=500 answers differ from N=100. Every number traces to a real run.",
+      "author": "USER / Claude",
+      "status": "seeded",
+      "path": "apps/game-lab",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "tags": [
+        "games",
+        "simulation",
+        "baselines",
+        "reference",
+        "provenance"
+      ]
     }
   ]
 }
