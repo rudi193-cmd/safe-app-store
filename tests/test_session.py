@@ -355,3 +355,63 @@ def test_cli_mint_verify_revoke(tmp_path, capsys):
     assert "invalid" in capsys.readouterr().out
 
     assert session.main(["--root", root, "mint", "../bad"]) == 1
+
+
+# ---------------------------------------------------------------------------
+# A token that begins with "-" (base64url allows it, ~1 in 64)
+#
+# Found as a 1.6%-per-run CI flake: `session.py verify <token>` died with "the
+# following arguments are required: token" — naming the argument the user had
+# just supplied. Two halves, because either alone leaves a hole: new tokens
+# stop starting with "-", and the CLI handles one anyway, since tokens minted
+# before the change are still valid and have to stay usable.
+# ---------------------------------------------------------------------------
+
+def test_mint_rejects_a_token_that_begins_with_a_hyphen(monkeypatch):
+    # Deterministic, not statistical: hand the generator's first draw back as a
+    # hyphen token and require _mint_token to draw again.
+    draws = iter(["-leading-hyphen-token", "safe-token-value"])
+    monkeypatch.setattr(session.secrets, "token_urlsafe", lambda _n: next(draws))
+    assert session._mint_token() == "safe-token-value"
+
+
+def test_mint_gives_up_loudly_rather_than_looping_forever(monkeypatch):
+    # A wedged mint is worse than a failed one: bound the rejection sampling.
+    monkeypatch.setattr(session.secrets, "token_urlsafe", lambda _n: "-always")
+    with pytest.raises(session.SessionError, match="not behaving randomly"):
+        session._mint_token()
+
+
+def test_minting_is_still_random_and_still_hyphen_free(tmp_path):
+    # The guard must not have quietly replaced randomness with a fixed value.
+    store = _store(tmp_path)
+    tokens = {session.mint_session(store, GOOD_BUILDER_ID).token for _ in range(50)}
+    assert len(tokens) == 50
+    assert not any(t.startswith("-") for t in tokens)
+
+
+@pytest.mark.parametrize("command", ["verify", "revoke"])
+def test_cli_accepts_a_legacy_token_that_begins_with_a_hyphen(tmp_path, capsys,
+                                                              monkeypatch, command):
+    root = str(tmp_path / "sessions")
+    legacy = "-Ab1_cD2efGh3IjKlMn4opQrS5tUvWxYz6"
+    # Patch the minter itself, not the generator: patching the generator would
+    # make _mint_token reject forever, which is the behaviour tested above.
+    monkeypatch.setattr(session, "_mint_token", lambda: legacy)
+    assert session.main(["--root", root, "mint", GOOD_BUILDER_ID]) == 0
+    token = __import__("json").loads(capsys.readouterr().out)["token"]
+    assert token == legacy
+    monkeypatch.undo()
+
+    # The exact call that was failing 1.6% of the time in CI.
+    assert session.main(["--root", root, command, token]) == 0
+
+
+def test_the_token_guard_leaves_ordinary_argv_alone():
+    guard = session._argv_with_token_guard
+    assert guard(["--root", "r", "verify", "t"]) == ["--root", "r", "verify", "--", "t"]
+    assert guard(["--root", "r", "mint", "b"]) == ["--root", "r", "mint", "b"]
+    already = ["verify", "--", "-tok"]                  # no second separator
+    assert guard(already) == already
+    # A session root literally named "verify" is a path, not the subcommand.
+    assert guard(["--root", "verify", "mint", "b"]) == ["--root", "verify", "mint", "b"]

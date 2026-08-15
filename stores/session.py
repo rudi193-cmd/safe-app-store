@@ -122,6 +122,40 @@ DEFAULT_TTL_SECONDS = 24 * 60 * 60
 # here, not a smaller value chosen to "match" builder_id.
 _TOKEN_BYTES = 32
 
+#: Bound on _mint_token's rejection sampling. P(all fail) = 64**-16.
+_MINT_ATTEMPTS = 16
+
+
+def _mint_token() -> str:
+    """`secrets.token_urlsafe(_TOKEN_BYTES)`, never starting with ``-``.
+
+    base64url's alphabet is ``A-Za-z0-9-_``, so about one token in 64 begins
+    with a hyphen — and a bearer credential that begins with a hyphen is read
+    as an option flag by every argument parser it is ever pasted into,
+    including this module's own CLI. It is not a theoretical edge: it is a
+    1.6% failure rate on a credential whose whole job is to be copied from one
+    place and pasted into another.
+
+    Rejection-sampling the first character costs 1/64th of the keyspace — 256
+    bits becomes 255.98 — which is not a security trade so much as a rounding
+    error. The CLI *also* handles a leading hyphen (see :func:`_argv_with_token_guard`),
+    because tokens minted before this existed are still valid and must stay
+    usable; this makes new ones stop walking into the problem at all.
+
+    The retry is bounded. With real randomness the loop ends on the first draw
+    63 times in 64 and unbounded retry would be fine, but a generator that
+    somehow returns a constant would hang this process forever instead of
+    failing — and a wedged mint is a worse outcome than a loud one.
+    """
+    for _ in range(_MINT_ATTEMPTS):
+        token = secrets.token_urlsafe(_TOKEN_BYTES)
+        if not token.startswith("-"):
+            return token
+    raise SessionError(
+        f"could not mint a token not starting with '-' in {_MINT_ATTEMPTS} "
+        "attempts; the source of randomness is not behaving randomly"
+    )
+
 # principal.py is loaded the same way stores/seam.py loads stores/sap_gate.py
 # — spec_from_file_location, not a package-relative import, because stores/
 # has no __init__.py and is run as a directory of standalone scripts, not
@@ -451,7 +485,7 @@ def mint_session(
 
     issued_at = time.time() if now is None else now
     expires_at = issued_at + ttl_seconds
-    token = secrets.token_urlsafe(_TOKEN_BYTES)
+    token = _mint_token()
     record = SessionRecord(
         token_hash=_token_hash(token),
         builder_id=builder_id,
@@ -560,8 +594,44 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
+#: Subcommands whose positional argument is an opaque token the user pastes in.
+_TOKEN_SUBCOMMANDS = ("verify", "revoke")
+
+
+def _argv_with_token_guard(argv: list[str]) -> list[str]:
+    """Insert ``--`` after a token-taking subcommand, so a token that begins
+    with ``-`` is read as the token and not as an unknown option.
+
+    argparse has no way to say "this positional is opaque"; the only lever is
+    the ``--`` separator, and a user pasting a credential has no reason to know
+    that. Without this, `verify -abc…` fails with *"the following arguments are
+    required: token"* — a message that names the argument the user just
+    supplied, which sends them looking in the wrong place entirely.
+
+    Applied only to the *subcommand* position, and never when the caller has
+    already written ``--``. `--root`'s value is skipped explicitly so that a
+    session root literally named ``verify`` is not mistaken for the subcommand.
+    """
+    i = 0
+    while i < len(argv):
+        arg = argv[i]
+        if arg == "--root":                 # its value is next; not a subcommand
+            i += 2
+            continue
+        if arg.startswith("-"):             # --root=…, -h, or any other option
+            i += 1
+            continue
+        rest = argv[i + 1:]
+        if arg in _TOKEN_SUBCOMMANDS and "--" not in rest:
+            return argv[:i + 1] + ["--"] + rest
+        return argv                         # first bare word settles it
+    return argv
+
+
 def main(argv: list[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
+    if argv is None:
+        argv = sys.argv[1:]
+    args = build_parser().parse_args(_argv_with_token_guard(list(argv)))
     return args.func(args)
 
 
