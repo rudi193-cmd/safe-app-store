@@ -168,3 +168,47 @@ def test_rows_survive_a_reopen(log, tmp_path):
     log.answer(row["request_id"], granted=False, by="Parent", reason="no")
     reopened = Log(path=log.path, roster=ROSTER)
     assert len(reopened.rows()) == 2
+
+
+# -- who asked, and what they can see back --------------------------------
+
+def test_an_unchosen_subject_is_refused_as_its_own_case(tmp_path):
+    # A picker that defaults to the first child satisfies "the name came from a
+    # list" and still records the wrong person. "" means nobody chose, and it
+    # gets a message that says so rather than a roster miss.
+    log = Log(path=tmp_path / "d.jsonl", roster=("mira", "theo"))
+    with pytest.raises(DispositionError, match="a default is not a choice"):
+        log.request("", "sgt-puzzles", asked_by="mira")
+
+
+def test_for_subject_returns_that_childs_requests_folded(tmp_path):
+    log = Log(path=tmp_path / "d.jsonl", roster=("mira", "theo"))
+    a = log.request("theo", "sgt-puzzles", asked_by="theo")
+    log.request("mira", "frozen-bubble", asked_by="mira")
+    b = log.request("theo", "vector-pinball", asked_by="theo")
+    log.answer(b["request_id"], granted=False, by="parent", reason="school night")
+
+    theo = log.for_subject("theo")
+    assert {r["app_id"] for r in theo} == {"sgt-puzzles", "vector-pinball"}
+    by_app = {r["app_id"]: r for r in theo}
+    assert by_app["sgt-puzzles"]["disposition"] == OPEN
+    assert by_app["sgt-puzzles"]["request_id"] == a["request_id"]
+    # The refusal is returned, not filtered out: a child who only sees pending
+    # rows is told that a request they made was never made at all.
+    assert by_app["vector-pinball"]["disposition"] == REFUSED
+    assert by_app["vector-pinball"]["reason"] == "school night"
+
+
+def test_for_subject_does_not_leak_a_siblings_requests(tmp_path):
+    log = Log(path=tmp_path / "d.jsonl", roster=("mira", "theo"))
+    log.request("mira", "frozen-bubble", asked_by="mira")
+    assert log.for_subject("theo") == []
+    assert [r["app_id"] for r in log.for_subject("mira")] == ["frozen-bubble"]
+
+
+def test_for_subject_reports_an_expiry_the_child_can_act_on(tmp_path):
+    log = Log(path=tmp_path / "d.jsonl", roster=("theo",))
+    log.request("theo", "sgt-puzzles", asked_by="theo", within_hours=1)
+    log.clock = staticmethod(
+        lambda: datetime.now(timezone.utc) + timedelta(hours=2))
+    assert log.for_subject("theo")[0]["disposition"] == EXPIRED
