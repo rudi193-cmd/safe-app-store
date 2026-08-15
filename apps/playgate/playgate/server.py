@@ -101,7 +101,19 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if route == "/api/requests":
-            view = parse_qs(parsed.query).get("view", ["open"])[0]
+            params = parse_qs(parsed.query)
+            subject = params.get("subject", [None])[0]
+            if subject is not None:
+                # The child's own view. Checked against the roster for the same
+                # reason every other subject is: an id nobody was started with
+                # is not a person this host knows about, and answering for it
+                # would invent one.
+                if subject not in self.log.roster:
+                    self._error(400, f"subject {subject!r} is not on the roster")
+                    return
+                self._json(200, {"requests": self.log.for_subject(subject)})
+                return
+            view = params.get("view", ["open"])[0]
             if view != "open":
                 self._error(400, f"unknown view {view!r}")
                 return

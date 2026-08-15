@@ -141,7 +141,19 @@ class Log:
         `subject_id` must be on the roster. The UI offers a fixed list rather
         than a text box: a consent log whose subject is a name the requester
         typed records an assertion, not an identity.
+
+        **An empty `subject_id` is its own refusal, not a roster miss.** A
+        picker that defaults to the first child on the roster satisfies "the
+        name came from a list" while still recording the wrong person, and the
+        resulting row is indistinguishable from a true one — nobody has to do
+        anything wrong for the log to be wrong. So the caller must send a
+        choice somebody made, and "" is how a surface says nobody chose.
         """
+        if not subject_id:
+            raise DispositionError(
+                "no subject was chosen; a request has to say which child is "
+                "asking, and a default is not a choice somebody made"
+            )
         if subject_id not in self.roster:
             raise DispositionError(
                 f"subject {subject_id!r} is not on the roster {list(self.roster)}"
@@ -251,6 +263,27 @@ class Log:
             if state and state["disposition"] == OPEN:
                 out.append(state)
         return out
+
+    def for_subject(self, subject_id: str) -> "list[dict]":
+        """Every request this subject made, each folded to its current state.
+
+        `open_requests()` is the parent's view: what still needs answering,
+        across everyone. This is the child's: what did *I* ask for, and what
+        happened. Answered rows are included precisely because they are the
+        interesting ones — a surface that only shows what is still pending
+        tells a child who was refused that nothing was ever asked, which is
+        the same erasure the log itself refuses to perform.
+        """
+        return [
+            state
+            for state in (
+                self.current(row["request_id"])
+                for row in self.rows()
+                if row.get("kind") == KIND_REQUEST
+                and row.get("subject_id") == subject_id
+            )
+            if state is not None
+        ]
 
     def history(self, request_id: str) -> "list[dict]":
         """Every row for one request, oldest first — the audit view.
