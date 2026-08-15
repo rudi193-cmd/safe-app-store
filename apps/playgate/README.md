@@ -13,7 +13,7 @@ python -m playgate serve --subject kid1 --subject kid2
 
 python -m playgate lint            # what state is each entry's evidence in
 python -m playgate verify          # walk the disposition chain (needs nestor)
-python -m pytest tests/ -q         # 139 assertions, including 11 mutations
+python -m pytest tests/ -q         # 146 assertions, including 12 mutations
 ```
 
 No third-party store, no ads, and no network beyond the loopback socket that
@@ -154,18 +154,31 @@ request.
 | `test_no_egress.py` | The core imports nothing network-shaped; `server.py` may import `urllib.parse` but not `urllib.request`; `serve()` refuses a non-loopback bind; the core pulls in no third-party package. |
 | `test_interruption.py` | A missing record is an error, `assumed` may not carry a count, `measured` must be bound to a build and a date, demotion works and does not mutate, combination takes the floor rather than an average. |
 | `test_disposition.py` | Reason required both ways, roster enforced, an unchosen subject refused as its own case, refusals and expiries recorded, no re-answering, history survives the fold, and a child's own requests fold without leaking a sibling's. |
-| `test_install.py` | Digest verified before adb is reached, an entry with no digest refused, a zero exit without `Success` still a failure, timeouts and `OSError` reported rather than raised. |
+| `test_install.py` | Digest verified before adb is reached, an entry with no digest refused, a zero exit without `Success` still a failure, timeouts and `OSError` reported rather than raised — and, against a stub `adb` on `PATH` with **no runner injected**, the real `subprocess` call: the argv it issues, a genuine non-zero exit, a genuine zero-exit-without-`Success`, a real process killed on timeout, and unverified bytes never reaching a spawned process at all. |
 | `test_catalog.py` | An entry with no interruption field does not load; the view carries four facts and no score; the shipped catalog is all `assumed`. |
 | `test_server.py` | Real loopback socket, real routes: ask, refuse, grant-and-install, the traversal guard, a child reading back their own requests and answers, and a request with no chosen subject refused with nothing written. |
 | `test_chain.py` | Every line carries the prior line's hash; `head()` is that hash; an edited past line is caught; the newest line is not, until `--expect-head` is passed; a pre-chain log reads as `unchained`, not tampered, and is never retro-fitted; a missing verifier reports `unverifiable`, never `ok`; and the core's import graph reaches neither `nestor` nor `audit`. |
 | `test_paths.py` | Only `paths.py` imports the vault resolver; the four core modules choose no location at all; no module hardcodes a home or absolute persistence path; the log and APK dir resolve outside the install directory; env overrides still win; an unconfigured host refuses to install rather than searching itself. |
-| `test_mutations.py` | Eleven mechanisms broken on purpose, each required to fail exactly the test that claims to cover it — plus a control run proving an unmutated copy passes. |
+| `test_mutations.py` | Twelve mechanisms broken on purpose, each required to fail exactly the test that claims to cover it — plus a control run proving an unmutated copy passes. |
 
 ## What none of this can see
 
 - **Whether Waydroid actually installs anything.** The adb path is exercised
-  against an injected runner, and against a genuinely absent adb on the CI
+  against an injected runner, against a stub `adb` on `PATH` that makes the
+  real `subprocess` call happen, and against a genuinely absent adb on the CI
   runner. It has never run against a real device in CI and cannot.
+
+  Two things that stub deliberately cannot tell you, both open. **The command
+  carries no device selector** — it is `adb install -r <apk>`, and with exactly
+  one device attached adb installs to whichever one that is, so on a host where
+  Waydroid is not the only adb target the bytes can land elsewhere and still
+  report success, writing a true-looking `installed` row. `test_argv_names_no_device`
+  pins the argv so that any change to the target shows up in a diff rather than
+  silently; it does not claim the current argv is right. And **whether adb
+  reaches Waydroid at all** on a stock install is unverified: Waydroid's own
+  documented route is `waydroid app install`, and adb access to the container
+  normally needs an explicit `adb connect` first. Both need a real Waydroid
+  host to settle.
 - **What an APK does at move five.** The digest proves the bytes on disk are
   the bytes an operator recorded. Everything above `fitted` needs a person and
   a clock, which does not scale — and the honest response to that is `assumed`
