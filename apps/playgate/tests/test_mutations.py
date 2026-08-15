@@ -130,6 +130,16 @@ MUTATIONS: "list[Case]" = [
         '    apk_root: "Path | None" = APP_ROOT',
         "tests/test_paths.py::test_an_unconfigured_host_refuses_to_install_rather_than_searching_itself",
     ),
+    (
+        # The install command itself, which until now no test executed: every
+        # other install case injects a runner, so the argv was never built.
+        # Drop the reinstall flag and nothing but the argv assertion notices.
+        "the install command changes without anyone noticing",
+        "playgate/install.py",
+        '[ADB, "install", "-r", str(apk_path)]',
+        '[ADB, "install", str(apk_path)]',
+        "tests/test_install.py::test_argv_names_no_device",
+    ),
 ]
 
 

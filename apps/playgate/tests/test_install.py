@@ -118,3 +118,112 @@ def test_an_os_error_is_reported_not_raised(apk, monkeypatch):
 
     result = install.perform(apk, install.digest(apk), runner=broken)
     assert not result.ok and "exec format error" in result.detail
+
+
+# ---------------------------------------------------------------------------
+# The real subprocess path
+#
+# Every test above injects a runner, which is right for driving failure modes
+# but means `subprocess.run` itself — the argv, capture_output, text, timeout —
+# is never executed by the suite. A typo in that argv list would pass all of
+# them. These tests put a stub `adb` on PATH and call perform() with NO runner,
+# so the call actually happens. No device and no Waydroid required, which is
+# what makes them runnable in CI; what they cannot tell you is whether the
+# thing on the other end is the child's tablet (see test_argv_names_no_device).
+# ---------------------------------------------------------------------------
+
+@pytest.fixture()
+def stub_adb(tmp_path, monkeypatch):
+    """An executable named `adb` on PATH that records its argv.
+
+    Written against sys.executable rather than /bin/sh so the stub does not
+    depend on a shell being present or on how it quotes.
+    """
+    import os
+    import sys
+
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    calls = tmp_path / "argv.txt"
+
+    def build(*, exit_code: int = 0, stdout: str = "Success",
+              stderr: str = "", sleep: float = 0.0) -> Path:
+        script = bin_dir / "adb"
+        script.write_text(
+            f"#!{sys.executable}\n"
+            "import sys, time\n"
+            f"open({str(calls)!r}, 'a').write(repr(sys.argv[1:]) + chr(10))\n"
+            f"time.sleep({sleep})\n"
+            f"sys.stdout.write({stdout!r})\n"
+            f"sys.stderr.write({stderr!r})\n"
+            f"sys.exit({exit_code})\n"
+        )
+        script.chmod(0o755)
+        monkeypatch.setenv("PATH", f"{bin_dir}{os.pathsep}{os.environ['PATH']}")
+        return calls
+
+    return build
+
+
+def test_the_real_adb_call_succeeds_end_to_end(apk, stub_adb):
+    calls = stub_adb()
+    result = install.perform(apk, install.digest(apk))     # no runner injected
+    assert result.ok, result.detail
+    assert "adb reported success" in result.detail
+    assert calls.exists(), "adb was never actually executed"
+
+
+def test_argv_names_no_device(apk, stub_adb):
+    """Locks the command as it is actually issued.
+
+    It is `adb install -r <apk>` with **no device selector**. That is worth
+    pinning rather than leaving implicit: with exactly one device attached, adb
+    installs to whichever one that is, so on a host where Waydroid is not the
+    only adb target the bytes can land somewhere else entirely and still report
+    success. This test does not claim that is correct — it makes any change to
+    the target visible in a diff instead of silent.
+    """
+    import ast
+
+    calls = stub_adb()
+    install.perform(apk, install.digest(apk))
+    # literal_eval, not eval: test_no_dynamic_execution only scans playgate/,
+    # so nothing here would have caught it — which is the reason to not write
+    # it rather than a reason it is fine.
+    assert ast.literal_eval(calls.read_text().strip()) == ["install", "-r", str(apk)]
+
+
+def test_a_real_nonzero_exit_is_reported_not_raised(apk, stub_adb):
+    stub_adb(exit_code=1, stdout="", stderr="error: no devices/emulators found")
+    result = install.perform(apk, install.digest(apk))
+    assert result.ok is False
+    assert "adb exit 1" in result.detail
+    assert "no devices/emulators found" in result.detail
+
+
+def test_a_real_zero_exit_without_success_is_still_a_failure(apk, stub_adb):
+    # adb has historically exited 0 while printing a failure. Proven here
+    # against a real process, not a stand-in object.
+    stub_adb(exit_code=0, stdout="Performing Streamed Install\nFailure [INSTALL_FAILED]")
+    result = install.perform(apk, install.digest(apk))
+    assert result.ok is False
+    assert "INSTALL_FAILED" in result.detail
+
+
+def test_a_real_timeout_is_reported_not_raised(apk, stub_adb, monkeypatch):
+    # The genuine subprocess.TimeoutExpired path, with a real process killed.
+    monkeypatch.setattr(install, "INSTALL_TIMEOUT_SECONDS", 1)
+    stub_adb(sleep=30)
+    result = install.perform(apk, install.digest(apk))
+    assert result.ok is False
+    assert "timed out after 1s" in result.detail
+
+
+def test_unverified_bytes_never_reach_a_real_adb(apk, stub_adb):
+    # The ordering that matters most: a digest mismatch must stop before the
+    # process is spawned at all, not be caught after.
+    calls = stub_adb()
+    result = install.perform(apk, "0" * 64)
+    assert result.ok is False
+    assert "sha256 mismatch" in result.detail
+    assert not calls.exists(), "adb ran despite an unverified digest"
