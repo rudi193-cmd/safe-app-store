@@ -208,3 +208,55 @@ def test_static_traversal_is_refused(running):
     port, _, _ = running
     status, _ = call(port, "GET", "/kid/../../safe-app-manifest.json")
     assert status != 200
+
+
+# -- the child's own view -----------------------------------------------------
+
+def test_a_child_can_read_back_what_they_asked_for(running):
+    """The kid UI's state read. Without it a child sees no trace of a request
+    after a reload, and the only way to find out what happened is to ask again.
+    """
+    port, _, _ = running
+    status, _ = call(port, "POST", "/api/requests",
+                     {"subject_id": "kid1", "app_id": "example", "asked_by": "kid1"})
+    assert status == 201
+
+    status, body = call(port, "GET", "/api/requests?subject=kid1")
+    assert status == 200
+    assert [r["app_id"] for r in body["requests"]] == ["example"]
+    assert body["requests"][0]["disposition"] == "open"
+
+
+def test_the_childs_view_carries_the_answer_and_its_reason(running):
+    port, log, _ = running
+    _, created = call(port, "POST", "/api/requests",
+                      {"subject_id": "kid1", "app_id": "example", "asked_by": "kid1"})
+    request_id = created["request"]["request_id"]
+    call(port, "POST", f"/api/requests/{request_id}/answer",
+         {"granted": False, "by": "parent", "reason": "not before homework"})
+
+    _, body = call(port, "GET", "/api/requests?subject=kid1")
+    answered = body["requests"][0]
+    assert answered["disposition"] == "refused"
+    # Shown to the child, not merely recorded for the adult.
+    assert answered["reason"] == "not before homework"
+
+
+def test_the_childs_view_refuses_a_subject_not_on_the_roster(running):
+    port, _, _ = running
+    status, body = call(port, "GET", "/api/requests?subject=someone-else")
+    assert status == 400
+    assert "roster" in body["error"]
+
+
+def test_a_request_with_no_chosen_subject_is_refused(running):
+    """The picker used to default to the first child on the roster, so a reload
+    reattributed the next request to a sibling. An empty subject is now a
+    refusal the host can make, rather than a state it cannot see.
+    """
+    port, log, _ = running
+    status, body = call(port, "POST", "/api/requests",
+                        {"subject_id": "", "app_id": "example", "asked_by": ""})
+    assert status == 400
+    assert "not a choice" in body["error"]
+    assert log.rows() == []          # and nothing was written

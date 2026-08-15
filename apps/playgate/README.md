@@ -13,7 +13,7 @@ python -m playgate serve --subject kid1 --subject kid2
 
 python -m playgate lint            # what state is each entry's evidence in
 python -m playgate verify          # walk the disposition chain (needs nestor)
-python -m pytest tests/ -q         # 131 assertions, including 11 mutations
+python -m pytest tests/ -q         # 139 assertions, including 11 mutations
 ```
 
 No third-party store, no ads, and no network beyond the loopback socket that
@@ -89,9 +89,16 @@ local file can offer and strictly more than a sentence in a README.
   instant.** The catalog will change underneath it. A log holding only the
   current value can confirm the present state but cannot be used to ask whether
   the reasoning was sound.
-- **Who asked comes from a roster, not a text box.** The host is started with
-  an explicit `--subject` list. A consent log whose subject is a name the
-  requester typed records an assertion, not an identity.
+- **Who asked comes from a roster, not a text box, and never from a default.**
+  The host is started with an explicit `--subject` list. A consent log whose
+  subject is a name the requester typed records an assertion, not an identity —
+  and one that *defaults* to a name records somebody else's. The kid UI's picker
+  opens on "choose your name" with an empty value, remembers the choice across
+  reloads, and the host refuses a request carrying no subject as its own case,
+  distinct from a roster miss. The picker used to select the first child on the
+  roster, so a reload silently reattributed the next request to a sibling: the
+  roster stopped a child typing a false name while quietly supplying one, and
+  nobody had to do anything wrong for the log to be wrong.
 
 ### Verifying it
 
@@ -146,10 +153,10 @@ request.
 | --- | --- |
 | `test_no_egress.py` | The core imports nothing network-shaped; `server.py` may import `urllib.parse` but not `urllib.request`; `serve()` refuses a non-loopback bind; the core pulls in no third-party package. |
 | `test_interruption.py` | A missing record is an error, `assumed` may not carry a count, `measured` must be bound to a build and a date, demotion works and does not mutate, combination takes the floor rather than an average. |
-| `test_disposition.py` | Reason required both ways, roster enforced, refusals and expiries recorded, no re-answering, history survives the fold. |
+| `test_disposition.py` | Reason required both ways, roster enforced, an unchosen subject refused as its own case, refusals and expiries recorded, no re-answering, history survives the fold, and a child's own requests fold without leaking a sibling's. |
 | `test_install.py` | Digest verified before adb is reached, an entry with no digest refused, a zero exit without `Success` still a failure, timeouts and `OSError` reported rather than raised. |
 | `test_catalog.py` | An entry with no interruption field does not load; the view carries four facts and no score; the shipped catalog is all `assumed`. |
-| `test_server.py` | Real loopback socket, real routes: ask, refuse, grant-and-install, and the traversal guard. |
+| `test_server.py` | Real loopback socket, real routes: ask, refuse, grant-and-install, the traversal guard, a child reading back their own requests and answers, and a request with no chosen subject refused with nothing written. |
 | `test_chain.py` | Every line carries the prior line's hash; `head()` is that hash; an edited past line is caught; the newest line is not, until `--expect-head` is passed; a pre-chain log reads as `unchained`, not tampered, and is never retro-fitted; a missing verifier reports `unverifiable`, never `ok`; and the core's import graph reaches neither `nestor` nor `audit`. |
 | `test_paths.py` | Only `paths.py` imports the vault resolver; the four core modules choose no location at all; no module hardcodes a home or absolute persistence path; the log and APK dir resolve outside the install directory; env overrides still win; an unconfigured host refuses to install rather than searching itself. |
 | `test_mutations.py` | Eleven mechanisms broken on purpose, each required to fail exactly the test that claims to cover it — plus a control run proving an unmutated copy passes. |
