@@ -13,3 +13,12 @@
 #
 # Dev-only, not a runtime dependency:
 # pytest>=8.0
+#
+# Test-only, not a runtime dependency:
+# nestor — walks the disposition hash chain (playgate/audit.py). Injected: the
+# core writes `prev` with stdlib hashlib and `serve` runs without nestor
+# installed; only `playgate verify` needs it, and it says so rather than
+# guessing when it is absent. Pinned in store-ci.yml's app-tests matrix:
+#   pip install "git+https://github.com/rudi193-cmd/Nestor@v0.2.0"
+# The chain tests importorskip it, so that leg also sets
+# PLAYGATE_REQUIRE_NESTOR=1 to turn a silent skip into a failure.

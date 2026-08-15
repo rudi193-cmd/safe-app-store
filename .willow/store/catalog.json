@@ -566,7 +566,7 @@
     {
       "id": "playgate",
       "name": "Nest Playgate",
-      "description": "Kid catalog and parent inbox for approving Waydroid app installs. Loopback host, append-only disposition log with a reason required to grant as well as to refuse, SHA256-verified adb install, and an interruption record on every catalog entry carrying assumed/fitted/measured provenance.",
+      "description": "Kid catalog and parent inbox for approving Waydroid app installs. Loopback host, hash-chained append-only disposition log (verified by Nestor, injected) with a reason required to grant as well as to refuse, SHA256-verified adb install, and an interruption record on every catalog entry carrying assumed/fitted/measured provenance.",
       "status": "building",
       "version": "0.2.0",
       "path": "apps/playgate",

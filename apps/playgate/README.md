@@ -12,7 +12,8 @@ python -m playgate serve --subject kid1 --subject kid2
 # http://127.0.0.1:8424/kid/   ·   parent inbox at /parent/
 
 python -m playgate lint            # what state is each entry's evidence in
-python -m pytest tests/ -q         # 118 assertions, including 11 mutations
+python -m playgate verify          # walk the disposition chain (needs nestor)
+python -m pytest tests/ -q         # 131 assertions, including 11 mutations
 ```
 
 No third-party store, no ads, and no network beyond the loopback socket that
@@ -68,7 +69,15 @@ disposition log both route through it.
 
 ## What the log holds
 
-Append-only JSONL. Nothing in this app rewrites a line.
+Append-only JSONL, and a hash chain: every line carries `prev`, the SHA-256 of
+the line before it, rooted at `"genesis"`.
+
+"Nothing in this app rewrites a line" was true and unprovable. It described this
+code's behaviour and said nothing about the file, which any text editor could
+rewrite with nobody able to tell afterwards — and a log recording why a parent
+consented is precisely the kind that later acquires a motive for editing. The
+chain cannot prevent a rewrite. It makes one **detectable**, which is the most a
+local file can offer and strictly more than a sentence in a README.
 
 - **A reason is required to grant, not only to refuse.** Every app store logs
   installs; none of them logs why.
@@ -84,6 +93,50 @@ Append-only JSONL. Nothing in this app rewrites a line.
   an explicit `--subject` list. A consent log whose subject is a name the
   requester typed records an assertion, not an identity.
 
+### Verifying it
+
+```sh
+python -m playgate verify                      # walk the chain
+python -m playgate verify --expect-head <sha>  # ...and vouch for the newest line
+```
+
+**The verifier is Nestor, injected.** The chain is written here with stdlib
+`hashlib` — the core stays third-party-free — but walking it is
+`nestor.ledger.verify()`, reached through `playgate/audit.py`, the only module
+that imports it. Nestor is the fleet's sealed answer to where ratified records
+live: *the only store with a seal, a signature, and a hash chain; a record kept
+anywhere else is asserted, not ratified.* There is deliberately **no fallback
+verifier** — a stdlib chain-walk would be twenty lines, would pass its own
+tests, and would be a second place the format is understood, free to drift from
+the one Nestor tests. Without Nestor, `verify` reports that it cannot check,
+and exits 3. An audit tool that says "probably fine" when its verifier is
+missing is worse than one that says "I cannot check."
+
+### The newest line, and why refusals sit there
+
+The walk vouches for every line **except the last**, which nothing follows: edit
+it and the chain still passes. That is a property of hash chains, not a gap in
+this one, and `--expect-head` is what closes it — a head recorded somewhere this
+app cannot reach, handed back. The fleet sealed that requirement rather than
+leaving it to taste, and sealed shut the weaker version where a marker inside
+the file suffices.
+
+It matters more here than the general case. A request is followed by an answer;
+a **grant** is then followed by an install row, which buries it. A **refusal is
+followed by nothing** — it sits at the tip until some other child asks for
+something else. So the least-protected row in this log is structurally the
+refusal, which is also the one somebody would have a reason to quietly flip.
+Anchor the head, or the app's most contested record is its most editable one.
+
+### Logs written before the chain
+
+An existing log's lines carry no `prev`, and they are **not** retro-fitted. A
+rewritten history that walks clean would vouch for lines nothing ever protected
+— the fleet has this recorded as standing law, that the migration and the forgery
+are the same operation. `verify` reports such a log as `unchained` rather than
+`broken`, names how many leading lines predate the chain, and says what it
+cannot do about them. Entries appended from here on are chained.
+
 ## Gates
 
 In the `app-tests` matrix in `store-ci.yml`, so the suite runs on every pull
@@ -97,6 +150,7 @@ request.
 | `test_install.py` | Digest verified before adb is reached, an entry with no digest refused, a zero exit without `Success` still a failure, timeouts and `OSError` reported rather than raised. |
 | `test_catalog.py` | An entry with no interruption field does not load; the view carries four facts and no score; the shipped catalog is all `assumed`. |
 | `test_server.py` | Real loopback socket, real routes: ask, refuse, grant-and-install, and the traversal guard. |
+| `test_chain.py` | Every line carries the prior line's hash; `head()` is that hash; an edited past line is caught; the newest line is not, until `--expect-head` is passed; a pre-chain log reads as `unchained`, not tampered, and is never retro-fitted; a missing verifier reports `unverifiable`, never `ok`; and the core's import graph reaches neither `nestor` nor `audit`. |
 | `test_paths.py` | Only `paths.py` imports the vault resolver; the four core modules choose no location at all; no module hardcodes a home or absolute persistence path; the log and APK dir resolve outside the install directory; env overrides still win; an unconfigured host refuses to install rather than searching itself. |
 | `test_mutations.py` | Eleven mechanisms broken on purpose, each required to fail exactly the test that claims to cover it — plus a control run proving an unmutated copy passes. |
 

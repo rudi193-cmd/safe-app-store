@@ -186,6 +186,16 @@ jobs:
           # here, not in the app's requirements.txt.
           - app: utety-chat
             test-deps: textual
+          # playgate writes its disposition log as a hash chain with stdlib
+          # hashlib and has Nestor walk it (apps/playgate/playgate/audit.py).
+          # The verifier is injected, so `serve` runs without it — which is
+          # exactly why it has to be installed HERE: the chain tests are
+          # importorskip'd, and a skipped test still exits 0. Same trap
+          # bureau-differential exists to close, one job down.
+          # require-nestor makes those tests fail rather than skip.
+          - app: playgate
+            test-deps: git+https://github.com/rudi193-cmd/Nestor@v0.2.0
+            require-nestor: "1"
 
     steps:
       - uses: actions/checkout@v7
@@ -208,6 +218,11 @@ jobs:
 
       - name: Run tests
         working-directory: apps/${{ matrix.app }}
+        env:
+          # Empty for every leg but playgate's, where it turns the chain
+          # tests from "skip if Nestor is absent" into "fail if Nestor is
+          # absent" — so this leg cannot go green having verified nothing.
+          PLAYGATE_REQUIRE_NESTOR: ${{ matrix.require-nestor }}
         run: python -m pytest tests/ -q
 
   # bureau's browser port, held to its Python core by a differential. Same
