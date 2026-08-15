@@ -41,7 +41,21 @@ def main(argv: "list[str] | None" = None) -> int:
     lint.add_argument("--strict", action="store_true",
                       help="exit non-zero if any entry is unmeasured")
 
+    verify = sub.add_parser("verify", help="walk the disposition chain (needs nestor)")
+    verify.add_argument("--log", type=Path, default=None,
+                        help="disposition log; same default as serve")
+    verify.add_argument("--expect-head", default=None,
+                        help="a head recorded earlier, from somewhere this app "
+                             "cannot reach. Without it the newest line is "
+                             "unvouched — nothing follows it.")
+
     args = parser.parse_args(argv)
+
+    # Before the catalog load: verifying the record of what was already decided
+    # must not depend on the catalog still being loadable today.
+    if args.command == "verify":
+        return _verify(args.log or paths_mod.log_path(), args.expect_head)
+
     apps = _load(args.catalog)
 
     if args.command == "lint":
@@ -70,6 +84,38 @@ def main(argv: "list[str] | None" = None) -> int:
     finally:
         httpd.server_close()
     return 0
+
+
+def _verify(log_path: Path, expect_head: "str | None") -> int:
+    # Imported here, not at module scope: the verifier is an injected seam, and
+    # `playgate serve` must still start on a host where Nestor is not installed.
+    from . import audit
+
+    result = audit.verify(log_path, expected_head=expect_head)
+    print(f"log:  {log_path}")
+
+    if result["status"] == audit.OK:
+        print(f"✓ {result['detail']}")
+        if not expect_head:
+            # Not a footnote: without an anchor the walk is silent about the one
+            # line most worth editing, and a bare ✓ reads as if it were not.
+            print("  ! the newest line is unvouched — nothing follows it. "
+                  "Record the head below somewhere this app cannot reach and "
+                  "pass it back as --expect-head.")
+        print(f"  head {_head_of(log_path)}")
+        return 0
+
+    print(f"✗ {result['detail']}", file=sys.stderr)
+    if result["status"] == audit.UNVERIFIABLE:
+        # A missing verifier is not a clean log and must not exit like one.
+        return 3
+    return 1
+
+
+def _head_of(log_path: Path) -> str:
+    from .disposition import Log
+
+    return Log(path=log_path, roster=("_",)).head()
 
 
 def _lint(apps, *, strict: bool) -> int:

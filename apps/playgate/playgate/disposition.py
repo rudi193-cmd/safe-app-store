@@ -1,6 +1,24 @@
 """The disposition log: append-only, reasoned both ways, never overwritten.
 
-Three properties this module exists to hold:
+Four properties this module exists to hold:
+
+**Append-only is a property of the artifact, not a promise about the code.**
+Every line carries `prev`, the SHA-256 of the line before it, rooted at
+`"genesis"`. "Nothing in this app rewrites a line" was true and unprovable: it
+described this module's behaviour, and said nothing about the file, which any
+editor could rewrite with nobody able to tell afterwards. A log that records why
+a parent consented is exactly the kind that acquires a motive for editing. The
+chain does not prevent a rewrite; it makes one detectable, which is the most a
+local file can offer and strictly more than a claim in a README.
+
+The chain is written here and verified in `playgate.audit`, which delegates to
+Nestor — the fleet's answer to this problem, and the reason there is no verifier
+in this module to review. One limit, stated where it cannot be missed: the walk
+vouches for every line except the last, which nothing follows. `head()` is there
+to be anchored somewhere this app cannot reach, and handed back as
+`expected_head`; the fleet sealed that requirement rather than leaving it to
+taste.
+
 
 **A reason is required to grant, not only to refuse.** Every app store on earth
 logs installs and none of them logs why. A grant with no reason is the same
@@ -24,6 +42,7 @@ cannot be used to check whether the reasoning was sound.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import uuid
@@ -77,8 +96,35 @@ class Log:
 
     # -- writing -----------------------------------------------------------
 
+    GENESIS = "genesis"
+
+    def head(self) -> str:
+        """SHA-256 of the last line, or ``"genesis"`` on an empty/absent log.
+
+        The tip an operator anchors **outside** this file. Reading it from here
+        is only useful for recording it elsewhere: a head kept beside the log it
+        vouches for is held by the same hand that writes the log.
+        """
+        if not self.path.exists():
+            return self.GENESIS
+        last = ""
+        for line in self.path.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                last = line
+        if not last:
+            return self.GENESIS
+        return hashlib.sha256(last.encode("utf-8")).hexdigest()
+
     def _append(self, row: dict) -> dict:
         row["at"] = self.clock().isoformat()
+        # Each line carries the hash of the one before it, rooted at "genesis".
+        # Editing any past line changes its hash and orphans the next line's
+        # `prev`, so a rewrite stops being invisible. Written here with stdlib
+        # hashlib rather than by importing Nestor, because the four core modules
+        # are third-party-free by test; VERIFYING the chain is Nestor's job and
+        # lives in `playgate.audit`, which the host imports and the core does
+        # not. The format is exactly what `nestor.ledger.verify()` walks.
+        row["prev"] = self.head()
         line = json.dumps(row, sort_keys=True)
         # Append-and-fsync rather than read-modify-write: there is no code path
         # in this module that can truncate the file.
