@@ -288,31 +288,29 @@ corpus`, matching the rejections above exactly.
   fixture corpus from the live tables rather than a hardcoded ID list, so the
   test does not go stale the day a bearing changes.
 
-  What is still open: **it is not wired into scheduled CI.** The corpus is a
-  separate repository, not checked out in this repo's CI, so the guard has
-  nowhere to run automatically yet. A ready-to-paste job, once someone
-  decides to add it to `.github/workflows/store-ci.yml`:
+  **Now wired into CI** (`.github/workflows/store-ci.yml`, job `readiness-drift`).
+  Two decisions shaped the wiring:
 
-  ```yaml
-  readiness-drift:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          path: safe-app-store
-      - uses: actions/checkout@v4
-        with:
-          repository: rudi193-cmd/production-readiness-checklist
-          path: production-readiness-checklist
-      - run: |
-          cd safe-app-store
-          python3 tools/readiness_drift.py \
-            --corpus ../production-readiness-checklist --strict
-        # or, equivalently: export FORGE_READINESS_CORPUS instead of --corpus
-  ```
+  - **Scheduled + manual only, never push/PR.** Drift is an *upstream* event —
+    the corpus renumbering a control has nothing to do with a commit here — so
+    gating a PR on it would let another repo's edit redden this repo's merges.
+    The job runs on the workflow's existing daily `cron` and on
+    `workflow_dispatch`, guarded by
+    `if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'`.
+  - **A canary, not a merge gate.** It is deliberately absent from the `test`
+    aggregate's `needs`: a conditionally-skipped job placed in `needs` would
+    skip the aggregate with it, and a skipped *required* check breaks branch
+    protection. So drift goes red on the daily run when upstream moves; it never
+    blocks a merge.
 
-  Actually adding this job to `.github/workflows/store-ci.yml` is the
-  remaining human call — out of scope for the bite that built the guard.
+  The job checks out this repo and the corpus repo as siblings and runs
+  `python3 tools/readiness_drift.py --corpus ../production-readiness-checklist
+  --strict`. The corpus repo is public (verified), so the default
+  `GITHUB_TOKEN` and the workflow's default `contents: read` suffice — no
+  secret. The guard is stdlib-only, so the job needs no Python setup or
+  `pip install`. The seam's *unit* tests (`test_readiness_corpus.py`,
+  `test_readiness_drift.py`) were also added to the push/PR `gates` job, where
+  they build tmp corpora and their live-corpus tests skip.
 
 ---
 
