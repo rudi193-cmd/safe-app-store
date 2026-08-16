@@ -358,3 +358,120 @@ def test_live_the_real_corpus_dwarfs_what_this_panel_can_reach(tmp_path):
     assert len(corpus) > 1000
     assert len(a.borne) < 10  # the rounding error this module exists to state out loud
     assert json.loads(json.dumps({"note": a.note()}))  # the note survives serialization
+
+
+# ── promote_check's gates, not just the panel's instruments ──────────────────
+#
+# `assess_gates()` inverts `assess()`'s asymmetry: a gate that FAILS is
+# first-party evidence the control is not met (Fail); a gate that PASSES only
+# means a mechanical check cleared, which raises the control without a human's
+# evidence answering it (Blocked). Still never a Pass — same invariant, same
+# `_refuse_to_mint_pass`, routed through the same corpus.
+
+def _gate_corpus(tmp_path) -> Path:
+    """A miniature corpus carrying the one control GATE_BEARINGS actually
+    claims, in the real family/file shape."""
+    return _corpus(tmp_path, useq=("USEQ-E075330B", "USEQ-007A0FED"))
+
+
+def test_a_failed_gate_moves_its_control_to_fail_with_the_detail_cited(tmp_path):
+    corpus = ReadinessCorpus.open(_gate_corpus(tmp_path))
+    gates = [("witnessed [M]", False, "author='sean' verified_by='sean' — verifier must differ")]
+    a = readiness_corpus.assess_gates(gates, corpus)
+    failed = {v.control_id: v for v in a.failed}
+    assert "USEQ-E075330B" in failed
+    v = failed["USEQ-E075330B"]
+    assert v.instrument == "witnessed [M]"
+    assert "verifier must differ" in v.evidence
+    assert "docs/engineering/05-code-quality-and-implementation.md:3" in v.evidence
+
+
+def test_a_passed_gate_is_blocked_never_pass(tmp_path):
+    """A passing `witnessed [M]` means the floor string-check cleared — a
+    different name is on record — not that a human actually reviewed anything.
+    Rule 6 draws the line at Blocked, the same as a clean instrument."""
+    corpus = ReadinessCorpus.open(_gate_corpus(tmp_path))
+    gates = [("witnessed [M]", True, "author='sean' verified_by='loki' (attested — no seal declared)")]
+    a = readiness_corpus.assess_gates(gates, corpus)
+    assert [v.status for v in a.verdicts] == [Status.BLOCKED]
+    assert "raises this control without a human's evidence answering it" in a.verdicts[0].evidence
+    assert "verified_by='loki'" in a.verdicts[0].evidence  # the evidence is not withheld
+
+
+def test_no_gate_outcome_can_produce_a_pass(tmp_path):
+    corpus = ReadinessCorpus.open(_gate_corpus(tmp_path))
+    for ok in (True, False):
+        gates = [("witnessed [M]", ok, "detail")]
+        a = readiness_corpus.assess_gates(gates, corpus)
+        assert Status.PASS not in {v.status for v in a.verdicts}
+
+
+def test_gate_verdicts_are_routed_through_the_refuse_to_mint_pass_guard(tmp_path, monkeypatch):
+    """`assess_gates`'s own status logic never writes `Status.PASS` — it only
+    ever builds Fail or Blocked. But the invariant is supposed to rest on
+    `_refuse_to_mint_pass`, not on that omission, exactly as `assess()`'s does
+    (rule: "a convention is what a later edit forgets"). Proven by making the
+    guard itself mint a Pass: `assess_gates` returns exactly what the guard
+    returns, so a later edit that broke the guard would show up here even if
+    every gate-status branch stayed correct."""
+    corpus = ReadinessCorpus.open(_gate_corpus(tmp_path))
+
+    def _mint_pass(verdicts):
+        return [Verdict(v.control_id, Status.PASS, v.instrument, v.evidence, v.limit)
+                for v in verdicts]
+
+    monkeypatch.setattr(readiness_corpus, "_refuse_to_mint_pass", _mint_pass)
+    a = readiness_corpus.assess_gates([("witnessed [M]", True, "d")], corpus)
+    assert {v.status for v in a.verdicts} == {Status.PASS}
+
+
+def test_a_gate_bearing_naming_a_control_this_corpus_lacks_is_skipped_not_invented(tmp_path):
+    corpus = ReadinessCorpus.open(_corpus(tmp_path, useq=("USEQ-007A0FED",)))  # no USEQ-E075330B
+    a = readiness_corpus.assess_gates([("witnessed [M]", False, "d")], corpus)
+    assert a.verdicts == []
+    assert "USEQ-E075330B" not in a.borne
+
+
+def test_a_gate_with_no_bearing_is_reported_as_bearing_on_nothing(tmp_path):
+    corpus = ReadinessCorpus.open(_gate_corpus(tmp_path))
+    gates = [("witnessed [M]", False, "d"), ("import_pure_core [M]", True, "d")]
+    a = readiness_corpus.assess_gates(gates, corpus)
+    assert a.bearing_none == ["import_pure_core [M]"]
+    assert "bear on no control in this corpus" in a.note()
+
+
+def test_gate_base_name_normalization_strips_the_am_suffix():
+    assert readiness_corpus._gate_base_name("witnessed [M]") == "witnessed"
+    assert readiness_corpus._gate_base_name("own_repo [A]") == "own_repo"
+    assert readiness_corpus._gate_base_name("host_repointed [A]") == "host_repointed"
+    assert readiness_corpus._gate_base_name("attestation") == "attestation"  # no suffix, unchanged
+
+
+def test_gate_bearings_normalize_before_lookup_so_the_suffix_does_not_matter(tmp_path):
+    """GATE_BEARINGS is keyed by the base name; the gate's own [A]/[M] suffix
+    in the reported name must not affect whether a bearing is found."""
+    corpus = ReadinessCorpus.open(_gate_corpus(tmp_path))
+    a = readiness_corpus.assess_gates([("witnessed [M]", False, "d")], corpus)
+    assert "USEQ-E075330B" in a.borne
+
+
+def test_every_gate_bearing_states_both_why_it_bears_and_what_it_cannot_show():
+    for gate, bearings in readiness_corpus.GATE_BEARINGS.items():
+        assert bearings, f"{gate} is in the table with no bearings"
+        for b in bearings:
+            assert b.why.strip() and b.limit.strip(), f"{gate}/{b.control_id}"
+
+
+def test_the_gate_bearing_table_holds_only_a_conservative_witnessed_mapping():
+    """The other nine gates were read and rejected (see the module comment
+    above GATE_BEARINGS and the design doc) — this pins the deliberately small
+    result against a future regex-shaped expansion."""
+    assert set(readiness_corpus.GATE_BEARINGS) == {"witnessed"}
+
+
+@pytest.mark.skipif(not _LIVE, reason=f"no real corpus injected at ${readiness_corpus.ENV_VAR}")
+def test_live_every_gate_bearing_names_a_control_the_real_corpus_actually_contains():
+    corpus = ReadinessCorpus.open(_LIVE)
+    missing = [b.control_id for bs in readiness_corpus.GATE_BEARINGS.values() for b in bs
+               if corpus.get(b.control_id) is None]
+    assert not missing, f"gate bearings name controls absent from the real corpus: {missing}"

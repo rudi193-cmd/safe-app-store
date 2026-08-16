@@ -69,6 +69,7 @@ report, so the dependency points the way rule 8's inversion points.
 Usage:
     python stores/readiness_corpus.py bearings [--corpus PATH]
     python stores/readiness_corpus.py assess <build_dir> [--corpus PATH]
+    python stores/readiness_corpus.py assess-gates <gate_results.json> [--corpus PATH]
 """
 from __future__ import annotations
 
@@ -254,6 +255,83 @@ BEARINGS: dict[str, tuple[Bearing, ...]] = {
             limit="one clause of nine — formatting, static analysis, unit tests, "
                   "contracts, secrets, dependencies, policy, and packaging are all "
                   "unmeasured, so this bearing can only ever fail the control",
+        ),
+    ),
+}
+
+
+#: promote_check's `check()` names a gate `"witnessed [M]"`, `"own_repo [A]"`,
+#: etc. — a suffix that is metadata about the gate (mechanical vs. attested),
+#: not part of its identity. Normalized once, here, so `GATE_BEARINGS` is keyed
+#: by the stable name rather than by a string that changes if a gate's kind
+#: ever does.
+_GATE_SUFFIX = re.compile(r"\s*\[[AM]\]\s*$")
+
+
+def _gate_base_name(name: str) -> str:
+    """Strip promote_check's trailing `" [A]"`/`" [M]"` tag."""
+    return _GATE_SUFFIX.sub("", name).strip()
+
+
+#: Keyed by the gate's BASE name (see `_gate_base_name`) — one of the ten
+#: `promote_check.check()` gates: `witnessed`, `own_repo`, `host_repointed`,
+#: `manifest`, `tests_green`, `vault_leak`, `import_pure_core`, `inversion`,
+#: `semantic_seam` (plus `attestation`, the precondition gate). A gate absent
+#: from this table bears on NO control in the corpus — read and rejected, the
+#: same as an instrument absent from `BEARINGS` above.
+#:
+#: Only ONE gate survived reading both sides:
+#:
+#: - `witnessed` ↔ USEQ-E075330B, below.
+#:
+#: Investigated and REJECTED (see `docs/design/the-forge-readiness.md` for the
+#: full reasoning this comment summarizes):
+#:
+#: - `tests_green` — the only close control, USEQ-007A0FED ("verify …
+#:   formatting, compilation, static analysis, unit tests, contracts, secrets,
+#:   dependencies, policy, and packaging"), is already the `execution`
+#:   instrument's bearing above. Reusing the same control ID for a second,
+#:   differently-scoped mechanism (one pytest/unittest run vs. a sandboxed
+#:   parse of every file) is exactly the "plausible, unearned mapping" rule 6
+#:   forbids — the two bearings would silently compete to explain the same
+#:   ID. No OTHER control names "the test suite exits clean" on its own,
+#:   distinct from that nine-clause bundle. Skipped.
+#: - `vault_leak` — checks user DATA persistence *location* (a SAFE-specific
+#:   convention: does a path derive from the injected vault root, or a fixed
+#:   home path). The corpus's nearest neighbors — PRC-10-037 ("no secrets in
+#:   source"), the tenant-isolation family, the data-residency family — are
+#:   about *secrets* or *multi-tenant SaaS* boundaries, not about a single
+#:   app's storage root discipline. Different question; no control asks it.
+#:   Skipped.
+#: - `own_repo`, `host_repointed` — the plausible target, PRC-02-014 ("The
+#:   production artifact cannot be traced to reviewed source, dependencies,
+#:   build process, tests, and approval"), is a compound five-clause release
+#:   gate. `own_repo` verifies one string (a repo URL that isn't this
+#:   monorepo); `host_repointed` verifies one attested boolean. Neither, alone
+#:   or together, establishes traceability through dependencies, build
+#:   process, and tests — attributing a FAIL on either to PRC-02-014 would
+#:   claim more was checked than was. Skipped.
+#: - `import_pure_core`, `inversion`, `semantic_seam` — architectural
+#:   properties of this store's specific promotion shape (no network import at
+#:   import time; the core doesn't import its host; a declared
+#:   `module:symbol` resolves). No generic production-readiness control asks
+#:   any of these questions. Skipped, as the bite that named them expected.
+#: - `manifest`, `attestation` — not investigated as candidates (not named in
+#:   the bite); left out rather than guessed at.
+GATE_BEARINGS: dict[str, tuple[Bearing, ...]] = {
+    "witnessed": (
+        Bearing(
+            control_id="USEQ-E075330B",
+            why="the gate's own floor — verified_by set and != author — IS "
+                "'prevent authors from self-approving material controls,' in the "
+                "control's own words rather than a paraphrase reached for it",
+            limit="confirms a DIFFERENT NAME is recorded, not that the named "
+                  "verifier did any review at all — a rubber-stamped verified_by "
+                  "clears this gate exactly like a real one. The opt-in "
+                  "cryptographic seal path (custody ledger + signed checkpoint) is "
+                  "closer to a genuine independent ratification, and is exactly "
+                  "the case held back from a Pass here — see the design doc's open "
+                  "item",
         ),
     ),
 }
@@ -582,6 +660,77 @@ def assess(report, corpus: ReadinessCorpus) -> ReadinessAssessment:
     )
 
 
+def assess_gates(gate_results, corpus: ReadinessCorpus) -> ReadinessAssessment:
+    """Turn `promote_check.check()`'s gate results into corpus verdicts.
+
+    `gate_results` is duck-typed — an iterable of `(name, ok, detail)`, exactly
+    `promote_check.Result` — so this module still never imports `promote_check`
+    (the same non-dependency `assess()` keeps on the panel).
+
+    The asymmetry here is not `assess()`'s. There, a HIT (an instrument finding
+    something) is the strong signal and a clean run is the weak one. Here it
+    inverts, because a gate is a pass/fail check aimed at the SAME question a
+    control asks, not an instrument scanning for incidental evidence of it:
+
+    - a gate that **FAILED** is direct, first-party evidence the control is not
+      met — `Status.FAIL`, citing the gate's own `detail` and the control's
+      `file:line`;
+    - a gate that **PASSED** does not answer the control — it only means a
+      *mechanical* check cleared, and rule 6 draws the line right there:
+      `Status.BLOCKED`, naming the gate that ran clean. (`witnessed`'s floor
+      passing on a truthfully-typed name is the sharpest case: the string check
+      passing is not a human's ratification, however close the gate's intent
+      sits to the control's.)
+
+    A gate whose base name (`_gate_base_name`) is not in `GATE_BEARINGS` bears
+    on nothing and is reported as such, the same as an instrument absent from
+    `BEARINGS`. A bearing naming a control this corpus lacks is skipped, not
+    invented — the corpus is the authority on which IDs exist."""
+    verdicts: list[Verdict] = []
+    bearing_gates: list[str] = []
+    bearing_none: list[str] = []
+
+    for name, ok, detail in gate_results:
+        base = _gate_base_name(name)
+        bearings = GATE_BEARINGS.get(base, ())
+        if not bearings:
+            bearing_none.append(name)
+            continue
+        bearing_gates.append(name)
+        for b in bearings:
+            control = corpus.get(b.control_id)
+            if control is None:
+                continue
+            if ok:
+                verdicts.append(Verdict(
+                    control_id=b.control_id,
+                    status=Status.BLOCKED,
+                    instrument=name,
+                    evidence=f"{name} passed ({detail}) — a passing mechanical gate "
+                             f"raises this control without a human's evidence "
+                             f"answering it [{control.source}:{control.line}]",
+                    limit=b.limit,
+                ))
+            else:
+                verdicts.append(Verdict(
+                    control_id=b.control_id,
+                    status=Status.FAIL,
+                    instrument=name,
+                    evidence=f"{name} failed: {detail} [{control.source}:{control.line}]",
+                    limit=b.limit,
+                ))
+
+    return ReadinessAssessment(
+        corpus_cite=corpus.cite(),
+        corpus_total=len(corpus),
+        verdicts=_refuse_to_mint_pass(verdicts),
+        bearing_instruments=bearing_gates,
+        bearing_none=bearing_none,
+        unavailable=[],  # every promote_check gate always returns a result; there
+                         # is no "could not run" state distinct from a FAIL detail
+    )
+
+
 # ── CLI ──────────────────────────────────────────────────────────────────────
 
 def _open_or_exit(path: str | None) -> ReadinessCorpus:
@@ -642,6 +791,32 @@ def _cmd_assess(args: argparse.Namespace) -> int:
     return 1 if a.failed else 0
 
 
+def _cmd_assess_gates(args: argparse.Namespace) -> int:
+    corpus = _open_or_exit(args.corpus)
+    try:
+        raw = json.loads(Path(args.gates_file).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"could not read gate results (fail-closed): {e}", file=sys.stderr)
+        return 2
+    try:
+        gate_results = [(str(g[0]), bool(g[1]), str(g[2])) for g in raw]
+    except (TypeError, IndexError) as e:
+        print(f"gate results file is not a list of [name, ok, detail] (fail-closed): {e}",
+              file=sys.stderr)
+        return 2
+
+    a = assess_gates(gate_results, corpus)
+    print(json.dumps({
+        "readiness_coverage": a.note(),
+        "verdicts": [
+            {"control": v.control_id, "status": v.status.value, "instrument": v.instrument,
+             "evidence": v.evidence, "limit": v.limit}
+            for v in a.verdicts
+        ],
+    }, indent=2))
+    return 1 if a.failed else 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="readiness_corpus.py")
     sub = p.add_subparsers(dest="command", required=True)
@@ -654,6 +829,12 @@ def build_parser() -> argparse.ArgumentParser:
     a.add_argument("build_dir")
     a.add_argument("--corpus", default=None, help=f"corpus root (default: ${ENV_VAR})")
     a.set_defaults(func=_cmd_assess)
+
+    g = sub.add_parser("assess-gates",
+                       help="score promote_check.py gate results against the corpus")
+    g.add_argument("gates_file", help="JSON file: a list of [gate_name, ok, detail]")
+    g.add_argument("--corpus", default=None, help=f"corpus root (default: ${ENV_VAR})")
+    g.set_defaults(func=_cmd_assess_gates)
     return p
 
 
