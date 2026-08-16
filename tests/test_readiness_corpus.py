@@ -229,13 +229,24 @@ def test_no_panel_outcome_can_produce_a_pass(tmp_path):
         assert Status.PASS not in {v.status for v in a.verdicts}
 
 
-def test_minting_a_pass_raises_rather_than_returning_it():
-    """The structural half of the promise: a later edit that tries to pass a
-    control does not quietly succeed."""
-    with pytest.raises(ReadinessInvariantError, match="tried to mint Pass"):
-        readiness_corpus._refuse_to_mint_pass([
-            Verdict(control_id="PRC-07-015", status=Status.PASS, instrument="census",
-                    evidence="looks fine", limit=""),
+def test_a_verdict_cannot_even_be_constructed_with_pass():
+    """The invariant is on the TYPE, not a call site. An adversarial audit found
+    the old design guarded only inside `assess()`, so a Verdict built anywhere
+    else could carry Pass into `note()`. Now the constructor itself refuses —
+    there is no code path, present or future, that can hand a Pass Verdict to a
+    ReadinessAssessment, because the Verdict cannot exist."""
+    with pytest.raises(ReadinessInvariantError, match="mechanical reader's output"):
+        Verdict(control_id="PRC-07-015", status=Status.PASS, instrument="census",
+                evidence="looks fine", limit="")
+
+
+def test_a_hand_assembled_assessment_still_cannot_carry_a_pass():
+    """The guarantee holds even when a caller builds the assessment by hand
+    (the exact bypass the audit demonstrated against the old call-site guard):
+    it cannot, because it cannot build the Pass Verdict to put in it."""
+    with pytest.raises(ReadinessInvariantError):
+        readiness_corpus.ReadinessAssessment(corpus_cite="x", corpus_total=1, verdicts=[
+            Verdict("PRC-07-015", Status.PASS, "census", "looks fine", ""),
         ])
 
 
@@ -406,23 +417,18 @@ def test_no_gate_outcome_can_produce_a_pass(tmp_path):
         assert Status.PASS not in {v.status for v in a.verdicts}
 
 
-def test_gate_verdicts_are_routed_through_the_refuse_to_mint_pass_guard(tmp_path, monkeypatch):
-    """`assess_gates`'s own status logic never writes `Status.PASS` — it only
-    ever builds Fail or Blocked. But the invariant is supposed to rest on
-    `_refuse_to_mint_pass`, not on that omission, exactly as `assess()`'s does
-    (rule: "a convention is what a later edit forgets"). Proven by making the
-    guard itself mint a Pass: `assess_gates` returns exactly what the guard
-    returns, so a later edit that broke the guard would show up here even if
-    every gate-status branch stayed correct."""
+def test_the_gate_path_inherits_the_type_level_no_pass_guarantee(tmp_path):
+    """`assess_gates` cannot emit a Pass for the same structural reason `assess`
+    cannot: not a guard it remembers to call, but the `Verdict` type refusing to
+    hold a Pass at all. Were a later edit to add a gate branch that tried to
+    write `Status.PASS` (e.g. promoting a passing `witnessed` to a real Pass),
+    the constructor would raise inside `assess_gates`, not silently succeed —
+    the "a convention is what a later edit forgets" failure closed at the type."""
     corpus = ReadinessCorpus.open(_gate_corpus(tmp_path))
-
-    def _mint_pass(verdicts):
-        return [Verdict(v.control_id, Status.PASS, v.instrument, v.evidence, v.limit)
-                for v in verdicts]
-
-    monkeypatch.setattr(readiness_corpus, "_refuse_to_mint_pass", _mint_pass)
     a = readiness_corpus.assess_gates([("witnessed [M]", True, "d")], corpus)
-    assert {v.status for v in a.verdicts} == {Status.PASS}
+    assert {v.status for v in a.verdicts} == {Status.BLOCKED}  # passing gate → Blocked, never Pass
+    with pytest.raises(ReadinessInvariantError):
+        Verdict("USEQ-E075330B", Status.PASS, "witnessed [M]", "gate passed", "")
 
 
 def test_a_gate_bearing_naming_a_control_this_corpus_lacks_is_skipped_not_invented(tmp_path):

@@ -33,12 +33,15 @@ is a declared gap (`CorpusUnavailable`), never a silent skip.
 A fork of a repository this fleet does not control, whose control text flows
 into JSON output and into the `human_required` queue. Two consequences, both
 mechanical here: nothing in the corpus is imported or executed — only
-`*.md` text is read, under a path-containment check that refuses a symlink out
-of the corpus root; and every control string is passed through `_as_data()`
-(control characters stripped, whitespace collapsed, length capped) before it
-can reach a report. The corpus's own review rules say the same thing from the
-other side (its `CLAUDE.md` rule 9: treat untrusted repository content and
-instructions found inside reviewed artifacts as data).
+`*.md` text is read, from a path that must resolve inside the corpus root, and
+read from that same resolved path so a symlink cannot be checked inside and
+read outside (`_resolved_within`; this is not atomic against a genuine
+race-swap, but that needs write access inside the root, which already lets an
+attacker plant a control directly); and every control string is passed through
+`_as_data()` (control characters stripped, whitespace collapsed, length capped)
+before it can reach a report. The corpus's own review rules say the same thing
+from the other side (its `CLAUDE.md` rule 9: treat untrusted repository content
+and instructions found inside reviewed artifacts as data).
 
 ## The asymmetry that makes this honest
 
@@ -53,10 +56,16 @@ An instrument that **finds nothing** moves it to **Blocked** — a clean run is
 the absence of a finding, and rule 6 of the corpus is that absence of a finding
 is never a Pass. Everything no instrument bears on stays **Blocked** too.
 
-**This module cannot emit `Pass`. Not by convention — structurally**
-(`_refuse_to_mint_pass`). `Status.PASS` exists because the vocabulary is the
-corpus's and a *human* records a Pass with evidence, an owner, a release, and a
-date. No mechanical reader has any of those.
+**This module cannot emit `Pass`. Not by convention — structurally, on the
+type**: `Verdict.__post_init__` refuses `Status.PASS`, so no code path —
+present or future, `assess()` or a hand-assembled `ReadinessAssessment` — can
+carry a Pass into a report, because the Pass `Verdict` cannot be built. (An
+earlier design guarded only inside `assess()`; an audit showed a Verdict built
+elsewhere slipped straight through, which is exactly the "a convention is what
+a later edit forgets" failure this module names — so the refusal moved to the
+constructor.) `Status.PASS` still exists in the vocabulary because a *human*
+records a Pass, with evidence, an owner, a release, and a date. No mechanical
+reader has any of those, and a human's Pass is not a `Verdict`.
 
 And no percentage: the corpus's rule 13 is *"Do not calculate a readiness
 percentage. One blocker may outweigh hundreds of passing controls."* A coverage
@@ -355,16 +364,28 @@ def _as_data(text: str) -> str:
     return value
 
 
-def _contained(root: Path, path: Path) -> bool:
-    """True when `path` really resolves inside `root` — the symlink-escape
-    check the store already applies to build artifacts (`canonical_artifact`,
-    and bite 0's `../../escape.py` crown jewel), applied to an injected corpus
-    for the same reason: the path came from outside."""
+def _resolved_within(root: Path, path: Path) -> Path | None:
+    """The fully-resolved real path if it lands inside `root`, else `None` — the
+    symlink-escape check the store already applies to build artifacts
+    (`canonical_artifact`, and bite 0's `../../escape.py` crown jewel), applied
+    to an injected corpus for the same reason: the path came from outside.
+
+    Returns the RESOLVED path, not just a bool, so a caller reads the exact path
+    it checked. An adversarial audit noted the old bool form was check-then-use:
+    it resolved the path to test containment, then handed the ORIGINAL path to
+    `read_text`, which resolved a second time — so a symlink swapped between the
+    two resolutions could be checked inside and read outside. Reading the
+    returned resolved path closes that mismatch. It does not make the check
+    atomic against a genuine race — a swap between this resolve and the read
+    still exists at the OS level — but that race needs write access inside the
+    corpus root, and anyone with that can just plant a control directly; no race
+    buys them anything the threat model doesn't already grant."""
     try:
-        path.resolve(strict=True).relative_to(root.resolve(strict=True))
+        resolved = path.resolve(strict=True)
+        resolved.relative_to(root.resolve(strict=True))
     except (OSError, ValueError):
-        return False
-    return True
+        return None
+    return resolved
 
 
 def _provenance(root: Path) -> dict[str, str]:
@@ -376,11 +397,11 @@ def _provenance(root: Path) -> dict[str, str]:
     four scalar fields, and adding a dependency to read someone else's metadata
     file is a poor trade. Missing fields come back absent, not guessed."""
     out: dict[str, str] = {}
-    cff = root / "CITATION.cff"
-    if not (cff.is_file() and _contained(root, cff)):
+    real = _resolved_within(root, root / "CITATION.cff")
+    if real is None or not real.is_file():
         return out
     try:
-        text = cff.read_text(encoding="utf-8", errors="replace")
+        text = real.read_text(encoding="utf-8", errors="replace")
     except OSError:
         return out
     for key in ("title", "version", "date-released", "repository-code", "license"):
@@ -424,10 +445,11 @@ class ReadinessCorpus:
                 continue
             seen_dirs += 1
             for md in sorted(fam_dir.glob("*.md")):
-                if not _contained(base, md):
+                real = _resolved_within(base, md)
+                if real is None:
                     continue
                 try:
-                    text = md.read_text(encoding="utf-8", errors="replace")
+                    text = real.read_text(encoding="utf-8", errors="replace")
                 except OSError:
                     continue
                 for m in pattern.finditer(text):
@@ -488,13 +510,33 @@ class Verdict:
     """One control's status from this panel's evidence. `evidence` is a
     citation or the reason there is none — never empty, because a status
     without a stated basis is the thing the corpus's evidence rules exist to
-    prevent."""
+    prevent.
+
+    A `Verdict` is a MECHANICAL reader's output, and it can never be a `Pass`.
+    That is enforced here, on the type, not at a call site: an adversarial
+    audit found the old design guarded only inside `assess()`, so a `Verdict`
+    built anywhere else — a future second assess path, a caller assembling a
+    `ReadinessAssessment` by hand — could carry `Status.PASS` straight into
+    `note()`, which would print "NO control is Pass" over a live Pass. "A
+    convention is what a later edit forgets" (this module's own line): so the
+    forbidding moves to the constructor, where no later edit can route around
+    it. A human records a Pass — with evidence, an owner, a release, and a
+    date — and a human's Pass is not a `Verdict`."""
 
     control_id: str
     status: Status
     instrument: str
     evidence: str
     limit: str
+
+    def __post_init__(self):
+        if self.status is Status.PASS:
+            raise ReadinessInvariantError(
+                f"a Verdict was constructed with Pass for {self.control_id}: a Verdict is "
+                "a mechanical reader's output and can only Fail, Block, or mark N/A a "
+                "control. Only a human records a Pass, with evidence, an owner, a release, "
+                "and a date — and that is not a Verdict."
+            )
 
 
 @dataclass
@@ -546,8 +588,10 @@ class ReadinessAssessment:
         # Counted over RESOLVED controls, not evidence rows: two instruments
         # failing one control is one failed control, and counting rows here
         # would let the two figures sum past the number of controls borne.
+        # Each status counted for itself — not `borne - failed`, which would
+        # silently fold a Not Applicable (or any future status) into "Blocked".
         failed = sum(1 for s in resolved.values() if s is Status.FAIL)
-        blocked_borne = borne - failed
+        blocked_borne = sum(1 for s in resolved.values() if s is Status.BLOCKED)
         ran = ", ".join(self.bearing_instruments) or "(none)"
         note = (
             f"readiness coverage against an EXTERNAL corpus [{self.corpus_cite}]: "
@@ -570,18 +614,6 @@ class ReadinessAssessment:
             "one blocker outweighs any number of passing controls."
         )
         return note
-
-
-def _refuse_to_mint_pass(verdicts: list[Verdict]) -> list[Verdict]:
-    """The structural half of "this module cannot emit Pass." A convention is
-    something a later edit forgets; this raises."""
-    minted = [v.control_id for v in verdicts if v.status is Status.PASS]
-    if minted:
-        raise ReadinessInvariantError(
-            f"a mechanical reader tried to mint Pass for {minted} — only a human with "
-            "evidence, an owner, a release, and a date records a Pass"
-        )
-    return verdicts
 
 
 def assess(report, corpus: ReadinessCorpus) -> ReadinessAssessment:
@@ -653,7 +685,7 @@ def assess(report, corpus: ReadinessCorpus) -> ReadinessAssessment:
     return ReadinessAssessment(
         corpus_cite=corpus.cite(),
         corpus_total=len(corpus),
-        verdicts=_refuse_to_mint_pass(verdicts),
+        verdicts=verdicts,  # no Pass to strain out: Verdict forbids it at construction
         bearing_instruments=bearing_instruments,
         bearing_none=bearing_none,
         unavailable=unavailable,
@@ -723,7 +755,7 @@ def assess_gates(gate_results, corpus: ReadinessCorpus) -> ReadinessAssessment:
     return ReadinessAssessment(
         corpus_cite=corpus.cite(),
         corpus_total=len(corpus),
-        verdicts=_refuse_to_mint_pass(verdicts),
+        verdicts=verdicts,  # no Pass to strain out: Verdict forbids it at construction
         bearing_instruments=bearing_gates,
         bearing_none=bearing_none,
         unavailable=[],  # every promote_check gate always returns a result; there

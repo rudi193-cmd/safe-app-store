@@ -70,14 +70,23 @@ A fork of a repository this fleet does not control, whose text reaches JSON
 output and the `human_required` queue. Mechanically, not aspirationally:
 
 - nothing in the corpus is imported or executed — only `*.md` text is read;
-- every path is checked to resolve **inside** the corpus root, so a symlink
-  planted in `docs/checklists/` cannot smuggle a control in from outside
-  (the containment check bite 0's `../../escape.py` crown jewel established,
-  applied to an injected corpus for the same reason: the path came from
-  outside) *(grounded: tested)*;
+- every path must resolve **inside** the corpus root, so a symlink planted in
+  `docs/checklists/` cannot smuggle a control in from outside (the containment
+  check bite 0's `../../escape.py` crown jewel established, applied to an
+  injected corpus for the same reason: the path came from outside)
+  *(grounded: tested)*. The read is taken from that *same* resolved path
+  (`_resolved_within`), closing a check-then-use mismatch an adversarial audit
+  found — the old bool check resolved once and `read_text` resolved again, so a
+  swap between the two could be checked inside and read outside. This is **not**
+  atomic against a genuine race-swap during the read; the honest bound is that
+  such a race needs write access inside the corpus root, and anyone with that
+  can plant a control directly — the race buys nothing the threat model does
+  not already grant;
 - every control string passes through `_as_data()` — NFKC-normalized, Unicode
   control characters dropped, whitespace collapsed, capped at 300 characters —
-  so no control text can forge a line in a queue item or a log.
+  so no control text can forge a line in a queue item or a log *(grounded: an
+  audit tried RTL-override, zero-width, Zalgo, homoglyph, and tag-char
+  injection; all stripped)*.
 
 The corpus's own rule 9 says the same thing from the other side. The two laws
 agree, and this is the place they are enforced.
@@ -99,8 +108,14 @@ Applicable. `assess()` emits only Fail and Blocked.
 
 `Status.PASS` exists because a *human* records one, with evidence, an owner, a
 release, and a date. No mechanical reader has any of those. That is enforced
-structurally by `_refuse_to_mint_pass()`, which raises rather than returning —
-a convention is what a later edit forgets.
+**on the type**: `Verdict.__post_init__` refuses `Status.PASS`, so no path —
+`assess()`, `assess_gates()`, or a hand-built `ReadinessAssessment` — can carry
+a Pass into a report, because the Pass `Verdict` cannot be constructed. The
+first design guarded only inside `assess()`; an audit built a Verdict outside it
+and watched a Pass flow through `note()` (which printed "NO control is Pass"
+over a live one). "A convention is what a later edit forgets" — so the refusal
+moved from the call site to the constructor, where a later edit cannot route
+around it, and the call-site guard was removed as dead.
 
 ## D-R5 — Bearings are hand-authored, and declare their own strength
 
@@ -163,28 +178,141 @@ One. That number is the deliverable. The panel's own coverage note reads
 the same run is one control in ten thousand. Both sentences are true, and the
 second is the one that is hard to misread as an all-clear.
 
+## D-R7 — `promote_check`'s gates get their own bearings, and it inverts the asymmetry
+
+The panel's four instruments *scan* a build for incidental evidence; the ten
+`promote_check.py` gates are pass/fail checks each already aimed at one
+specific question. That difference flips D-R4's asymmetry rather than
+repeating it: `assess_gates()` treats a **failed** gate as first-party
+evidence (`Status.FAIL`, citing the gate's own `detail` and the control's
+`file:line`) and a **passed** gate as the weaker signal (`Status.BLOCKED`,
+naming the gate) — a mechanical check clearing is not a human's evidence the
+control is met, so rule 6 draws the line at Blocked exactly where it draws it
+for a clean instrument. `GATE_BEARINGS` is keyed by the gate's BASE name; a
+one-line helper (`_gate_base_name`) strips promote_check's trailing `" [A]"`/
+`" [M]"` tag once, in one place, rather than re-deriving the strip at every
+call site. Both `assess()` and `assess_gates()` still route through
+`_refuse_to_mint_pass()` — one guard, one invariant, whichever seam calls it.
+
+Nine of the ten gates were read against the corpus and rejected; one survived:
+
+- **`witnessed` ↔ USEQ-E075330B** — *"Apply independent review proportionate
+  to impact and prevent authors from self-approving material controls."* The
+  gate's floor (`verified_by` set and `!= author`) IS that sentence, not a
+  paraphrase reached for it: both are, word for word, "prevent the author from
+  approving their own material control." The candidate found first by keyword
+  search — the corpus's *"Reviewer: someone other than the implementer for
+  material controls"* — turned out to be **operating instructions** (§1, "how
+  to operate this checklist"), not a control with a stable ID; it cannot be
+  cited as evidence for anything, so it was set aside in favor of the control
+  that actually says the same thing.
+
+Rejected, each after reading the gate's mechanism and the control's text side
+by side, not just their names:
+
+- **`tests_green`** — the only close control, USEQ-007A0FED ("verify …
+  formatting, compilation, static analysis, unit tests, contracts, secrets,
+  dependencies, policy, and packaging"), is already `execution`'s bearing
+  (D-R5's four-instrument table). Assigning it a second time from a
+  differently-scoped mechanism — one pytest/unittest run, vs. a sandboxed
+  parse of every file — is the "plausible, unearned mapping" rule 6 forbids in
+  a new shape: two bearings quietly competing to explain one ID. No other
+  control asks "did the test suite exit clean" on its own, apart from that
+  nine-clause bundle.
+- **`vault_leak`** — checks storage **location** (does a path derive from the
+  injected vault root, or a fixed home path) — a SAFE-specific convention. The
+  corpus's nearest neighbors, PRC-10-037 ("no secrets in source") and the
+  tenant-isolation / data-residency families, ask about literal secret strings
+  or multi-tenant SaaS boundaries. Neither is the question `vault_leak_lint`
+  answers; nothing else in 10,042 controls is either.
+- **`own_repo`, `host_repointed`** — the plausible target, PRC-02-014 ("the
+  production artifact cannot be traced to reviewed source, dependencies, build
+  process, tests, and approval"), is a compound five-clause release gate.
+  `own_repo` verifies one string (a repo URL outside this monorepo);
+  `host_repointed` verifies one attested boolean. Neither establishes
+  traceability through dependencies, build process, or tests — attributing a
+  FAIL on either to PRC-02-014 would claim more was checked than was.
+- **`import_pure_core`, `inversion`, `semantic_seam`** — architectural
+  properties of this store's own promotion shape (no network import at import
+  time; the core doesn't import its host; a declared `module:symbol`
+  resolves). No generic production-readiness control asks any of these —
+  confirmed, not assumed, as the bite that named them expected.
+- **`manifest`, `attestation`** — not investigated (not named as candidates);
+  left out rather than guessed at.
+
+**Grounded**: `assess-gates` was run against the real corpus with a synthetic
+nine-gate result set (the shape `promote_check.check()` actually returns).
+`witnessed [M]` failing cited `USEQ-E075330B` at
+`docs/engineering/01-governance-and-foundations.md:458` with `Status.FAIL`;
+`witnessed [M]` passing produced the same control at `Status.BLOCKED`, never
+`Status.PASS`; the other eight gates reported `bear on no control in this
+corpus`, matching the rejections above exactly.
+
 ## Open / next
 
-- **The corpus's `PRC-02-*` immediate no-go conditions are unwired.** Twenty
-  controls that stop a release outright, none of them borne on by any
-  instrument today. The nearest is PRC-02-014 (*the production artifact can be
-  traced to reviewed source, dependencies, build process, tests, and approval*)
-  — which is close to what `promote_check.py` already asserts, and is the most
-  promising next bearing.
-- **Bearings for `promote_check`'s ten gates, not just the panel's four
-  instruments.** The gates are the store's real promotion bar; several of them
-  (`tests_green`, `vault_leak`, `witnessed`) plausibly bear on controls, and a
-  `witnessed` gate that already enforces `verified_by ≠ author` is directly the
-  corpus's "reviewer: someone other than the implementer for material
-  controls." Held back here to keep this bite one bite.
+- **The `witnessed → Pass` tension.** `witnessed` is the one gate in
+  `GATE_BEARINGS` whose PASSING outcome encodes something a human actually
+  did: `verified_by` names a specific person, distinct from the author, and
+  when the attestation carries a `trust` block that name is backed by a
+  cryptographic seal — a provisional custody entry covered by a checkpoint
+  signed with the verifier's own key (`promote_check._witnessed`). That is
+  closer to a real ratification than anything else in either bearing table:
+  an owner, a recordable identity, evidence a specific verifying act
+  occurred. It is also the sole candidate anywhere in this module for a
+  legitimate MECHANICAL Pass — and `assess_gates()` still reports it Blocked,
+  on purpose. `Status.PASS` exists in the corpus's vocabulary because a human
+  records one, with evidence, an owner, a release, and a date (D-R4); whether
+  a verified cryptographic seal clears that bar, or is still one step short of
+  it (an identity check, not a review), is a genuine design call this bite
+  held open rather than made. Not implemented here.
+- **The corpus's `PRC-02-*` immediate no-go conditions are still unwired for
+  the panel's four instruments** (as distinct from the gate table above,
+  which now covers `witnessed`). Twenty controls that stop a release outright,
+  none borne on by an instrument.
 - **Nothing consumes `note()` yet in a stored artifact.** The reader has a CLI
   and returns an assessment; wiring it into a promotion record, or into the
   panel's routed queue items, is a separate call about where the sentence
   belongs.
-- **Upstream drift is undetected.** The fork re-syncs; a control this seam
-  names could be renumbered upstream. `assess()` skips a bearing whose control
-  the corpus lacks (coverage shrinks rather than lying), and `bearings --corpus`
-  exits non-zero listing them, but nothing runs that on a schedule.
+- **Upstream drift now has a proactive guard, not yet a schedule.**
+  `tools/readiness_drift.py` closes the first half of the gap above: it reads
+  every `control_id` referenced anywhere in `BEARINGS` and `GATE_BEARINGS`,
+  checks each against the injected corpus via `ReadinessCorpus.get()`, and
+  exits 0 (clean, naming the corpus and the count verified), 1 (drift — every
+  drifted ID printed with which table/key referenced it), or 2
+  (`CorpusUnavailable` — a guard that cannot reach its corpus must not report
+  a false all-clear, same fail-closed rule the seam itself follows). It is
+  stdlib-only, spec-loads `stores/readiness_corpus.py` the same
+  `_REPO`-relative way `_cmd_assess` and the test suite do, and runs clean
+  against the real corpus today: `7 referenced control ID(s) verified
+  present`. Covered by `tests/test_readiness_drift.py`, which builds its
+  fixture corpus from the live tables rather than a hardcoded ID list, so the
+  test does not go stale the day a bearing changes.
+
+  What is still open: **it is not wired into scheduled CI.** The corpus is a
+  separate repository, not checked out in this repo's CI, so the guard has
+  nowhere to run automatically yet. A ready-to-paste job, once someone
+  decides to add it to `.github/workflows/store-ci.yml`:
+
+  ```yaml
+  readiness-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: safe-app-store
+      - uses: actions/checkout@v4
+        with:
+          repository: rudi193-cmd/production-readiness-checklist
+          path: production-readiness-checklist
+      - run: |
+          cd safe-app-store
+          python3 tools/readiness_drift.py \
+            --corpus ../production-readiness-checklist --strict
+        # or, equivalently: export FORGE_READINESS_CORPUS instead of --corpus
+  ```
+
+  Actually adding this job to `.github/workflows/store-ci.yml` is the
+  remaining human call — out of scope for the bite that built the guard.
 
 ---
 
