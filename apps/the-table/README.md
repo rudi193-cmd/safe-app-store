@@ -5,6 +5,10 @@ adapter behind it, a game-agnostic GM driver loop, and an end-to-end proof
 that a game driven through the loop is remembered in a tamper-evident
 ai-game-master ledger. No second game yet — that's a later bite.
 
+> The architecture map — the three-layer spine, the adapter tiers, and how the
+> other game apps plug in — is [`docs/the-table-map.html`](docs/the-table-map.html).
+> Open it in a browser.
+
 ```sh
 python3 -m unittest discover -s tests -t .   # from apps/the-table/ — all suites
 python3 -m the_table.proof                    # the end-to-end proof (or: python3 the_table/proof.py)

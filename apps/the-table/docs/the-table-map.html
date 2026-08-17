@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Table</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root {
+    /* light — a table-map on parchment */
+    --ground: #ece9df;
+    --surface: #f6f4ec;
+    --surface-2: #efece2;
+    --ink: #22271f;
+    --muted: #5b6154;
+    --hair: #d4d1c3;
+    --felt: #2f5d49;      /* structure that exists */
+    --felt-soft: #2f5d4922;
+    --brass: #a9741f;     /* the keystone / highlights */
+    --brass-soft: #a9741f1f;
+    --wax: #9c3a2f;       /* the human seal */
+    --wax-soft: #9c3a2f1a;
+    --shadow: 0 1px 2px rgba(30,34,26,.06), 0 6px 22px rgba(30,34,26,.07);
+    --board-glow: transparent;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #12150e;
+      --surface: #1b1f17;
+      --surface-2: #20251c;
+      --ink: #eae7da;
+      --muted: #9aa08d;
+      --hair: #2d3327;
+      --felt: #63b18d;
+      --felt-soft: #63b18d1f;
+      --brass: #d7a251;
+      --brass-soft: #d7a2511f;
+      --wax: #d76a5d;
+      --wax-soft: #d76a5d1a;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
+      --board-glow: radial-gradient(120% 90% at 50% 0%, #63b18d10, transparent 60%);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #12150e;
+    --surface: #1b1f17;
+    --surface-2: #20251c;
+    --ink: #eae7da;
+    --muted: #9aa08d;
+    --hair: #2d3327;
+    --felt: #63b18d;
+    --felt-soft: #63b18d1f;
+    --brass: #d7a251;
+    --brass-soft: #d7a2511f;
+    --wax: #d76a5d;
+    --wax-soft: #d76a5d1a;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
+    --board-glow: radial-gradient(120% 90% at 50% 0%, #63b18d10, transparent 60%);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .serif {
+    font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  }
+  .mono {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 2.5rem) 4rem; }
+
+  /* ---------- masthead ---------- */
+  .eyebrow {
+    font-size: .72rem; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--brass); font-weight: 700; margin: 0 0 1.1rem;
+    display: flex; align-items: center; gap: .7rem;
+  }
+  .eyebrow::after { content: ""; height: 1px; flex: 1; background: linear-gradient(90deg, var(--hair), transparent); }
+  h1.title {
+    font-size: clamp(2.6rem, 7vw, 4.3rem);
+    line-height: .98; margin: 0 0 1.1rem; font-weight: 600;
+    letter-spacing: -.015em; text-wrap: balance;
+  }
+  .thesis {
+    font-size: clamp(1.15rem, 2.6vw, 1.5rem); line-height: 1.4;
+    max-width: 30ch; margin: 0 0 .4rem; text-wrap: balance;
+  }
+  .thesis b { color: var(--brass); font-weight: 600; }
+  .standfirst { color: var(--muted); max-width: 62ch; margin: 1.3rem 0 0; }
+  .standfirst code { font-size: .88em; }
+
+  .rule { height: 1px; background: var(--hair); border: 0; margin: clamp(2.2rem, 5vw, 3.4rem) 0; }
+
+  /* ---------- section headers ---------- */
+  .sec-head { display: flex; align-items: baseline; gap: .8rem; margin: 0 0 1.4rem; }
+  .sec-num {
+    font-size: .78rem; font-weight: 700; color: var(--brass);
+    font-variant-numeric: tabular-nums; letter-spacing: .05em;
+  }
+  h2 { font-size: clamp(1.3rem, 3vw, 1.7rem); font-weight: 600; margin: 0; letter-spacing: -.01em; }
+  .sec-head p { margin: .1rem 0 0; color: var(--muted); font-size: .95rem; }
+
+  /* ---------- the board ---------- */
+  .board {
+    border: 1px solid var(--hair); border-radius: 16px;
+    background: var(--surface); background-image: var(--board-glow);
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .layer {
+    display: grid;
+    grid-template-columns: 168px 1fr;
+    gap: 0; border-top: 1px solid var(--hair);
+  }
+  .layer:first-child { border-top: 0; }
+  .layer-label {
+    padding: 1.3rem 1.2rem; border-right: 1px solid var(--hair);
+    background: var(--surface-2); display: flex; flex-direction: column; gap: .35rem;
+  }
+  .layer-label .k {
+    font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); font-weight: 700;
+  }
+  .layer-label .n { font-size: 1.16rem; font-weight: 600; line-height: 1.15; }
+  .layer-label .r { font-size: .8rem; color: var(--muted); line-height: 1.4; }
+  .layer-body { padding: 1.15rem 1.2rem; display: flex; flex-direction: column; gap: .8rem; }
+
+  .badge {
+    align-self: flex-start; font-size: .64rem; letter-spacing: .12em; text-transform: uppercase;
+    font-weight: 700; padding: .16rem .5rem; border-radius: 999px;
+  }
+  .badge.built { color: var(--felt); background: var(--felt-soft); }
+  .badge.missing { color: var(--brass); background: var(--brass-soft); }
+
+  .tokens { display: flex; flex-wrap: wrap; gap: .55rem; }
+  .token {
+    border: 1px solid var(--hair); border-radius: 10px; padding: .5rem .7rem;
+    background: var(--ground); min-width: 0; flex: 1 1 auto;
+    display: flex; flex-direction: column; gap: .15rem;
+  }
+  .token .name { font-size: .84rem; font-weight: 600; }
+  .token .desc { font-size: .74rem; color: var(--muted); line-height: 1.35; }
+  .token .eff { font-size: .68rem; font-weight: 600; margin-top: .1rem; }
+  .token.exists { border-left: 3px solid var(--felt); }
+  .token.cheap { border-left: 3px solid var(--felt); }
+  .token.refactor { border-left: 3px solid var(--brass); }
+  .token.hard { border-left: 3px dashed var(--hair); }
+  .eff.go { color: var(--felt); }
+  .eff.mid { color: var(--brass); }
+  .eff.no { color: var(--muted); }
+
+  /* the missing-keystone layer gets a woven brass frame */
+  .layer.keystone .layer-label { background: var(--brass-soft); }
+  .layer.keystone .layer-label .n { color: var(--brass); }
+  .keystone-note {
+    font-size: .8rem; color: var(--muted); border: 1px dashed var(--brass);
+    border-radius: 10px; padding: .55rem .7rem; background: var(--brass-soft);
+  }
+  .keystone-note b { color: var(--brass); }
+
+  /* ---------- the GM loop ribbon ---------- */
+  .loop {
+    margin-top: 1rem; border: 1px solid var(--hair); border-radius: 14px;
+    background: var(--surface); box-shadow: var(--shadow); padding: 1.1rem 1.2rem;
+  }
+  .loop h3 { margin: 0 0 .2rem; font-size: .95rem; font-weight: 600; }
+  .loop .sub { margin: 0 0 .9rem; color: var(--muted); font-size: .82rem; }
+  .loop-steps { display: flex; flex-wrap: wrap; align-items: stretch; gap: .4rem; }
+  .step {
+    display: flex; align-items: center; gap: .45rem;
+    font-size: .8rem; font-weight: 600;
+  }
+  .step .chip {
+    padding: .35rem .6rem; border-radius: 8px; border: 1px solid var(--hair);
+    background: var(--ground); white-space: nowrap;
+  }
+  .step .chip.seal { border-color: var(--wax); color: var(--wax); background: var(--wax-soft); }
+  .step .chip.mem { border-color: var(--felt); color: var(--felt); background: var(--felt-soft); }
+  .step .arr { color: var(--brass); font-weight: 700; }
+
+  /* ---------- protocol code ---------- */
+  .code {
+    border: 1px solid var(--hair); border-radius: 14px; background: var(--surface);
+    box-shadow: var(--shadow); overflow-x: auto;
+  }
+  .code .bar {
+    display: flex; align-items: center; gap: .5rem; padding: .6rem .9rem;
+    border-bottom: 1px solid var(--hair); background: var(--surface-2);
+    font-size: .74rem; color: var(--muted); letter-spacing: .04em;
+  }
+  .code .bar .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--brass); }
+  .code pre { margin: 0; padding: 1rem 1.1rem; font-size: .84rem; line-height: 1.75; }
+  .code .mono { color: var(--ink); }
+  .c-kw { color: var(--wax); font-weight: 600; }
+  .c-fn { color: var(--brass); font-weight: 600; }
+  .c-cm { color: var(--muted); font-style: italic; }
+
+  /* ---------- adapter table ---------- */
+  .table-scroll { overflow-x: auto; border: 1px solid var(--hair); border-radius: 14px; box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; background: var(--surface); font-size: .88rem; }
+  thead th {
+    text-align: left; font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); font-weight: 700; padding: .8rem 1rem; background: var(--surface-2);
+    border-bottom: 1px solid var(--hair);
+  }
+  tbody td { padding: .75rem 1rem; border-bottom: 1px solid var(--hair); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td .src { font-weight: 600; }
+  td .src .mono { font-size: .82rem; }
+  .pill { font-size: .7rem; font-weight: 700; padding: .12rem .5rem; border-radius: 999px; white-space: nowrap; }
+  .pill.go { color: var(--felt); background: var(--felt-soft); }
+  .pill.mid { color: var(--brass); background: var(--brass-soft); }
+  .pill.no { color: var(--muted); background: var(--surface-2); }
+
+  /* ---------- house rules (guardrails) ---------- */
+  .rules { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .card {
+    border: 1px solid var(--hair); border-radius: 14px; background: var(--surface);
+    padding: 1.1rem 1.2rem; box-shadow: var(--shadow);
+  }
+  .card.seal { border-top: 3px solid var(--wax); }
+  .card.reuse { border-top: 3px solid var(--felt); }
+  .card h3 { margin: 0 0 .45rem; font-size: 1rem; font-weight: 600; }
+  .card p { margin: 0; color: var(--muted); font-size: .88rem; }
+  .card p + p { margin-top: .5rem; }
+  .card .tag { font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--wax); }
+  .card.reuse .tag { color: var(--felt); }
+
+  /* ---------- first bite path ---------- */
+  .bite { display: flex; flex-direction: column; gap: .1rem; counter-reset: step; }
+  .bite-row {
+    display: grid; grid-template-columns: 40px 1fr; gap: 1rem; align-items: start;
+    padding: 1rem 0; border-top: 1px solid var(--hair);
+  }
+  .bite-row:first-child { border-top: 0; }
+  .bite-row .idx {
+    font-family: "Iowan Old Style", Palatino, Georgia, serif;
+    font-size: 1.5rem; color: var(--brass); font-weight: 600; line-height: 1;
+    font-variant-numeric: tabular-nums; padding-top: .1rem;
+  }
+  .bite-row .idx.proof { color: var(--felt); }
+  .bite-row h4 { margin: 0 0 .2rem; font-size: .98rem; font-weight: 600; }
+  .bite-row p { margin: 0; color: var(--muted); font-size: .88rem; }
+  .bite-row .mono { font-size: .84rem; color: var(--ink); }
+
+  .coda {
+    margin-top: 2.4rem; padding: 1.2rem 1.3rem; border: 1px solid var(--hair);
+    border-radius: 14px; background: var(--surface-2); color: var(--muted); font-size: .88rem; line-height: 1.55;
+  }
+  .coda b { color: var(--ink); font-weight: 600; }
+  .coda .mono { color: var(--brass); }
+  .sig {
+    margin-top: 1.6rem; display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: .5rem; color: var(--muted); font-size: .76rem;
+  }
+  .sig .mark { font-family: "Iowan Old Style", Palatino, Georgia, serif; letter-spacing: .1em; }
+
+  a { color: var(--brass); }
+  @media (max-width: 640px) {
+    .layer { grid-template-columns: 1fr; }
+    .layer-label { border-right: 0; border-bottom: 1px solid var(--hair); }
+    .rules { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .board, .loop, .code, .table-scroll, .card { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <p class="eyebrow">SAFE App Store · fleet architecture</p>
+  <h1 class="title serif">The&nbsp;Table</h1>
+  <p class="thesis serif">The game apps don't merge. The Game Master is a three-layer spine — and <b>only the middle layer is missing.</b></p>
+  <p class="standfirst">Five folders in this store already touch games. Read as running code rather than READMEs, each one turns out to supply a different <em>layer</em> of what an AI Game Master needs — and the house built the two hard layers and skipped the connective tissue in between. This is the map of that spine: what exists, what's missing, and the smallest slice that proves the whole thing runs.</p>
+
+  <hr class="rule">
+
+  <!-- ============ THE BOARD ============ -->
+  <div class="sec-head">
+    <span class="sec-num">01</span>
+    <div><h2>The three-layer spine</h2><p>Each app is a token; its layer is its job. Solid edge = built. Brass, dashed = specified but not built.</p></div>
+  </div>
+
+  <div class="board">
+
+    <!-- WHO -->
+    <div class="layer">
+      <div class="layer-label">
+        <span class="k">Layer&nbsp;1 · who</span>
+        <span class="n serif">Who may play</span>
+        <span class="r">Identity &amp; consent</span>
+      </div>
+      <div class="layer-body">
+        <span class="badge built">Substrate exists</span>
+        <div class="tokens">
+          <div class="token exists">
+            <span class="name mono">playgate</span>
+            <span class="desc">A roster of named kids and a human-consent ledger — a person grants or refuses <em>with a required reason</em> ("the gate closes here"). Hash-chained, Nestor-anchored.</span>
+            <span class="eff go">Has: subject identity + consent log</span>
+          </div>
+        </div>
+        <div class="keystone-note" style="border-style:solid;border-color:var(--hair);background:var(--surface-2);color:var(--muted)">
+          Gap: no <span class="mono">allow()</span> verdict, no schedule. "May this player play now?" is a thin new policy on playgate's exact pattern.
+        </div>
+      </div>
+    </div>
+
+    <!-- WHAT -->
+    <div class="layer keystone">
+      <div class="layer-label">
+        <span class="k">Layer&nbsp;2 · what</span>
+        <span class="n serif">What is played</span>
+        <span class="r">The game protocol</span>
+      </div>
+      <div class="layer-body">
+        <span class="badge missing">The missing keystone</span>
+        <div class="tokens">
+          <div class="token cheap">
+            <span class="name mono">bureau</span>
+            <span class="desc">Logic already <em>returns</em> narration + a <span class="mono">state()</span> dict; <span class="mono">resolution</span> signals terminal. Built for this.</span>
+            <span class="eff go">Fits ~as-is · the reference adapter</span>
+          </div>
+          <div class="token refactor">
+            <span class="name mono">game-lab</span>
+            <span class="desc">Coup, Skull, Hearts + 8 more. Self-play today; split each <span class="mono">decide_*</span> into legal-moves + choose.</span>
+            <span class="eff mid">One refactor → unlocks 11 games</span>
+          </div>
+          <div class="token refactor">
+            <span class="name mono">apps/game</span>
+            <span class="desc">Not a board game — a PbtA resolver (<span class="mono">Engine.roll</span>). Adapts as a freeform scene: declare → roll → narrate.</span>
+            <span class="eff mid">Small · the narrative bridge</span>
+          </div>
+          <div class="token hard">
+            <span class="name mono">band-camp-arcade</span>
+            <span class="desc">Browser-only toys. Only <em>Drum Major Says</em> &amp; Sectional Bingo are driveable, via the DOM. A fun novelty, not core.</span>
+            <span class="eff no">Browser automation · or skip</span>
+          </div>
+        </div>
+        <div class="keystone-note">
+          Nobody has a uniform game interface — everything is self-play or UI-fused. Define <b>one</b> tiny protocol (§03) and every source above hangs off it.
+        </div>
+      </div>
+    </div>
+
+    <!-- MEMORY -->
+    <div class="layer">
+      <div class="layer-label">
+        <span class="k">Layer&nbsp;3 · memory</span>
+        <span class="n serif">What happened</span>
+        <span class="r">The tamper-evident record</span>
+      </div>
+      <div class="layer-body">
+        <span class="badge built">Built &amp; tested</span>
+        <div class="tokens">
+          <div class="token exists">
+            <span class="name mono">ai-game-master</span>
+            <span class="desc">A hash-chained ledger (<span class="mono">ledger.state</span> is a free-form JSON turn snapshot) plus a human-seals-canon state machine. Its own <span class="mono">DECISION.md&nbsp;§7</span> specs the GM loop — and shelves it.</span>
+            <span class="eff go">Has: the record box + a verifier</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GM LOOP -->
+  <div class="loop">
+    <h3>The GM loop threads the three layers</h3>
+    <p class="sub">This is the loop <span class="mono">ai-game-master</span> scoped and never built. It <em>is</em> the connective tissue.</p>
+    <div class="loop-steps">
+      <span class="step"><span class="chip">reset(seed)</span><span class="arr">→</span></span>
+      <span class="step"><span class="chip">observe(seat)</span><span class="arr">→</span></span>
+      <span class="step"><span class="chip">choose</span><span class="arr">→</span></span>
+      <span class="step"><span class="chip">step(seat, move)</span><span class="arr">→</span></span>
+      <span class="step"><span class="chip mem">snapshot → ledger</span><span class="arr">↺</span></span>
+      <span class="step"><span class="chip seal">human seals canon</span></span>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- ============ PROTOCOL ============ -->
+  <div class="sec-head">
+    <span class="sec-num">02</span>
+    <div><h2>The thin waist</h2><p>Library-clean, zero dependencies. The one keystone artifact — write it once.</p></div>
+  </div>
+
+  <div class="code">
+    <div class="bar"><span class="dot"></span><span class="mono">game_session.py — the protocol every game implements</span></div>
+<pre class="mono"><span class="c-kw">class</span> <span class="c-fn">GameSession</span>(Protocol):
+    <span class="c-kw">def</span> <span class="c-fn">reset</span>(self, seed) -> Observation      <span class="c-cm"># deal the opening</span>
+    <span class="c-kw">def</span> <span class="c-fn">observe</span>(self, seat) -> Observation    <span class="c-cm"># what this seat can see</span>
+    <span class="c-kw">def</span> <span class="c-fn">legal_moves</span>(self, seat) -> list[Move]
+    <span class="c-kw">def</span> <span class="c-fn">step</span>(self, seat, move) -> Observation  <span class="c-cm"># advance the state</span>
+    <span class="c-kw">def</span> <span class="c-fn">is_terminal</span>(self) -> bool
+    <span class="c-kw">def</span> <span class="c-fn">result</span>(self) -> Result             <span class="c-cm"># winner / scores</span></pre>
+  </div>
+
+  <hr class="rule">
+
+  <!-- ============ ADAPTER TIERS ============ -->
+  <div class="sec-head">
+    <span class="sec-num">03</span>
+    <div><h2>Adapter tiers</h2><p>What it takes to make each source speak the protocol — read from the actual code, not the pitch.</p></div>
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th>Source</th><th>How it fits</th><th>Effort</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="src"><span class="mono">bureau</span></td>
+          <td>Methods already return narration; <span class="mono">state()</span> dict + <span class="mono">resolution</span> flag are there.</td>
+          <td><span class="pill go">~a day · reference</span></td>
+        </tr>
+        <tr>
+          <td class="src"><span class="mono">game-lab</span> — Coup, Skull, Hearts</td>
+          <td>Split each <span class="mono">decide_*</span> into <span class="mono">legal_moves</span> + <span class="mono">choose</span>; add a per-seat policy slot.</td>
+          <td><span class="pill mid">1 refactor → 11 games</span></td>
+        </tr>
+        <tr>
+          <td class="src"><span class="mono">apps/game</span> — <span class="mono">Engine.roll</span></td>
+          <td>Wrap the 2d6+stat resolver as a freeform-scene session. The narrative side.</td>
+          <td><span class="pill mid">small</span></td>
+        </tr>
+        <tr>
+          <td class="src"><span class="mono">game-lab</span> — chess, uno, ledger</td>
+          <td>State buried in closures; extract into an object before it can be stepped.</td>
+          <td><span class="pill no">hard · defer</span></td>
+        </tr>
+        <tr>
+          <td class="src"><span class="mono">band-camp-arcade</span></td>
+          <td>Only Drum Major Says &amp; Sectional Bingo are driveable — via Playwright reading <span class="mono">data-sequence</span>.</td>
+          <td><span class="pill no">browser only</span></td>
+        </tr>
+        <tr>
+          <td class="src"><span class="mono">Tuning Note Purgatory</span></td>
+          <td>Real-time audio; nothing to orchestrate.</td>
+          <td><span class="pill no">skip · honestly</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="rule">
+
+  <!-- ============ HOUSE RULES ============ -->
+  <div class="sec-head">
+    <span class="sec-num">04</span>
+    <div><h2>Two house rules the standing law forces</h2><p>And they're good — the architecture is pre-shaped to obey them.</p></div>
+  </div>
+
+  <div class="rules">
+    <div class="card seal">
+      <span class="tag">Sealed fleet decision</span>
+      <h3>The model proposes; a person seals.</h3>
+      <p>The GM may drive play and roll dice, but sealing canon stays human — already enforced by ai-game-master's <span class="mono">NOT_A_PERSON</span> guard and playgate's reason-bearing human grant.</p>
+    </div>
+    <div class="card reuse">
+      <span class="tag">Rediscovery tax</span>
+      <h3>Reuse the ledger — don't rebuild it.</h3>
+      <p>The hash chain already exists in <span class="mono">verify_ledger.py</span>; Nestor is the fleet's seal. The GM reuses that memory layer. The loop was scoped in <span class="mono">DECISION.md&nbsp;§7</span> and shelved — not undocumented.</p>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- ============ FIRST BITE ============ -->
+  <div class="sec-head">
+    <span class="sec-num">05</span>
+    <div><h2>The first bite — a walking skeleton</h2><p>One vertical slice that proves the whole spine with the least code. Not the ocean.</p></div>
+  </div>
+
+  <div class="bite">
+    <div class="bite-row">
+      <span class="idx serif">1</span>
+      <div>
+        <h4><span class="mono">game_session.py</span> — the protocol</h4>
+        <p>The thin waist from §02. Library-clean, zero deps. The keystone.</p>
+      </div>
+    </div>
+    <div class="bite-row">
+      <span class="idx serif">2</span>
+      <div>
+        <h4>One adapter: <span class="mono">bureau</span></h4>
+        <p>The cheapest source — it already returns narration and a state dict. Delegate the protocol straight through.</p>
+      </div>
+    </div>
+    <div class="bite-row">
+      <span class="idx serif">3</span>
+      <div>
+        <h4>A minimal GM driver loop</h4>
+        <p><span class="mono">reset → {observe → choose → step → snapshot into an ai-game-master ledger row} → result.</span></p>
+      </div>
+    </div>
+    <div class="bite-row">
+      <span class="idx serif proof">✓</span>
+      <div>
+        <h4 style="color:var(--felt)">The proof</h4>
+        <p>Run a bureau game through the GM, then run ai-game-master's own <span class="mono">verify_ledger.py</span> over the produced db — the chain verifies. The smoosh, demonstrated end to end.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="coda">
+    <b>Where it lives:</b> its own playground app — working name <span class="mono">apps/the-table</span> — that <em>injects</em> the others' library surfaces (imports bureau's <span class="mono">Session</span>, writes ai-game-master's ledger) without ever reaching into another app's data lane. Each folder stays in its own lane; the GM is the thin new organ that sits between them. <b>game-lab has the games, ai-game-master has the memory, and the GM loop is the seam neither built.</b>
+  </div>
+
+  <div class="sig">
+    <span>A design map · nothing built yet — the fork after this is which game to slice first.</span>
+    <span class="mark">Vishwakarma · ΔΣ=42</span>
+  </div>
+
+</div>
+
+</body>
+</html>
