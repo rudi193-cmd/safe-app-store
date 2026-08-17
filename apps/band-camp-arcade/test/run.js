@@ -1,4 +1,4 @@
-// Test driver: serve band-camp-arcade over http, run all five game suites in
+// Test driver: serve band-camp-arcade over http, run all six game suites in
 // real Chromium.
 //
 // http rather than file:// so this matches how the app is actually served
@@ -7,8 +7,8 @@
 // pattern for). The server can rewrite a source file on the way out, which is
 // what makes mutation mode possible without touching the working tree.
 //
-//   node test/run.js              — run all five suites
-//   node test/run.js --mutations  — verify each of the five gates can fail
+//   node test/run.js              — run all six suites
+//   node test/run.js --mutations  — verify each of the six gates can fail
 
 import http from 'node:http';
 import fs from 'node:fs/promises';
@@ -22,6 +22,7 @@ import { run as runPitCrew } from './suites/pit-crew.js';
 import { run as runSweatTracker } from './suites/sweat-tracker.js';
 import { run as runBingo } from './suites/bingo.js';
 import { run as runGeScoreRoast } from './suites/ge-score-roast.js';
+import { run as runDrumMajor } from './suites/drum-major.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -31,6 +32,7 @@ const GAMES = [
   { key: 'uniform-sweat-tracker', label: 'Uniform Sweat Tracker', run: runSweatTracker },
   { key: 'sectional-bingo', label: 'Sectional Bingo', run: runBingo },
   { key: 'ge-score-roast', label: 'GE Score Roast', run: runGeScoreRoast },
+  { key: 'drum-major-says', label: 'Drum Major Says', run: runDrumMajor },
 ];
 
 /**
@@ -114,7 +116,7 @@ async function runAllSuites(mutation = null) {
 async function main() {
   const wantMutations = process.argv.includes('--mutations');
 
-  console.log('\n▸ suites (real Chromium, five games)\n');
+  console.log('\n▸ suites (real Chromium, six games)\n');
   const baseline = await runAllSuites(null);
   for (const r of baseline) {
     console.log(`  ${r.pass ? '✓' : '✗'} ${r.name}`);

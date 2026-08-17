@@ -1,6 +1,6 @@
 # band-camp-arcade
 
-Five small, silly, entirely local browser toys for marching band kids. One
+Six small, silly, entirely local browser toys for marching band kids. One
 HTML file per game, no build step, no accounts, no network calls of any kind.
 
 **Re-landed from the `quick-stupids` playground.** That repository never comes
@@ -12,11 +12,11 @@ the live one.
 ```sh
 npm install
 npm run serve          # http://localhost:8080 — open index.html, no build
-npm test               # 18 assertions across five suites, in real Chromium
-npm run test:mutations # prove all five gates can fail
+npm test               # 21 assertions across six suites, in real Chromium
+npm run test:mutations # prove all six gates can fail
 ```
 
-## The five games
+## The six games
 
 | Game | What it is |
 | --- | --- |
@@ -25,6 +25,7 @@ npm run test:mutations # prove all five gates can fail
 | [Uniform Sweat Tracker](games/uniform-sweat-tracker/) | Log date/event/felt-like-temperature/a 1-10 suffering score/a complaint per game. A season summary picks worst day, best day, average suffering, and a hall-of-fame quote — by score, not by log order. |
 | [Sectional Bingo](games/sectional-bingo/) | A shuffled 5x5 card from a 45-line pool of stock sectional disasters, plus a per-user custom pool for section-specific inside jokes. Row/column/diagonal detection triggers a banner and confetti. |
 | [GE Score Roast](games/ge-score-roast/) | Enter a fictional score, optional caption and band name, pick a judge persona, get a mad-libs roast back. Satire only — the UI says so, and it is never wired to a real score. |
+| [Drum Major Says](games/drum-major-says/) | Simon, in shako. The drum major calls a growing sequence of commands (Mark Time / Forward / To the Rear / Halt); repeat it back to advance a round, miss one and the run ends. Best streak persists. |
 
 Everything each game persists is browser `localStorage`, scoped to this
 app's origin. See `safe-app-manifest.json`'s `data_streams` for exactly what
@@ -39,7 +40,7 @@ Re-landing is a rebuild, not a copy — three things changed from the
   `/favicon.ico`, which 404'd and showed up as a console error in every test
   run. `<link rel="icon" href="data:,">` tells the browser not to ask.
 - **A nav link tying the five pages into one bundle.** Each game now links
-  back to `index.html`, the arcade menu that lists all five — the shape this
+  back to `index.html`, the arcade menu that lists them all — the shape this
   store's `path` = one `app_id` convention expects, and what "wrap them
   together" actually means for five previously-standalone files.
 - **Pit Crew Simulator's retry-on-miss behavior.** In the original prototype
@@ -52,26 +53,42 @@ bingo detection, roast templates — changed in the rebuild. The rebuild is in
 the packaging: the manifest, the catalog entry, and the test harness below,
 none of which existed in the playground.
 
+## What was added here, not re-landed
+
+**Drum Major Says** is the one game that was never in `quick-stupids` — it was
+written here, to this app's conventions, so it is a first-class member of the
+bundle rather than a re-land. It follows the same shape as the other five: one
+self-contained HTML file, the favicon fix, the nav link home, `localStorage`
+for its only state (`drum-major-best-streak`), no network. It is a Simon
+variant: a sequence of drum-major commands that grows by one each round, and
+the run ends the first time you repeat one wrong. Like every other game it
+ships a suite and a mutation that proves the suite can fail — the mechanism
+that makes the game harder each round (the sequence growing by one) is the
+gated one, and its mutation freezes the sequence at length one and watches the
+"grows to the next round" gate go red.
+
 ## The gates
 
-`npm test` runs five independent suites in real Chromium — one per game,
-18 assertions total, covering exactly what a person clicking through each
+`npm test` runs six independent suites in real Chromium — one per game,
+21 assertions total, covering exactly what a person clicking through each
 game would check: the tuning timer records and persists a best time, a
 correctly-dragged instrument clears a pit-crew level and offers the next one,
 the sweat tracker's worst/best day summary tracks score rather than log
 order, a full bingo row actually triggers BINGO (and clearing a mark clears
-the banner), and the roast generator classifies score bands correctly and
-actually varies its output on regenerate.
+the banner), the roast generator classifies score bands correctly and
+actually varies its output on regenerate, and Drum Major Says deals a
+one-call opening, grows the sequence by one on a clean repeat, and ends the
+run on a wrong call with the best streak recorded.
 
 ### Proving the gates can fail
 
 A green suite is a claim about the harness, not about the code. `npm run
 test:mutations` breaks one specific mechanism per game — the personal-best
-save, the level-clear score bump, the worst/best sort, `checkBingo`, and a
-score-band boundary — and asserts two things per mutation: the gate it names
-goes red, and no undeclared gate does.
+save, the level-clear score bump, the worst/best sort, `checkBingo`, a
+score-band boundary, and the drum-major sequence's growth — and asserts two
+things per mutation: the gate it names goes red, and no undeclared gate does.
 
-All five are caught cleanly. **Building this suite caught a real bug in
+All six are caught cleanly. **Building this suite caught a real bug in
 itself before this app ever shipped**: the first version of the uniform-
 sweat-tracker suite checked "does the worst-day event name appear anywhere in
 the summary card's text," which cannot tell a correctly-labeled pair from a
