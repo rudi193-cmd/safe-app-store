@@ -1,0 +1,5 @@
+# The 5e rules PLUMBING the harness reuses instead of hand-rolling it
+# (apps/ai-game-master/docs/DECISION.md: reuse the dice roller; build only the seam).
+# MIT-licensed, pure-Python; the engine injects its own random.Random so seeded
+# fights and Monte-Carlo sweeps stay reproducible.
+dice>=4.0.0
