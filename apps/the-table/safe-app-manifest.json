@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "safe_version": ">=2.0.0",
   "agent_type": "tool",
-  "description": "A thin AI Game Master spine: a game protocol (GameSession — reset/observe/legal_moves/step/is_terminal/result) that any game engine implements, plus a first adapter over bureau's real Session. This is a walking skeleton — the contract and one working game behind it, nothing more. The GM composes on top of GameSession; this slice does not yet include a GM loop, a second game, or persistence.",
+  "description": "A thin AI Game Master spine: a game protocol (GameSession — reset/observe/legal_moves/step/is_terminal/result) any game engine implements, a first adapter over bureau's real Session, a game-agnostic GM driver loop, and a ledger sink that records each turn into an ai-game-master campaign box. This is a walking skeleton — one game (bureau) driven end to end and remembered in a tamper-evident ledger that ai-game-master's own verifier accepts. A second game and the narrative/AI side compose on top of the same protocol in later slices.",
   "author": "USER / Claude",
   "data_streams": [],
   "permissions": [],
@@ -16,7 +16,7 @@
   "license": "Apache-2.0",
   "notes": {
     "injects": "bureau's real Session (apps/bureau/bureau/play.py) as the first GameSession implementation, and is shaped to compose with the ai-game-master library surfaces (apps/ai-game-master) as the GM loop and ledger land in later slices. Nothing under apps/bureau or apps/ai-game-master is modified — the-table is a consumer of both, never the reverse.",
-    "own_box_only": "This app touches only its own box: no store_scope, no network, no writes outside apps/the-table. The bureau import is read-only (module import, not a data dependency), and ledger_sink.py (owned by a concurrent build in this same app) is the only planned persistence surface, not part of this slice.",
-    "walking_skeleton": "First slice: the-table/game_session.py (the pinned GameSession Protocol contract), the-table/bureau_adapter.py (BureauSession, the first real implementation), and tests/test_bureau_adapter.py (drives a full game to terminal across several seeds, and asserts every Observation.view and every chosen Move round-trips through json.dumps/json.loads, since the GM snapshots both to a ledger). No GM loop, no second game, no persistence yet — those are later bites."
+    "own_box_only": "This app touches only its own box: no store_scope, no network, no writes outside a caller-supplied box dir. The bureau import is read-only (module import, not a data dependency); ledger_sink.py provisions and writes an ai-game-master campaign.db under a box dir the caller chooses, and never seals canon (append-only session_open/turn/session_close rows only — sealing is a human act, verified by ai-game-master's --canon guard).",
+    "walking_skeleton": "First slice, complete: the_table/game_session.py (the pinned GameSession Protocol contract); the_table/bureau_adapter.py (BureauSession, the first real implementation over apps/bureau); the_table/ledger_sink.py (records turns into an ai-game-master box, reusing its own hash scheme); the_table/gm.py (the game-agnostic driver loop, seat-agnostic via current_seat, GMError on a max_turns cap); the_table/proof.py (drives bureau end to end and asserts ai-game-master's own verify_ledger.py accepts the chain). Tests: test_bureau_adapter.py, test_ledger_sink.py, test_gm.py. Not yet: a second game (game-lab's engines behind the same protocol) and the narrative/AI side (apps/game's resolver) — later bites."
   }
 }
