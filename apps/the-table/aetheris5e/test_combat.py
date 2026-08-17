@@ -20,8 +20,66 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 
 import combat  # noqa: E402
+import dice5e  # noqa: E402
 import statblocks  # noqa: E402
+import dice as _dicelib  # noqa: E402
 from the_table.ledger_sink import LedgerSink  # noqa: E402
+
+
+def _lib_total(expr, rng):
+    v = _dicelib.roll(expr, random=rng)
+    return int(v) if isinstance(v, int) else sum(int(x) for x in v)
+
+
+class TestDiceSeam(unittest.TestCase):
+    """The cache + fast path must never diverge from the `dice` library it
+    delegates to, and the library must stay the validator and the fallback."""
+
+    def test_bounds_and_determinism(self):
+        for _ in range(300):
+            self.assertTrue(5 <= dice5e.total("2d6+3", random.Random(_)) <= 15)
+            self.assertTrue(1 <= dice5e.total("1d20", random.Random(_)) <= 20)
+        self.assertEqual(dice5e.total("3d8+2", random.Random(5)),
+                         dice5e.total("3d8+2", random.Random(5)))
+
+    def test_advantage_skews_high_disadvantage_low(self):
+        import statistics as st
+        adv = [dice5e.total("2d20h1", random.Random(i)) for i in range(400)]
+        dis = [dice5e.total("2d20l1", random.Random(i)) for i in range(400)]
+        self.assertGreater(st.mean(adv), 12.5)   # ~13.8
+        self.assertLess(st.mean(dis), 8.5)       # ~7.2
+
+    def test_fastpath_distribution_matches_library(self):
+        import statistics as st
+        for expr in ("4d6", "2d6+3", "1d20"):
+            fast = [dice5e.total(expr, random.Random(i)) for i in range(400)]
+            lib = [_lib_total(expr, random.Random(i)) for i in range(400)]
+            self.assertEqual((min(fast), max(fast)), (min(lib), max(lib)),
+                             f"{expr}: fast-path bounds differ from library")
+            self.assertAlmostEqual(st.mean(fast), st.mean(lib), delta=0.6,
+                                   msg=f"{expr}: fast-path mean drifts from library")
+
+    def test_complex_expression_falls_back_to_library(self):
+        # '1d4+1d4' is valid `dice` notation but NOT a fast-path form -> the
+        # library owns it. It must still roll in-range via the seam.
+        for _ in range(50):
+            self.assertTrue(2 <= dice5e.total("1d4+1d4", random.Random(_)) <= 8)
+
+    def test_library_is_the_gatekeeper_for_illegal_notation(self):
+        # The `dice` library validates every expression at compile time, so
+        # illegal notation is refused by it — the grammar is never ours.
+        for bad in ("1d6+", "xd6", "1d"):
+            with self.subTest(bad=bad), self.assertRaises(Exception):
+                dice5e.total(bad, random.Random(0))
+
+    def test_expression_is_compiled_and_cached(self):
+        dice5e.total("1d12+1", random.Random(0))
+        self.assertIn("1d12+1", dice5e._COMPILED)
+
+    def test_crit_expr_doubles_dice_keeps_modifier(self):
+        self.assertEqual(dice5e.crit_expr("1d10+3"), "2d10+3")
+        self.assertEqual(dice5e.crit_expr("2d6"), "4d6")
+        self.assertEqual(dice5e.crit_expr("1d8-1"), "2d8-1")
 
 
 class TestDice(unittest.TestCase):
