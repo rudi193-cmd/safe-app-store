@@ -34,7 +34,9 @@ import sys
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _TABLE = os.path.dirname(_HERE)
 sys.path.insert(0, _TABLE)
+sys.path.insert(0, _HERE)
 from the_table.ledger_sink import LedgerSink  # noqa: E402
+import dice5e  # noqa: E402  (MIT `dice` library, wrapped)
 
 BOX = os.environ.get("AETHERIS_BOX", os.path.join(_HERE, "_boxes", "box"))
 
@@ -54,31 +56,19 @@ def _sink() -> LedgerSink:
 
 
 def _roll_expr(expr: str, rng: random.Random):
-    """Roll 'NdM+K' / 'NdM-K' / 'dM' / flat int. Returns (total, detail)."""
-    expr = expr.replace(" ", "")
-    m = re.fullmatch(r"(\d*)d(\d+)([+-]\d+)?", expr)
-    if not m:
-        return int(expr), str(expr)
-    n = int(m.group(1) or "1")
-    faces = int(m.group(2))
-    mod = int(m.group(3) or "0")
-    dice = [rng.randint(1, faces) for _ in range(n)]
-    total = sum(dice) + mod
-    detail = f"{dice}{'+' if mod >= 0 else ''}{mod if mod else ''} = {total}"
-    return total, detail
+    """Roll any dice-notation ``expr`` via the MIT `dice` library. Returns
+    (total, detail). The library owns the RNG (fed ``rng``) and the parsing."""
+    total = dice5e.total(expr, rng)
+    return total, f"{expr} = {total}"
 
 
 def _d20(mod: int, rng: random.Random, adv: str = ""):
-    a, b = rng.randint(1, 20), rng.randint(1, 20)
-    if adv == "adv":
-        nat, both = max(a, b), f"adv[{a},{b}]"
-    elif adv == "dis":
-        nat, both = min(a, b), f"dis[{a},{b}]"
-    else:
-        nat, both = a, f"[{a}]"
-    total = nat + mod
+    """A d20 test via dice5e (2d20 keep-highest/lowest for adv/dis).
+    Returns (total, nat, detail)."""
+    total, nat = dice5e.d20(rng, mod, adv=(adv == "adv"), dis=(adv == "dis"))
+    kind = "adv" if adv == "adv" else "dis" if adv == "dis" else ""
     crit = " CRIT!" if nat == 20 else (" nat-1" if nat == 1 else "")
-    return total, nat, f"d20{both}{'+' if mod >= 0 else ''}{mod} = {total}{crit}"
+    return total, nat, f"d20{'('+kind+')' if kind else ''} nat{nat}{'+' if mod >= 0 else ''}{mod} = {total}{crit}"
 
 
 def main() -> int:

@@ -20,6 +20,7 @@ The one covenant is identical to the-table's and to `apps/ai-game-master`'s:
 
 | File | What it does |
 |------|--------------|
+| `dice5e.py` | The dice seam. Delegates **all** randomness and dice-notation parsing to the MIT-licensed [`dice`](https://pypi.org/project/dice/) library (borntyping/python-dice) instead of a hand-rolled parser — the reuse-vs-build wall from `apps/ai-game-master/docs/DECISION.md`. Injects the engine's own `random.Random`, so seeded fights stay reproducible and the global `random` is never touched. |
 | `monte_carlo.py` | Runs the whole adventure at volume (default 500 seeded rounds) for three level-3 pregens side by side, and reports where the average rolls out — per-beat success rates, successes-per-run distribution, the "night held together" verdict, and the one beat no policy can resolve. |
 | `gm5e.py` | A live 5e roller CLI (checks, saves, attacks, damage) that appends every roll to a hash-chained ai-game-master ledger the moment it happens. Refuses to record a seal under any machine-flavored name. |
 | `sealed_run.py` | One live playthrough to Maunder's question, then the full seal loop: the machine's seal attempt **refused**, a named human's seal **recorded**, the chain **verified**, and a tampered copy **rejected**. |
@@ -30,6 +31,8 @@ The one covenant is identical to the-table's and to `apps/ai-game-master`'s:
 ## Run it
 
 ```sh
+pip install -r requirements.txt     # the MIT `dice` library (the only dep)
+
 python3 monte_carlo.py 500          # the skill-check baseline
 python3 gm5e.py open "Aetheris"     # provision a live campaign box
 python3 gm5e.py check Aether 5 13 --adv "attune to the broadcast"

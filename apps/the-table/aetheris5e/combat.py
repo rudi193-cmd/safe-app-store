@@ -34,7 +34,6 @@ from __future__ import annotations
 
 import os
 import random
-import re
 import shutil
 import sqlite3
 import subprocess
@@ -46,37 +45,12 @@ sys.path.insert(0, _TABLE)
 sys.path.insert(0, _HERE)
 from the_table.ledger_sink import LedgerSink  # noqa: E402
 import statblocks  # noqa: E402
+# dice notation + RNG are delegated to the MIT `dice` library via dice5e --
+# ai-game-master's reuse-vs-build wall (reuse the roller; build only the seam).
+from dice5e import total as roll, crit_expr as _double_dice, d20  # noqa: E402
 
 AGM_VERIFY = os.path.join(os.path.dirname(os.path.dirname(_TABLE)),
                           "apps", "ai-game-master", "bootstrap", "verify_ledger.py")
-
-
-# ── dice ─────────────────────────────────────────────────────────────────────
-
-def roll(expr: str, rng: random.Random) -> int:
-    expr = expr.replace(" ", "")
-    m = re.fullmatch(r"(\d*)d(\d+)([+-]\d+)?", expr)
-    if not m:
-        return int(expr)
-    n = int(m.group(1) or "1")
-    faces = int(m.group(2))
-    mod = int(m.group(3) or "0")
-    return sum(rng.randint(1, faces) for _ in range(n)) + mod
-
-
-def _double_dice(expr: str) -> str:
-    """Double the dice count for a crit, keeping the flat modifier (1d10+3 -> 2d10+3)."""
-    m = re.fullmatch(r"(\d*)d(\d+)([+-]\d+)?", expr.replace(" ", ""))
-    if not m:
-        return expr
-    n = int(m.group(1) or "1") * 2
-    return f"{n}d{m.group(2)}{m.group(3) or ''}"
-
-
-def d20(rng: random.Random, mod: int, adv=False, dis=False):
-    a, b = rng.randint(1, 20), rng.randint(1, 20)
-    nat = max(a, b) if adv and not dis else (min(a, b) if dis and not adv else a)
-    return nat + mod, nat
 
 
 # ── engine ───────────────────────────────────────────────────────────────────
@@ -195,7 +169,7 @@ class Combat:
         # recharge specials
         for sp in c["specials"]:
             if sp.get("recharge") and not sp.get("available"):
-                if self.rng.randint(1, 6) >= 5:
+                if roll("1d6", self.rng) >= 5:
                     sp["available"] = True
         # stun: skip a turn
         if c["skip_turns"] > 0:

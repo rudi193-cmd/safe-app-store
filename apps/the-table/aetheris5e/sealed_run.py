@@ -28,7 +28,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TABLE = os.path.dirname(HERE)
 REPO = os.path.dirname(os.path.dirname(TABLE))
 sys.path.insert(0, TABLE)
+sys.path.insert(0, HERE)
 from the_table.ledger_sink import LedgerSink  # noqa: E402
+import dice5e  # noqa: E402  (MIT `dice` library, wrapped)
 AGM_VERIFY = os.path.join(REPO, "apps", "ai-game-master", "bootstrap", "verify_ledger.py")
 
 WORLD = json.load(open(os.path.join(TABLE, "worlds", "aetheris.json")))
@@ -53,9 +55,8 @@ sink.open_session(WORLD["title"], {"pc": "Sena Koll (engine-blooded, L3)", "engi
 
 
 def d20(mod, adv=False, dis=False):
-    a, b = rng.randint(1, 20), rng.randint(1, 20)
-    nat = max(a, b) if adv and not dis else (min(a, b) if dis and not adv else a)
-    return nat + mod, nat, (a, b)
+    total, nat = dice5e.d20(rng, mod, adv=adv, dis=dis)
+    return total, nat
 
 
 def degree(total, nat, dc):
@@ -72,20 +73,20 @@ for bid, approach, dc, adv, wild in PLAN:
     tag = f"[{approach} vs DC {dc}"
     a2, d2 = adv, False
     if wild:
-        surge = rng.randint(1, 6)
+        surge = dice5e.total("1d6", rng)
         if surge == 1: d2 = True; tag += ", aether-wild:AGAINST"
         elif surge == 6: a2 = True; tag += ", aether-wild:WITH"
         else: tag += ", aether-wild:—"
     if adv: tag += ", adv"
     tag += "]"
-    total, nat, pair = d20(PC[approach], adv=a2, dis=d2)
+    total, nat = d20(PC[approach], adv=a2, dis=d2)
     deg = degree(total, nat, dc)
     sink.snapshot({"kind": "check", "beat": bid, "approach": approach, "dc": dc,
-                   "roll": pair, "nat": nat, "total": total, "degree": deg},
+                   "nat": nat, "total": total, "degree": deg},
                   note=f"{bid} {approach} vs DC{dc} -> {deg}")
     print(f"\n> {bid.upper()}  {tag}")
     print(f"   {beat['prompt'][:130]}...")
-    print(f"   d20{pair}+{PC[approach]} = {total} vs DC {dc}  ->  {deg.upper()}")
+    print(f"   d20 nat{nat}+{PC[approach]} = {total} vs DC {dc}  ->  {deg.upper()}")
     print(f"   \"{beat['outcomes'][deg]}\"")
 
 # -- b5: the decision --------------------------------------------------------

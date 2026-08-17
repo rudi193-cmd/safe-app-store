@@ -25,9 +25,13 @@ Run:  python3 monte_carlo.py [rounds]     # default 500
 """
 from __future__ import annotations
 
+import os
 import random
 import statistics
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import dice5e  # noqa: E402  (MIT `dice` library, wrapped)
 
 # Aetheris approach modifiers per level-3 pregen, and which beats each rolls
 # with advantage from a racial/class feature.
@@ -51,9 +55,7 @@ BEATS = [
 
 
 def _d20(mod, rng, adv=False, dis=False):
-    a, b = rng.randint(1, 20), rng.randint(1, 20)
-    nat = max(a, b) if adv and not dis else (min(a, b) if dis and not adv else a)
-    return nat + mod, nat
+    return dice5e.d20(rng, mod, adv=adv, dis=dis)
 
 
 def _degree(total, nat, dc):
@@ -74,7 +76,7 @@ def run_pc(pc, rounds):
             adv = bid in pc["adv"]
             dis = False
             if wild:
-                surge = rng.randint(1, 6)
+                surge = dice5e.total("1d6", rng)
                 if surge == 1:
                     dis = True
                 elif surge == 6:
