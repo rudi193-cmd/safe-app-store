@@ -103,9 +103,11 @@ Primary channel: `#vishwakarma` is your **inbox** — messages sent TO you. Coor
 
 ## Willow Auth
 
-This project uses SAFE dev-fallback auth. app_id is `safe-app-store`. The Willow server must have `WILLOW_DEV_SAFE_ROOT=~/github` in its env — this is set in `.claude/settings.json` mcpServers config.
+This project uses SAFE dev-fallback auth. app_id is `safe-app-store` (from `safe-app-manifest.json`). The Willow MCP server must have `WILLOW_DEV_SAFE_ROOT` set in its env — this lives in **`.mcp.json`**, in the `willow` server's `env` block, alongside `WILLOW_AGENT_NAME=vishwakarma`. It is **not** in `.claude/settings.json`.
 
-If MCP tools return `unauthorized`, check that `WILLOW_DEV_SAFE_ROOT` is set and `safe-app-manifest.json` exists at the repo root.
+Claude Code reads its own hooks/settings from the sync-rendered `.claude/settings.local.json` (gitignored — produced by willow-mcp project sync, with a real Python path and the live `WILLOW_DEV_SAFE_ROOT`). The old committed `.claude/settings.json` symlink into `willow-2.0` has been removed; do not rely on it.
+
+If MCP tools return `unauthorized`, check that `WILLOW_DEV_SAFE_ROOT` is set in `.mcp.json`'s `willow` env and that `safe-app-manifest.json` exists at the repo root.
 
 ---
 

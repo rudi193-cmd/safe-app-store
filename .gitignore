@@ -16,6 +16,12 @@ apps/utety-chat/data/exports/
 /data/
 /.venv-dev/
 
+# willow-mcp project sync output — the rendered Claude Code settings (real
+# python path, live WILLOW_DEV_SAFE_ROOT, agent identity). Machine-local sync
+# artifact, not repo content; the committed .claude/settings.json symlink it
+# replaced (a dead willow-2.0 pointer) was removed 2026-08-17.
+.claude/settings.local.json
+
 # Willow runtime — agent identity + ephemeral git worktrees
 .willow/active-agent
 worktrees/
