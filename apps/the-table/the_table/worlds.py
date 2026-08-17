@@ -198,3 +198,48 @@ def load_world(path) -> dict:
     except json.JSONDecodeError as e:
         _fail(str(p), f"not valid JSON: {e}")
     return _validate_world(str(p), world)
+
+
+# ── the worlds index ─────────────────────────────────────────────────────────
+#
+# The story-side parallel to registry.py's game index, and deliberately even
+# smaller: a story world is DATA (a JSON file), not a factory, so "registering"
+# one is dropping a validated file into ``worlds/`` -- no code change, no
+# register() call. ``available_worlds()`` is the discovery seam that makes a
+# shipped world first-class: the test suite loads and plays EVERY name it
+# returns, so a new world is covered the moment it lands, exactly the way
+# adding a game to registry.py is one line and the registry tests pick it up.
+#
+# NOTE ON WHY STORY WORLDS ARE NOT IN registry.py: registry.py's games are
+# auto-driven to terminal by a policy (proof.py, baseline.py, test_registry.py
+# all iterate registry.games() and drive each with random/first-legal moves).
+# A story world's decision beat has ZERO legal moves by design -- only a named
+# human's seal() advances it -- so no policy can carry one to terminal. Putting
+# a world in the game registry would break those policy-driven sweeps. The
+# worlds index is the correct home: discovered and validated, but driven by a
+# loop that seals decisions with a human, never by a blind policy.
+
+WORLDS_DIR = Path(__file__).resolve().parent.parent / "worlds"
+
+
+def available_worlds() -> dict:
+    """``name -> Path`` for every shipped world JSON under ``worlds/``.
+
+    The name is the file stem (``worlds/aetheris.json`` -> ``"aetheris"``).
+    Returns an empty dict if the directory is absent. This does not validate
+    the files -- it only lists them; ``load_named_world`` (or ``load_world``)
+    validates on read, so a malformed file still fails loudly when opened.
+    """
+    if not WORLDS_DIR.is_dir():
+        return {}
+    return {p.stem: p for p in sorted(WORLDS_DIR.glob("*.json"))}
+
+
+def load_named_world(name: str) -> dict:
+    """Load and validate the shipped world registered under ``name`` (its file
+    stem under ``worlds/``). Raises ``WorldError`` if no such world is shipped
+    (naming the ones that are) or if the file fails validation."""
+    worlds = available_worlds()
+    if name not in worlds:
+        _fail(name, f"no shipped world named {name!r}; available: {sorted(worlds)}")
+    return load_world(worlds[name])

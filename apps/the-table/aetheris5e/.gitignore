@@ -1,0 +1,9 @@
+# Ledger boxes are DATA — played rolls, human seals, real names. Never commit.
+# (Mirrors apps/ai-game-master's covenant: blueprint in git, campaign in a box.)
+_boxes/
+box/
+sealedbox/
+tampered_copy/
+demobox/
+*.db
+__pycache__/
