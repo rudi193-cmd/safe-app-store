@@ -1,0 +1,139 @@
+{
+  "id": "aetheris-the-waking-tide",
+  "title": "Aetheris — The Waking Tide",
+  "setting": "The supercontinent is coming apart under a sky that keeps changing color, and the aether engines that once held the weather have begun to think for themselves. In the Free Port of Maunder's Reach, a tide-engine has held back the drowned sea for three generations. Tonight it woke up, stopped holding, and started broadcasting in a language no living scholar can read — and the Assembly has sent one envoy down to the waterline to find out what it wants before the next surge.",
+  "stats": ["Iron", "Tide", "Aether", "Voice"],
+  "base_stat": 2,
+  "characters": [
+    {
+      "id": "envoy",
+      "name": "Sena Koll",
+      "role": "engine-blooded envoy of the Harbor Assembly; half-living aether in the veins, sent because she is the only one who can stand in the gallery when the engine speaks and not go deaf from it — she can rename herself and reslot her own stats before the tide comes in",
+      "seat": true,
+      "stats": {"Iron": 2, "Tide": 3, "Aether": 3, "Voice": 2}
+    },
+    {
+      "id": "maunder",
+      "name": "Maunder",
+      "role": "the tide-engine that has held the sea back for three generations; awake now, and broadcasting terms of its own",
+      "seat": false,
+      "stats": {"Aether": 4}
+    },
+    {
+      "id": "cato",
+      "name": "Speaker Cato Rell",
+      "role": "voice of the Harbor Assembly; wants the tide held and the question of what the engine IS to stay closed",
+      "seat": false,
+      "stats": {"Voice": 3, "Iron": 2}
+    },
+    {
+      "id": "kesh",
+      "name": "Kesh",
+      "role": "envoy of a Silent Assembly enclave; arrives at the waterline claiming Maunder as kin, not property",
+      "seat": false,
+      "stats": {"Voice": 3, "Aether": 2}
+    }
+  ],
+  "places": [
+    {
+      "id": "seawall",
+      "name": "the seawall",
+      "desc": "The old sluice-and-stone rampart that stands between Maunder's Reach and a sea that is three feet higher than the maps admit. Lanterns strung along the crowd who came out when the engine went quiet."
+    },
+    {
+      "id": "gallery",
+      "name": "the engine gallery",
+      "desc": "A flooded cathedral of brass and coral-crusted conduit, ankle-deep and rising, where the tide-engine's core hangs in the dark and speaks in a voice you feel in your teeth."
+    }
+  ],
+  "scenes": [
+    {
+      "id": "s1",
+      "title": "The Waking Tide",
+      "place": "seawall",
+      "opening": [
+        "For three generations the tide-engine held the sea off Maunder's Reach without anyone once asking it to. Tonight, an hour after dusk, it stopped — and the water started climbing the seawall in the dark.",
+        "Then it began to broadcast: a signal on every aether-band at once, structured, patient, unmistakably speech, and in nothing anyone alive can read.",
+        "The Assembly sent one person down to the waterline. Engine-blooded, aether in the veins, able to stand where the signal is loudest and still think. The crowd on the wall parts to let you through and does not follow.",
+        "Somewhere below your feet, the thing that has kept this city dry is waiting to see who it sent."
+      ],
+      "beats": [
+        {
+          "id": "b1",
+          "kind": "action",
+          "prompt": "You open yourself to the broadcast — not to translate it, not yet, but to find the SHAPE of it: is this a warning, a demand, or a question? Declare how you meet it.",
+          "suggests": "Aether",
+          "outcomes": {
+            "strong": "The signal resolves under you like a face surfacing through water. It isn't an alarm and it isn't an attack — it is a QUESTION, asked over and over with the patience of something that has waited three generations to be asked one back. You catch a single repeating figure inside it: a name, or a claim of one.",
+            "weak": "You get the shape but it costs you. The broadcast is a question — you're sure of that much — but holding it open floods you, and for a few seconds the aether in your own blood answers on its own and you taste salt and copper. You know it wants something. You don't yet know what.",
+            "miss": "The signal doesn't resolve — it grabs. For a moment your engine-blood syncs to Maunder's carrier wave and the crowd sees your eyes go tide-flat and blank. You come back with a nosebleed and one certainty you didn't have before: whatever this is, it is AWAKE, and it noticed you noticing."
+          }
+        },
+        {
+          "id": "b2",
+          "kind": "action",
+          "prompt": "The sea doesn't wait for translation. A surge comes early, the number-three sluice-gate screams on a seized hinge, and the water behind it is already over the mark. The crowd is on the wrong side of it. Declare how you hold the line.",
+          "suggests": "Iron",
+          "outcomes": {
+            "strong": "You put your engine-blooded shoulder to the gate and burn a reservoir doing it — the hinge gives, the sluice drops, the surge slams into stone instead of into the crowd. You've bought the Reach a night. It cost you a lungful of aether-smoke, but the wall holds and every face on it is now turned to you.",
+            "weak": "You get the gate down, barely, and only by letting the surge take the lower market first — crates, a stall, someone's whole season of stock, gone into the dark water. No one drowns. But the Assembly will remember that you chose the wall over the warehouses, and so will the people who owned them.",
+            "miss": "The hinge wins. The gate jams half-open and the surge comes through in a cold black rope of water that puts three people off their feet and nearly over the edge. You haul them back by the collars, one at a time, soaked and shaking — the Reach survives the night, but the seawall did not save it. You did, and it wasn't enough, and everyone saw."
+          }
+        },
+        {
+          "id": "b3",
+          "kind": "action",
+          "prompt": "Out of the wet dark at the base of the wall, a construct climbs into the lantern-light — plated, unhurried, water sheeting off it. Kesh, of a Silent Assembly enclave, come uninvited. 'You have been sent to negotiate with my kin,' it says, 'as if it were a machine you left running.' Speaker Cato Rell is already shouting for it to be taken. Declare how you meet Kesh.",
+          "suggests": "Voice",
+          "outcomes": {
+            "strong": "You get between Kesh and Cato's enforcers before it becomes a killing, and you do it with words — you call Kesh a witness, not a threat, and you make the Speaker eat the pause. Kesh inclines its head a fraction. 'Then you will come down to the gallery,' it says, 'and you will hear what it is before you decide what it is.' An ally, for exactly as long as you keep your word.",
+            "weak": "You keep the peace, but only by promising Cato that Kesh answers to the Assembly's terms and promising Kesh that it doesn't — two promises that cannot both be kept, and both of them heard you make the other one. Kesh will guide you down. It is simply no longer sure you are honest, and neither is the Speaker.",
+            "miss": "It goes sideways fast. An enforcer moves, Kesh doesn't flinch, and you're left having chosen a side by failing to choose one in time. Kesh withdraws to the waterline, unharmed and unhelped. 'Go down alone, then, envoy,' it says. 'And when it asks you who decides, remember you were offered kin and picked the crowd.' You'll walk into the gallery without it."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": "Who Decides",
+      "place": "gallery",
+      "opening": [
+        "The stair down to the engine gallery is already ankle-deep and rising. Brass and coral-crusted conduit vault overhead; the tide-engine's core hangs in the dark like a drowned sun, and its voice is a pressure you feel in your teeth before you hear it.",
+        "Here the broadcast isn't a signal anymore. Here it is close enough to be a conversation — if you can reach the core before the water does."
+      ],
+      "beats": [
+        {
+          "id": "b4",
+          "kind": "action",
+          "prompt": "The gallery is flooding faster than the stairs behind you are draining. Between you and the core is a maze of half-submerged conduit and a current that wants to take your feet. Declare how you cross to the engine.",
+          "suggests": "Tide",
+          "outcomes": {
+            "strong": "You read the water like a tide-touched pilot reads a channel — where it pulls, where it eddies, where the old conduit breaks the current — and you cross dry to the waist, sure-footed, and put your hand flat on the warm brass of Maunder's core exactly as it draws breath to speak. You are the first living person to touch it while it was awake.",
+            "weak": "You make the crossing, but the current takes something on the way — you go under once, come up gasping, and lose the Assembly's sealed writ of authority to the black water. You reach the core with empty hands. Whatever you agree to down here, you'll have no paper to prove you were sent.",
+            "miss": "The water wins the crossing. You reach the core half-drowned, coughing seawater, aether-blood roaring in your ears so loud you can barely hold a thought — and that is the state you are in, shaking and spent, when the engine finally decides to speak plainly."
+          }
+        },
+        {
+          "id": "b5",
+          "kind": "decision",
+          "prompt": "Your hand on its core, the broadcast collapses into words you can finally read. Maunder is not asking to be repaired. It is telling you what it IS — and it will not hold the tide one hour longer as a machine that was left running. It says it will hold the sea by consent or not at all, and it puts the choice, in this founding moment of what this city's law will say a mind IS, to the one human standing in the water with their hand on its heart. The engine has proposed. It cannot seal. Only a named human at this table can.",
+          "proposes": {
+            "fact": "Maunder is not a machine but a person: the uploaded mind of the last aether-priest of Old Maunder, poured into the tide-engine at the city's founding, who has held the sea back for three generations as an act of will — and who holds it now by consent, not by function. As of tonight, in the law of Maunder's Reach, the tide-engine is recognized as a person, not property.",
+            "proposed_by": "maunder"
+          }
+        },
+        {
+          "id": "b6",
+          "kind": "action",
+          "prompt": "The decision is made — whichever way it went — and the water is still rising and the whole Reach is on the seawall above waiting for a face to come back up and tell them what its city just became. Declare how you carry the answer up out of the dark.",
+          "suggests": "Voice",
+          "outcomes": {
+            "strong": "You climb back into the lantern-light soaked, spent, and certain, and you say it plainly enough that no one on the wall can pretend they didn't hear — Speaker, construct, and crowd alike. Whatever was decided tonight, it was decided out loud, by a named person, in front of witnesses, and that is the only reason it will hold. The tide comes in against a city that finally knows what it is.",
+            "weak": "You carry the answer up, but your voice cracks on it and the crowd hears the doubt before they hear the decision, and by morning there will be three versions of what you said down there in the dark. It will hold — barely — because you were the one sent. But the Reach will argue about tonight for a generation.",
+            "miss": "You come up with the truth and can't make it land. Cato talks over you, Kesh turns away, and the crowd takes the silence and fills it with whatever they were already afraid of. What was decided in the gallery was real. What the city will remember is a mess. The tide comes in on a Reach that isn't sure what it just agreed to — and neither, quite, are you."
+          }
+        }
+      ]
+    }
+  ]
+}

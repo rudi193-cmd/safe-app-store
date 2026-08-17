@@ -19,7 +19,9 @@ import unittest
 from the_table.game_session import GameSession, Observation, Result
 from the_table.gm import first_legal_policy, random_policy, run_session
 from the_table.story_session import NOT_A_PERSON, StorySession
-from the_table.worlds import WorldError, load_world
+from the_table.worlds import (
+    WorldError, available_worlds, load_named_world, load_world,
+)
 
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 _REAL_WORLD_PATH = os.path.join(_REPO_ROOT, "apps", "the-table", "worlds", "hasbeen.json")
@@ -654,6 +656,96 @@ class TestWorldsLoader(unittest.TestCase):
         finally:
             if path != _REAL_WORLD_PATH:
                 os.unlink(path)
+
+
+class TestShippedWorlds(unittest.TestCase):
+    """The worlds index (worlds.available_worlds) is the registration seam for
+    story worlds. This suite covers EVERY shipped world under worlds/ -- so a
+    newly-registered world (a validated JSON file dropped into worlds/) is
+    proven, the moment it lands, to (1) load and validate, (2) play to terminal
+    through StorySession when its decision beats are sealed by a named human,
+    and (3) leave a hash chain that ai-game-master's own verifier accepts.
+    Mirrors what test_registry.py guarantees for the game registry, for the
+    parallel worlds index.
+    """
+
+    def test_at_least_one_world_is_shipped(self):
+        worlds = available_worlds()
+        self.assertTrue(worlds, "expected at least one world JSON under worlds/")
+
+    def test_every_shipped_world_loads_and_validates(self):
+        for name, path in available_worlds().items():
+            with self.subTest(world=name):
+                world = load_named_world(name)
+                self.assertEqual(world, load_world(path))
+                for key in ("id", "title", "setting", "stats", "characters",
+                            "places", "scenes"):
+                    self.assertIn(key, world)
+                self.assertTrue(any(c["seat"] for c in world["characters"]))
+
+    def test_every_shipped_world_plays_to_terminal_and_ledger_verifies(self):
+        """For every shipped world, drive it through StorySession sealing each
+        decision beat with a named human, and assert it reaches terminal AND
+        that the ledger the run wrote verifies under ai-game-master's own
+        verifier -- the same end-to-end guarantee test_registry.py makes for
+        each registered game."""
+        from the_table.ledger_sink import LedgerSink
+
+        for name, path in available_worlds().items():
+            with self.subTest(world=name):
+                box_dir = tempfile.mkdtemp(prefix=f"the-table-world-{name}-")
+                try:
+                    game = StorySession(path)
+                    sink = LedgerSink(box_dir=box_dir)
+                    try:
+                        obs = game.reset(0)
+                        sink.open_session(f"world-{name}", {"seed": 0, "seats": game.seats})
+                        turns, cap = 0, 500
+                        while not game.is_terminal():
+                            self.assertLess(turns, cap, f"{name}: did not terminate")
+                            pending = game.pending_seal()
+                            if pending is not None:
+                                game.seal(pending["fact_id"], "Some Human")
+                                sink.snapshot({"seal": pending["fact_id"], "by": "Some Human"},
+                                              note=f"sealed {pending['fact_id']}")
+                                turns += 1
+                                continue
+                            seat = game.current_seat()
+                            move = game.legal_moves(seat)[0]
+                            obs = game.step(seat, move)
+                            sink.snapshot({"turn": turns, "seat": seat, "move": move,
+                                           "view": obs.view},
+                                          note=obs.narration[0] if obs.narration else "")
+                            turns += 1
+                        result = game.result()
+                        sink.close_session({"winners": result.winners,
+                                            "scores": result.scores,
+                                            "summary": result.summary})
+                        self.assertTrue(game.is_terminal())
+                        self.assertIsInstance(result, Result)
+                        self.assertTrue(sink.verify(), sink._last_verify_output)
+                    finally:
+                        sink.close()
+                finally:
+                    import shutil
+                    shutil.rmtree(box_dir, ignore_errors=True)
+
+    def test_aetheris_is_registered_and_shaped_as_expected(self):
+        """The Aetheris world specifically: present under the worlds index,
+        single-seat, with its climactic personhood decision beat proposed by
+        the engine (a non-human) -- so the only way past it is a human seal."""
+        worlds = available_worlds()
+        self.assertIn("aetheris", worlds, f"aetheris not registered; have {sorted(worlds)}")
+        world = load_named_world("aetheris")
+        self.assertEqual(world["id"], "aetheris-the-waking-tide")
+        decision_beats = [b for sc in world["scenes"] for b in sc["beats"]
+                          if b["kind"] == "decision"]
+        self.assertTrue(decision_beats, "aetheris must have at least one decision beat")
+        proposers = {b["proposes"]["proposed_by"] for b in decision_beats}
+        seated_human_ids = {c["id"] for c in world["characters"] if c["seat"]}
+        # No decision is proposed by a seated player -- the engine proposes,
+        # the human at the table seals.
+        self.assertFalse(proposers & seated_human_ids)
 
 
 if __name__ == "__main__":
