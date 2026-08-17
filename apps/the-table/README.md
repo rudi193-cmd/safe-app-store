@@ -211,6 +211,14 @@ looked real at N=300 and washed out at N=500 — live in
 [`baselines/PROVENANCE.md`](baselines/PROVENANCE.md). Reproduce with
 `python3 -m the_table.baseline 500`.
 
+## Design & direction
+
+Where the-table is heading, drawn before the code:
+
+- [`docs/the-table-map.html`](docs/the-table-map.html) — the three-layer spine and how the game apps plug in.
+- [`docs/homestead-table-vision.md`](docs/homestead-table-vision.md) — why "The Table" belongs under Homestead as module three (the room with no ledger).
+- [`docs/storysession-design.md`](docs/storysession-design.md) · [`.html`](docs/storysession-design.html) — the `StorySession` reader that plays a world of atoms it never keeps, plus the Apache-filtered notes on what to adopt from outside (Ink, storylets, clocks, Datasworn).
+
 ## Playground tier
 
 `apps/the-table/` is a playground build (contested tier, per

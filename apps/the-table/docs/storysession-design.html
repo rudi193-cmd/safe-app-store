@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>StorySession</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root {
+    --ground: #ece9df; --surface: #f6f4ec; --surface-2: #efece2;
+    --ink: #22271f; --muted: #5b6154; --hair: #d4d1c3;
+    --felt: #2f5d49; --felt-soft: #2f5d4922;
+    --brass: #a9741f; --brass-soft: #a9741f1f;
+    --wax: #9c3a2f; --wax-soft: #9c3a2f18;
+    --shadow: 0 1px 2px rgba(30,34,26,.06), 0 6px 22px rgba(30,34,26,.07);
+    --glow: transparent;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #12150e; --surface: #1b1f17; --surface-2: #20251c;
+      --ink: #eae7da; --muted: #9aa08d; --hair: #2d3327;
+      --felt: #63b18d; --felt-soft: #63b18d1f;
+      --brass: #d7a251; --brass-soft: #d7a25120;
+      --wax: #d76a5d; --wax-soft: #d76a5d1a;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
+      --glow: radial-gradient(120% 90% at 50% 0%, #63b18d10, transparent 60%);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #12150e; --surface: #1b1f17; --surface-2: #20251c;
+    --ink: #eae7da; --muted: #9aa08d; --hair: #2d3327;
+    --felt: #63b18d; --felt-soft: #63b18d1f;
+    --brass: #d7a251; --brass-soft: #d7a25120;
+    --wax: #d76a5d; --wax-soft: #d76a5d1a;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
+    --glow: radial-gradient(120% 90% at 50% 0%, #63b18d10, transparent 60%);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  .serif { font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif; }
+  .mono { font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: clamp(1.5rem,4vw,4rem) clamp(1.1rem,4vw,2.5rem) 4rem; }
+
+  .eyebrow {
+    font-size: .72rem; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--brass); font-weight: 700; margin: 0 0 1.1rem;
+    display: flex; align-items: center; gap: .7rem;
+  }
+  .eyebrow::after { content: ""; height: 1px; flex: 1; background: linear-gradient(90deg, var(--hair), transparent); }
+  h1.title { font-size: clamp(2.6rem,7vw,4.4rem); line-height: .98; margin: 0 0 1.1rem; font-weight: 600; letter-spacing: -.015em; }
+  .thesis { font-size: clamp(1.15rem,2.6vw,1.5rem); line-height: 1.4; max-width: 26ch; margin: 0; text-wrap: balance; }
+  .thesis b { color: var(--brass); font-weight: 600; }
+  .standfirst { color: var(--muted); max-width: 64ch; margin: 1.3rem 0 0; }
+  .standfirst code, .standfirst .mono { font-size: .9em; }
+
+  hr.rule { height: 1px; background: var(--hair); border: 0; margin: clamp(2.2rem,5vw,3.4rem) 0; }
+
+  .sec-head { display: flex; align-items: baseline; gap: .8rem; margin: 0 0 1.4rem; }
+  .sec-num { font-size: .78rem; font-weight: 700; color: var(--brass); font-variant-numeric: tabular-nums; }
+  h2 { font-size: clamp(1.3rem,3vw,1.7rem); font-weight: 600; margin: 0; letter-spacing: -.01em; }
+  .sec-head p { margin: .1rem 0 0; color: var(--muted); font-size: .95rem; }
+
+  figure.diagram { margin: 0; border: 1px solid var(--hair); border-radius: 16px; background: var(--surface); background-image: var(--glow); box-shadow: var(--shadow); padding: 1.4rem 1.2rem 1rem; }
+  figure.diagram svg { display: block; width: 100%; height: auto; color: var(--ink); }
+  figure.diagram figcaption { margin-top: .9rem; padding-top: .9rem; border-top: 1px solid var(--hair); font-size: .82rem; color: var(--muted); line-height: 1.5; }
+  .legend { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: .7rem; font-size: .74rem; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: .4rem; }
+  .swatch { width: 22px; height: 0; border-top-width: 2px; border-top-style: solid; display: inline-block; }
+
+  .code { border: 1px solid var(--hair); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); overflow-x: auto; }
+  .code .bar { display: flex; align-items: center; gap: .5rem; padding: .6rem .9rem; border-bottom: 1px solid var(--hair); background: var(--surface-2); font-size: .74rem; color: var(--muted); }
+  .code .bar .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--brass); }
+  .code pre { margin: 0; padding: 1rem 1.1rem; font-size: .84rem; line-height: 1.8; }
+  .c-fn { color: var(--brass); font-weight: 600; } .c-cm { color: var(--muted); font-style: italic; }
+
+  .table-scroll { overflow-x: auto; border: 1px solid var(--hair); border-radius: 14px; box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; background: var(--surface); font-size: .88rem; }
+  thead th { text-align: left; font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; padding: .8rem 1rem; background: var(--surface-2); border-bottom: 1px solid var(--hair); }
+  tbody td { padding: .7rem 1rem; border-bottom: 1px solid var(--hair); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td .mono { font-size: .82rem; }
+  .from { color: var(--felt); font-weight: 600; font-size: .8rem; }
+
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .card { border: 1px solid var(--hair); border-radius: 14px; background: var(--surface); padding: 1.1rem 1.2rem; box-shadow: var(--shadow); }
+  .card.wax { border-top: 3px solid var(--wax); }
+  .card h3 { margin: 0 0 .2rem; font-size: 1rem; font-weight: 600; }
+  .card .tag { font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--wax); }
+  .card p { margin: .45rem 0 0; color: var(--muted); font-size: .87rem; }
+  .card p .mono { font-size: .82em; color: var(--ink); }
+  .refuse { margin-top: 1rem; border: 1px dashed var(--hair); border-radius: 12px; padding: .8rem 1rem; font-size: .87rem; color: var(--muted); background: var(--surface-2); }
+  .refuse b { color: var(--ink); font-weight: 600; }
+
+  .laws { display: flex; flex-direction: column; gap: .7rem; }
+  .law { display: grid; grid-template-columns: 20px 1fr; gap: .9rem; align-items: start; padding: .9rem 1.1rem; border: 1px solid var(--hair); border-left: 3px solid var(--felt); border-radius: 12px; background: var(--surface); }
+  .law .seal { color: var(--felt); font-size: 1rem; line-height: 1.3; }
+  .law b { font-weight: 600; } .law span.d { color: var(--muted); font-size: .87rem; }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .split .col { border: 1px solid var(--hair); border-radius: 14px; background: var(--surface); padding: 1.1rem 1.2rem; box-shadow: var(--shadow); }
+  .split .col.built { border-top: 3px solid var(--felt); }
+  .split .col.new { border-top: 3px solid var(--brass); }
+  .split h3 { margin: 0 0 .6rem; font-size: .82rem; letter-spacing: .06em; text-transform: uppercase; }
+  .split .col.built h3 { color: var(--felt); } .split .col.new h3 { color: var(--brass); }
+  .split ul { margin: 0; padding-left: 1.1rem; font-size: .87rem; color: var(--muted); line-height: 1.7; }
+  .split ul .mono { color: var(--ink); font-size: .84em; }
+
+  .coda { margin-top: 2.4rem; padding: 1.2rem 1.3rem; border: 1px solid var(--hair); border-radius: 14px; background: var(--surface-2); color: var(--muted); font-size: .88rem; line-height: 1.55; }
+  .coda b { color: var(--ink); font-weight: 600; }
+  .sig { margin-top: 1.6rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; color: var(--muted); font-size: .76rem; }
+  .sig .mark { font-family: "Iowan Old Style", Palatino, Georgia, serif; letter-spacing: .1em; }
+
+  @media (max-width: 640px) { .cards, .split { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <p class="eyebrow">Homestead Table · design — no code yet</p>
+  <h1 class="title serif">StorySession</h1>
+  <p class="thesis serif">The reader that plays a world — and <b>never keeps it.</b></p>
+  <p class="standfirst">Every part already exists; only the reader is new. <span class="mono">StorySession</span> is a <span class="mono">GameSession</span> like the other three — so it runs on the-table's driver and ledger unchanged. What makes it a <em>story</em> is that it reads a world out of the flagship Knowledge&nbsp;OS as plain atoms, plays it through the spine, and then forgets the play. Only two things can outlast a session, and a person authors both.</p>
+
+  <hr class="rule">
+
+  <!-- ============ THE MECHANISM ============ -->
+  <div class="sec-head">
+    <span class="sec-num">01</span>
+    <div><h2>The mechanism</h2><p>Read the world as atoms · play it · forget it · and let a person make two things persist.</p></div>
+  </div>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 920 470" role="img" aria-label="StorySession reads a world of atoms from the user's box via all() and get(), plays it through the-table spine while forgetting the play, and routes two write-backs — seal canon to the vault, promote a scene to the timeline — through a person at the table. The players are never recorded.">
+      <defs>
+        <marker id="aB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--brass)"/></marker>
+        <marker id="aW" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--wax)"/></marker>
+        <marker id="aI" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker>
+      </defs>
+
+      <!-- ZONE A — the world as atoms -->
+      <rect x="14" y="52" width="212" height="322" rx="10" fill="var(--surface-2)" stroke="var(--hair)"/>
+      <text x="28" y="76" font-size="12.5" font-weight="700" fill="var(--ink)" letter-spacing="1">THE WORLD</text>
+      <text x="28" y="93" font-size="11" fill="var(--muted)">atoms · the user's box · private</text>
+      <g font-size="11.5">
+        <rect x="28" y="104" width="184" height="60" rx="7" fill="var(--surface)" stroke="var(--felt)"/>
+        <text x="40" y="124" font-weight="700" fill="var(--ink)" class="mono">story-timeline</text>
+        <text x="40" y="140" fill="var(--muted)">timelines · scenes</text>
+        <text x="40" y="155" fill="var(--muted)">edges: contradicts / tensions</text>
+
+        <rect x="28" y="174" width="184" height="46" rx="7" fill="var(--surface)" stroke="var(--felt)"/>
+        <text x="40" y="194" font-weight="700" fill="var(--ink)" class="mono">the-binder</text>
+        <text x="40" y="210" fill="var(--muted)">entities · who-knows-whom</text>
+
+        <rect x="28" y="230" width="184" height="46" rx="7" fill="var(--surface)" stroke="var(--felt)"/>
+        <text x="40" y="250" font-weight="700" fill="var(--ink)" class="mono">ask-jeles</text>
+        <text x="40" y="266" fill="var(--muted)">lore the world knows</text>
+      </g>
+      <text x="28" y="360" font-size="11" fill="var(--muted)">grown by the writer · stays here</text>
+
+      <!-- A -> B : reads -->
+      <line x1="226" y1="150" x2="298" y2="150" stroke="var(--brass)" stroke-width="2" marker-end="url(#aB)"/>
+      <text x="262" y="140" font-size="11" text-anchor="middle" fill="var(--brass)" class="mono" font-weight="700">all() · get()</text>
+      <text x="262" y="167" font-size="10.5" text-anchor="middle" fill="var(--muted)">reads — never imports</text>
+
+      <!-- ZONE B — StorySession -->
+      <rect x="300" y="60" width="258" height="248" rx="10" fill="var(--surface)" stroke="var(--brass)" stroke-width="1.5"/>
+      <text x="318" y="90" font-size="17" font-weight="600" fill="var(--brass)" class="serif">StorySession</text>
+      <text x="318" y="108" font-size="11" fill="var(--muted)">the reader — a GameSession</text>
+      <line x1="318" y1="120" x2="540" y2="120" stroke="var(--hair)"/>
+      <g font-size="11.5" class="mono" fill="var(--ink)">
+        <text x="318" y="142">reset · current_seat · observe</text>
+        <text x="318" y="160">legal_moves · step · result</text>
+      </g>
+      <text x="318" y="186" font-size="11.5" fill="var(--brass)">resolve → Engine.roll (2d6)</text>
+      <text x="318" y="212" font-size="11" fill="var(--muted)">runs on the-table's driver</text>
+      <text x="318" y="228" font-size="11" fill="var(--muted)">and ledger — unchanged</text>
+      <text x="318" y="262" font-size="11.5" fill="var(--felt)" class="serif" font-style="italic">⟲ the session forgets.</text>
+      <text x="318" y="281" font-size="11" fill="var(--muted)">nothing of the play is kept.</text>
+
+      <!-- players -->
+      <rect x="330" y="400" width="176" height="46" rx="8" fill="var(--surface-2)" stroke="var(--hair)"/>
+      <text x="418" y="421" font-size="11.5" text-anchor="middle" font-weight="700" fill="var(--ink)">the players at the table</text>
+      <text x="418" y="437" font-size="10.5" text-anchor="middle" fill="var(--muted)">never recorded ⊘</text>
+      <line x1="418" y1="400" x2="418" y2="310" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#aI)"/>
+      <text x="428" y="356" font-size="10.5" fill="var(--muted)">observe(seat)</text>
+      <text x="428" y="371" font-size="10.5" fill="var(--muted)">fog of knowledge</text>
+
+      <!-- B -> PERSON : proposes -->
+      <line x1="558" y1="184" x2="604" y2="184" stroke="var(--wax)" stroke-width="2" marker-end="url(#aW)"/>
+      <text x="581" y="175" font-size="10.5" text-anchor="middle" fill="var(--wax)">proposes</text>
+
+      <!-- PERSON gate -->
+      <rect x="606" y="150" width="92" height="66" rx="10" fill="var(--wax-soft)" stroke="var(--wax)" stroke-width="1.5"/>
+      <text x="652" y="178" font-size="12" text-anchor="middle" font-weight="700" fill="var(--wax)">A PERSON</text>
+      <text x="652" y="195" font-size="10.5" text-anchor="middle" fill="var(--wax)">at the table</text>
+      <text x="652" y="210" font-size="10" text-anchor="middle" fill="var(--muted)">seals · authors</text>
+
+      <!-- PERSON -> vault -->
+      <path d="M698,168 C716,150 716,132 720,120" fill="none" stroke="var(--wax)" stroke-width="2" marker-end="url(#aW)"/>
+      <text x="742" y="106" font-size="10.5" fill="var(--wax)">seals canon</text>
+      <!-- PERSON -> timeline -->
+      <path d="M698,200 C716,222 716,244 720,258" fill="none" stroke="var(--wax)" stroke-width="2" marker-end="url(#aW)"/>
+      <text x="736" y="286" font-size="10.5" fill="var(--wax)">promotes a scene</text>
+
+      <!-- ZONE C — persistence targets -->
+      <rect x="722" y="70" width="184" height="82" rx="10" fill="var(--surface)" stroke="var(--felt)"/>
+      <text x="736" y="92" font-size="12.5" font-weight="700" fill="var(--ink)" class="serif">The Vault</text>
+      <text x="736" y="109" font-size="11" fill="var(--muted)" class="mono">ai-game-master</text>
+      <text x="736" y="127" font-size="10.5" fill="var(--muted)">canon · sealed</text>
+      <text x="736" y="142" font-size="10.5" fill="var(--muted)">append-only · un-retconnable</text>
+
+      <rect x="722" y="238" width="184" height="92" rx="10" fill="var(--surface)" stroke="var(--felt)"/>
+      <text x="736" y="260" font-size="12.5" font-weight="700" fill="var(--ink)" class="serif">The Timeline</text>
+      <text x="736" y="277" font-size="11" fill="var(--muted)" class="mono">story-timeline</text>
+      <text x="736" y="295" font-size="10.5" fill="var(--muted)">a new scene, written back</text>
+      <text x="736" y="310" font-size="10.5" fill="var(--muted)" class="mono">derived_from: this session</text>
+      <text x="736" y="324" font-size="10.5" fill="var(--felt)">the play grows the world</text>
+    </svg>
+    <figcaption>The reader pulls a world out of the Knowledge&nbsp;OS with the same two calls any tool uses — <span class="mono">all()</span> and <span class="mono">get()</span> — and never imports its code. It plays the scenes through the-table's existing driver, then lets the session go. Only a person, at the table, can make anything last: sealing a fact into the vault, or promoting a new scene back into the timeline. The players themselves are never written down.</figcaption>
+    <div class="legend">
+      <span><i class="swatch" style="border-top-color:var(--brass)"></i> reads — <span class="mono">all/get</span>, never imports</span>
+      <span><i class="swatch" style="border-top-color:var(--wax)"></i> a person authorizes</span>
+      <span><i class="swatch" style="border-top-color:var(--muted); border-top-style:dashed"></i> never recorded / forgotten</span>
+    </div>
+  </figure>
+
+  <hr class="rule">
+
+  <!-- ============ THE CONTRACT ============ -->
+  <div class="sec-head">
+    <span class="sec-num">02</span>
+    <div><h2>It's a GameSession — so the spine is free</h2><p>The same seven methods the other three adapters implement. No new driver, no new ledger.</p></div>
+  </div>
+
+  <div class="code">
+    <div class="bar"><span class="dot"></span><span class="mono">StorySession(store, uuid, timeline_id) — implements the pinned GameSession</span></div>
+<pre class="mono"><span class="c-fn">reset</span>(seed)          <span class="c-cm"># open: load the timeline's scenes + its entities from the store</span>
+<span class="c-fn">current_seat</span>()       <span class="c-cm"># whose turn — a player, or the table</span>
+<span class="c-fn">observe</span>(seat)        <span class="c-cm"># what this seat can see — fog of knowledge (the-binder)</span>
+<span class="c-fn">legal_moves</span>(seat)    <span class="c-cm"># the approaches this beat: Grit · Weird · Cute · Cool</span>
+<span class="c-fn">step</span>(seat, move)     <span class="c-cm"># resolve via Engine.roll (2d6), narrate, advance the scene</span>
+<span class="c-fn">is_terminal</span>()        <span class="c-cm"># the timeline's scenes are played out</span>
+<span class="c-fn">result</span>()             <span class="c-cm"># how the story went — a summary, not a winner</span></pre>
+  </div>
+
+  <hr class="rule">
+
+  <!-- ============ WHAT IT READS ============ -->
+  <div class="sec-head">
+    <span class="sec-num">03</span>
+    <div><h2>What it reads</h2><p>An injected <span class="mono">store</span> that answers <span class="mono">all()</span> / <span class="mono">get()</span> — one filesystem file, no server. The world stays wherever the writer grew it.</p></div>
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Collection</th><th>From</th><th>What the reader pulls</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">…/story-timeline/timeline_entries</td><td class="from">story-timeline</td><td>the <strong>scenes</strong> — ordered, with <span class="mono">world_date</span>, <span class="mono">entry_kind</span></td></tr>
+        <tr><td class="mono">…/story-timeline/timelines</td><td class="from">story-timeline</td><td>which timeline is being played (world chronology / draft beats)</td></tr>
+        <tr><td class="mono">…/story-timeline/_graph/edges</td><td class="from">story-timeline</td><td>the <strong>stakes</strong> — <span class="mono">contradicts_or_tensions_with</span>, <span class="mono">supports_scene</span></td></tr>
+        <tr><td class="mono">…/the-binder/entities</td><td class="from">the-binder</td><td>characters &amp; places, and how much each seat <strong>recognizes</strong> them</td></tr>
+        <tr><td class="mono">ask-jeles corpus</td><td class="from">ask-jeles</td><td>lore on demand — “what does the world know about X?”</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="rule">
+
+  <!-- ============ WHAT CAN PERSIST ============ -->
+  <div class="sec-head">
+    <span class="sec-num">04</span>
+    <div><h2>What can outlast the session</h2><p>Exactly two things — and a person authors both. Everything else is played and let go.</p></div>
+  </div>
+
+  <div class="cards">
+    <div class="card wax">
+      <span class="tag">machine proposes · person seals</span>
+      <h3>Seal a fact into the vault</h3>
+      <p>A canon-worthy outcome is <em>proposed</em> during play; the person at the head of the table <span class="mono">SEALS</span> it — or leaves it <span class="mono">PENDING</span>, the way the Silver Compass hook waits for a human. It lands in <span class="mono">ai-game-master</span>: sealed, append-only, un-retconnable.</p>
+    </div>
+    <div class="card wax">
+      <span class="tag">the play grows the world</span>
+      <h3>Promote a scene to the timeline</h3>
+      <p>A fact the table established becomes a new <span class="mono">timeline_entry</span> in <span class="mono">story-timeline</span> — written back with <span class="mono">put()</span> and a <span class="mono">derived_from: this&nbsp;session</span> edge, so the world remembers where it came from.</p>
+    </div>
+  </div>
+
+  <div class="refuse">
+    <b>What is never written: the players.</b> No attendance, no per-person record, nothing a child couldn't erase. The reader forgets the play by design — only the <em>world's</em> canon can persist, and only when a person seals it. The room with no ledger, made structural.
+  </div>
+
+  <hr class="rule">
+
+  <!-- ============ THE LAWS ============ -->
+  <div class="sec-head">
+    <span class="sec-num">05</span>
+    <div><h2>The laws it already obeys</h2><p>None of these are new rules for this design. Each is a decision the house already sealed.</p></div>
+  </div>
+
+  <div class="laws">
+    <div class="law"><span class="seal">✔</span><div><b>Ship the reader; the world stays in a box.</b> <span class="d">— the sealed corpus decision: “the capability travels, the wood stays.” The reader is the shippable part; the atoms never leave the writer's box.</span></div></div>
+    <div class="law"><span class="seal">✔</span><div><b>The machine proposes; only a person seals.</b> <span class="d">— the fleet canon covenant ai-game-master enforces. StorySession offers; a named human at the table disposes.</span></div></div>
+    <div class="law"><span class="seal">✔</span><div><b>The room with no ledger — a memory that forgets on purpose.</b> <span class="d">— the Homestead Table principle. The living play is attested by being played, then let go.</span></div></div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- ============ BUILT VS NEW ============ -->
+  <div class="sec-head">
+    <span class="sec-num">06</span>
+    <div><h2>Built vs. new</h2><p>The design is mostly wiring. The only code we write is the reader and its two seams.</p></div>
+  </div>
+
+  <div class="split">
+    <div class="col built">
+      <h3>Already built — reused</h3>
+      <ul>
+        <li><span class="mono">story-timeline</span> — the world (scenes, tensions, provenance)</li>
+        <li><span class="mono">the-binder</span> — entity recognition (fog of knowledge)</li>
+        <li><span class="mono">ask-jeles</span> — lore retrieval</li>
+        <li><span class="mono">apps/game</span> — <span class="mono">Engine.roll</span> resolution (2d6)</li>
+        <li><span class="mono">the-table</span> — the protocol, driver &amp; ledger</li>
+        <li><span class="mono">ai-game-master</span> — the sealed canon vault</li>
+      </ul>
+    </div>
+    <div class="col new">
+      <h3>New — the only code</h3>
+      <ul>
+        <li><span class="mono">StorySession</span> — the reader: a <span class="mono">GameSession</span> over a story-timeline world read as atoms</li>
+        <li>the <b>propose→seal</b> seam to the vault</li>
+        <li>the <b>promote→timeline</b> seam back into the world</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="coda">
+    <b>This is the design, drawn before any code</b> — one page so the shape can be argued with before it's built. It closes the store's own gap E3 (“integrations are narrative-only… a story, not a system”) with the first real pipeline across the flagship Knowledge&nbsp;OS — and it does it the store-native way: through shared atoms, not code that wires apps together. The world in a box; the reader shipped; the play let go.
+  </div>
+
+  <div class="sig">
+    <span>StorySession · a design map. Nothing built yet — next is the reader over the injected store.</span>
+    <span class="mark">Vishwakarma · ΔΣ=42</span>
+  </div>
+
+</div>
+
+</body>
+</html>
