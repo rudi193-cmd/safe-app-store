@@ -750,6 +750,24 @@
         "reference",
         "provenance"
       ]
+    },
+    {
+      "id": "the-table",
+      "name": "The Table",
+      "description": "A thin AI Game Master spine: a GameSession protocol (reset/observe/legal_moves/step/is_terminal/result) any game implements, plus a first adapter over bureau's real Session. Walking skeleton — the contract and one working game behind it, nothing more.",
+      "author": "USER / Claude",
+      "status": "building",
+      "path": "apps/the-table",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "tags": [
+        "games",
+        "game-master",
+        "protocol",
+        "local-first"
+      ]
     }
   ]
 }

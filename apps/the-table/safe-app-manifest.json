@@ -1,0 +1,22 @@
+{
+  "app_id": "the-table",
+  "name": "The Table",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "agent_type": "tool",
+  "description": "A thin AI Game Master spine: a game protocol (GameSession — reset/observe/legal_moves/step/is_terminal/result) that any game engine implements, plus a first adapter over bureau's real Session. This is a walking skeleton — the contract and one working game behind it, nothing more. The GM composes on top of GameSession; this slice does not yet include a GM loop, a second game, or persistence.",
+  "author": "USER / Claude",
+  "data_streams": [],
+  "permissions": [],
+  "store_scope": [],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "network": "none. Pure Python, stdlib-only, no sockets, no HTTP client. bureau_adapter.py imports bureau (apps/bureau) via a local sys.path shim; nothing under apps/bureau is modified.",
+  "entry_point": "the_table/game_session.py",
+  "license": "Apache-2.0",
+  "notes": {
+    "injects": "bureau's real Session (apps/bureau/bureau/play.py) as the first GameSession implementation, and is shaped to compose with the ai-game-master library surfaces (apps/ai-game-master) as the GM loop and ledger land in later slices. Nothing under apps/bureau or apps/ai-game-master is modified — the-table is a consumer of both, never the reverse.",
+    "own_box_only": "This app touches only its own box: no store_scope, no network, no writes outside apps/the-table. The bureau import is read-only (module import, not a data dependency), and ledger_sink.py (owned by a concurrent build in this same app) is the only planned persistence surface, not part of this slice.",
+    "walking_skeleton": "First slice: the-table/game_session.py (the pinned GameSession Protocol contract), the-table/bureau_adapter.py (BureauSession, the first real implementation), and tests/test_bureau_adapter.py (drives a full game to terminal across several seeds, and asserts every Observation.view and every chosen Move round-trips through json.dumps/json.loads, since the GM snapshots both to a ledger). No GM loop, no second game, no persistence yet — those are later bites."
+  }
+}
