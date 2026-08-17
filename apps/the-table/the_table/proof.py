@@ -1,24 +1,34 @@
-"""proof.py — the end-to-end demonstration: TWO games, bureau and crazy
-eights, each driven by the SAME game-agnostic GM loop through the SAME
-uniform GameSession protocol, each remembered in its own tamper-evident
+"""proof.py — the end-to-end demonstration: EVERY registered game, each
+driven by the SAME game-agnostic GM loop through the SAME uniform
+GameSession protocol, each remembered in its own tamper-evident
 ai-game-master ledger, each validated by ai-game-master's OWN verifier.
 
 Run with:
     python3 -m the_table.proof        (from apps/the-table/)
     python3 the_table/proof.py        (from apps/the-table/)
 
-Wires each game + a LedgerSink pointed at its own fresh temp box dir, runs
-run_session with a seeded (deterministic) random_policy, and asserts per game:
+Loops over ``registry.games()`` (today: bureau, crazy_eights, scene). For
+each name it ``make()``s a fresh session, wires it to a fresh temp
+``LedgerSink`` box, runs ``run_session`` with a seeded (deterministic)
+``random_policy``, and asserts:
   * the game reached terminal (not a max_turns cap-out)
   * ai-game-master's own verify_ledger.py accepts the resulting chain
 
 Prints a short human-readable section per game (transcript-ish, Result, turn
 count, chain head, verify result), then one combined line, and exits 0 only
-if BOTH games verify clean.
+if EVERY registered game verifies clean.
 
-Bureau's own proof behavior (seed, cap, transcript style, assertions) is
-unchanged from the walking skeleton's first slice -- crazy_eights is added
-alongside it, through the identical run_session/LedgerSink, unmodified.
+DETERMINISM NOTE (why games run one at a time, never interleaved): the
+`scene` game (SceneSession, over apps/game's engine) reseeds the GLOBAL
+`random` module in its own `reset()` -- see game_engine_adapter.py's module
+docstring, trap 3. `crazy_eights` and `bureau` each own a private
+`random.Random(seed)` and are unaffected by that, but the reverse is not
+true: constructing every session up front and stepping them in an
+interleaved order would let `scene`'s reseed land between two of another
+game's `random_policy` draws (`random_policy` draws from the SAME global
+module `random.seed()` reseeds) and silently perturb it. So this loop
+`make()`s, runs to completion, and verifies ONE game before moving to the
+next -- never two sessions alive and stepping at once.
 """
 from __future__ import annotations
 
@@ -28,8 +38,7 @@ import sys
 import tempfile
 
 try:
-    from .bureau_adapter import BureauSession
-    from .crazy_eights_adapter import CrazyEightsSession
+    from . import registry
     from .gm import GMError, random_policy, run_session
     from .ledger_sink import LedgerSink
 except ImportError:
@@ -38,25 +47,23 @@ except ImportError:
     import os
 
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from the_table.bureau_adapter import BureauSession
-    from the_table.crazy_eights_adapter import CrazyEightsSession
+    from the_table import registry
     from the_table.gm import GMError, random_policy, run_session
     from the_table.ledger_sink import LedgerSink
 
-BUREAU_SEED = 7          # deterministic: same seed the throwaway smoke used
-BUREAU_MAX_TURNS = 500   # matches the headroom test_bureau_adapter.py's STEP_CAP uses
-
-CRAZY_EIGHTS_SEED = 7    # deterministic
-CRAZY_EIGHTS_MAX_TURNS = 2000  # generous slack over the adapter's own defensive cap (1000)
+SEED = 7  # deterministic: same seed the throwaway smoke / earlier proof used
+MAX_TURNS = 2000  # generous slack over every adapter's own defensive cap
 
 
-def _play_one_game(*, title: str, game, session_id: str, seed: int, max_turns: int) -> bool:
-    """Run one GameSession end to end through run_session + a fresh LedgerSink
-    box, print a short section for it, and return whether the ledger verified
-    clean. Raises (uncaught) on anything that should fail the whole proof
-    other than a failed verify -- a capped/unterminated game, for instance.
+def _play_one_game(*, name: str, seed: int, max_turns: int) -> bool:
+    """make() a fresh session for ``name``, run it end to end through
+    run_session + a fresh LedgerSink box, print a short section for it, and
+    return whether the ledger verified clean. Raises (uncaught) on anything
+    that should fail the whole proof other than a failed verify -- a
+    capped/unterminated game, for instance.
     """
-    box_dir = tempfile.mkdtemp(prefix="the-table-proof-")
+    game = registry.make(name)
+    box_dir = tempfile.mkdtemp(prefix=f"the-table-proof-{name}-")
     sink = LedgerSink(box_dir=box_dir)
     try:
         policy = random_policy(random.Random(seed))
@@ -89,22 +96,23 @@ def _play_one_game(*, title: str, game, session_id: str, seed: int, max_turns: i
                 seed=seed,
                 sink=sink,
                 max_turns=max_turns,
-                session_id=session_id,
+                session_id=f"proof-{name}-seed-{seed}",
             )
         except GMError as exc:
-            print(f"FAIL ({title}): {exc}", file=sys.stderr)
+            print(f"FAIL ({name}): {exc}", file=sys.stderr)
             return False
 
         # The crux: the game actually finished, not merely stopped.
-        assert game.is_terminal(), f"{title}: proof requires the game to reach a real terminal state"
+        assert game.is_terminal(), f"{name}: proof requires the game to reach a real terminal state"
 
         transcript_lines = transcript[:5] or ["(no narration recorded)"]
 
         verified = sink.verify()
 
         print("-" * 60)
-        print(title)
+        print(f"GAME: {name} — {registry.describe(name)}")
         print("-" * 60)
+        print(f"seats:           {game.seats}")
         print(f"seed:            {seed}")
         print(f"terminal reached: {game.is_terminal()}")
         print(f"turns taken:     {turns_taken[0]}")
@@ -125,38 +133,31 @@ def _play_one_game(*, title: str, game, session_id: str, seed: int, max_turns: i
 
 
 def main() -> int:
-    print("=" * 60)
-    print("THE TABLE — end-to-end proof (two games x one GM loop x one ledger sink)")
-    print("=" * 60)
-
-    bureau_ok = _play_one_game(
-        title="GAME 1: bureau (single-seat) — BureauSession",
-        game=BureauSession(),
-        session_id=f"proof-bureau-seed-{BUREAU_SEED}",
-        seed=BUREAU_SEED,
-        max_turns=BUREAU_MAX_TURNS,
-    )
-
-    crazy_eights_ok = _play_one_game(
-        title="GAME 2: crazy eights (4-seat, hidden info) — CrazyEightsSession",
-        game=CrazyEightsSession(),
-        session_id=f"proof-crazy-eights-seed-{CRAZY_EIGHTS_SEED}",
-        seed=CRAZY_EIGHTS_SEED,
-        max_turns=CRAZY_EIGHTS_MAX_TURNS,
-    )
+    names = registry.games()
 
     print("=" * 60)
-    print(f"bureau:       {'VERIFIED' if bureau_ok else 'FAILED'}")
-    print(f"crazy_eights: {'VERIFIED' if crazy_eights_ok else 'FAILED'}")
-    both_ok = bureau_ok and crazy_eights_ok
-    print(f"COMBINED:     {'PASS' if both_ok else 'FAIL'}")
+    print(f"THE TABLE — end-to-end proof ({len(names)} games x one GM loop x one ledger sink)")
     print("=" * 60)
 
-    if both_ok:
-        print("PROOF PASSED: two different games, driven through the SAME GameSession "
-              "protocol by the SAME GM loop, are each remembered in a tamper-evident "
-              "ai-game-master ledger and validated by ai-game-master's own verifier -- "
-              "the protocol is game-agnostic.")
+    # One game at a time, start to finish -- see the determinism note in the
+    # module docstring for why this loop never constructs/interleaves two
+    # sessions at once.
+    outcomes: dict = {}
+    for name in names:
+        outcomes[name] = _play_one_game(name=name, seed=SEED, max_turns=MAX_TURNS)
+
+    print("=" * 60)
+    for name in names:
+        print(f"{name}:{' ' * max(1, 14 - len(name))}{'VERIFIED' if outcomes[name] else 'FAILED'}")
+    all_ok = all(outcomes.values())
+    print(f"COMBINED:     {'PASS' if all_ok else 'FAIL'}")
+    print("=" * 60)
+
+    if all_ok:
+        print(f"PROOF PASSED: {len(names)} games ({', '.join(names)}), driven through the SAME "
+              "GameSession protocol by the SAME GM loop, are each remembered in a "
+              "tamper-evident ai-game-master ledger and validated by ai-game-master's "
+              "own verifier -- the protocol is game-agnostic.")
         return 0
 
     print("PROOF FAILED: see FAILED game(s) above.", file=sys.stderr)
