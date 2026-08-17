@@ -201,6 +201,24 @@ into one: a `name -> factory` map that `proof.py` (and
 about" through the identical `run_session`/`LedgerSink` is a loop over
 `registry.games()`, not three copies of the same fifteen lines.
 
+## Baselines
+
+`the_table/baseline.py` plays every registered game at volume through the same
+protocol the GM uses and reports the distributions that only show up in bulk.
+Measured numbers at N=500 — and the honesty note about a first-seat edge that
+looked real at N=300 and washed out at N=500 — live in
+[`baselines/baselines-N500.md`](baselines/baselines-N500.md) and
+[`baselines/PROVENANCE.md`](baselines/PROVENANCE.md). Reproduce with
+`python3 -m the_table.baseline 500`.
+
+## Design & direction
+
+Where the-table is heading, drawn before the code:
+
+- [`docs/the-table-map.html`](docs/the-table-map.html) — the three-layer spine and how the game apps plug in.
+- [`docs/homestead-table-vision.md`](docs/homestead-table-vision.md) — why "The Table" belongs under Homestead as module three (the room with no ledger).
+- [`docs/storysession-design.md`](docs/storysession-design.md) · [`.html`](docs/storysession-design.html) — the `StorySession` reader that plays a world of atoms it never keeps, plus the Apache-filtered notes on what to adopt from outside (Ink, storylets, clocks, Datasworn).
+
 ## Playground tier
 
 `apps/the-table/` is a playground build (contested tier, per
