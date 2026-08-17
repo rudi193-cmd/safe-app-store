@@ -1,6 +1,6 @@
-// Five mutations, one per game — each breaks the exact mechanism its
+// Six mutations, one per game — each breaks the exact mechanism its
 // corresponding suite checks, and nothing else. "A gate that cannot fail is
-// not a gate": these are what let test/run.js --mutations prove the five
+// not a gate": these are what let test/run.js --mutations prove the six
 // suites actually catch a real regression instead of passing vacuously.
 //
 // `expect` names the suite gate(s) that must go red when this mutation is
@@ -47,5 +47,13 @@ export const MUTATIONS = [
     replace: '{ key: "brutal", name: "Brutal", color: "var(--brutal)", max: 0 },',
     expect: ['a low score classifies as Brutal'],
     describe: 'shrinks the brutal band to nothing, so a score of 22 falls through to Backhanded instead',
+  },
+  {
+    name: 'drum-major: the sequence never grows',
+    file: 'games/drum-major-says/index.html',
+    find: 'sequence.push(randomCommand()); // extend for the next round',
+    replace: '/* the drum major stops adding calls */;',
+    expect: ['a full correct repeat grows the sequence to the next round'],
+    describe: 'a cleared round should add one more call; this keeps the sequence frozen at length 1 forever',
   },
 ];

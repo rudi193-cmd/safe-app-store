@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Five small, silly, entirely local browser toys for marching band kids. No build step, no backend.",
+  "description": "Six small, silly, entirely local browser toys for marching band kids. No build step, no backend.",
   "scripts": {
     "serve": "node test/serve.js",
     "test": "node test/run.js",

@@ -1,0 +1,13 @@
+{
+  "app_id": "the-table",
+  "majors": [
+    "python"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/the-table",
+  "maker": "USER / Claude",
+  "lane": null,
+  "state": "building",
+  "notes": "Walking skeleton, first slice: the-table/game_session.py (the pinned GameSession Protocol -- reset/current_seat/observe/legal_moves/step/is_terminal/result, Move opaque but JSON-serializable so the GM can snapshot it) and the-table/bureau_adapter.py (BureauSession, the first real implementation, adapting bureau's Session at apps/bureau/bureau/play.py via a local sys.path shim -- the-table imports bureau, never the reverse, and nothing under apps/bureau is modified). tests/test_bureau_adapter.py drives a full game to terminal across five seeds and asserts every Observation.view and every chosen Move round-trips through json.dumps/json.loads. No GM loop, no second game, no persistence yet -- ledger_sink.py (a concurrent build in this same app) and the ai-game-master library surfaces (apps/ai-game-master) are later bites, not part of this slice."
+}

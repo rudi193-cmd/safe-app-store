@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+<title>Drum Major Says</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #1a1a1e;
+    --fg: #f0f0f0;
+    --accent: #e0a640;
+    --muted: #8a8a92;
+    --border: #333338;
+    --mark: #4f9d6b;
+    --forward: #e0a640;
+    --rear: #4f7dc9;
+    --halt: #c94f4f;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  .arcade-nav {
+    position: fixed;
+    top: 0.9rem;
+    left: 0.9rem;
+    font-size: 0.8rem;
+  }
+  .arcade-nav a { color: var(--muted); text-decoration: none; }
+  .arcade-nav a:hover { color: var(--accent); }
+  main { width: 100%; max-width: 440px; text-align: center; }
+  h1 { font-size: 1.4rem; font-weight: 600; margin: 0 0 0.25rem; }
+  p.tagline { color: var(--muted); margin: 0 0 1.5rem; font-size: 0.95rem; }
+  .status {
+    min-height: 1.5rem;
+    font-size: 1rem;
+    color: var(--accent);
+    margin-bottom: 1.25rem;
+    font-weight: 600;
+  }
+  .board {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .pad {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.6rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--fg);
+    cursor: pointer;
+    user-select: none;
+    opacity: 0.55;
+    transition: opacity 0.1s, transform 0.05s, box-shadow 0.1s;
+  }
+  .pad[data-cmd="0"] { background: var(--mark); }
+  .pad[data-cmd="1"] { background: var(--forward); color: #1a1200; }
+  .pad[data-cmd="2"] { background: var(--rear); }
+  .pad[data-cmd="3"] { background: var(--halt); }
+  .pad.lit { opacity: 1; box-shadow: 0 0 22px currentColor; transform: scale(1.02); }
+  .board[data-phase="input"] .pad:hover { opacity: 0.85; }
+  .board[data-phase="input"] .pad:active { transform: scale(0.97); }
+  .board:not([data-phase="input"]) .pad { cursor: default; }
+  .main-button {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    background: var(--accent);
+    color: #1a1200;
+  }
+  .stats {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .stats strong {
+    display: block;
+    color: var(--fg);
+    font-size: 1.3rem;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+</head>
+<body>
+<nav class="arcade-nav"><a href="../../index.html">&larr; Band Camp Arcade</a></nav>
+<main>
+  <h1>Drum Major Says</h1>
+  <p class="tagline">Watch the calls. Repeat them back. One more each round until you break formation.</p>
+
+  <div class="status" id="status">Press Start. Watch the drum major.</div>
+
+  <div class="board" id="board" data-phase="idle">
+    <div class="pad" data-cmd="0">Mark Time</div>
+    <div class="pad" data-cmd="1">Forward</div>
+    <div class="pad" data-cmd="2">To the Rear</div>
+    <div class="pad" data-cmd="3">Halt</div>
+  </div>
+
+  <button class="main-button" id="mainButton">Start</button>
+
+  <div class="stats">
+    <div>This run<strong id="streak">0</strong></div>
+    <div>Best streak<strong id="best">--</strong></div>
+  </div>
+</main>
+
+<script>
+(() => {
+  const STORAGE_KEY = "drum-major-best-streak";
+  const COMMANDS = ["Mark Time", "Forward", "To the Rear", "Halt"];
+  // A short ascending bugle-ish set, one tone per command.
+  const TONES = [392.0, 493.88, 587.33, 659.25]; // G4 B4 D5 E5
+  const FLASH_MS = 170;
+  const GAP_MS = 130;
+  const LEAD_MS = 320;
+
+  let sequence = [];   // the calls to repeat, one longer each round
+  let inputIndex = 0;  // how far through the current repeat the player is
+  let streak = 0;      // rounds cleared this run — the score
+  let phase = "idle";  // idle | playback | input | over
+  let audioCtx = null;
+
+  const boardEl = document.getElementById("board");
+  const statusEl = document.getElementById("status");
+  const mainButton = document.getElementById("mainButton");
+  const streakEl = document.getElementById("streak");
+  const bestEl = document.getElementById("best");
+  const pads = [...boardEl.querySelectorAll(".pad")];
+
+  function setPhase(next) {
+    phase = next;
+    boardEl.dataset.phase = next;
+  }
+
+  function loadBest() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const best = raw ? parseInt(raw, 10) : 0;
+    bestEl.textContent = best > 0 ? String(best) : "--";
+    return best;
+  }
+
+  function saveBestIfBetter(value) {
+    const best = loadBest();
+    if (value > best) {
+      localStorage.setItem(STORAGE_KEY, String(value));
+      bestEl.textContent = String(value);
+    }
+  }
+
+  function render() {
+    // The sequence, mirrored to the DOM so what the drum major "said" is
+    // inspectable state, not a hidden closure variable.
+    boardEl.dataset.sequence = sequence.join(",");
+    streakEl.textContent = String(streak);
+  }
+
+  function tone(cmd) {
+    // Audio is a garnish; a browser that blocks it must not break the game.
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = TONES[cmd];
+      gain.gain.value = 0.0001;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+      osc.start(now);
+      gain.gain.exponentialRampToValueAtTime(0.16, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + FLASH_MS / 1000);
+      osc.stop(now + FLASH_MS / 1000 + 0.02);
+    } catch (_) { /* no audio here; keep marching */ }
+  }
+
+  function flash(cmd) {
+    const pad = pads[cmd];
+    pad.classList.add("lit");
+    tone(cmd);
+    setTimeout(() => pad.classList.remove("lit"), FLASH_MS);
+  }
+
+  function playSequence() {
+    setPhase("playback");
+    statusEl.textContent = "The drum major is calling...";
+    render();
+    let i = 0;
+    const step = () => {
+      if (i >= sequence.length) {
+        setPhase("input");
+        inputIndex = 0;
+        statusEl.textContent = "Your turn — repeat the calls.";
+        return;
+      }
+      flash(sequence[i]);
+      i += 1;
+      setTimeout(step, FLASH_MS + GAP_MS);
+    };
+    setTimeout(step, LEAD_MS);
+  }
+
+  function randomCommand() {
+    return Math.floor(Math.random() * COMMANDS.length);
+  }
+
+  function startGame() {
+    sequence = [randomCommand()]; // deal the opening call
+    streak = 0;
+    setPhase("playback");
+    loadBest();
+    mainButton.textContent = "Restart";
+    playSequence();
+  }
+
+  function clearedRound() {
+    streak += 1;
+    saveBestIfBetter(streak);
+    render();
+    statusEl.textContent = "In step. One more...";
+    sequence.push(randomCommand()); // extend for the next round
+    setPhase("playback");
+    setTimeout(playSequence, 650);
+  }
+
+  function gameOver() {
+    setPhase("over");
+    statusEl.textContent = `Out of step at ${streak}. The drum major saw that.`;
+    mainButton.textContent = "Start";
+  }
+
+  function handleInput(cmd) {
+    if (phase !== "input") return;
+    if (cmd === sequence[inputIndex]) {
+      inputIndex += 1;
+      if (inputIndex === sequence.length) clearedRound();
+    } else {
+      gameOver();
+    }
+  }
+
+  boardEl.addEventListener("click", (e) => {
+    const pad = e.target.closest(".pad");
+    if (!pad) return;
+    handleInput(Number(pad.dataset.cmd));
+  });
+
+  mainButton.addEventListener("click", startGame);
+
+  loadBest();
+  render();
+})();
+</script>
+</body>
+</html>
