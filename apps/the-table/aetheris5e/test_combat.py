@@ -194,8 +194,11 @@ class TestLedgerIntegration(unittest.TestCase):
 
             # forbidden act: rewrite a logged row -> the chain must refuse.
             con = sqlite3.connect(os.path.join(box, "campaign.db"))
-            con.execute("UPDATE ledger SET note = note || ' (edited)' "
-                        "WHERE kind='turn' ORDER BY id DESC LIMIT 1")
+            # SELECT the id, then UPDATE by id: `UPDATE ... LIMIT` needs SQLite built
+            # with SQLITE_ENABLE_UPDATE_DELETE_LIMIT, which stock CPython often lacks.
+            rid = con.execute("SELECT id FROM ledger WHERE kind='turn' "
+                              "ORDER BY id DESC LIMIT 1").fetchone()[0]
+            con.execute("UPDATE ledger SET note = note || ' (edited)' WHERE id=?", (rid,))
             con.commit(); con.close()
             verify_py = combat.AGM_VERIFY
             r = subprocess.run([sys.executable, verify_py,

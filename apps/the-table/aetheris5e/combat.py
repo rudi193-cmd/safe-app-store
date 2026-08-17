@@ -307,8 +307,12 @@ def fight(encounter: str, seed: int | None, human_readable=True):
     shutil.rmtree(copy, ignore_errors=True)
     shutil.copytree(box, copy)
     con = sqlite3.connect(os.path.join(copy, "campaign.db"))
-    con.execute("UPDATE ledger SET note = note || ' (edited)' WHERE kind='turn' "
-                "AND note LIKE '%hits%' LIMIT 1")
+    # SELECT the row id first, then UPDATE by id: `UPDATE ... LIMIT` needs SQLite
+    # built with SQLITE_ENABLE_UPDATE_DELETE_LIMIT, which stock CPython often lacks.
+    row = con.execute("SELECT id FROM ledger WHERE kind='turn' "
+                      "AND note LIKE '%hits%' ORDER BY id LIMIT 1").fetchone()
+    if row is not None:
+        con.execute("UPDATE ledger SET note = note || ' (edited)' WHERE id=?", (row[0],))
     con.commit(); con.close()
     r = subprocess.run([sys.executable, AGM_VERIFY, os.path.join(copy, "campaign.db"), "--canon"],
                        capture_output=True, text=True)
