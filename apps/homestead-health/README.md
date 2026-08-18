@@ -10,9 +10,10 @@ The design is
 the packs (immunizations first — one pack proves the seam), the rungs field by
 field, the module invariants H-1…H-5, and the five bites.
 
-**Status: the records track (bites 1–5) and the pinned reference snapshot (H-5)
-are built; the reference and living lanes (bites 6–7) and the emergency card
-(H-3) are pending claims.** Bite 1 — **the
+**Status: every invariant the plan named (H-1–H-5) and the whole records track
+(bites 1–5) are built and green — `UNBUILT` is empty.** What remains is the
+2026-08-17 extension, still **proposed, not ratified**: the reference and living
+lanes (bites 6–7). Bite 1 — **the
 seat** — pins the engine and proves the pin. Bite 2 — **the roster**
 (`homestead_health/roster.py`) — is subjects before records: opaque ids
 (`subj-01`, minted by a counter, never derived from the person), the id →
@@ -44,12 +45,17 @@ returned to record off the machine, so a hand-edited entry fails
 carried as a versioned, dated snapshot that names its own edition, holds **no
 subject**, reads no clock, and dials for nothing (I-17): public reference the
 operator pins and updates by a deliberate act, never a runtime fetch, and never
-joined to a child (the H-2 wall).
-H-3 remains in
-`tests/test_invariants_pending.py` as `xfail(strict=True)` — the suite stays
-green while it is unbuilt and fails the moment an implementation quietly
-satisfies it, forcing the test to be promoted rather than forgotten; H-1, H-4,
-H-2, bite 5 and H-5 were promoted to their own test files as each landed. The
+joined to a child (the H-2 wall). **H-3 — the emergency card**
+(`homestead_health/emergency.py`) — is the one artifact whose purpose is to
+leave: an **authored, never computed** field set (no `auto_include`, no
+relevance heuristic) exported like any other record — usefulness does not lower
+the rung, the ledger holds the act not the content — with only the operator's
+chosen fields, a recorded gap for a chosen-but-empty one, and an `L5` field
+dropped without a trace. Its subject-id guard is shared with the school form
+(`_egress.py`), so the audit's egress fix protects both by construction.
+Every H-* claim is now promoted to its own test file and
+`tests/test_invariants_pending.py`'s `UNBUILT` is empty — the guard stays, ready
+for the next claim the day its module is named. The
 seat's own guarantees (the pin is true and capped, nothing imports the
 network, nothing listens, no second path resolver, no shadowed test basename)
 are live tests in `tests/test_invariants_seat.py`.

@@ -38,7 +38,6 @@ than ledgered as an export of nothing.
 """
 from __future__ import annotations
 
-import unicodedata
 from pathlib import Path
 from typing import Iterable
 
@@ -51,6 +50,8 @@ from homestead.keep.rungs import (
     compose,
     serve_all,
 )
+
+from ._egress import validate_subject
 
 __all__ = ["export_history", "HISTORY_ITEM"]
 
@@ -87,7 +88,7 @@ def export_history(
     an export) — the same fail-before-ledger posture `export_record` takes for an
     undeclared purpose or an `L5` datum.
     """
-    sid = _validate_subject(subject)
+    sid = validate_subject(subject)
 
     # Serve each dose on the egress surface with the purpose declared. serve_all
     # drops anything that denies (an L5), so the form carries only what may cross —
@@ -136,40 +137,3 @@ def export_history(
             f"{sid}: an export of this history already exists for this instant. "
             "The export tree refuses to overwrite (I-9) — retry."
         ) from exc
-
-
-def _validate_subject(subject: object) -> str:
-    """The subject id, validated as one clean reference segment — before any write.
-
-    An id becomes a path segment (the artifact tree) **and** a log reference, and
-    the engine holds those to two independently-written validators that do not agree
-    on every character: `keep/export._segment` accepts an embedded newline,
-    `keep/logs._ref` rejects it. Because `export_record` writes the artifact and
-    commits the `IntegrityLog` entry *before* it touches the `VisibleLog`, an id with
-    a newline would leave the record on disk and in the ledger and then raise when
-    the visible log refused it — a leak that looks like a refusal, with the two logs
-    disagreeing about whether the act even happened.
-
-    So the id is validated here, at the app boundary, before a single dose is served
-    or written: no separator, no `..`, and no control, format, or whitespace
-    character of any kind (a newline, a tab, a zero-width space — `str.isspace()`
-    misses the last, so the Unicode category is checked too). A malformed subject
-    fails closed, with nothing written, rather than partway through the sequence.
-    `None` is refused rather than stringified to the collision-prone literal
-    `"None"`.
-    """
-    if subject is None:
-        raise ExportRefused("an export names a subject; got None")
-    sid = str(subject)
-    if not sid.strip():
-        raise ExportRefused("an export names a subject; got an empty reference")
-    if sid in (".", ".."):
-        raise ExportRefused(f"subject {sid!r} is not a usable reference segment")
-    for ch in sid:
-        if ch in "/\\" or ch == "\x00" or ch.isspace() or unicodedata.category(ch)[0] == "C":
-            raise ExportRefused(
-                f"subject {sid!r} carries a separator, control, format, or "
-                "whitespace character — a reference component must be one clean "
-                "segment, or the export writes before the visible log refuses it"
-            )
-    return sid

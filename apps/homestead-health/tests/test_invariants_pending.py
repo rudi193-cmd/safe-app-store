@@ -19,12 +19,13 @@ import importlib.util
 
 import pytest
 
-# Every module a pending test reaches for, and the bite that builds it.
-# The guard is module-granular (`find_spec` answers for a module, not a symbol)
-# — the engine's file documents that limit and it is inherited here unchanged.
-UNBUILT = {
-    "homestead_health.emergency": "post-v1 — the emergency card",
-}
+# Every module a pending test reaches for, and the bite that builds it — now
+# empty. Every claim this file ever held red (H-1 through H-5 and bite 5) has
+# been built and promoted out to its own test file, the way the engine's own
+# pending file emptied. `test_pending_liveness` guards the emptiness; the guard
+# is module-granular (`find_spec` answers for a module, not a symbol), and a new
+# pending claim is added here the day its module is *named*, not the day it lands.
+UNBUILT: dict[str, str] = {}
 
 
 def pending(module: str, why: str):
@@ -83,22 +84,11 @@ def test_pending_liveness():
 
 
 # ── H-3 · the emergency card is authored, not computed ───────────────────────
-
-
-@pending(
-    "homestead_health.emergency",
-    "H-3 — the card holds a closed, operator-chosen field set; no path "
-    "auto-includes by relevance",
-)
-def test_h3_the_card_holds_only_what_the_operator_chose():
-    from homestead_health.emergency import Card
-
-    card = Card(fields=("allergies",))
-    assert card.fields == ("allergies",)
-    # A computed card is a query someone else effectively wrote. The class
-    # must not offer the machinery: no auto-include, no relevance.
-    assert not hasattr(Card, "auto_include")
-    assert not hasattr(Card, "relevant_fields")
+#
+# Promoted to tests/test_invariants_emergency.py when homestead_health.emergency
+# landed — the last pending claim in the module to fall, leaving UNBUILT empty
+# (the emergency card the plan puts post-v1, built here). The `emergency` key
+# came out of UNBUILT and the H-3 test moved there with its body kept.
 
 
 # ── H-4 · a dose is a fact with a source ─────────────────────────────────────
