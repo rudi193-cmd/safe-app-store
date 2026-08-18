@@ -8,14 +8,20 @@ law-gazelle → homestead-law path, walked again.
 The design is
 [`homestead/docs/PLAN-homestead-health.md`](https://github.com/rudi193-cmd/homestead/blob/main/docs/PLAN-homestead-health.md):
 the packs (immunizations first — one pack proves the seam), the rungs field by
-field, the module invariants H-1…H-5, and the five bites. This directory is
-**bite 1 — the seat**: a module that pins the engine and proves the pin,
-holding nothing else yet.
+field, the module invariants H-1…H-5, and the five bites.
 
-**Status: bite 1 built; bites 2–5 are pending claims.** H-1 through H-5 sit in
+**Status: bites 1–2 built; bites 3–5 are pending claims.** Bite 1 — **the
+seat** — pins the engine and proves the pin. Bite 2 — **the roster**
+(`homestead_health/roster.py`) — is subjects before records: opaque ids
+(`subj-01`, minted by a counter, never derived from the person), the id →
+person mapping stored through `homestead.keep`'s record layer and reached only
+through the gate, a subject's name held at `L4` when the subject is a minor and
+`L3` otherwise, and a `VisibleLog` line that carries the id and nothing of the
+name (H-1). A subject survives a restart. H-2 through H-5 and bite 5 remain in
 `tests/test_invariants_pending.py` as `xfail(strict=True)` — the suite stays
 green while they are unbuilt and fails the moment an implementation quietly
-satisfies one, forcing the test to be promoted rather than forgotten. The
+satisfies one, forcing the test to be promoted rather than forgotten; H-1 was
+promoted to `tests/test_invariants_roster.py` when the roster landed. The
 seat's own guarantees (the pin is true and capped, nothing imports the
 network, nothing listens, no second path resolver, no shadowed test basename)
 are live tests in `tests/test_invariants_seat.py`.

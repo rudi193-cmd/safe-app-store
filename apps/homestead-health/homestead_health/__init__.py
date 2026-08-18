@@ -3,10 +3,13 @@
 Module three on **Homestead · Affairs**, sibling to `homestead-law` and
 `homestead-ledger`, incubating in the safe-app-store toward promotion to
 `rudi193-cmd/homestead-health`. The design is
-`homestead/docs/PLAN-homestead-health.md`; this package is **bite 1 — the
-seat**: a module that pins the engine and proves the pin, holding nothing
-else yet. The roster (bite 2), the immunizations pack (bite 3), due-onto-Today
-(bite 4) and the school-form export (bite 5) are claims in
+`homestead/docs/PLAN-homestead-health.md`. **Bite 1 — the seat** pins the
+engine and proves the pin. **Bite 2 — the roster** (`roster.py`) is subjects
+before records: opaque ids the counter mints, the id → person mapping stored
+through the engine's record layer and served through the gate, and a
+`VisibleLog` line that carries the id and nothing of the name (H-1, promoted to
+`tests/test_invariants_roster.py`). The immunizations pack (bite 3),
+due-onto-Today (bite 4) and the school-form export (bite 5) are still claims in
 `tests/test_invariants_pending.py`, each `xfail(strict=True)` so none can land
 quietly.
 

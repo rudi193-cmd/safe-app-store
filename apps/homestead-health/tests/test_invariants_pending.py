@@ -23,7 +23,6 @@ import pytest
 # The guard is module-granular (`find_spec` answers for a module, not a symbol)
 # — the engine's file documents that limit and it is inherited here unchanged.
 UNBUILT = {
-    "homestead_health.roster": "bite 2 — the roster, subjects before records",
     "homestead_health.packs.immunizations": "bite 3 — the pack, classified at import",
     "homestead_health.reference": "bite 3/4 — the pinned schedule snapshot",
     "homestead_health.due": "bite 4 — due onto Today, calendar days and k ≥ 2",
@@ -68,36 +67,13 @@ def test_pending_liveness():
 
 
 # ── H-1 · a subject is opaque everywhere but the roster and the detail pane ──
-
-
-@pending(
-    "homestead_health.roster",
-    "H-1 — keys, log lines and list rows carry the subject id; a reference "
-    "never thereby carries a name (I-15 at the subject dimension)",
-)
-def test_h1_a_subject_reference_never_carries_a_name():
-    from homestead_health.roster import Roster
-
-    roster = Roster()
-    ref = roster.add(name="Synthetic Child", minor=True)
-    # The reference is what keys, logs and derived text may carry. If any
-    # fragment of the name survives into it, the roster has minted a datum as
-    # a reference and H-1 is not built, whatever else is.
-    assert "Synthetic" not in str(ref) and "Child" not in str(ref)
-    # **Tightened after the bite-1 audit**, which showed the substring check
-    # alone accepts `subj-01-<base64 of the name>` — no fragment survives,
-    # the whole name does, trivially reversible. So the stronger claim: the
-    # id must not *depend on* the name at all. Two fresh rosters, same
-    # position, different names — an id derived from the name differs; an id
-    # minted by the roster (a counter, per the plan's own `subj-01`) cannot.
-    # An implementation that wants non-deterministic ids must come back to
-    # this test with a mechanism argument, which is exactly the conversation
-    # H-1 wants to force.
-    other = Roster().add(name="Entirely Different Person", minor=True)
-    assert str(ref) == str(other), (
-        "an id that varies with the name is derived from the name — the "
-        "roster mints ids; the datum does not"
-    )
+#
+# Promoted to tests/test_invariants_roster.py when homestead_health.roster
+# landed as bite 2 — subjects before records. The moment the module existed
+# `test_pending_liveness` failed by name, and stays red until the H-1 test is
+# carried out of this file unmarked. This is the first promotion in the health
+# module; the engine's own file records four more, and the mechanism is its,
+# taken whole.
 
 
 # ── H-2 · the app never advises care ─────────────────────────────────────────
