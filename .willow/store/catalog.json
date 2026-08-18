@@ -697,7 +697,7 @@
     {
       "id": "homestead-health",
       "name": "Homestead Health",
-      "description": "Family health records the household holds itself — module three on Homestead · Affairs, pinning homestead.keep. Bite 1: the seat. Immunizations first; every field carries a rung; nothing dials.",
+      "description": "Family health records the household holds itself — module three on Homestead · Affairs, pinning homestead.keep. The whole plan is built and green (H-1..H-5 records track + the H-7/H-8 extension), 128 tests, twice adversarially audited; nothing dials. Promotion-prep staged (docs/promotion/), gate dry-runs green; pending a human seal (verified_by != author) and the extraction.",
       "status": "building",
       "version": "0.0.1",
       "path": "apps/homestead-health",
