@@ -8,11 +8,16 @@ in which the catalog silently implies more than it knows.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
 from playgate import catalog
+from playgate import install
 from playgate.interruption import InterruptionError
+
+SEED_APK_DIR = Path(__file__).resolve().parents[1] / "data" / "apks"
+SOURCES_PATH = SEED_APK_DIR / "SOURCES.json"
 
 ENTRY = {
     "id": "example",
@@ -139,8 +144,39 @@ def test_every_shipped_entry_is_honestly_assumed():
         assert app.view()["confidence"] == "assumed", app.id
 
 
-def test_no_shipped_entry_claims_an_installable_apk_it_does_not_have():
-    """This app does not download. Until an operator puts a file on disk and
-    records its digest, the install path must refuse rather than fetch."""
+def test_every_shipped_entry_pairs_apk_path_with_a_digest():
+    """apk_path and sha256 must agree — never one set and the other blank."""
     for app in catalog.load():
         assert (app.apk_path is None) == (app.sha256 is None), app.id
+
+
+def test_the_shipped_catalog_matches_the_sources_manifest():
+    """catalog.json and data/apks/SOURCES.json must not drift for F-Droid entries."""
+    sources = json.loads(SOURCES_PATH.read_text())
+    by_id = {entry["catalog_id"]: entry for entry in sources["apks"]}
+    for app in catalog.load():
+        if not app.apk_path:
+            continue
+        assert app.id in by_id, f"{app.id} missing from SOURCES.json"
+        src = by_id[app.id]
+        assert app.apk_path == src["filename"], app.id
+        assert app.sha256 == src["sha256"], app.id
+        assert app.version == src["version_name"], app.id
+        assert app.package == src["package"], app.id
+
+
+def test_shipped_apk_bytes_match_their_recorded_digests():
+    """When seed APKs are present locally, their bytes must match the catalog.
+
+    CI does not fetch ~50 MiB of F-Droid binaries; operators run
+    tools/fetch_apks.py. This test runs when the files are already there.
+    """
+    apps = catalog.load()
+    if any(not (SEED_APK_DIR / app.apk_path).is_file() for app in apps if app.apk_path):
+        pytest.skip("seed APKs absent — run tools/fetch_apks.py")
+    for app in apps:
+        if not app.apk_path:
+            continue
+        path = SEED_APK_DIR / app.apk_path
+        result = install.verify(path, app.sha256 or "")
+        assert result.ok, f"{app.id}: {result.detail}"

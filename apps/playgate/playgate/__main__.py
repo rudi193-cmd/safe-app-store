@@ -69,6 +69,10 @@ def main(argv: "list[str] | None" = None) -> int:
     log_path = args.log or paths_mod.log_path()
     apk_root = args.apk_root or paths_mod.apk_dir()
 
+    staged = paths_mod.stage_seed_apks(apps, apk_root)
+    if staged:
+        print(f"  staged {len(staged)} seed apk(s): {', '.join(staged)}")
+
     log = Log(path=log_path, roster=tuple(args.subject))
     httpd = server_mod.serve(apps, log, port=args.port, apk_root=apk_root)
     print(f"playgate on http://{server_mod.DEFAULT_HOST}:{args.port}/kid/ "

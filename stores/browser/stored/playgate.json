@@ -9,5 +9,5 @@
   "maker": "USER",
   "lane": null,
   "state": "building",
-  "notes": "Kid/parent UI plus the loopback host that serves them — Python, stdlib-only, in-tree. Rebuilt against this repo's conventions rather than lifted from the Desktop/Nest prototype; that copy is no longer the canonical one. In the app-tests matrix in store-ci.yml. Disposition log is a hash chain (stdlib `prev` per line); walking it is Nestor's `ledger.verify()` via playgate/audit.py — injected, so the core stays third-party-free and `serve` runs without it. Rule-11 reuse, not a rebuild."
+  "notes": "Gaming-table leg (WHO on the Table spine — see apps/the-table/docs/the-table-map.html §01). Kid/parent UI plus the loopback host that serves them — Python, stdlib-only, in-tree. Rebuilt against this repo's conventions rather than lifted from the Desktop/Nest prototype; that copy is no longer the canonical one. In the app-tests matrix in store-ci.yml. Disposition log is a hash chain (stdlib `prev` per line); walking it is Nestor's `ledger.verify()` via playgate/audit.py — injected, so the core stays third-party-free and `serve` runs without it. Rule-11 reuse, not a rebuild."
 }

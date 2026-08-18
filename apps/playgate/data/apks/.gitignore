@@ -1,0 +1,2 @@
+# Seed APK bytes are fetched locally — see SOURCES.json and tools/fetch_apks.py
+*.apk

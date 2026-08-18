@@ -1,0 +1,51 @@
+{
+  "note": [
+    "Seed APKs from the F-Droid main repository. Playgate does not download at",
+    "runtime — an operator (or tools/fetch_apks.py) places bytes on disk and the",
+    "catalog records the digest. SOURCES.json is the reproducibility record:",
+    "package, versionCode, versionName, filename, sha256, and the F-Droid repo URL.",
+    "",
+    "Run from apps/playgate: python tools/fetch_apks.py",
+    "Optional: python tools/fetch_apks.py --to-vault  (copy into the vault apk dir)",
+    "",
+    "Operator-supplied APKs (not on F-Droid): python tools/record_apk.py <id> /path/to.apk"
+  ],
+  "apks": [
+    {
+      "catalog_id": "sgt-puzzles",
+      "package": "name.boyle.chris.sgtpuzzles",
+      "version_code": 149,
+      "version_name": "2025-09-12-1919-23762278-fdroid",
+      "filename": "sgt-puzzles.apk",
+      "sha256": "6b36d5537984523c57984a784156eb853a92c940fded286483687484f3d652e4",
+      "url": "https://f-droid.org/repo/name.boyle.chris.sgtpuzzles_149.apk"
+    },
+    {
+      "catalog_id": "shattered-pixel-dungeon",
+      "package": "com.shatteredpixel.shatteredpixeldungeon",
+      "version_code": 896,
+      "version_name": "3.3.8",
+      "filename": "shattered-pixel-dungeon.apk",
+      "sha256": "be901407280a5b3b281969e068f725ed5d52c9cd9a7b55013de68487ad419ec4",
+      "url": "https://f-droid.org/repo/com.shatteredpixel.shatteredpixeldungeon_896.apk"
+    },
+    {
+      "catalog_id": "vector-pinball",
+      "package": "com.dozingcatsoftware.bouncy",
+      "version_code": 43,
+      "version_name": "1.16.0",
+      "filename": "vector-pinball.apk",
+      "sha256": "ffda0d9cb0b1b2aa58be9559dda891c4fa24391bc481d297a8e3d96c31f62721",
+      "url": "https://f-droid.org/repo/com.dozingcatsoftware.bouncy_43.apk"
+    },
+    {
+      "catalog_id": "frozen-bubble",
+      "package": "org.jfedor.frozenbubble",
+      "version_code": 54,
+      "version_name": "4.4",
+      "filename": "frozen-bubble.apk",
+      "sha256": "bf291a12e88c84e559bd4f0faf99163a6a5b55da995df69ef10f888c6bba77e4",
+      "url": "https://f-droid.org/repo/org.jfedor.frozenbubble_54.apk"
+    }
+  ]
+}

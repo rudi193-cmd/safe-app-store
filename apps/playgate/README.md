@@ -8,6 +8,9 @@ APK's digest and installs it into Waydroid, and records what happened —
 including, especially, when it fails.
 
 ```sh
+pip install -e ../../libs/vault-paths   # from apps/playgate
+
+python tools/fetch_apks.py --to-vault   # F-Droid seed APKs → vault apk dir
 python -m playgate serve --subject kid1 --subject kid2
 # http://127.0.0.1:8424/kid/   ·   parent inbox at /parent/
 
@@ -18,6 +21,16 @@ python -m pytest tests/ -q         # 146 assertions, including 12 mutations
 
 No third-party store, no ads, and no network beyond the loopback socket that
 serves the two UIs to a browser on the same machine.
+
+## Gaming table — however the leg is named
+
+In this store playgate sits on the **gaming table** leg of the homestead
+Table — the games/crafts/play surface the kitchen vision split out of
+`the-table` ([`homestead-kitchen-vision`](../../the-table/docs/homestead-kitchen-vision.md)).
+On the AI Game Master spine it is **Layer 1 · who**: roster + consent before
+anything runs ([`the-table-map`](../../the-table/docs/the-table-map.html) §01).
+The repo path stays `apps/playgate`; prose names vary (Nest Playgate, gaming
+table, Homestead Table module three) but the job is the same gate.
 
 ## Why there is an interruption record on every entry
 
@@ -199,6 +212,11 @@ D8) — never a home path, and never the app's own install directory.
 | Disposition log | `<vault>/playgate/requests.jsonl` | `PLAYGATE_LOG`, `--log` |
 | Installable APKs | `<vault>/playgate/apks` | `PLAYGATE_APK_DIR`, `--apk-root` |
 | Seed catalog | `data/catalog.json`, app-relative | `--catalog` |
+| Seed APKs | `data/apks/` (fetched via `tools/fetch_apks.py`; not in git) | copied to vault by `--to-vault` or on `serve` |
+
+Operator-supplied APKs (not on F-Droid, e.g. Toca Boca World): place the file you
+already have, then `python tools/record_apk.py toca-boca-world /path/to.apk --to-vault`
+and paste the printed `apk_path` / `sha256` into `data/catalog.json`.
 
 The catalog is the one deliberately app-relative path: it is shipped content,
 read-only at runtime, and replaced wholesale rather than written to. The log is
