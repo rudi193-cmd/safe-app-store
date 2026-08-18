@@ -29,10 +29,18 @@ import pytest
 
 _REPO = Path(__file__).resolve().parent.parent
 
-_mp_spec = importlib.util.spec_from_file_location("measure_panel", _REPO / "stores" / "measure_panel.py")
-measure_panel = importlib.util.module_from_spec(_mp_spec)
-sys.modules["measure_panel"] = measure_panel
-_mp_spec.loader.exec_module(measure_panel)
+# stores/measure_panel.py was archived to stores/_forge_extracted/ on
+# 2026-08-18 (host repointed to rudi193-cmd/Forge, the promoted package —
+# see stores/_forge_extracted/README.md). This test only needs
+# measure_panel.Finding to build synthetic panel reports, but that type now
+# lives in the real `forge` package; skip rather than fail collection when
+# it isn't installed, the same way this repo already lets an absent Nestor
+# degrade instead of breaking collection (tests/test_checkpoint_memory.py).
+measure_panel = pytest.importorskip(
+    "forge.measure_panel",
+    reason='forge package not installed — pip install "forge @ '
+           'git+https://github.com/rudi193-cmd/Forge" (stores/requirements.txt)',
+)
 
 _spec = importlib.util.spec_from_file_location("readiness_corpus", _REPO / "stores" / "readiness_corpus.py")
 readiness_corpus = importlib.util.module_from_spec(_spec)
