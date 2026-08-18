@@ -111,3 +111,25 @@ def test_list_ids_is_sorted_and_reflects_current_titles(tmp_path):
     store.add(_recipe("pud-2"))
     store.add(_recipe("pud-1"))
     assert store.list_ids() == ["pud-1", "pud-2"]
+
+
+def test_correct_unknown_recipe_raises(tmp_path):
+    store = RecipeStore(root=tmp_path)
+    with pytest.raises(UnknownRecipe):
+        store.correct("ghost", index=0, field_name="qty", value="3", note="")
+
+
+def test_correct_unit_field(tmp_path):
+    store = RecipeStore(root=tmp_path)
+    store.add(_recipe())
+    store.correct("pud-1", index=0, field_name="unit", value="ml", note="metric")
+    current = store.current("pud-1")
+    assert current.ingredients[0].unit == "ml"
+    assert store.get_original("pud-1").ingredients[0].unit == "cups"
+
+
+def test_correct_rejects_invalid_field_name(tmp_path):
+    store = RecipeStore(root=tmp_path)
+    store.add(_recipe())
+    with pytest.raises(ValueError):
+        store.correct("pud-1", index=0, field_name="name", value="water", note="")
