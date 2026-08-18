@@ -2,9 +2,12 @@
 """stores/readiness_corpus.py — the Forge's readiness seam: someone else's
 control corpus, injected, never kept.
 
-The measuring panel (`stores/measure_panel.py`) already reports its own
-coverage — "a class no instrument measured is a class this panel could not
-see." But it grades that coverage against **five classes it wrote itself**
+The measuring panel (`forge.measure_panel`, in the promoted
+`rudi193-cmd/Forge` package as of the 2026-08-11 extraction — this store no
+longer keeps its own copy, see `stores/_forge_extracted/README.md`) already
+reports its own coverage — "a class no instrument measured is a class this
+panel could not see." But it grades that coverage against **five classes it
+wrote itself**
 (`ASPIRATIONAL_CLASSES`), and a harness that authors its own denominator is
 one level of the sigmap trap up: 5-of-5 covered is a perfect score against a
 ruler the scorer cut.
@@ -797,17 +800,24 @@ def _cmd_bearings(args: argparse.Namespace) -> int:
 
 
 def _cmd_assess(args: argparse.Namespace) -> int:
-    import importlib.util  # local: the CLI is the only place this module needs the panel
-
-    corpus = _open_or_exit(args.corpus)
-    if "measure_panel" in sys.modules:
-        measure_panel = sys.modules["measure_panel"]
-    else:
-        spec = importlib.util.spec_from_file_location(
-            "measure_panel", _REPO / "stores" / "measure_panel.py")
-        measure_panel = importlib.util.module_from_spec(spec)
-        sys.modules["measure_panel"] = measure_panel
-        spec.loader.exec_module(measure_panel)
+    # The panel used to be loaded by path from stores/measure_panel.py. That
+    # copy was archived to stores/_forge_extracted/ on 2026-08-18 (host
+    # repointed — rudi193-cmd/Forge is now the only place the measuring
+    # panel's behavior lives; see stores/_forge_extracted/README.md). This
+    # CLI now imports the real, installed `forge` package instead of
+    # reaching for a store-side file that no longer exists.
+    try:
+        from forge import measure_panel
+    except ImportError as e:
+        print(
+            "forge package not installed: the measuring panel moved to "
+            "rudi193-cmd/Forge on 2026-08-11 and this store no longer keeps "
+            "a copy (stores/_forge_extracted/README.md). Install it with "
+            "`pip install \"forge @ git+https://github.com/rudi193-cmd/Forge\"` "
+            f"(see stores/requirements.txt) — {e}",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
 
     report = measure_panel.run_panel(Path(args.build_dir), list(measure_panel.DEFAULT_INSTRUMENTS))
     a = assess(report, corpus)
