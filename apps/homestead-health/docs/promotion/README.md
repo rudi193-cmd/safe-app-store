@@ -127,12 +127,11 @@ Full reports in `docs/promotion/recon/`. Their verdicts:
   Injecting Jeles would *remove* that H-7/H-2 wall — a regression, not an upgrade —
   and buys no retrieval win (both are lexical, neither uses embeddings).
   `reference_lane.Reader` satisfies the `semantic_seam` gate as-is.
-  *One idea worth borrowing (optional, stdlib-only, no Jeles dependency):* Jeles
-  separates *ranking* from *answering* (a confidence gate where an unmatched query
-  term disqualifies). Adding that to `ask()` would make a weak lexical brush-past
-  return nothing rather than a thin citation — strengthening the H-2 "don't
-  improvise" instinct the lane already has. Recommended as a small follow-up, not a
-  promotion blocker.
+  *One idea borrowed (stdlib-only, no Jeles dependency), **applied** 2026-08-18:*
+  Jeles separates *ranking* from *answering*, so `ask()` now carries a
+  `min_confidence` recall gate (default 0.5) — a weak lexical brush-past returns
+  nothing rather than a thin citation, strengthening the H-2 "don't improvise"
+  instinct the lane already had. `min_confidence=0.0` restores raw ranking.
 - **willow-gate → the seal is not required, and declaring one *now* would BREAK the
   promotion** (`recon/willow-gate.md`). The `trust`-block path lazily imports
   `willow_gate.custody` + `forge.trust` + `nestor.{keyring,signing}` and needs

@@ -228,21 +228,34 @@ class Reader:
     def corpus(self) -> Corpus:
         return self._corpus
 
-    def ask(self, question: str, *, limit: int = 3) -> list[Result]:
+    def ask(self, question: str, *, limit: int = 3, min_confidence: float = 0.5) -> list[Result]:
         """Cited answers from the pinned corpus for a household's question.
 
-        Scores each entry by how many distinguishing terms it shares with the
-        question and returns the best few, each carrying its attribution. There is no
-        subject parameter and there never will be: joining public reference to a
-        particular person is the wall this lane does not cross (H-7/H-2).
+        Two decisions, kept separate — the discipline Jeles's reader established
+        (`docs/promotion/recon/jeles.md`): **ranking** and **answering** are not the
+        same question. Each entry is *ranked* by how many distinguishing terms it
+        shares with the question (`Result.score`); an entry only *answers* if its
+        share of the question's own terms clears `min_confidence` (a recall gate —
+        `matched / asked`). So a weak lexical brush-past — one common word floating a
+        barely-related entry to the top — returns **nothing** rather than a
+        misleading citation. That is the same "a reference lane that invents an
+        answer is the symptom-checker H-2 forbids" instinct the lane already had for
+        zero overlap, now extended to near-zero overlap. `min_confidence=0.0` restores
+        the old any-overlap behaviour for a caller that wants raw ranking.
+
+        There is no subject parameter and there never will be: joining public
+        reference to a particular person is the wall this lane does not cross
+        (H-7/H-2).
         """
         if not isinstance(question, str) or not question.strip():
             raise ValueError("ask() takes a question (a non-empty string)")
         asked = _terms(question)
+        if not asked:
+            return []
         scored: list[Result] = []
         for entry in self._corpus.entries:
-            overlap = len(asked & _terms(entry.question))
-            if overlap:
-                scored.append(Result(entry=entry, score=overlap))
+            matched = len(asked & _terms(entry.question))
+            if matched and matched / len(asked) >= min_confidence:
+                scored.append(Result(entry=entry, score=matched))
         scored.sort(key=lambda r: (-r.score, r.entry.question))
         return scored[:limit]
