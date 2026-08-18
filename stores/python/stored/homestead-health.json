@@ -5,9 +5,9 @@
   ],
   "relation": null,
   "anchor": null,
-  "location": "https://github.com/rudi193-cmd/homestead-health",
+  "location": "apps/homestead-health",
   "maker": "SAFE App Store",
   "lane": null,
   "state": "gated",
-  "notes": "PROMOTED 2026-08-18 out of the apps/ playground into its own repo (rudi193-cmd/homestead-health), the law-gazelle -> homestead-law path, joining the two promoted siblings (homestead-law, homestead-ledger). The build is no longer duplicated here (rule 8): the code lives in the repo, the record is what stores/ keeps. Gate passed all 9 (stores/python/promoted/homestead-health.json): author=vishwakarma, verified_by=sean (verified_by != author), host=safe-app-store, semantic_seam=homestead_health.reference_lane:Reader, library-clean, inversion clean (pins homestead.keep as the injected homestead-affairs engine, never imports its host), 139 tests green. Design: homestead/docs/PLAN-homestead-health.md. Bootstrapped at 0.0.1; release-please cuts v0.1.0 as the first standing release."
+  "notes": "PROMOTED 2026-08-18 into its own repo, rudi193-cmd/homestead-health (the law-gazelle -> homestead-law path), joining the two promoted siblings (homestead-law from apps/law-gazelle, homestead-ledger from apps/private-ledger). Per those siblings, the apps/homestead-health playground copy stays on disk (the catalog path and this record still point to it); the promotion record is stores/python/promoted/homestead-health.json. Gate passed all 9 (promote_check --record): author=vishwakarma, verified_by=sean (verified_by != author), host=safe-app-store, semantic_seam=homestead_health.reference_lane:Reader, library-clean, inversion clean (pins homestead.keep as the injected homestead-affairs engine, never imports its host), 139 tests green in the extracted repo. Design: homestead/docs/PLAN-homestead-health.md."
 }

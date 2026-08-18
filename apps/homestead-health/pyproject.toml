@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+# Distribution name matches the app id and the repo it promotes to
+# (rudi193-cmd/homestead-health), the way law-gazelle promoted to
+# homestead-law. The import name is `homestead_health` — see
+# [tool.hatch.build.targets.wheel]. The version is a literal while the app
+# incubates in the store: hatch-vcs derives from tags, and this tree's tags
+# are the store's, not the app's. The dynamic version arrives at promotion,
+# exactly as it did for the engine.
+name = "homestead-health"
+version = "0.0.1"
+description = "Homestead · Health — family health records the household holds itself. Module three on Homestead · Affairs, pinning homestead.keep."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+keywords = ["health", "records", "household", "homestead", "local-first"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business",
+]
+
+# I-27: declared dependencies are TRUE, and there is exactly one.
+#
+# `homestead-affairs` is the engine — homestead.keep, the record/deadline/
+# evidence core every module on the face pins. "A module cannot pin an engine
+# that does not exist"; this line is that pin. The floor is the release this
+# seat was built against (0.1.0, the engine's first release); the cap is
+# because the engine is pre-1.0 and this is the dependency that decides what
+# renders — the same floor-and-cap reasoning the engine itself applies to
+# `holidays`.
+#
+# The engine is a pinned dependency, not territory: do not modify it, do not
+# propose changes to it from here, and do not generalize app logic into it.
+# Upstream changes are issues on rudi193-cmd/homestead.
+dependencies = ["homestead-affairs>=0.1.0,<0.2"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.urls]
+Homepage = "https://github.com/rudi193-cmd/safe-app-store"
+Design = "https://github.com/rudi193-cmd/homestead/blob/main/docs/PLAN-homestead-health.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["homestead_health"]
+
+[tool.pytest.ini_options]
+# I-28: bare `pytest -q` must work. Nothing shadows the live suite.
+testpaths = ["tests"]
+norecursedirs = ["_archived", "build", "dist", ".git"]
