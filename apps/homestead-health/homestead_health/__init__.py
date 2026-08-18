@@ -34,8 +34,12 @@ is built; `tests/test_invariants_pending.py`'s `UNBUILT` is empty. The
 extension's **living lane** (`living.py`, bite 7, H-8) is built too — a
 forgetting cell (overwrite-in-place, keyed by the thing never the subject, L5,
 no egress) whose audit reuses `keep`'s `IntegrityLog` (the Nestor-ledger check
-recorded in `docs/DECISION-living-lane-ledger.md`). What remains of the unratified
-extension is the reference lane (bite 6).
+recorded in `docs/DECISION-living-lane-ledger.md`). The **reference lane**
+(`reference_lane.py`, bite 6, H-7) completes the extension: a pinned public-domain
+corpus behind an injected reader whose `ask(question)` takes no subject and dials
+for nothing, attribution riding through to every cited answer. The whole plan —
+records track and both extension lanes — is built; the extension is proposed, not
+ratified.
 
 **`homestead-affairs` is a pinned dependency** consumed only through
 `homestead.keep`'s public API. Do not modify it, propose changes to it, or
