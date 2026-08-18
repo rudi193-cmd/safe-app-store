@@ -5,14 +5,26 @@
   "safe_version": ">=2.0.0",
   "b17": "HHLTH",
   "agent_type": "tool",
-  "description": "Family health records the household holds itself — module three on Homestead · Affairs, pinning homestead.keep. Bite 1 (the seat) only: the engine pin proven, invariants H-1..H-5 pending as strict xfails. No network, no listener, synthetic data only until the export/log story (bite 5) is built and audited.",
-  "author": "USER",
+  "description": "Family health records the household holds itself — module three on Homestead · Affairs, pinning homestead.keep. The records track (roster, immunizations, due dates, school-form export, emergency-card export, the pinned CDC/ACIP schedule) is built and adversarially audited: H-1 through H-5, 128 tests green, 0 xfailed. The 2026-08-17 extension adds a living lane (a forgetting cell for in-motion household concerns, H-8) and a reference lane (an injected reader over a pinned public-domain corpus, H-7) — both built; the extension is proposed, not yet ratified (verified_by must differ from author). No network import and no listener anywhere in the module, held by tests/test_invariants_seat.py.",
+  "author": "SAFE App Store",
   "data_streams": [
     {
       "id": "health_records",
       "purpose": "Household health records (roster, immunizations) stored locally through homestead.keep.record",
       "retention": "permanent local; leaves only via purposed, ledgered export (S4)",
-      "description": "Not yet written — bite 1 stores nothing. Declared ahead so the stream exists before the first byte does; bites 2-3 write it, under the rungs declared in the design doc."
+      "description": "Subject roster (opaque subj-NN id -> name, L3/L4) and immunization records (subject, vaccine, dose_date, next_due, provider, lot_number, source, notes -- L2-L4 fields, classified at import). Stored through homestead.keep.record's Sidecar, reached only through the gate."
+    },
+    {
+      "id": "exports",
+      "purpose": "Purposed, explicit egress of a subject's records -- the school form and the emergency card",
+      "retention": "the artifact persists in exports/ until the operator removes it; the ledger entry (reference + purpose, never content) is permanent",
+      "description": "One IntegrityLog entry and one VisibleLog EXPORTED act per export, references only, head anchor held off the log's own tree so a hand-edited entry fails verify(expected_head=...)."
+    },
+    {
+      "id": "living_lane",
+      "purpose": "In-motion household concerns that are true now and not meant to accrete into a per-person history",
+      "retention": "overwrite-in-place, only-latest -- the prior value is not retained; only its SHA-256 is appended to the ledger on replacement",
+      "description": "Cells keyed by the thing (never the subject) under the household root's living/ tree. Audited via a keep IntegrityLog living_replaced entry carrying the thing's ref and the hash of what it replaced, never the value. L5, no egress."
     }
   ],
   "permissions": [

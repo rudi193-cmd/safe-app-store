@@ -697,8 +697,8 @@
     {
       "id": "homestead-health",
       "name": "Homestead Health",
-      "description": "Family health records the household holds itself — module three on Homestead · Affairs, pinning homestead.keep. Bite 1: the seat. Immunizations first; every field carries a rung; nothing dials.",
-      "status": "building",
+      "description": "Family health records the household holds itself — module three on Homestead · Affairs, pinning homestead.keep. PROMOTED 2026-08-18 into its own repo (rudi193-cmd/homestead-health), the law-gazelle → homestead-law path. All 9 gates green; 139 tests; library-clean; verified_by=sean ≠ author=vishwakarma. Bootstrapped 0.0.1, release-please cuts v0.1.0.",
+      "status": "gated",
       "version": "0.0.1",
       "path": "apps/homestead-health",
       "tier": "playground",

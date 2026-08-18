@@ -47,6 +47,23 @@ def test_nothing_matching_returns_nothing_rather_than_improvising():
     assert Reader().ask("xyzzy quux frobnicate") == []
 
 
+def test_a_weak_brush_past_returns_nothing_by_default():
+    """Jeles's rank-vs-answer discipline (recon/jeles.md), applied. A long question
+    that shares only one common word with an entry does not float that entry as an
+    answer — the recall gate (matched / asked) drops it below the default
+    confidence, so a barely-related citation is withheld rather than served. The
+    same 'don't improvise' instinct as zero-overlap, extended to near-zero."""
+    # 'prepare' is the only shared term with the checkup/aging entries; the rest of
+    # the question is unmatched, so recall is far below 0.5 and nothing is returned.
+    weak = Reader().ask("how should I prepare my quarterly financial spreadsheet budget")
+    assert weak == [], "a one-common-word brush-past must not be served as an answer"
+    # The same entry IS returned when the question actually is about it (recall high).
+    strong = Reader().ask("how do I prepare for the checkup")
+    assert strong and any("checkup" in r.entry.question.lower() for r in strong)
+    # A caller can opt back into raw any-overlap ranking.
+    assert Reader().ask("how should I prepare my quarterly budget", min_confidence=0.0)
+
+
 def test_the_reader_is_injected_over_its_corpus():
     """Ship the reader, the corpus stays with whoever grew it: the corpus is injected,
     defaulting to the pin. A host can hand a different corpus without changing the
@@ -134,7 +151,7 @@ def test_the_reader_takes_a_question_never_a_subject():
     there is no subject parameter, and there is nowhere to pass a child's record. The
     lane retrieves public reference; it never joins it to a person."""
     params = set(inspect.signature(Reader.ask).parameters)
-    assert params == {"self", "question", "limit"}
+    assert params == {"self", "question", "limit", "min_confidence"}
     for banned in ("subject", "subj", "child", "person", "record", "roster"):
         assert banned not in params
 
