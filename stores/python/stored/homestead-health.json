@@ -5,9 +5,9 @@
   ],
   "relation": null,
   "anchor": null,
-  "location": "apps/homestead-health",
-  "maker": "USER",
+  "location": "https://github.com/rudi193-cmd/homestead-health",
+  "maker": "SAFE App Store",
   "lane": null,
-  "state": "building",
-  "notes": "Module three on Homestead · Affairs; incubating toward promotion to rudi193-cmd/homestead-health (the law-gazelle path). Design: homestead/docs/PLAN-homestead-health.md. The whole plan is built and green: the records track (H-1..H-5, bites 1-5) and the 2026-08-17 extension (living lane H-8, reference lane H-7). 128 tests pass, 0 xfailed; adversarially audited twice (docs/audits/). Promotion prep is staged in apps/homestead-health/docs/promotion/: a prepared promotion.json (host=safe-app-store, semantic_seam=homestead_health.reference_lane:Reader) that dry-runs GREEN through stores/promote_check.py (all 9 gates). Still 'building' not 'gated': the gate has not been run live, because own_repo/host_repointed can only be attested honestly after the extraction, and verified_by != author (a human seals) has not happened. Remaining: the human seal, the extraction to its own repo, and release scaffolding (hatch-vcs, NOTICE, CHANGELOG, workflows)."
+  "state": "gated",
+  "notes": "PROMOTED 2026-08-18 out of the apps/ playground into its own repo (rudi193-cmd/homestead-health), the law-gazelle -> homestead-law path, joining the two promoted siblings (homestead-law, homestead-ledger). The build is no longer duplicated here (rule 8): the code lives in the repo, the record is what stores/ keeps. Gate passed all 9 (stores/python/promoted/homestead-health.json): author=vishwakarma, verified_by=sean (verified_by != author), host=safe-app-store, semantic_seam=homestead_health.reference_lane:Reader, library-clean, inversion clean (pins homestead.keep as the injected homestead-affairs engine, never imports its host), 139 tests green. Design: homestead/docs/PLAN-homestead-health.md. Bootstrapped at 0.0.1; release-please cuts v0.1.0 as the first standing release."
 }

@@ -1,6 +1,0 @@
-# The one runtime dependency — the engine. Floor: the release bite 1 was
-# verified against. Cap: the engine is pre-1.0 and decides what renders.
-# Mirrors pyproject.toml's [project] dependencies; the store's app-tests CI
-# leg installs this file and runs the suite uninstalled (tests/conftest.py
-# makes the bare checkout importable).
-homestead-affairs>=0.1.0,<0.2

@@ -697,10 +697,10 @@
     {
       "id": "homestead-health",
       "name": "Homestead Health",
-      "description": "Family health records the household holds itself — module three on Homestead · Affairs, pinning homestead.keep. The whole plan is built and green (H-1..H-5 records track + the H-7/H-8 extension), 128 tests, twice adversarially audited; nothing dials. Promotion-prep staged (docs/promotion/), gate dry-runs green; pending a human seal (verified_by != author) and the extraction.",
-      "status": "building",
+      "description": "Family health records the household holds itself — module three on Homestead · Affairs, pinning homestead.keep. PROMOTED 2026-08-18 into its own repo (rudi193-cmd/homestead-health), the law-gazelle → homestead-law path. All 9 gates green; 139 tests; library-clean; verified_by=sean ≠ author=vishwakarma. Bootstrapped 0.0.1, release-please cuts v0.1.0.",
+      "status": "gated",
       "version": "0.0.1",
-      "path": "apps/homestead-health",
+      "path": "https://github.com/rudi193-cmd/homestead-health",
       "tier": "playground",
       "majors": [
         "python"
