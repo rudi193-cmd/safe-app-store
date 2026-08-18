@@ -10,10 +10,10 @@ The design is
 the packs (immunizations first — one pack proves the seam), the rungs field by
 field, the module invariants H-1…H-5, and the five bites.
 
-**Status: every invariant the plan named (H-1–H-5) and the whole records track
-(bites 1–5) are built and green — `UNBUILT` is empty.** What remains is the
-2026-08-17 extension, still **proposed, not ratified**: the reference and living
-lanes (bites 6–7). Bite 1 — **the
+**Status: the whole plan is built and green — the records track (bites 1–5,
+H-1–H-5, `UNBUILT` empty) and both lanes of the 2026-08-17 extension (the living
+lane, bite 7/H-8, and the reference lane, bite 6/H-7).** The extension remains
+**proposed, not ratified** (`verified_by ≠ author`). Bite 1 — **the
 seat** — pins the engine and proves the pin. Bite 2 — **the roster**
 (`homestead_health/roster.py`) — is subjects before records: opaque ids
 (`subj-01`, minted by a counter, never derived from the person), the id →
@@ -61,10 +61,35 @@ network, nothing listens, no second path resolver, no shadowed test basename)
 are live tests in `tests/test_invariants_seat.py`.
 
 The records track was then **adversarially audited** (`verified_by ≠ author`)
-and remediated — `docs/audits/bites-2-5-audit.md` records the findings and the
-fixes (a subject-id egress leak, a k≥2 dedup leak, a package-wide `.payload`
-chokepoint scan replacing a weak per-module one, and several theatre/robustness
-gaps). Suite: **61 passed / 2 xfailed**.
+and remediated across two rounds — `docs/audits/bites-2-5-audit.md` and
+`docs/audits/h3-h5-audit.md` record the findings and the fixes (a subject-id
+egress leak, a k≥2 dedup leak, a clock scan defeated by indirection, a
+no-subject denylist replaced by a structural allowlist, a package-wide `.payload`
+chokepoint scan replacing a weak per-module one, and more).
+
+The extension's **living lane** (bite 7, `homestead_health/living.py`, H-8) is
+now built too: a *forgetting cell* — overwrite-in-place, only-latest, keyed by
+the **thing** never the subject — whose audit reuses `keep`'s `IntegrityLog` (a
+`living_replaced` line carrying the thing's ref and the SHA-256 of the value it
+replaced, anchor off-tree, `verify(expected_head)` catches a hand-edit). It is
+`L5` with **no egress**, and grepping its store and ledger for any subject id
+comes back empty. Whether `keep`'s `IntegrityLog` *suffices* for it was the check
+the plan gated on reading Nestor's ledger — it does, and
+`docs/DECISION-living-lane-ledger.md` records the read and the finding (supersede
+is a kind-tagged append; no encryption needed since only hashes of priors are
+kept).
+
+The extension's **reference lane** (bite 6, `homestead_health/reference_lane.py`,
+H-7) completes the three postures: a pinned, versioned public-domain corpus of
+health-literacy and conversation-prep reference (holds **no subject**, structural
+allowlist, names its own version and date like H-5's schedule) behind an
+**injected reader** — `Reader(corpus)` defaults to the pin, so a host could hand a
+larger one. `ask(question)` returns cited answers by term overlap and takes **no
+subject, ever**: the wall against H-2 is structural (there is nowhere to pass a
+child's record, and the module imports nothing that carries one), so retrieval of
+public reference never becomes advice about a person. A source's attribution — a
+CC-BY part included — rides through to every answer that quotes it, and the reader
+dials for nothing. Suite: **128 passed / 0 xfailed**.
 
 ```bash
 pip install -e ".[dev]"
