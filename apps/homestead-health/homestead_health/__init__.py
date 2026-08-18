@@ -30,8 +30,12 @@ clock, and dials for nothing (I-17), updated only by an operator's act
 never-computed field set exported like any other record — usefulness does not
 lower the rung — sharing its subject-id guard with the school form via
 `_egress.py` (promoted to `tests/test_invariants_emergency.py`). Every H-* claim
-is built; `tests/test_invariants_pending.py`'s `UNBUILT` is empty. What remains
-is the unratified extension (the reference and living lanes, bites 6–7).
+is built; `tests/test_invariants_pending.py`'s `UNBUILT` is empty. The
+extension's **living lane** (`living.py`, bite 7, H-8) is built too — a
+forgetting cell (overwrite-in-place, keyed by the thing never the subject, L5,
+no egress) whose audit reuses `keep`'s `IntegrityLog` (the Nestor-ledger check
+recorded in `docs/DECISION-living-lane-ledger.md`). What remains of the unratified
+extension is the reference lane (bite 6).
 
 **`homestead-affairs` is a pinned dependency** consumed only through
 `homestead.keep`'s public API. Do not modify it, propose changes to it, or
