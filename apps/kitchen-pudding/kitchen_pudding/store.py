@@ -121,3 +121,18 @@ class RecipeStore:
 
     def list_ids(self) -> list[str]:
         return sorted(p.stem for p in self.recipes_dir.glob("*.json"))
+
+    def list_tags(self) -> list[str]:
+        tags: set[str] = set()
+        for recipe_id in self.list_ids():
+            recipe = self.current(recipe_id)
+            tags.update(recipe.tags)
+        return sorted(tags)
+
+    def import_from_file(self, path: Path) -> Recipe:
+        """Import a recipe from a JSON file on disk. Same ``add()`` rules
+        apply: refuses to overwrite an existing id."""
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+        recipe = Recipe.from_dict(data)
+        self.add(recipe)
+        return recipe

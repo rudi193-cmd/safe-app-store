@@ -40,17 +40,21 @@ class Recipe:
     title: str
     ingredients: tuple[Ingredient, ...]
     steps: tuple[str, ...] = field(default_factory=tuple)
+    tags: tuple[str, ...] = field(default_factory=tuple)
 
     def provenance(self) -> Provenance:
         return aggregate(i.provenance for i in self.ingredients)
 
     def to_dict(self) -> dict:
-        return {
+        d: dict = {
             "id": self.id,
             "title": self.title,
             "ingredients": [i.to_dict() for i in self.ingredients],
             "steps": list(self.steps),
         }
+        if self.tags:
+            d["tags"] = list(self.tags)
+        return d
 
     @classmethod
     def from_dict(cls, d: dict) -> "Recipe":
@@ -59,4 +63,5 @@ class Recipe:
             title=d["title"],
             ingredients=tuple(Ingredient.from_dict(i) for i in d["ingredients"]),
             steps=tuple(d.get("steps", ())),
+            tags=tuple(d.get("tags", ())),
         )

@@ -61,6 +61,8 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: stores/requirements.txt
 
       - name: Catalog gate
         run: python tools/catalog_lint.py --strict
@@ -410,7 +412,15 @@ jobs:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
         run: npm ci
 
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ hashFiles('apps/marching-arts/browser/package-lock.json') }}
+
       - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: apps/marching-arts/browser
         # Chromium only: the mechanisms under test are Chromium-shaped
         # (opfs-sahpool needs createSyncAccessHandle, which is DedicatedWorker-
@@ -418,6 +428,11 @@ jobs:
         # Firefox and WebKit would need their own expectations, not the same
         # ones run three times.
         run: npx playwright install --with-deps chromium
+
+      - name: Install Chromium system deps (cache hit)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        working-directory: apps/marching-arts/browser
+        run: npx playwright install-deps chromium
 
       - name: Build
         working-directory: apps/marching-arts/browser
