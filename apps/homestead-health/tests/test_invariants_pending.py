@@ -19,17 +19,13 @@ import importlib.util
 
 import pytest
 
-# Every module a pending test reaches for, and the bite that builds it.
-# The guard is module-granular (`find_spec` answers for a module, not a symbol)
-# — the engine's file documents that limit and it is inherited here unchanged.
-UNBUILT = {
-    "homestead_health.roster": "bite 2 — the roster, subjects before records",
-    "homestead_health.packs.immunizations": "bite 3 — the pack, classified at import",
-    "homestead_health.reference": "bite 3/4 — the pinned schedule snapshot",
-    "homestead_health.due": "bite 4 — due onto Today, calendar days and k ≥ 2",
-    "homestead_health.school_form": "bite 5 — health's first purposed egress",
-    "homestead_health.emergency": "post-v1 — the emergency card",
-}
+# Every module a pending test reaches for, and the bite that builds it — now
+# empty. Every claim this file ever held red (H-1 through H-5 and bite 5) has
+# been built and promoted out to its own test file, the way the engine's own
+# pending file emptied. `test_pending_liveness` guards the emptiness; the guard
+# is module-granular (`find_spec` answers for a module, not a symbol), and a new
+# pending claim is added here the day its module is *named*, not the day it lands.
+UNBUILT: dict[str, str] = {}
 
 
 def pending(module: str, why: str):
@@ -68,120 +64,55 @@ def test_pending_liveness():
 
 
 # ── H-1 · a subject is opaque everywhere but the roster and the detail pane ──
-
-
-@pending(
-    "homestead_health.roster",
-    "H-1 — keys, log lines and list rows carry the subject id; a reference "
-    "never thereby carries a name (I-15 at the subject dimension)",
-)
-def test_h1_a_subject_reference_never_carries_a_name():
-    from homestead_health.roster import Roster
-
-    roster = Roster()
-    ref = roster.add(name="Synthetic Child", minor=True)
-    # The reference is what keys, logs and derived text may carry. If any
-    # fragment of the name survives into it, the roster has minted a datum as
-    # a reference and H-1 is not built, whatever else is.
-    assert "Synthetic" not in str(ref) and "Child" not in str(ref)
-    # **Tightened after the bite-1 audit**, which showed the substring check
-    # alone accepts `subj-01-<base64 of the name>` — no fragment survives,
-    # the whole name does, trivially reversible. So the stronger claim: the
-    # id must not *depend on* the name at all. Two fresh rosters, same
-    # position, different names — an id derived from the name differs; an id
-    # minted by the roster (a counter, per the plan's own `subj-01`) cannot.
-    # An implementation that wants non-deterministic ids must come back to
-    # this test with a mechanism argument, which is exactly the conversation
-    # H-1 wants to force.
-    other = Roster().add(name="Entirely Different Person", minor=True)
-    assert str(ref) == str(other), (
-        "an id that varies with the name is derived from the name — the "
-        "roster mints ids; the datum does not"
-    )
+#
+# Promoted to tests/test_invariants_roster.py when homestead_health.roster
+# landed as bite 2 — subjects before records. The moment the module existed
+# `test_pending_liveness` failed by name, and stays red until the H-1 test is
+# carried out of this file unmarked. This is the first promotion in the health
+# module; the engine's own file records four more, and the mechanism is its,
+# taken whole.
 
 
 # ── H-2 · the app never advises care ─────────────────────────────────────────
-
-
-@pending(
-    "homestead_health.due",
-    "H-2 — operator-facing text composes from a closed vocabulary (the closed "
-    "Event enum's discipline, R-7), so no code path can phrase a recommendation",
-)
-def test_h2_derived_lines_come_from_a_closed_vocabulary():
-    from homestead_health.due import DERIVED, derived_line
-
-    # Every line `derived_line` can produce is a member of the closed set,
-    # parameterised by counts and nothing else — there is no free-text
-    # position for advice to be phrased in, which is the structural half of
-    # "the app never advises care". The behavioural half lands with the
-    # surface itself.
-    line = derived_line(due=2)
-    assert line in {template.format(n=2) for template in DERIVED}
+#
+# Promoted to tests/test_invariants_due.py when homestead_health.due landed as
+# bite 4 — due onto Today. The `due` key came out of UNBUILT and the H-2 test
+# moved there with its body kept. The behavioural half of H-2 (a subject's
+# record and a reference answer never share a surface) lands with the surfaces;
+# the structural half — a closed operator-facing vocabulary — is what bite 4
+# built and what moved.
 
 
 # ── H-3 · the emergency card is authored, not computed ───────────────────────
-
-
-@pending(
-    "homestead_health.emergency",
-    "H-3 — the card holds a closed, operator-chosen field set; no path "
-    "auto-includes by relevance",
-)
-def test_h3_the_card_holds_only_what_the_operator_chose():
-    from homestead_health.emergency import Card
-
-    card = Card(fields=("allergies",))
-    assert card.fields == ("allergies",)
-    # A computed card is a query someone else effectively wrote. The class
-    # must not offer the machinery: no auto-include, no relevance.
-    assert not hasattr(Card, "auto_include")
-    assert not hasattr(Card, "relevant_fields")
+#
+# Promoted to tests/test_invariants_emergency.py when homestead_health.emergency
+# landed — the last pending claim in the module to fall, leaving UNBUILT empty
+# (the emergency card the plan puts post-v1, built here). The `emergency` key
+# came out of UNBUILT and the H-3 test moved there with its body kept.
 
 
 # ── H-4 · a dose is a fact with a source ─────────────────────────────────────
-
-
-@pending(
-    "homestead_health.packs.immunizations",
-    "H-4 — every dose records how it is known, and the schema declares the "
-    "field with its rung and reason (the custody pack's shape)",
-)
-def test_h4_every_dose_names_how_it_is_known():
-    from homestead_health.packs.immunizations import SCHEMA
-
-    assert "source" in SCHEMA, "a dose with no source field cannot record how it is known"
-    declaration = SCHEMA["source"]
-    assert declaration["rung"] is not None
-    assert declaration["why"], "a declaration without its sentence is not reviewable"
+#
+# Promoted to tests/test_invariants_immunizations.py when
+# homestead_health.packs.immunizations landed as bite 3 — the pack, classified
+# at import. The `packs.immunizations` key came out of UNBUILT and the H-4 test
+# moved there with its body kept, the way the roster's H-1 moved before it.
 
 
 # ── H-5 · reference data is pinned, never fetched ────────────────────────────
-
-
-@pending(
-    "homestead_health.reference",
-    "H-5 — the schedule ships as a versioned snapshot showing its own date; "
-    "updating it is an operator's act (the fetch half is already enforced by "
-    "the seat's network scan)",
-)
-def test_h5_the_snapshot_shows_its_own_date():
-    from homestead_health.reference import SCHEDULE
-
-    assert SCHEDULE.version, "a snapshot that cannot say which version it is, isn't one"
-    assert SCHEDULE.as_of, "a snapshot that cannot say its date is a live feed in disguise"
+#
+# Promoted to tests/test_invariants_reference.py when homestead_health.reference
+# landed — the pinned immunization-schedule snapshot. The `reference` key came
+# out of UNBUILT and the H-5 test moved there with its body kept, widened to the
+# invariant's full shape (a snapshot that names its version and date, holds no
+# subject, reads no clock, and dials for nothing).
 
 
 # ── bite 5 · the school form — health's first purposed egress ────────────────
-
-
-@pending(
-    "homestead_health.school_form",
-    "bite 5 — export one subject's immunization history through "
-    "serve(…, S4_EGRESS, purpose=…) and keep/export; both log entries carry "
-    "references and no content (I-15)",
-)
-def test_bite5_the_export_exists_and_is_purposed():
-    from homestead_health.school_form import export_history
-
-    assert callable(export_history)
+#
+# Promoted to tests/test_invariants_school_form.py when
+# homestead_health.school_form landed as bite 5 — the records track's capstone.
+# The `school_form` key came out of UNBUILT and the export test moved there,
+# widened from "callable" to the bite's real done-when: the artifact exists and
+# reads, both log entries carry references and no content, and
+# verify(expected_head) catches a hand-edited entry.
