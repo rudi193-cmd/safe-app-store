@@ -114,16 +114,46 @@ checking the engine's releases), and there is **no UI surface yet** — so promo
 *library-only* first (a `promote_check`-legal shape) and skip the `packaging/` +
 artifact CI that would build a binary that does not exist.
 
-## Open — pending the remote scouts
+## The three remote scouts — resolved
 
-- **The reference lane's reader — inject Jeles's or keep the grown one?** The plan's
-  one open provenance question. The grown `reference_lane.Reader` (term-overlap,
-  zero-dependency, no network) passes the `semantic_seam` gate as-is and fits the
-  "ship the reader, corpus injected" pattern — but it is *lexical*, not embeddings.
-  The Jeles remote scout's recommendation lands in
-  `docs/promotion/recon/jeles.md`; decision deferred to it.
-- **willow-mcp governance / willow-gate seal recipe** — the two other remote scouts
-  (`docs/promotion/recon/willow-mcp.md`, `docs/promotion/recon/willow-gate.md`).
+Full reports in `docs/promotion/recon/`. Their verdicts:
+
+- **Jeles → keep the grown reader; do NOT inject** (`recon/jeles.md`). This resolves
+  the plan's one open provenance question. Jeles's reader is engineered for a
+  *writable, env-configured, network-fed, verified-nugget* corpus (SQLite SOIL store,
+  `put_nugget`/`log_gap`, a web-search sibling that egresses); homestead-health's lane
+  is deliberately the opposite — a **frozen** public-domain literal, no writes, no
+  network, and a **structural no-subject wall** (`_check_no_subject_can_enter`).
+  Injecting Jeles would *remove* that H-7/H-2 wall — a regression, not an upgrade —
+  and buys no retrieval win (both are lexical, neither uses embeddings).
+  `reference_lane.Reader` satisfies the `semantic_seam` gate as-is.
+  *One idea worth borrowing (optional, stdlib-only, no Jeles dependency):* Jeles
+  separates *ranking* from *answering* (a confidence gate where an unmatched query
+  term disqualifies). Adding that to `ask()` would make a weak lexical brush-past
+  return nothing rather than a thin citation — strengthening the H-2 "don't
+  improvise" instinct the lane already has. Recommended as a small follow-up, not a
+  promotion blocker.
+- **willow-gate → the seal is not required, and declaring one *now* would BREAK the
+  promotion** (`recon/willow-gate.md`). The `trust`-block path lazily imports
+  `willow_gate.custody` + `forge.trust` + `nestor.{keyring,signing}` and needs
+  `NESTOR_KEYRING` set — none are present in this environment, and a claimed seal that
+  can't verify is fail-closed (no fallback to the floor). So: **omit the `trust`
+  block; promote on the floor.** The full seal recipe (custody ledger built by the
+  author, checkpoint signed by the verifier's key, keyring-resolved public key) is
+  recorded for if/when the forge/nestor/willow-gate seam is installed. (Aside: the
+  seam spans three repos — willow-gate owns only the custody-ledger primitive; the
+  verdict lives in the-forge.)
+- **willow-mcp → nothing required for a library-clean promotion** (`recon/willow-mcp.md`).
+  homestead-health calls no willow tools, holds no fleet-store reach, and already
+  carries a #280-shaped off-tree-anchored ledger via `homestead.keep` — so willow-mcp's
+  runtime wall (SOIL store-scope, self-grant denial, FRANK gating) has nothing to
+  enforce and nothing to withhold. FRANK mirroring is opt-in (Postgres, governance
+  facts only), not a promotion gate. **One deploy note for later:** the *standalone*
+  willow-mcp product reads an operator-owned `mcp_apps/homestead-health/manifest.json`
+  (with willow tool-group `permissions` and a `store_scope` like `homestead_health_*`),
+  **not** the app's `safe-app-manifest.json` — so *if* homestead-health is ever served
+  as a willow app, that gate manifest is an operator-side, deployment-time artifact,
+  never something the promoted repo must ship.
 
 ## The one gate that is a person's, not a script's
 
