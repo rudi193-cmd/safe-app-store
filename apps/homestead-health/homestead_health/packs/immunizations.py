@@ -25,9 +25,15 @@ the domain, so a wrong seam is found at the lowest stakes on the table.
 **What this pack cannot catch, and does not pretend to.** `classify_schema` checks
 that a rung was *declared*, not that it was declared *well*: it would accept `L1`
 for `vaccine` without a murmur. The advisory content matcher — declared `L3`
-`provider`, content shaped like a *pediatric oncology* clinic, argued **up** — is
-the guard the `L3`/`L4` declarations lean on, and it may only ever raise a rung,
-never lower one. No `ssn`, no member id, no insurance field lives here: key
+`provider`, content shaped like a *pediatric oncology* clinic, argued **up**, never
+down — is the **intended** guard for the `L3`/`L4` declarations, the same one
+`custody.notes` names. It exists in the engine (`keep/advise`, surfaced by the
+engine's detail pane) but is **not yet wired into this module** — there is no
+immunizations detail pane to host it, matching the engine's own wiring order. Until
+that surface ships, the `provider`/`notes` declarations are as unguarded against
+hot content as the field says they otherwise would not be; wiring `advisory_lines`
+is a debt for the detail-pane bite, flagged here so it is not forgotten. No `ssn`,
+no member id, no insurance field lives here: key
 material belongs to the insurance pack when it exists, at `L5`, and importing one
 field of it early would be the two-homes drift the plan's exclusion 3 refuses.
 """

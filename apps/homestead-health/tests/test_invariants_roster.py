@@ -26,18 +26,23 @@ detail pane.
 """
 from __future__ import annotations
 
-import ast
+import json
 import subprocess
 import sys
 from pathlib import Path
 
-from homestead.keep.record import Sidecar
+import pytest
+
+#: The app root (parent of tests/) — the cwd a fresh interpreter needs so
+#: `import homestead_health` resolves, the way the conftest arranges it here.
+APP_ROOT = Path(__file__).resolve().parent.parent
+
+from homestead.keep import paths
+from homestead.keep.record import Sidecar, key
 from homestead.keep.logs import VisibleLog
 from homestead.keep.rungs import Disposition, Rung, Surface, serve
 
-from homestead_health.roster import ROSTER_MATTER, Roster, SubjectRef
-
-PKG = Path(__file__).resolve().parent.parent / "homestead_health"
+from homestead_health.roster import ROSTER_MATTER, SUBJECT_ITEM, Roster, SubjectRef
 
 
 # ── H-1, promoted verbatim ───────────────────────────────────────────────────
@@ -90,38 +95,58 @@ def test_a_minors_name_is_l4_and_an_adults_is_l3():
     assert roster.is_minor(adult) is False
 
 
-def test_a_minors_name_derives_to_the_id_on_a_list_and_renders_only_in_detail():
-    """The name crosses a boundary only through the gate. On the ambient list a
-    minor's name (L4) is withheld and the id stands in; the pane opened by a human
-    (S1_DETAIL) renders it. That is what "opaque everywhere but the detail pane"
-    means in one served datum."""
+def test_a_minor_derives_but_an_adult_renders_on_the_household_list():
+    """H-1's scope, made explicit and tested — the case the earlier version only
+    promised in a docstring.
+
+    A minor's name (L4) is withheld on the ambient list and the id stands in; an
+    adult's name (L3) *renders* there. That is deliberate and plan-grounded: the
+    plan declares roster names L4 **where the subject is a minor**, so an adult is
+    L3, and L3 renders on the household's own list the same way custody's
+    `opposing_party` (a person, no protected category) is L3. H-1's opacity is the
+    subject *dimension* — an id resolves to a name only through the gate — not a
+    claim that every name is withheld; the immunization list carries the id (the L3
+    `subject` field), never a name. In the detail pane a human opened, both render.
+    """
     roster = Roster()
     child = roster.add(name="Synthetic Child", minor=True)
-    record = roster.name_of(child)
+    adult = roster.add(name="Synthetic Adult", minor=False)
 
-    on_list = serve(record, Surface.S1_LIST)
-    assert on_list.disposition is Disposition.DERIVE
-    assert on_list.value == str(child)          # the id stands in — not the name
-    assert "Synthetic" not in str(on_list.value)
+    child_list = serve(roster.name_of(child), Surface.S1_LIST)
+    assert child_list.disposition is Disposition.DERIVE
+    assert child_list.value == str(child)          # the id stands in — not the name
+    assert "Synthetic" not in str(child_list.value)
 
-    in_detail = serve(record, Surface.S1_DETAIL)
-    assert in_detail.disposition is Disposition.RENDER
-    assert in_detail.value == "Synthetic Child"  # the name, only where a human asked
+    adult_list = serve(roster.name_of(adult), Surface.S1_LIST)
+    assert adult_list.disposition is Disposition.RENDER   # L3 renders on the list
+    assert adult_list.value == "Synthetic Adult"
+
+    # Both render in the detail pane a human opened (S1_DETAIL ceiling is L4).
+    assert serve(roster.name_of(child), Surface.S1_DETAIL).value == "Synthetic Child"
+    assert serve(roster.name_of(adult), Surface.S1_DETAIL).value == "Synthetic Adult"
 
 
-def test_the_module_reads_no_payload_itself():
-    """H-1 says the mapping is *served through the gate*. The roster hands
-    `Classified` records to callers and reaches no `.payload` of its own — the
-    same discipline the engine's chokepoint scan holds the surface layer to,
-    asserted here on this module because the health app has no chokepoint scan of
-    its own yet."""
-    tree = ast.parse((PKG / "roster.py").read_text(encoding="utf-8"))
-    reaches = [
-        node.lineno
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Attribute) and node.attr == "payload"
-    ]
-    assert not reaches, f"roster.py reaches a .payload at lines {reaches}; serve() is the path"
+def test_is_minor_refuses_a_corrupted_rung(tmp_path, monkeypatch):
+    """Minority *is* the rung — L4 minor, L3 adult, nothing else written. A record
+    that reads as anything else has a rung that did not survive storage, and
+    `is_minor` refuses rather than fold it into 'adult' (the fail-open direction).
+    The name itself still fails closed to nothing on serve — a separate guarantee."""
+    monkeypatch.setenv("HOMESTEAD_HOME", str(tmp_path))
+    store = Sidecar()
+    roster = Roster(store)
+    child = roster.add(name="Synthetic Child", minor=True)
+
+    # Corrupt the stored rung so the record reads L5 on the way back out (I-11).
+    target = paths.sidecar_dir() / key(ROSTER_MATTER, SUBJECT_ITEM, str(child))
+    raw = json.loads(target.read_text(encoding="utf-8"))
+    raw["rung"] = "L9"
+    target.write_text(json.dumps(raw), encoding="utf-8")
+
+    reopened = Roster(store)
+    with pytest.raises(ValueError):
+        reopened.is_minor(child)
+    # The name never leaks despite the corruption — it fails closed to nothing.
+    assert serve(reopened.name_of(child), Surface.S1_DETAIL).disposition is Disposition.DENY
 
 
 # ── an in-memory roster writes nothing and dials nothing ─────────────────────
@@ -174,17 +199,20 @@ def test_the_counter_resumes_and_ids_never_collide(tmp_path, monkeypatch):
     assert len(reopened) == 3
 
 
-def test_a_survived_subject_still_serves_only_through_the_gate(tmp_path, monkeypatch):
+def test_the_serving_mode_survives_a_restart(tmp_path, monkeypatch):
     """The rung travels with the datum across the restart, so a resumed adult name
     (L3) still renders on the list while a resumed minor name (L4) still derives —
-    the storage boundary did not quietly declassify either (I-11)."""
+    the storage boundary did not quietly declassify either (I-11). Both are added
+    and both are asserted, not just the minor."""
     monkeypatch.setenv("HOMESTEAD_HOME", str(tmp_path))
 
     first = Roster(Sidecar())
     child = first.add(name="Synthetic Child", minor=True)
+    adult = first.add(name="Synthetic Adult", minor=False)
 
     reopened = Roster(Sidecar())
     assert serve(reopened.name_of(child), Surface.S1_LIST).disposition is Disposition.DERIVE
+    assert serve(reopened.name_of(adult), Surface.S1_LIST).disposition is Disposition.RENDER
 
 
 # ── a log line about a subject carries the id and nothing else ───────────────
@@ -240,7 +268,7 @@ def test_a_subject_survives_the_process_exiting(tmp_path):
     )
     proc = subprocess.run(
         [sys.executable, "-c", writer],
-        cwd=str(PKG.parent),
+        cwd=str(APP_ROOT),
         env={"HOMESTEAD_HOME": str(tmp_path), "PATH": ""},
         capture_output=True,
         text=True,

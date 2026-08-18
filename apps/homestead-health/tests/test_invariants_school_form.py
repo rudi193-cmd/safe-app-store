@@ -89,9 +89,21 @@ def test_both_logs_carry_references_and_no_content(tmp_path, monkeypatch):
     assert entry["item_id"] == "subj-01" and entry["purpose"] == "export"
     assert entry["rung"] == "L4" and entry["disposition"] == "render"
 
+    # Structural, not coincidental (the grep above only knows the two literals it
+    # was told): the entry's key set is a fixed, closed set of references and
+    # metadata — there is no field a future dose datum could ride into. A new field
+    # of any kind fails this.
+    assert set(entry) == {
+        "act", "at", "matter", "item_type", "item_id", "purpose", "rung",
+        "disposition", "prev",
+    }
+
     visible = VisibleLog().read()
     assert len(visible) == 1 and visible[0]["event"] == "exported"
     assert visible[0]["ref"] == "immunizations/history/subj-01"
+    assert set(visible[0]) == {"at", "event", "ref"}, (
+        "the visible log carries only a timestamp, the closed event, and a reference"
+    )
 
 
 def test_verify_catches_a_hand_edited_entry(tmp_path, monkeypatch):
@@ -161,6 +173,45 @@ def test_an_undeclared_purpose_is_refused(tmp_path, monkeypatch):
 
     with pytest.raises(ExportRefused):
         export_history("subj-01", [_dose("MMR", "2026-08-15")], purpose=None)
+
+
+def test_a_malformed_subject_id_is_refused_before_anything_is_written(tmp_path, monkeypatch):
+    """The audit's critical finding, closed at the app boundary. The engine's two
+    reference validators disagree about newlines (keep/export accepts one,
+    keep/logs rejects it), and export_record writes the artifact and commits the
+    IntegrityLog *before* the VisibleLog — so a subject id with a newline would
+    leave the record on disk and in the ledger and then raise: a leak that looks
+    like a refusal. So a malformed id is refused here, with nothing written, before
+    a dose is served."""
+    monkeypatch.setenv("HOMESTEAD_HOME", str(tmp_path))
+
+    for bad in ("subj-01\nFORGED", "subj\t01", "a/b", "..", "\u200b", "  ", None):
+        with pytest.raises(ExportRefused):
+            export_history(bad, [_dose("MMR", "2026-08-15")], purpose=Purpose.EXPORT)
+
+    # The clincher: after a refused newline id, nothing was written — no artifact,
+    # no ledger entry, no visible act. A refusal leaves nothing behind.
+    assert not (tmp_path / "logs").exists(), "a refused malformed id writes no log"
+    assert not (tmp_path / "exports").exists(), "a refused malformed id writes no artifact"
+
+
+def test_a_same_instant_collision_surfaces_as_export_refused(tmp_path, monkeypatch):
+    """The module's contract is ExportRefused; a same-microsecond filename collision
+    in the export tree surfaces from the engine as a bare FileExistsError (the
+    artifact's O_EXCL create, before any log write). It is converted at this
+    boundary so a batch-export caller gets the contract's exception, not a raw
+    filesystem error — and because the collision precedes any ledger write, nothing
+    is left half-committed."""
+    import homestead_health.school_form as sf
+
+    monkeypatch.setenv("HOMESTEAD_HOME", str(tmp_path))
+
+    def collide(*args, **kwargs):
+        raise FileExistsError("[Errno 17] File exists")
+
+    monkeypatch.setattr(sf, "export_record", collide)
+    with pytest.raises(ExportRefused):
+        export_history("subj-01", [_dose("MMR", "2026-08-15")], purpose=Purpose.EXPORT)
 
 
 def test_the_export_names_the_subject_by_id_never_a_name(tmp_path, monkeypatch):

@@ -65,9 +65,10 @@ __all__ = ["DERIVED", "derived_line", "next_due", "due_this_month", "today_line"
 
 #: The closed vocabulary of the Today line. Templates parameterised by `{n}` — a
 #: count and nothing else. A recommendation cannot be phrased because no member says
-#: one and there is no slot for one (H-2, R-7's shape). One template today; the set
-#: is the point, not its size — a second is added here, never composed at a call
-#: site.
+#: one and there is no slot for one (H-2, R-7's shape). One template today, and
+#: `derived_line` renders it; if this set ever grows, the selection rule (which
+#: template for which count/context) must be added to `derived_line` alongside the
+#: template, so a new member is never dead, silent, or composed at a call site.
 DERIVED: tuple[str, ...] = ("{n} immunizations due this month",)
 
 
@@ -105,7 +106,16 @@ def next_due(dose_date: object, *, interval_days: int, today: object = None) -> 
     if interval_days < 0:
         raise ValueError("a dose interval does not run backwards")
     base = _to_date(dose_date)
-    reference = _to_date(today) if today is not None else None
+    if today is not None:
+        reference = _to_date(today)
+    elif isinstance(dose_date, Deadline) and dose_date.reference is not None:
+        # Carry the dose date's own reckoning day through, the way `court_days`
+        # does (`reference = start.reference if isinstance(start, Deadline)`): a due
+        # date computed from a deterministic deadline stays as deterministic as the
+        # one it came from, rather than silently falling back to the machine clock.
+        reference = dose_date.reference
+    else:
+        reference = None
     return Deadline(base + timedelta(days=interval_days), reference)
 
 
@@ -137,8 +147,17 @@ def today_line(subjects: Iterable[object], *, due: int) -> str | None:
     if it survives. A one-subject household, or a count of one, drops to `None`, and
     the surface draws nothing (never a zero). A survivor is rendered as its real
     number through the closed vocabulary.
+
+    **The roster is deduplicated first, and that is load-bearing.** The anonymity
+    set is *distinct people*, and `cover_counts` gates on `len()`. The natural thing
+    a surface builds — `[dose.subject for dose in due_doses]` — repeats a subject
+    whenever one child has more than one dose due, and a repeated id would inflate
+    the count of "subjects" past k ≥ 2 for a household that is really one child,
+    rendering a count that resolves straight to that child — the exact leak the gate
+    exists to prevent. Deduping to the set of distinct ids is what makes the
+    subject-dimension reuse of `cover_counts` sound.
     """
-    roster = [str(s) for s in subjects]
+    roster = sorted({str(s) for s in subjects})
     shown = cover_counts(roster, due=due)
     count = shown.get("due")
     if count is None:

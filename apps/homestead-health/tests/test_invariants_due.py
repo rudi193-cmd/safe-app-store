@@ -106,6 +106,21 @@ def test_next_due_refuses_a_backward_interval_and_an_instant():
         next_due(datetime(2026, 8, 15, 9, 0), interval_days=7)
 
 
+def test_next_due_carries_a_deadline_dose_dates_own_reference():
+    """The asymmetry the audit caught. When the dose date is itself a `Deadline`
+    carrying a fixed reckoning day, `next_due` carries it through — the way the
+    engine's `court_days` does — rather than silently falling back to the machine
+    clock. A due date computed from a deterministic deadline stays deterministic."""
+    dose = Deadline(date(2026, 8, 15), reference=date(2026, 8, 20))
+    result = next_due(dose, interval_days=21)
+    assert result.date == date(2026, 9, 5)
+    assert result.reference == date(2026, 8, 20), "the reckoning day must ride through"
+    assert result.days_until == (date(2026, 9, 5) - date(2026, 8, 20)).days
+    # An explicit today= still wins over the carried reference.
+    override = next_due(dose, interval_days=21, today="2026-09-01")
+    assert override.reference == date(2026, 9, 1)
+
+
 # ── the Today line says how much, never whose ────────────────────────────────
 
 
@@ -131,13 +146,30 @@ def test_a_count_of_one_resolves_to_a_child_even_in_a_larger_household():
     assert today_line(["subj-01", "subj-02", "subj-03"], due=1) is None
 
 
+def test_duplicate_subject_ids_do_not_inflate_the_anonymity_set():
+    """The re-identification leak the audit caught. The anonymity set is *distinct
+    people*, and `cover_counts` gates on `len()`; the natural caller shape
+    `[dose.subject for dose in due_doses]` repeats a subject when one child has
+    several doses due. Without dedup, a one-child household passes the k ≥ 2 gate on
+    a padded roster and renders a count that resolves straight to that child."""
+    assert today_line(["subj-01", "subj-01"], due=5) is None, (
+        "one child, listed twice, is still one child — the count must not render"
+    )
+    assert today_line(["subj-01", "subj-01", "subj-01"], due=3) is None
+    # Two *distinct* children still render, however many times each is listed.
+    assert today_line(["subj-01", "subj-01", "subj-02"], due=2) == "2 immunizations due this month"
+
+
 def test_a_dropped_count_is_absence_never_zero():
-    """A count that does not survive is drawn as nothing — never '0 immunizations
-    due'. `today_line` returns None, and None is absence; a zero would be a fact
-    about the household the gate exists to withhold."""
-    dropped = today_line(["subj-01"], due=3)
-    assert dropped is None
-    assert dropped != derived_line(due=0)
+    """A count that does not survive is drawn as nothing — `today_line` returns
+    None, and None is absence, never a rendered '0 immunizations due'. The one
+    meaningful assertion is that it is None: a gate that instead rendered a zero
+    would return a string (`derived_line` can format any count), so `is None`
+    distinguishes absence from a zero exactly. (The earlier `!= derived_line(due=0)`
+    line was dropped — comparing None to a string is trivially true and added no
+    coverage.)"""
+    assert today_line(["subj-01"], due=3) is None
+    assert today_line(["subj-01"], due=0) is None
 
 
 def test_the_gate_is_the_engines_not_a_reimplementation():
@@ -162,6 +194,20 @@ def test_due_this_month_counts_the_calendar_month_not_a_window():
         Deadline(date(2026, 8, 28)),   # last month — not counted
     ]
     assert due_this_month(deadlines, today=today) == 2
+
+
+def test_due_this_month_matches_the_year_too_not_only_the_month():
+    """The year half of the match, pinned — the audit's mutation test showed a
+    module with the year clause removed still passed the suite, because no test
+    varied the year. A September date from a *different* year is not due this
+    September; the month-of-the-wall is a specific month of a specific year."""
+    today = date(2026, 9, 10)
+    # Same month number, different years — none of these are "due this month".
+    assert due_this_month([Deadline(date(2020, 9, 5))], today=today) == 0
+    assert due_this_month([Deadline(date(2027, 9, 5))], today=today) == 0
+    # This year's September does count; the year is what tells them apart.
+    both_years = [Deadline(date(2020, 9, 5)), Deadline(date(2026, 9, 5))]
+    assert due_this_month(both_years, today=today) == 1
 
 
 def test_due_this_month_feeds_the_gate_end_to_end():

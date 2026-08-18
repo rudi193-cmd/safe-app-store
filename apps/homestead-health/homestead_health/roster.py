@@ -149,8 +149,29 @@ class Roster:
 
     def is_minor(self, ref: SubjectRef | str) -> bool:
         """Whether the subject is a minor — read from the name's rung, the one
-        place minority is recorded. `L4` → minor; anything else → not."""
-        return self._names[self._key(ref)].rung is Rung.L4
+        place minority is recorded.
+
+        A minor's name is `L4`, an adult's `L3`, and a roster name is written at no
+        other rung. So a record that reads as anything else — `L5`, because the
+        stored rung did not survive (corruption, a hand-edit) — has *undetermined*
+        minority, and this refuses rather than answer. Folding it into `False`
+        would report a corrupted minor as an adult, which is the fail-**open**
+        direction: under-protecting a minor is the catastrophic one, and a future
+        safety branch reading this must see the corruption, not inherit a guess.
+        The name itself still fails closed to nothing on `serve` (I-11) — this is
+        the separate question of whether the *record's own rung* can be trusted.
+        """
+        rung = self._names[self._key(ref)].rung
+        if rung is Rung.L4:
+            return True
+        if rung is Rung.L3:
+            return False
+        raise ValueError(
+            f"minority is undetermined for {self._key(ref)!r}: its rung read "
+            f"{rung.value}, not L3 (adult) or L4 (minor) — the stored rung did not "
+            "survive. Refusing to answer rather than guess 'adult' (the fail-open "
+            "direction)."
+        )
 
     def __contains__(self, ref: object) -> bool:
         if isinstance(ref, (SubjectRef, str)):
@@ -177,8 +198,8 @@ class Roster:
         if not isinstance(name, str) or not name.strip():
             raise ValueError("a subject needs a name (a non-empty string)")
 
-        self._counter += 1
-        sid = _subject_id(self._counter)
+        n = self._counter + 1
+        sid = _subject_id(n)
         rung = Rung.L4 if minor else Rung.L3
         # The derived form is the subject's own id: the L3 handle that stands in for
         # the name wherever the name may not go. Required because L3/L4 are served
@@ -186,17 +207,24 @@ class Roster:
         # the reference, not to a blank.
         record = Classified(rung, name, derived=sid)
 
-        self._names[sid] = record
+        # The durable write happens **before** any in-memory state changes. A
+        # refused write — an occupied key (I-9), which two rosters racing over one
+        # store can produce — then leaves the roster exactly as it was, rather than
+        # attaching this name to an id the store rejected. The first cut mutated
+        # `self._names` first, so a losing writer that caught the FileExistsError
+        # kept one person's name on another's id in memory against the record on
+        # disk. No overwrite: the store refusing a clobber is the right answer.
         if self._store is not None:
-            # No overwrite: the counter is max+1, so a first write can never land on
-            # an occupied key, and if it somehow did (a hand-planted file) the store
-            # refusing it (I-9) is the right answer, not a silent clobber.
             self._store.put(ROSTER_MATTER, SUBJECT_ITEM, sid, record)
         if self._log is not None:
             # The ref is the id and nothing else. RECORD_SYNCED is the closed-enum
             # act for "a record was stored"; there is no free-text field on this log
-            # to leak the name through (F-4), and the ref carries no name either.
+            # to leak the name through (F-4), and the ref (subj-NN) carries none.
             self._log.record(Event.RECORD_SYNCED, ref=(sid,))
+
+        # Commit in-memory state only after the write that could have failed.
+        self._counter = n
+        self._names[sid] = record
         return SubjectRef(sid)
 
     # ── internals ────────────────────────────────────────────────────────────

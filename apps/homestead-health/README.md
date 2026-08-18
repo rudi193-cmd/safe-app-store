@@ -49,6 +49,12 @@ seat's own guarantees (the pin is true and capped, nothing imports the
 network, nothing listens, no second path resolver, no shadowed test basename)
 are live tests in `tests/test_invariants_seat.py`.
 
+The records track was then **adversarially audited** (`verified_by ≠ author`)
+and remediated — `docs/audits/bites-2-5-audit.md` records the findings and the
+fixes (a subject-id egress leak, a k≥2 dedup leak, a package-wide `.payload`
+chokepoint scan replacing a weak per-module one, and several theatre/robustness
+gaps). Suite: **61 passed / 2 xfailed**.
+
 ```bash
 pip install -e ".[dev]"
 pytest -q          # bare, from a cold checkout. No out-of-band install step.
