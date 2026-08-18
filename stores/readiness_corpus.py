@@ -800,6 +800,11 @@ def _cmd_bearings(args: argparse.Namespace) -> int:
 
 
 def _cmd_assess(args: argparse.Namespace) -> int:
+    # Fail-closed, same order as _cmd_assess_gates: open the corpus before
+    # doing any panel work, so a missing/malformed corpus is reported without
+    # first paying for a full instrument run.
+    corpus = _open_or_exit(args.corpus)
+
     # The panel used to be loaded by path from stores/measure_panel.py. That
     # copy was archived to stores/_forge_extracted/ on 2026-08-18 (host
     # repointed — rudi193-cmd/Forge is now the only place the measuring
