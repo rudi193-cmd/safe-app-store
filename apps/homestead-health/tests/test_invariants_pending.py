@@ -24,7 +24,6 @@ import pytest
 # — the engine's file documents that limit and it is inherited here unchanged.
 UNBUILT = {
     "homestead_health.reference": "bite 3/4 — the pinned schedule snapshot",
-    "homestead_health.school_form": "bite 5 — health's first purposed egress",
     "homestead_health.emergency": "post-v1 — the emergency card",
 }
 
@@ -128,15 +127,10 @@ def test_h5_the_snapshot_shows_its_own_date():
 
 
 # ── bite 5 · the school form — health's first purposed egress ────────────────
-
-
-@pending(
-    "homestead_health.school_form",
-    "bite 5 — export one subject's immunization history through "
-    "serve(…, S4_EGRESS, purpose=…) and keep/export; both log entries carry "
-    "references and no content (I-15)",
-)
-def test_bite5_the_export_exists_and_is_purposed():
-    from homestead_health.school_form import export_history
-
-    assert callable(export_history)
+#
+# Promoted to tests/test_invariants_school_form.py when
+# homestead_health.school_form landed as bite 5 — the records track's capstone.
+# The `school_form` key came out of UNBUILT and the export test moved there,
+# widened from "callable" to the bite's real done-when: the artifact exists and
+# reads, both log entries carry references and no content, and
+# verify(expected_head) catches a hand-edited entry.

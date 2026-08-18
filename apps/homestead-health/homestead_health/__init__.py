@@ -16,8 +16,13 @@ naming itself (H-4, promoted to `tests/test_invariants_immunizations.py`).
 (a Saturday due date stays Saturday, not `court_days`) and gates the Today line
 through the engine's k ≥ 2 re-identification check on the household's subjects,
 rendering from a closed vocabulary that has no slot for advice (H-2, promoted to
-`tests/test_invariants_due.py`). The pinned reference snapshot (H-5) and the
-school-form export (bite 5) are still claims in
+`tests/test_invariants_due.py`). **Bite 5 — the school form** (`school_form.py`)
+is health's first purposed egress: it composes a subject's doses, served through
+`S4_EGRESS` with a declared purpose, into one form and exports it through the
+engine's export path — one `IntegrityLog` and one `VisibleLog` entry, references
+only, head anchor off-tree, so a hand-edited entry fails verification (bite 5,
+promoted to `tests/test_invariants_school_form.py`). The pinned reference
+snapshot (H-5) and the emergency card (H-3) are still claims in
 `tests/test_invariants_pending.py`, each `xfail(strict=True)` so none can land
 quietly.
 
