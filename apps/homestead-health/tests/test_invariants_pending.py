@@ -23,7 +23,6 @@ import pytest
 # The guard is module-granular (`find_spec` answers for a module, not a symbol)
 # — the engine's file documents that limit and it is inherited here unchanged.
 UNBUILT = {
-    "homestead_health.reference": "bite 3/4 — the pinned schedule snapshot",
     "homestead_health.emergency": "post-v1 — the emergency card",
 }
 
@@ -111,19 +110,12 @@ def test_h3_the_card_holds_only_what_the_operator_chose():
 
 
 # ── H-5 · reference data is pinned, never fetched ────────────────────────────
-
-
-@pending(
-    "homestead_health.reference",
-    "H-5 — the schedule ships as a versioned snapshot showing its own date; "
-    "updating it is an operator's act (the fetch half is already enforced by "
-    "the seat's network scan)",
-)
-def test_h5_the_snapshot_shows_its_own_date():
-    from homestead_health.reference import SCHEDULE
-
-    assert SCHEDULE.version, "a snapshot that cannot say which version it is, isn't one"
-    assert SCHEDULE.as_of, "a snapshot that cannot say its date is a live feed in disguise"
+#
+# Promoted to tests/test_invariants_reference.py when homestead_health.reference
+# landed — the pinned immunization-schedule snapshot. The `reference` key came
+# out of UNBUILT and the H-5 test moved there with its body kept, widened to the
+# invariant's full shape (a snapshot that names its version and date, holds no
+# subject, reads no clock, and dials for nothing).
 
 
 # ── bite 5 · the school form — health's first purposed egress ────────────────

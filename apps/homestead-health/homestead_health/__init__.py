@@ -21,10 +21,13 @@ is health's first purposed egress: it composes a subject's doses, served through
 `S4_EGRESS` with a declared purpose, into one form and exports it through the
 engine's export path — one `IntegrityLog` and one `VisibleLog` entry, references
 only, head anchor off-tree, so a hand-edited entry fails verification (bite 5,
-promoted to `tests/test_invariants_school_form.py`). The pinned reference
-snapshot (H-5) and the emergency card (H-3) are still claims in
-`tests/test_invariants_pending.py`, each `xfail(strict=True)` so none can land
-quietly.
+promoted to `tests/test_invariants_school_form.py`). **H-5 — the pinned
+reference snapshot** (`reference.py`) is the public CDC/ACIP immunization
+schedule carried as a versioned, dated snapshot that holds no subject, reads no
+clock, and dials for nothing (I-17), updated only by an operator's act
+(promoted to `tests/test_invariants_reference.py`). The emergency card (H-3) is
+the last claim in `tests/test_invariants_pending.py`, `xfail(strict=True)` so it
+cannot land quietly.
 
 **`homestead-affairs` is a pinned dependency** consumed only through
 `homestead.keep`'s public API. Do not modify it, propose changes to it, or

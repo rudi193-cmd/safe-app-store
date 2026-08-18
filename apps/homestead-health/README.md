@@ -10,9 +10,9 @@ The design is
 the packs (immunizations first — one pack proves the seam), the rungs field by
 field, the module invariants H-1…H-5, and the five bites.
 
-**Status: the records track (bites 1–5) is built; the pinned reference snapshot
-(H-5), the reference and living lanes (bites 6–7), and the emergency card (H-3)
-are pending claims.** Bite 1 — **the
+**Status: the records track (bites 1–5) and the pinned reference snapshot (H-5)
+are built; the reference and living lanes (bites 6–7) and the emergency card
+(H-3) are pending claims.** Bite 1 — **the
 seat** — pins the engine and proves the pin. Bite 2 — **the roster**
 (`homestead_health/roster.py`) — is subjects before records: opaque ids
 (`subj-01`, minted by a counter, never derived from the person), the id →
@@ -39,12 +39,17 @@ form, and exports through `homestead.keep`'s export path — the artifact to
 `exports/`, one `IntegrityLog` entry and one `VisibleLog` `EXPORTED` act carrying
 references and no content (I-15), the head anchor held off the log's own tree and
 returned to record off the machine, so a hand-edited entry fails
-`verify(expected_head=…)`.
-H-3 and H-5 remain in
+`verify(expected_head=…)`. **H-5 — the pinned reference snapshot**
+(`homestead_health/reference.py`) — is the public CDC/ACIP immunization schedule
+carried as a versioned, dated snapshot that names its own edition, holds **no
+subject**, reads no clock, and dials for nothing (I-17): public reference the
+operator pins and updates by a deliberate act, never a runtime fetch, and never
+joined to a child (the H-2 wall).
+H-3 remains in
 `tests/test_invariants_pending.py` as `xfail(strict=True)` — the suite stays
-green while they are unbuilt and fails the moment an implementation quietly
-satisfies one, forcing the test to be promoted rather than forgotten; H-1, H-4,
-H-2 and bite 5 were promoted to their own test files as each bite landed. The
+green while it is unbuilt and fails the moment an implementation quietly
+satisfies it, forcing the test to be promoted rather than forgotten; H-1, H-4,
+H-2, bite 5 and H-5 were promoted to their own test files as each landed. The
 seat's own guarantees (the pin is true and capped, nothing imports the
 network, nothing listens, no second path resolver, no shadowed test basename)
 are live tests in `tests/test_invariants_seat.py`.
