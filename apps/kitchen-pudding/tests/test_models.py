@@ -166,3 +166,42 @@ class TestRecipe:
         d = recipe.to_dict()
         assert isinstance(d["ingredients"], list)
         assert isinstance(d["steps"], list)
+
+    def test_tags_default_empty(self):
+        recipe = self._recipe()
+        assert recipe.tags == ()
+
+    def test_tags_in_constructor(self):
+        recipe = self._recipe(tags=("dessert", "quick"))
+        assert recipe.tags == ("dessert", "quick")
+
+    def test_tags_round_trip(self):
+        recipe = self._recipe(tags=("baking", "holiday"))
+        d = recipe.to_dict()
+        got = Recipe.from_dict(d)
+        assert got.tags == ("baking", "holiday")
+
+    def test_tags_omitted_from_dict_when_empty(self):
+        recipe = self._recipe()
+        d = recipe.to_dict()
+        assert "tags" not in d
+
+    def test_tags_present_in_dict_when_non_empty(self):
+        recipe = self._recipe(tags=("bread",))
+        d = recipe.to_dict()
+        assert d["tags"] == ["bread"]
+
+    def test_tags_from_dict_missing_key_defaults_empty(self):
+        d = {
+            "id": "r1",
+            "title": "No Tags",
+            "ingredients": [
+                {"name": "x", "qty": "1", "unit": "g", "provenance": "measured"},
+            ],
+        }
+        recipe = Recipe.from_dict(d)
+        assert recipe.tags == ()
+
+    def test_tags_are_tuple(self):
+        recipe = self._recipe(tags=("a", "b"))
+        assert isinstance(recipe.tags, tuple)

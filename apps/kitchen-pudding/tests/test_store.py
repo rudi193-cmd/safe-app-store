@@ -133,3 +133,53 @@ def test_correct_rejects_invalid_field_name(tmp_path):
     store.add(_recipe())
     with pytest.raises(ValueError):
         store.correct("pud-1", index=0, field_name="name", value="water", note="")
+
+
+def test_list_tags_empty_store(tmp_path):
+    store = RecipeStore(root=tmp_path)
+    assert store.list_tags() == []
+
+
+def test_list_tags_collects_from_all_recipes(tmp_path):
+    store = RecipeStore(root=tmp_path)
+    store.add(Recipe(
+        id="r1", title="A",
+        ingredients=(Ingredient("x", "1", "g", Provenance.MEASURED),),
+        tags=("bread", "quick"),
+    ))
+    store.add(Recipe(
+        id="r2", title="B",
+        ingredients=(Ingredient("y", "2", "g", Provenance.MEASURED),),
+        tags=("quick", "dessert"),
+    ))
+    assert store.list_tags() == ["bread", "dessert", "quick"]
+
+
+def test_import_from_file(tmp_path):
+    import json
+    store = RecipeStore(root=tmp_path)
+    recipe_data = {
+        "id": "imported-1",
+        "title": "Imported Recipe",
+        "ingredients": [{"name": "flour", "qty": "2", "unit": "cups", "provenance": "measured"}],
+        "steps": ["mix"],
+        "tags": ["imported"],
+    }
+    file_path = tmp_path / "to-import.json"
+    file_path.write_text(json.dumps(recipe_data))
+    recipe = store.import_from_file(file_path)
+    assert recipe.id == "imported-1"
+    assert recipe.tags == ("imported",)
+    got = store.get_original("imported-1")
+    assert got.title == "Imported Recipe"
+
+
+def test_import_from_file_refuses_duplicate(tmp_path):
+    import json
+    store = RecipeStore(root=tmp_path)
+    store.add(_recipe())
+    recipe_data = _recipe().to_dict()
+    file_path = tmp_path / "dup.json"
+    file_path.write_text(json.dumps(recipe_data))
+    with pytest.raises(FileExistsError):
+        store.import_from_file(file_path)
