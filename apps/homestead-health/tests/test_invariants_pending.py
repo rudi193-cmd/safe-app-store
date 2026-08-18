@@ -24,7 +24,6 @@ import pytest
 # — the engine's file documents that limit and it is inherited here unchanged.
 UNBUILT = {
     "homestead_health.reference": "bite 3/4 — the pinned schedule snapshot",
-    "homestead_health.due": "bite 4 — due onto Today, calendar days and k ≥ 2",
     "homestead_health.school_form": "bite 5 — health's first purposed egress",
     "homestead_health.emergency": "post-v1 — the emergency card",
 }
@@ -76,23 +75,13 @@ def test_pending_liveness():
 
 
 # ── H-2 · the app never advises care ─────────────────────────────────────────
-
-
-@pending(
-    "homestead_health.due",
-    "H-2 — operator-facing text composes from a closed vocabulary (the closed "
-    "Event enum's discipline, R-7), so no code path can phrase a recommendation",
-)
-def test_h2_derived_lines_come_from_a_closed_vocabulary():
-    from homestead_health.due import DERIVED, derived_line
-
-    # Every line `derived_line` can produce is a member of the closed set,
-    # parameterised by counts and nothing else — there is no free-text
-    # position for advice to be phrased in, which is the structural half of
-    # "the app never advises care". The behavioural half lands with the
-    # surface itself.
-    line = derived_line(due=2)
-    assert line in {template.format(n=2) for template in DERIVED}
+#
+# Promoted to tests/test_invariants_due.py when homestead_health.due landed as
+# bite 4 — due onto Today. The `due` key came out of UNBUILT and the H-2 test
+# moved there with its body kept. The behavioural half of H-2 (a subject's
+# record and a reference answer never share a surface) lands with the surfaces;
+# the structural half — a closed operator-facing vocabulary — is what bite 4
+# built and what moved.
 
 
 # ── H-3 · the emergency card is authored, not computed ───────────────────────

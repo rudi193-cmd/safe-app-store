@@ -12,7 +12,12 @@ through the engine's record layer and served through the gate, and a
 (`packs/immunizations.py`) is health's first real schema, classified at import
 in the custody pack's shape, so an authored field with no rung fails the build
 naming itself (H-4, promoted to `tests/test_invariants_immunizations.py`).
-Due-onto-Today (bite 4) and the school-form export (bite 5) are still claims in
+**Bite 4 — due onto Today** (`due.py`) computes the next dose on calendar days
+(a Saturday due date stays Saturday, not `court_days`) and gates the Today line
+through the engine's k ≥ 2 re-identification check on the household's subjects,
+rendering from a closed vocabulary that has no slot for advice (H-2, promoted to
+`tests/test_invariants_due.py`). The pinned reference snapshot (H-5) and the
+school-form export (bite 5) are still claims in
 `tests/test_invariants_pending.py`, each `xfail(strict=True)` so none can land
 quietly.
 
