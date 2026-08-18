@@ -21,9 +21,20 @@ is held by a test:
   when the reference lane lands, H-7) refuses — retrieval of public reference is not
   advice, composing it against a subject is. This module simply cannot cross that
   wall: there is nowhere in it to put a subject.
-* **Updating it is an operator's act.** The snapshot is immutable (frozen), and there
-  is no fetch, no auto-update, no clock read. A new edition is a new pinned literal,
-  committed deliberately and dated — the ledgered operator act H-5 describes.
+* **Updating it is an operator's act.** The snapshot is frozen against ordinary
+  in-place edits, and there is no fetch, no auto-update, no clock read. A new edition
+  is a new pinned literal, committed deliberately and dated — the ledgered operator
+  act H-5 describes. (Frozen resists the accidental edit; it is not a wall against
+  code already running in the interpreter, which no Python-level guard is — the
+  defense that matters is that a change is a source-controlled commit, not a runtime
+  mutation path this module offers.)
+
+**This is a representative snapshot the operator verifies, not an authority.** The
+rows below are drawn from the public CDC/ACIP schedule, but a household's pin is the
+operator's to check and complete against the cited source — dose counts vary by
+product (rotavirus is a 2- or 3-dose series by brand; influenza is annual), and
+coverage here is illustrative of the seam, not exhaustive. This is reference the
+operator owns, not a schedule this module asserts as complete or current.
 
 **This is not medical advice.** It records what a public schedule says, cited to its
 source; the operator and their clinician are the authority on any particular child.
@@ -93,6 +104,40 @@ class Schedule:
         return tuple(seen)
 
 
+#: The closed set of fields public reference may carry — an allowlist, not a
+#: denylist. This is the "holds no subject" guarantee made *structural* (I-11's
+#: discipline, one level up): the snapshot is keyed by vaccine and timing, and any
+#: field added to either shape — `recipient`, `household`, a person by any name —
+#: fails the build here, by name, the way an undeclared rung fails classify_schema.
+#: A denylist of forbidden names would pass the first field nobody thought to ban;
+#: an allowlist passes only what is enumerated, so a subject cannot enter unnoticed.
+_DOSE_FIELDS = frozenset({"vaccine", "dose", "recommended_age"})
+_SCHEDULE_FIELDS = frozenset({"version", "as_of", "source", "doses"})
+
+
+def _check_no_subject_can_enter() -> None:
+    dose = frozenset(ScheduledDose.__dataclass_fields__)
+    schedule = frozenset(Schedule.__dataclass_fields__)
+    if dose != _DOSE_FIELDS:
+        raise RuntimeError(
+            f"ScheduledDose fields are {sorted(dose)}, not {sorted(_DOSE_FIELDS)}. "
+            "Public reference is keyed by vaccine and timing only; a field outside "
+            "that set is where a subject would enter, and this snapshot holds none "
+            "(H-5, and H-7's no-subject rule for the reference lane). Add a field "
+            "only with a reason that survives that, and update this allowlist "
+            "deliberately."
+        )
+    if schedule != _SCHEDULE_FIELDS:
+        raise RuntimeError(
+            f"Schedule fields are {sorted(schedule)}, not {sorted(_SCHEDULE_FIELDS)}. "
+            "A new field on the snapshot is where a subject would enter — the "
+            "allowlist is the wall, updated deliberately, never by drift."
+        )
+
+
+_check_no_subject_can_enter()
+
+
 def _dose(vaccine: str, dose: str, age: str) -> ScheduledDose:
     return ScheduledDose(vaccine=vaccine, dose=dose, recommended_age=age)
 
@@ -115,6 +160,9 @@ SCHEDULE = Schedule(
         _dose("DTaP", "dose 3 of 5", "6 months"),
         _dose("DTaP", "dose 4 of 5", "15-18 months"),
         _dose("DTaP", "dose 5 of 5", "4-6 years"),
+        _dose("RV", "dose 1 of 3", "2 months"),
+        _dose("RV", "dose 2 of 3", "4 months"),
+        _dose("RV", "dose 3 of 3", "6 months"),
         _dose("Hib", "dose 1", "2 months"),
         _dose("Hib", "dose 2", "4 months"),
         _dose("Hib", "booster", "12-15 months"),

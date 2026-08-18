@@ -95,12 +95,12 @@ def test_a_chosen_field_with_no_datum_is_a_recorded_gap(tmp_path, monkeypatch):
     assert by_field["conditions"]["value"] is None, "a gap carries no content"
 
 
-def test_an_l5_field_is_dropped_without_a_trace(tmp_path, monkeypatch):
-    """A datum that denies at the gate (L5) is dropped, and *not* recorded as a
-    withheld gap: at L5 the existence of a refusal is itself what must not be
-    rendered (I-13), so a 'withheld' line would leak the seal. It simply does not
-    appear — the way serve_all drops a denial — while a genuinely-missing field
-    still records its gap."""
+def test_an_l5_field_is_indistinguishable_from_a_missing_one(tmp_path, monkeypatch):
+    """The H-3 audit's finding, closed. An L5-sealed field and a genuinely-missing
+    field draw the *same* gap row (recorded: false, no content), so a reader who
+    knows the authored template cannot tell 'sealed' from 'never recorded' — the row
+    presence itself would otherwise be the refusal signal I-13 forbids. The sealed
+    field's content is, of course, absent."""
     monkeypatch.setenv("HOMESTEAD_HOME", str(tmp_path))
 
     card = Card(fields=("allergies", "conditions", "ssn"))
@@ -109,8 +109,18 @@ def test_an_l5_field_is_dropped_without_a_trace(tmp_path, monkeypatch):
 
     body = json.loads(receipt.artifact.read_text(encoding="utf-8"))
     by_field = {row["field"]: row for row in body["content"]}
-    assert "ssn" not in by_field, "an L5 field is dropped without a trace, not gapped"
-    assert by_field["conditions"]["recorded"] is False, "a missing field is still a recorded gap"
+
+    # Both are present, and identical in everything but their own field label — a
+    # reader sees the same "recorded: false, no value" for the sealed field as for
+    # the never-recorded one, and cannot tell which is which.
+    def shape(row: dict) -> dict:
+        return {k: v for k, v in row.items() if k != "field"}
+
+    assert shape(by_field["ssn"]) == shape(by_field["conditions"]), (
+        "a sealed field must be indistinguishable from a missing one"
+    )
+    assert by_field["ssn"] == {"field": "ssn", "value": None, "recorded": False}
+    assert by_field["allergies"]["recorded"] is True
     assert "123-45-6789" not in receipt.artifact.read_text(encoding="utf-8")
 
 

@@ -14,6 +14,8 @@ import ast
 from datetime import date
 from pathlib import Path
 
+import pytest
+
 from homestead_health.reference import SCHEDULE, Schedule, ScheduledDose
 
 MODULE = Path(__file__).resolve().parent.parent / "homestead_health" / "reference.py"
@@ -53,6 +55,40 @@ def test_the_as_of_date_is_a_pinned_literal_not_the_clock():
     )
 
 
+def test_as_of_is_a_literal_date_not_a_computed_value():
+    """The H-5 audit's load-bearing fix. The name-based scan above catches a bare
+    `date.today()`; it does *not* catch `getattr(date, "today")()` or a two-line
+    helper in a sibling module — both of which the audit ran, watching `as_of`
+    become `date.today()` while every test stayed green. So the pin is enforced by
+    *shape*: `as_of` must parse as `date(<all-literal args>)` and nothing else — a
+    name, a `getattr(...)()`, or any other call fails, because none of them is a
+    literal date."""
+    tree = ast.parse(MODULE.read_text(encoding="utf-8"))
+    as_of = None
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.Assign)
+            and any(isinstance(t, ast.Name) and t.id == "SCHEDULE" for t in node.targets)
+            and isinstance(node.value, ast.Call)
+        ):
+            for kw in node.value.keywords:
+                if kw.arg == "as_of":
+                    as_of = kw.value
+    assert as_of is not None, "SCHEDULE must set as_of explicitly"
+    assert isinstance(as_of, ast.Call), (
+        "as_of must be a literal date(y, m, d) — a name or a computed value is a "
+        "live feed wearing a pin"
+    )
+    callee = as_of.func
+    callee_name = callee.attr if isinstance(callee, ast.Attribute) else getattr(callee, "id", "")
+    assert callee_name == "date", f"as_of must be a date(...) literal, got a call to {callee_name!r}()"
+    assert as_of.args and all(isinstance(a, ast.Constant) for a in as_of.args), (
+        "as_of's date(...) takes only literal arguments — a computed or "
+        "clock-derived date is exactly what a pin must not be"
+    )
+    assert not as_of.keywords, "as_of is date(y, m, d) — positional literals only"
+
+
 def test_the_citation_names_the_version_and_the_date():
     """The one line schedule reasoning cites (the plan's Today example) carries the
     source, the version, and the pinned date — so any answer quoting the schedule
@@ -67,15 +103,26 @@ def test_the_citation_names_the_version_and_the_date():
 
 
 def test_the_snapshot_holds_no_subject_by_shape():
-    """Public reference is keyed by vaccine, not by person. Neither the schedule nor
-    a dose has any field that could carry a subject — there is structurally nowhere
-    to put one, which is what keeps the reference lane on the safe side of H-2's
-    wall (it cannot join to a child because it holds no child)."""
-    schedule_fields = set(Schedule.__dataclass_fields__)
-    dose_fields = set(ScheduledDose.__dataclass_fields__)
-    for banned in ("subject", "subj", "person", "child", "patient", "name"):
-        assert banned not in schedule_fields, f"Schedule must hold no {banned}"
-        assert banned not in dose_fields, f"a dose must hold no {banned}"
+    """Structural, and an **allowlist** — the H-5 audit's fix. Public reference is
+    keyed by vaccine and timing, and the fields are *exactly* that closed set. A
+    denylist of banned names (the first cut) passed the first person-shaped field
+    nobody thought to ban — `recipient="R07"` sailed through. An allowlist passes
+    only what is enumerated, so a subject cannot enter unnoticed. reference.py
+    enforces the same at import as a build failure; this is its test face."""
+    assert set(ScheduledDose.__dataclass_fields__) == {"vaccine", "dose", "recommended_age"}
+    assert set(Schedule.__dataclass_fields__) == {"version", "as_of", "source", "doses"}
+
+
+def test_the_import_guard_fires_on_a_drifted_field_set(monkeypatch):
+    """The build-time guard, proven to have teeth (the house's plant-a-violation
+    discipline). Point the allowlist at a subset and the check must raise — so a
+    real field added to the dataclass, against a matching allowlist edit, is the
+    only way past, which is the deliberate act the guard forces."""
+    import homestead_health.reference as ref
+
+    monkeypatch.setattr(ref, "_DOSE_FIELDS", frozenset({"vaccine"}))
+    with pytest.raises(RuntimeError):
+        ref._check_no_subject_can_enter()
 
 
 def test_no_subject_id_appears_anywhere_in_the_pinned_data():

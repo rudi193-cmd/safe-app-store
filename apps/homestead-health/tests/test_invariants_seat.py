@@ -39,6 +39,25 @@ def _toplevel_imports(tree: ast.Module) -> set[str]:
     return names
 
 
+def _all_imports(tree: ast.Module) -> set[str]:
+    """Every imported top-level name, **anywhere in the tree** — including a lazy
+    import nested inside a function body.
+
+    The H-5 audit found `_toplevel_imports` (which walks `tree.body` only) blind to
+    `def f(): import socket` — a deferred dial that never shows at module scope. The
+    network scan below uses this full walk instead, so 'nothing dials' means nothing,
+    not nothing at the top level. (The declared-dependency scan keeps
+    `_toplevel_imports`: a lazy third-party import is a different, lesser sin, and
+    the network rule is the one that must be total.)"""
+    names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            names |= {a.name.split(".")[0] for a in node.names}
+        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+            names.add(node.module.split(".")[0])
+    return names
+
+
 # ── the pin ──────────────────────────────────────────────────────────────────
 
 
@@ -97,15 +116,28 @@ def test_the_seat_imports_clean():
 
 
 def test_i30_i26_nothing_imports_the_network():
-    """No network module at import time, anywhere in the package."""
+    """No network module anywhere in the package — at module scope or lazily inside
+    a function body. A full-tree walk, after the H-5 audit showed a top-level-only
+    scan misses a deferred `import socket`."""
     offenders = {}
     for mod in _modules():
-        hits = NET & _toplevel_imports(ast.parse(mod.read_text(encoding="utf-8")))
+        hits = NET & _all_imports(ast.parse(mod.read_text(encoding="utf-8")))
         if hits:
             offenders[str(mod.relative_to(APP))] = sorted(hits)
     assert not offenders, (
         f"nothing in this module dials — H-5's fetch half and I-26. Found: {offenders}"
     )
+
+
+def test_the_network_scan_sees_a_lazy_import(tmp_path):
+    """The scan itself, held honest. A network import hidden inside a function body
+    must be caught — the exact bypass the H-5 audit planted, which the old
+    top-level-only walk sailed past."""
+    probe = tmp_path / "lazy.py"
+    probe.write_text("def dial():\n    import socket\n    return socket\n")
+    tree = ast.parse(probe.read_text())
+    assert NET & _all_imports(tree), "a lazy `import socket` must be caught"
+    assert not (NET & _toplevel_imports(tree)), "and it is invisible to the top-level walk"
 
 
 def test_i30_nothing_listens():

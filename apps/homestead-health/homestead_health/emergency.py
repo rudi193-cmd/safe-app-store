@@ -21,17 +21,22 @@ caller happens to hand it for a field the card did not name. Adding a field is a
 on the card — a new `Card` with the field in its tuple — not a heuristic that pulls
 one in.
 
-Two absences are handled differently, and the difference is the rung model, not an
-oversight:
+Two absences are handled **identically**, and that sameness is the point (the H-3
+audit sharpened this):
 
 * **A field the operator chose but has no datum for** is a *recorded gap*, not a
   silent omission (I-8). An emergency card's blank allergy line is meaningful — "none
   recorded" is not "no known allergies" — so the gap is drawn, carrying no content.
-* **A field whose datum is `L5`** is dropped, and *not* recorded as a gap: at `L5`
-  the existence of a refusal is itself what must not be rendered (I-13, the `DENY`
-  semantics), so a "withheld" line on the card would leak the very thing the rung
-  seals. It simply does not appear, the way `serve_all` drops a denial without a
-  trace. No emergency-card field should be `L5`, but the rule holds regardless.
+* **A field whose datum is `L5`** is drawn as the *same gap* — `recorded: false`, no
+  content — indistinguishable from a field that was never recorded. On a list,
+  `serve_all` drops a denial by leaving no row, and its absence is invisible because
+  there is no template to compare against. A card *has* a template (the operator's
+  authored field set), so a missing row is itself detectable — and a row that
+  appeared for a gap but vanished for a seal would tell a template-aware reader
+  "sealed," which is the refusal I-13 forbids rendering. So on this surface "drop
+  without a trace" means *indistinguishable from absence*, not *no row*: the sealed
+  field and the empty field look exactly alike, and no reader can tell which is
+  which. No emergency-card field should be `L5`, but the rule holds regardless.
 
 **Not medical advice** (H-2). The card lists what the operator recorded and chose to
 carry. It recommends nothing, doses nothing, triages nothing.
@@ -111,9 +116,10 @@ def export_card(
     in `data` for a field the card did not name is ignored, which is the whole of
     "authored, not computed." For each chosen field: a present, serveable datum is
     included at its own rung (served on S4 with the purpose, so usefulness never
-    lowers the rung); a chosen field with no datum is a recorded gap (I-8); a datum
-    that denies at the gate (`L5`) is dropped without a trace (I-13), never recorded
-    as a withheld line that would leak the seal.
+    lowers the rung); a chosen field with no datum, **and** a field whose datum
+    denies at the gate (`L5`), are both drawn as the same gap — `recorded: false`,
+    no content — so a sealed field is indistinguishable from an empty one and the
+    refusal itself is never rendered (I-13, adapted to a template-bearing surface).
 
     The composed card is exported through `keep/export.export_record` — the one door
     — so it writes the artifact and exactly one entry to each log, references only,
@@ -133,8 +139,13 @@ def export_card(
             continue
         served = serve(datum, Surface.S4_EGRESS, purpose=purpose)
         if served.disposition is Disposition.DENY:
-            # L5 — dropped without a trace. A "withheld" line would reveal the
-            # refusal, which at L5 is itself the thing sealed (I-13).
+            # L5 — drawn as a gap identical to a genuinely-missing field, so a reader
+            # who knows the authored template cannot tell 'sealed' from 'never
+            # recorded'. On a template-bearing surface that is what "drop without a
+            # trace" means: not 'no row' (whose absence, against a known template, is
+            # itself the refusal — I-13), but 'indistinguishable from absence'. It
+            # carries no content and adds no rung.
+            rows.append({"field": field, "value": None, "recorded": False})
             continue
         rows.append({"field": field, "value": served.value, "recorded": True})
         rungs.append(served.rung)
