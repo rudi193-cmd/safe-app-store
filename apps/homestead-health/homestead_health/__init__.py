@@ -8,8 +8,11 @@ engine and proves the pin. **Bite 2 — the roster** (`roster.py`) is subjects
 before records: opaque ids the counter mints, the id → person mapping stored
 through the engine's record layer and served through the gate, and a
 `VisibleLog` line that carries the id and nothing of the name (H-1, promoted to
-`tests/test_invariants_roster.py`). The immunizations pack (bite 3),
-due-onto-Today (bite 4) and the school-form export (bite 5) are still claims in
+`tests/test_invariants_roster.py`). **Bite 3 — the immunizations pack**
+(`packs/immunizations.py`) is health's first real schema, classified at import
+in the custody pack's shape, so an authored field with no rung fails the build
+naming itself (H-4, promoted to `tests/test_invariants_immunizations.py`).
+Due-onto-Today (bite 4) and the school-form export (bite 5) are still claims in
 `tests/test_invariants_pending.py`, each `xfail(strict=True)` so none can land
 quietly.
 

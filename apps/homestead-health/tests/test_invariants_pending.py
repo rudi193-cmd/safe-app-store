@@ -23,7 +23,6 @@ import pytest
 # The guard is module-granular (`find_spec` answers for a module, not a symbol)
 # — the engine's file documents that limit and it is inherited here unchanged.
 UNBUILT = {
-    "homestead_health.packs.immunizations": "bite 3 — the pack, classified at import",
     "homestead_health.reference": "bite 3/4 — the pinned schedule snapshot",
     "homestead_health.due": "bite 4 — due onto Today, calendar days and k ≥ 2",
     "homestead_health.school_form": "bite 5 — health's first purposed egress",
@@ -116,20 +115,11 @@ def test_h3_the_card_holds_only_what_the_operator_chose():
 
 
 # ── H-4 · a dose is a fact with a source ─────────────────────────────────────
-
-
-@pending(
-    "homestead_health.packs.immunizations",
-    "H-4 — every dose records how it is known, and the schema declares the "
-    "field with its rung and reason (the custody pack's shape)",
-)
-def test_h4_every_dose_names_how_it_is_known():
-    from homestead_health.packs.immunizations import SCHEMA
-
-    assert "source" in SCHEMA, "a dose with no source field cannot record how it is known"
-    declaration = SCHEMA["source"]
-    assert declaration["rung"] is not None
-    assert declaration["why"], "a declaration without its sentence is not reviewable"
+#
+# Promoted to tests/test_invariants_immunizations.py when
+# homestead_health.packs.immunizations landed as bite 3 — the pack, classified
+# at import. The `packs.immunizations` key came out of UNBUILT and the H-4 test
+# moved there with its body kept, the way the roster's H-1 moved before it.
 
 
 # ── H-5 · reference data is pinned, never fetched ────────────────────────────
