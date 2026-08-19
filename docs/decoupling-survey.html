@@ -1,0 +1,516 @@
+<title>MCP Decoupling Survey</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #F7F8FA;
+  --surface: #FFFFFF;
+  --surface-alt: #EEF1F5;
+  --text: #2A2E35;
+  --text-muted: #6B7280;
+  --border: #D4D8E0;
+  --primary: #2D5F8A;
+  --primary-light: #E8F0F8;
+  --accent: #C75A3A;
+  --accent-light: #FDF0EC;
+  --success: #3A8A5C;
+  --success-light: #EBF5F0;
+  --warning: #B8860B;
+  --warning-light: #FDF8E8;
+  --code-bg: #F0F2F6;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #13161B;
+    --surface: #1C2028;
+    --surface-alt: #242830;
+    --text: #E2E4E8;
+    --text-muted: #8B919C;
+    --border: #333842;
+    --primary: #5B9BD5;
+    --primary-light: #1E2A38;
+    --accent: #E07B5A;
+    --accent-light: #2E2018;
+    --success: #5BAA7C;
+    --success-light: #1A2E22;
+    --warning: #D4A835;
+    --warning-light: #2A2515;
+    --code-bg: #262A32;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #13161B;
+  --surface: #1C2028;
+  --surface-alt: #242830;
+  --text: #E2E4E8;
+  --text-muted: #8B919C;
+  --border: #333842;
+  --primary: #5B9BD5;
+  --primary-light: #1E2A38;
+  --accent: #E07B5A;
+  --accent-light: #2E2018;
+  --success: #5BAA7C;
+  --success-light: #1A2E22;
+  --warning: #D4A835;
+  --warning-light: #2A2515;
+  --code-bg: #262A32;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  line-height: 1.6;
+  padding: 2rem 1rem;
+}
+.container { max-width: 900px; margin: 0 auto; }
+h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
+.subtitle { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  box-shadow: var(--shadow);
+}
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+.stat-value.corrected { color: var(--accent); }
+.stat-value.solved { color: var(--success); }
+.stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.125rem; }
+.correction {
+  background: var(--accent-light);
+  border-left: 3px solid var(--accent);
+  padding: 0.75rem 1rem;
+  border-radius: 0 6px 6px 0;
+  margin: 0.75rem 0;
+  font-size: 0.875rem;
+}
+.correction strong { color: var(--accent); }
+.section { margin-bottom: 1.5rem; }
+.priority-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  margin-bottom: 0.75rem;
+}
+.priority-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  cursor: pointer;
+  user-select: none;
+}
+.priority-header:hover { background: var(--surface-alt); }
+.priority-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: var(--primary-light);
+  color: var(--primary);
+  white-space: nowrap;
+}
+.priority-badge.bug { background: var(--accent-light); color: var(--accent); }
+.priority-badge.done { background: var(--success-light); color: var(--success); }
+.priority-title { font-weight: 600; font-size: 0.95rem; flex: 1; }
+.priority-meta { font-size: 0.8rem; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
+.chevron {
+  width: 20px; height: 20px;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.priority-card.open .chevron { transform: rotate(90deg); }
+.priority-body {
+  display: none;
+  padding: 0 1rem 1rem;
+  border-top: 1px solid var(--border);
+}
+.priority-card.open .priority-body { display: block; padding-top: 1rem; }
+.finding { margin-bottom: 1rem; }
+.finding h4 { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.375rem; }
+.finding p, .finding li { font-size: 0.85rem; line-height: 1.55; }
+.finding ul { padding-left: 1.25rem; }
+.finding li { margin-bottom: 0.25rem; }
+code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8em;
+  background: var(--code-bg);
+  padding: 0.125rem 0.35rem;
+  border-radius: 3px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  margin: 0.5rem 0;
+}
+th {
+  text-align: left;
+  font-weight: 600;
+  padding: 0.5rem 0.625rem;
+  border-bottom: 2px solid var(--border);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+td {
+  padding: 0.4rem 0.625rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.overflow-x { overflow-x: auto; }
+.tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-family: 'IBM Plex Mono', monospace;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+.tag.live { background: var(--success-light); color: var(--success); border-color: var(--success); }
+.tag.dead { color: var(--text-muted); }
+.tag.bug { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+.next-action {
+  background: var(--primary-light);
+  border-left: 3px solid var(--primary);
+  padding: 0.625rem 1rem;
+  border-radius: 0 6px 6px 0;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+}
+.next-action strong { color: var(--primary); }
+.separator { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+.footer { font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 2rem; }
+</style>
+
+<div class="container">
+  <h1>MCP Decoupling Survey</h1>
+  <p class="subtitle">Five-agent deep survey of coupling layers P0–P5 &middot; 2026-08-19 &middot; safe-app-store</p>
+
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-value">41</div>
+      <div class="stat-label">Apps audited</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value corrected">4</div>
+      <div class="stat-label">Live safe_integration</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">13</div>
+      <div class="stat-label">Orphaned copies</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">5</div>
+      <div class="stat-label">stdio_client dupes</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value solved">20</div>
+      <div class="stat-label">Already agnostic</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value corrected">1</div>
+      <div class="stat-label">Bug fixed</div>
+    </div>
+  </div>
+
+  <div class="correction">
+    <strong>Audit corrections:</strong> Original audit said 6 live safe_integration consumers — survey found <strong>4</strong>. Original said ~30 files import willow_gate in the-squirrel — actual count is <strong>15 files</strong> importing <code>sap.core.gate</code> (already a clean seam), with only <strong>2 call sites</strong> reaching into <code>_SIGNED_FIELDS</code>. llmphysics <code>WILLOW_PROXY</code> fallback is vestigial (dead constant, never referenced).
+  </div>
+
+  <!-- P0 -->
+  <div class="priority-card open" onclick="this.classList.toggle('open')">
+    <div class="priority-header">
+      <span class="priority-badge">P0</span>
+      <span class="priority-title">safe_integration collapse (17 &rarr; 1)</span>
+      <span class="priority-meta">17 copies &middot; 4 families</span>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path d="M7.293 4.293a1 1 0 011.414 0L14.414 10l-5.707 5.707a1 1 0 01-1.414-1.414L11.586 10 7.293 5.707a1 1 0 010-1.414z"/></svg>
+    </div>
+    <div class="priority-body">
+      <div class="finding">
+        <h4>Four families identified</h4>
+        <div class="overflow-x">
+        <table>
+          <tr><th>Family</th><th>Shape</th><th>Apps</th><th>Status</th></tr>
+          <tr><td><strong>A</strong></td><td>Manifest stub (<code>get_manifest</code>/<code>status</code>)</td><td>UTETY-Reddit-Bots, llmphysics-bot, semantic-translator, the-squirrel</td><td><span class="tag dead">all orphaned</span></td></tr>
+          <tr><td><strong>B</strong></td><td>KB/messaging only (<code>ask</code>/<code>query</code>/<code>contribute</code>)</td><td>field-notes, law-gazelle (root), private-ledger/_archived, public-ledger/_archived</td><td><span class="tag dead">all orphaned</span></td></tr>
+          <tr><td><strong>C</strong></td><td>KB/messaging + SAFESession combined</td><td>ask-jeles, nasa-archive, the-binder, utety-chat</td><td><span class="tag live">2 live</span></td></tr>
+          <tr><td><strong>D</strong></td><td>Session/consent only (SAFESession)</td><td>dating-wellbeing, game, law-gazelle/src</td><td><span class="tag dead">all orphaned</span></td></tr>
+          <tr><td><em>outlier</em></td><td>Bespoke domain wrappers</td><td>source-trail, story-timeline</td><td><span class="tag live">2 live</span></td></tr>
+        </table>
+        </div>
+      </div>
+
+      <div class="finding">
+        <h4>Only 4 live consumers (not 6)</h4>
+        <div class="overflow-x">
+        <table>
+          <tr><th>App</th><th>Contract used</th><th>Call sites</th></tr>
+          <tr><td><strong>ask-jeles</strong></td><td>KB only (<code>contribute</code>)</td><td><code>learning_events.py:87</code>, <code>crown.py:607</code></td></tr>
+          <tr><td><strong>utety-chat</strong></td><td>KB + Session (both contracts)</td><td><code>server.py:16</code>, <code>chat_engine.py:13</code></td></tr>
+          <tr><td><strong>story-timeline</strong></td><td>Identity/composite only</td><td><code>app.py:2027</code>, <code>promote.py:37</code>, <code>import_csv.py:257</code></td></tr>
+          <tr><td><strong>source-trail</strong></td><td>Bespoke verify/query</td><td><code>app.py:17,144,161</code></td></tr>
+        </table>
+        </div>
+        <p style="margin-top:0.5rem;font-size:0.85rem;">No live consumer touches all three contracts. utety-chat spans two; the other three use exactly one each.</p>
+      </div>
+
+      <div class="finding">
+        <h4>Template exists: the-squirrel &rarr; safe_app_common</h4>
+        <p>the-squirrel already delegates to <code>safe_app_common.safe_client</code> (external git dep). Its 23-line shim is now just re-exports. This is the extraction target shape for Family A.</p>
+      </div>
+
+      <div class="finding">
+        <h4>Template exists: libs/willow-read KnowledgeClient Protocol</h4>
+        <p><code>Protocol</code> + <code>set_client()</code> injection + silent no-op on missing client. law-gazelle's <code>query()</code> already calls <code>willow_read.search()</code> — partial adoption in progress.</p>
+      </div>
+
+      <div class="correction">
+        <strong>Stale entry_point:</strong> <code>public-ledger/safe-app-manifest.json:50</code> declares <code>"entry_point": "safe_integration:status"</code> but the file only exists under <code>_archived/</code>. Broken.
+      </div>
+
+      <div class="next-action">
+        <strong>Next action:</strong> Delete 13 orphaned copies immediately. For the 4 live consumers: split into 2–3 Protocol interfaces (KB, Session, Identity) following the willow-read pattern. ask-jeles needs only the KB Protocol; utety-chat needs KB + Session; story-timeline needs Identity; source-trail needs its own domain Protocol.
+      </div>
+    </div>
+  </div>
+
+  <!-- P1 -->
+  <div class="priority-card" onclick="this.classList.toggle('open')">
+    <div class="priority-header">
+      <span class="priority-badge">P1</span>
+      <span class="priority-title">MCP client lib (libs/mcp-connect)</span>
+      <span class="priority-meta">5 dupes &middot; template exists</span>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path d="M7.293 4.293a1 1 0 011.414 0L14.414 10l-5.707 5.707a1 1 0 01-1.414-1.414L11.586 10 7.293 5.707a1 1 0 010-1.414z"/></svg>
+    </div>
+    <div class="priority-body">
+      <div class="finding">
+        <h4>5 copy-pasted stdio_client skeletons</h4>
+        <p>All share the same pattern: module-level globals, background thread with asyncio loop, <code>_lifecycle()</code> coroutine, <code>ensure_started()</code>/<code>call_tool()</code> wrapper. Four of five launch the same <code>unified_mcp.sh</code> endpoint.</p>
+        <div class="overflow-x">
+        <table>
+          <tr><th>App</th><th>File</th><th>Target</th></tr>
+          <tr><td>ask-jeles</td><td><code>askjeles/mcp_client.py</code></td><td><code>unified_mcp.sh</code></td></tr>
+          <tr><td>story-timeline</td><td><code>mcp_client.py</code></td><td><code>unified_mcp.sh</code></td></tr>
+          <tr><td>semantic-translator</td><td><code>semantic_translator/mcp_client.py</code></td><td><code>unified_mcp.sh</code></td></tr>
+          <tr><td>store TUI</td><td><code>store_mcp.py</code></td><td><code>unified_mcp.sh</code></td></tr>
+          <tr><td>ratatosk</td><td><code>ratatosk/mcp_client.py</code></td><td><code>sap_mcp.py</code> (outlier)</td></tr>
+        </table>
+        </div>
+      </div>
+
+      <div class="finding">
+        <h4>ask-jeles already has the generic pattern</h4>
+        <p><code>mcp_registry.py</code> — discovery layer (scans <code>.mcp.json</code> files, normalizes to <code>McpServerSpec</code> dataclass, stable IDs via sha256).<br>
+        <code>mcp_generic.py</code> — multi-server session lifecycle, keyed by <code>server_id</code>. Same thread/loop machinery but parameterized over specs instead of hardcoded commands.</p>
+        <p style="margin-top:0.375rem;">ask-jeles still keeps its old hardcoded client alongside the generic one — the generic path is additive, not yet a replacement.</p>
+      </div>
+
+      <div class="finding">
+        <h4>the-forge anticipated this extraction</h4>
+        <p><code>apps/the-forge/src/the_forge/mcp_registry.py:18-23</code> docstring: <em>"the connector generalizing store_mcp.py's stdio pattern is later work"</em>. This audit's <code>libs/mcp-connect</code> is that work.</p>
+      </div>
+
+      <div class="finding">
+        <h4>jarvis is out of scope</h4>
+        <p>JavaScript, HTTP/SSE transport, OAuth+PKCE — entirely different family from the Python stdio clients. Separate track if needed.</p>
+      </div>
+
+      <div class="next-action">
+        <strong>Next action:</strong> Extract ask-jeles's <code>mcp_generic.py</code> + <code>mcp_registry.py</code> into <code>libs/mcp-connect</code>. Parameterize <code>APP_ID</code> injection. Unify the env-merging logic (semantic-translator and store TUI both hand-roll near-identical <code>.mcp.json</code> expansion). Add a thin single-server convenience wrapper for the 4 apps that only need one connection.
+      </div>
+    </div>
+  </div>
+
+  <!-- P2 -->
+  <div class="priority-card" onclick="this.classList.toggle('open')">
+    <div class="priority-header">
+      <span class="priority-badge">P2</span>
+      <span class="priority-title">StorageBackend + LLMRouter Protocols</span>
+      <span class="priority-meta">sys.path hacks &middot; 3 patterns</span>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path d="M7.293 4.293a1 1 0 011.414 0L14.414 10l-5.707 5.707a1 1 0 01-1.414-1.414L11.586 10 7.293 5.707a1 1 0 010-1.414z"/></svg>
+    </div>
+    <div class="priority-body">
+      <div class="finding">
+        <h4>story-timeline: 3 identical SoilClient bootstraps</h4>
+        <p>Byte-for-byte the same <code>_get_client()</code> in <code>soil_protocol.py:22-51</code>, <code>safe_integration.py:28-57</code>, <code>willow_edges.py:20-49</code>. 9 call sites using <strong>put (5), list (2), delete (2)</strong> — all user-scoped under <code>user-{uuid}/story-timeline/</code>.</p>
+      </div>
+
+      <div class="finding">
+        <h4>nasa-archive / llmphysics: stale sibling checkouts</h4>
+        <p>All fallback paths (<code>~/github/Willow</code>, sibling checkouts) are dead in this environment. Every file hard-fails unless <code>WILLOW_ROOT</code> is exported. llmphysics <code>WILLOW_PROXY</code> constant is vestigial — defined but never referenced; the real HTTP fallback lives in browser JS.</p>
+      </div>
+
+      <div class="finding">
+        <h4>libs/willow-pg is the template</h4>
+        <p>Already extracted, already adopted by 4 apps. Lazy heavy import, env-driven defaults with override, process-local caching, validated input through a single chokepoint. Same shape works for <code>StorageBackend(put/list/delete)</code> and <code>LLMRouter(complete/load_keys)</code>.</p>
+      </div>
+
+      <div class="finding">
+        <h4>lattice_fallback.py: not byte-identical</h4>
+        <p>Structural constants (<code>DEPTH_MIN/MAX/LATTICE_SIZE = 23</code>) are shared across dating-wellbeing, field-notes, game. But <code>DOMAINS</code>/<code>TEMPORAL_STATES</code> are legitimately per-app. Fix: extract shared base to <code>libs/willow-lattice</code>, leave domain vocab as local overrides.</p>
+      </div>
+
+      <div class="next-action">
+        <strong>Next action:</strong> Define <code>StorageBackend Protocol (put/list/delete)</code> following willow-pg's shape. Collapse story-timeline's 3 bootstraps into one. For llm_router: define <code>LLMRouter Protocol (complete/load_keys)</code> — llmphysics already has the HTTP fallback concept (just not wired). Lattice is the most mechanical fix: extract constants to <code>libs/willow-lattice</code>.
+      </div>
+    </div>
+  </div>
+
+  <!-- P3 (lattice, quick note) -->
+  <div class="priority-card" onclick="this.classList.toggle('open')">
+    <div class="priority-header">
+      <span class="priority-badge">P3</span>
+      <span class="priority-title">Lattice constants (3 &rarr; 1)</span>
+      <span class="priority-meta">most mechanical</span>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path d="M7.293 4.293a1 1 0 011.414 0L14.414 10l-5.707 5.707a1 1 0 01-1.414-1.414L11.586 10 7.293 5.707a1 1 0 010-1.414z"/></svg>
+    </div>
+    <div class="priority-body">
+      <div class="finding">
+        <p>Covered under P2 survey. Three 16–19 line files with shared structural constants and per-app domain vocabulary. Extract <code>DEPTH_MIN</code>/<code>DEPTH_MAX</code>/<code>LATTICE_SIZE</code> + bootstrap pattern to <code>libs/willow-lattice</code>. Constants only, no willow import. Each app keeps its own <code>DOMAINS</code>/<code>TEMPORAL_STATES</code>.</p>
+      </div>
+      <div class="next-action">
+        <strong>Next action:</strong> Create <code>libs/willow-lattice</code> with shared constants. Update 3 apps to import from it. Most mechanical fix in the entire audit — could ship today.
+      </div>
+    </div>
+  </div>
+
+  <!-- P4 -->
+  <div class="priority-card" onclick="this.classList.toggle('open')">
+    <div class="priority-header">
+      <span class="priority-badge">P4</span>
+      <span class="priority-title">AuthGate Protocol</span>
+      <span class="priority-meta">2 call sites &middot; not 30</span>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path d="M7.293 4.293a1 1 0 011.414 0L14.414 10l-5.707 5.707a1 1 0 01-1.414-1.414L11.586 10 7.293 5.707a1 1 0 010-1.414z"/></svg>
+    </div>
+    <div class="priority-body">
+      <div class="correction">
+        <strong>Major correction:</strong> the-squirrel has 15 files importing <code>sap.core.gate</code>, which is already a clean decoupled seam (<code>actor/authorized/bypass</code>). Only <strong>2 call sites</strong> actually reach into <code>_SIGNED_FIELDS</code>: <code>gatefirst/identity.py</code> (a comparison slice, not production) and <code>gazelle_gate.build_header</code>. The ~30-file fan-out is to the public surface, not the private coupling.
+      </div>
+
+      <div class="finding">
+        <h4>The real duplication: 3 copies of signed-header construction</h4>
+        <ul>
+          <li><code>sap/core/gate.py</code> — <code>_signed_header()</code> with local <code>_FIELD_NAMES</code> tuple</li>
+          <li><code>gatefirst/identity.py</code> — imports <code>_SIGNED_FIELDS</code> from willow_gate</li>
+          <li><code>gazelle_gate.py</code> — imports <code>wg._SIGNED_FIELDS</code> for <code>build_header()</code></li>
+        </ul>
+        <p>All three build the same 13-field HMAC-SHA256 signed header independently.</p>
+      </div>
+
+      <div class="finding">
+        <h4>Three separate signing mechanisms, no shared interface</h4>
+        <ul>
+          <li><code>willow_gate</code> — HMAC session headers (runtime auth)</li>
+          <li><code>stores/sap_gate.py</code> — Ed25519 manifest signing (build attribution)</li>
+          <li><code>willow_gate.custody</code> — hash-chained checkpoint sealing (promotion)</li>
+        </ul>
+      </div>
+
+      <div class="finding">
+        <h4>Manifest permissions are disconnected from runtime gates</h4>
+        <p>The manifest <code>permissions</code> list is free-form tags never consulted at runtime. Gate authorization uses hardcoded role tables baked into each app's gate module. Two independent sources of truth.</p>
+      </div>
+
+      <div class="next-action">
+        <strong>Next action:</strong> Expose <code>build_signed_header()</code> as a public helper so callers stop importing <code>_SIGNED_FIELDS</code>. Define <code>AuthGate Protocol (check_in/authorize_tool/check_out)</code>. The 13 files using <code>sap.core.gate</code>'s public surface need no change — they're already decoupled. Sequence: gazelle first (single chokepoint), then gatefirst (comparison slice).
+      </div>
+    </div>
+  </div>
+
+  <!-- P5 -->
+  <div class="priority-card" onclick="this.classList.toggle('open')">
+    <div class="priority-header">
+      <span class="priority-badge">P5</span>
+      <span class="priority-title">Manifest format evolution</span>
+      <span class="priority-meta">3 formats &middot; no enforcement</span>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path d="M7.293 4.293a1 1 0 011.414 0L14.414 10l-5.707 5.707a1 1 0 01-1.414-1.414L11.586 10 7.293 5.707a1 1 0 010-1.414z"/></svg>
+    </div>
+    <div class="priority-body">
+      <div class="finding">
+        <h4>store_scope inventory</h4>
+        <div class="overflow-x">
+        <table>
+          <tr><th>Category</th><th>Count</th><th>Examples</th></tr>
+          <tr><td>Real SOIL prefixes</td><td>5</td><td>ai-game-master, field-acoustics, kitchen-pudding, marching-arts, marching-arts-shell</td></tr>
+          <tr><td>Deliberately empty <code>[]</code></td><td>5</td><td>band-camp-arcade, bureau, playgate, terpsi-chat, the-table</td></tr>
+          <tr><td>Missing entirely</td><td>27</td><td>aristarchus, jarvis, nasa-archive, oakenscrolls-office, etc.</td></tr>
+          <tr><td>Different key name</td><td>1</td><td>story-timeline uses <code>sap_scope</code> (string, not list)</td></tr>
+        </table>
+        </div>
+        <p style="margin-top:0.375rem;">Three ways to say "no SOIL reach" (empty list, omitted key, prose explanation) with no schema enforcing one.</p>
+      </div>
+
+      <div class="finding">
+        <h4>story-timeline: the future format already exists</h4>
+        <p>Rich capability declarations: <code>protocol.collections</code> (named SOIL paths), <code>exposes</code> (per-record-type access grants with <code>requires_user_approval</code>), <code>reads_from</code> (external sources with purpose). Materially more expressive than the flat <code>store_scope</code> array.</p>
+      </div>
+
+      <div class="finding">
+        <h4>llmphysics: ES module manifest, invisible to scanners</h4>
+        <p><code>safe-app-manifest.js</code> — entirely different vocabulary: <code>id</code>/<code>ring</code>/<code>scopes</code>/<code>dataPolicy</code> vs <code>app_id</code>/<code>permissions</code>/<code>store_scope</code>. Invisible to any <code>*.json</code> glob.</p>
+      </div>
+
+      <div class="finding">
+        <h4>Signing covers 4 fields, enforces none</h4>
+        <p><code>sap_gate.py</code> binds <code>app_id</code>, <code>permissions</code>, <code>store_scope</code>, <code>maker</code> into Ed25519 signatures. But no code path checks actual requests against <code>store_scope</code> at runtime. The codebase documents this: <em>"nothing exercises store_scope yet."</em></p>
+      </div>
+
+      <div class="finding">
+        <h4>Gold standard: oakenscrolls-office / private-ledger</h4>
+        <p>Injected callable via <code>willow_bridge.py</code>, direction discipline (bridge &rarr; core, never reverse), import ban enforced by AST test via <code>safe_app_common.no_egress</code>. <code>test_willow_bridge_is_pure_injection()</code> proves no <code>import willow</code> in the bridge itself.</p>
+      </div>
+
+      <div class="next-action">
+        <strong>Next action:</strong> Standardize on story-timeline's capability-declaration format. Add game-lab manifest for discoverability. Migrate llmphysics to standard <code>.json</code>. Decide: should <code>store_scope</code> be enforced at runtime, or remain declaration-only?
+      </div>
+    </div>
+  </div>
+
+  <!-- Bug fix -->
+  <div class="priority-card" onclick="this.classList.toggle('open')">
+    <div class="priority-header">
+      <span class="priority-badge bug">BUG</span>
+      <span class="priority-title">ai-game-master store_scope type error</span>
+      <span class="priority-meta">fixed</span>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path d="M7.293 4.293a1 1 0 011.414 0L14.414 10l-5.707 5.707a1 1 0 01-1.414-1.414L11.586 10 7.293 5.707a1 1 0 010-1.414z"/></svg>
+    </div>
+    <div class="priority-body">
+      <div class="finding">
+        <p><code>store_scope</code> was a bare string <code>"user-{uuid}/ai-game-master/**"</code> instead of a list. Gate treats a string as <code>[]</code> (deny-all), silently nullifying all declared permissions. Fixed to <code>["user-{uuid}/ai-game-master/**"]</code>. No other manifest had the same bug.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="separator">
+
+  <div class="finding" style="margin-bottom:1rem;">
+    <h4 style="font-size:1rem;">Execution order</h4>
+    <p>Each priority is independent — they can run in parallel. But sequencing within P4 matters (gazelle before squirrel). P3 (lattice) is the fastest win. P0 (safe_integration) is the highest leverage. P5 (manifests) is the least urgent — declaration, not enforcement.</p>
+  </div>
+
+  <div class="footer">
+    Five Sonnet agents surveyed P0–P5 in parallel &middot; Cross-match analysis by Nestor StringMatcher &middot; safe-app-store @ claude/mcp-server-setup-vkmyow
+  </div>
+</div>
