@@ -604,7 +604,7 @@ def _build_tui(*, demo: bool = False):
             save_path.write_text(body)
             binder_note = save_path.name
             try:
-                from safe_integration import contribute
+                from safe_integration.intake import contribute
 
                 staged = contribute(
                     body,
