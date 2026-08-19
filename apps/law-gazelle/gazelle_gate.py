@@ -25,7 +25,6 @@ b17: LGGATE1  ΔΣ=42
 """
 from __future__ import annotations
 
-import json
 import os
 import sys
 from pathlib import Path
