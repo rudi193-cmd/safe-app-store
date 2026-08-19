@@ -46,5 +46,5 @@ jobs:
       - name: Import smoke
         run: |
           python -c "import source_trail; import source_trail.app"
-          python -c "import sources_db; import personas; import safe_integration"
+          python -c "import sources_db; import personas"
         working-directory: apps/source-trail

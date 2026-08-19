@@ -46,7 +46,7 @@ jobs:
       - name: Compile
         run: |
           python -m compileall -q askjeles
-          python -m py_compile safe_integration.py app.py
+          python -m py_compile app.py
 
       - name: CLI help
         run: ask-jeles --help
