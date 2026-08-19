@@ -35,16 +35,16 @@ def db(tmp_path, monkeypatch):
 @pytest.fixture()
 def edges(monkeypatch):
     import importlib
+    import storage_backend
     import willow_edges
+    importlib.reload(storage_backend)
     importlib.reload(willow_edges)
 
     class Client:
-        _available = True
-
         def __init__(self):
             self._store: dict = {}
 
-        def put(self, collection, record, record_id=None):
+        def put(self, collection, record, *, record_id=""):
             key = record_id or record.get("id")
             self._store[key] = dict(record)
             return key
@@ -56,8 +56,7 @@ def edges(monkeypatch):
             return False
 
     client = Client()
-    willow_edges._CLIENT = client
-    willow_edges._CLIENT_INIT_FAILED = False
+    storage_backend.set_backend(client)
     return willow_edges
 
 
