@@ -21,9 +21,6 @@ dependencies = [
 [project.scripts]
 semantic-translator = "semantic_translator.cli:main"
 
-[tool.setuptools]
-py-modules = ["safe_integration"]
-
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",

@@ -1,0 +1,13 @@
+[project]
+name = "mcp-connect"
+version = "0.1.0"
+description = "Thin MCP stdio client: discover servers from .mcp.json, connect, call tools."
+requires-python = ">=3.10"
+dependencies = ["mcp>=1.6.0,<2.0.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
