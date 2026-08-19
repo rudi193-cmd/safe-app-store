@@ -47,7 +47,7 @@
     "scope": "localhost",
     "note": "Local development only. Not started in production."
   },
-  "entry_point": "safe_integration:status",
+  "entry_point": "src/app/main.py",
   "license": "MIT",
   "repository": "https://github.com/rudi193-cmd/safe-app-public-ledger"
 }
