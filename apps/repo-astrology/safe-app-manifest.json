@@ -1,0 +1,22 @@
+{
+  "app_id": "repo-astrology",
+  "name": "Repo Astrology",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "agent_type": "tool",
+  "description": "An interactive star map that turns 29 starred GitHub repos into constellations in a night sky, with a fortune teller that generates comically overblown developer horoscopes and a personality profile with ridiculous stats. No accounts, no build step, no network calls.",
+  "author": "USER",
+  "data_streams": [],
+  "permissions": [],
+  "store_scope": [],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "network": "none",
+  "entry_point": "index.html",
+  "license": "Apache-2.0",
+  "notes": {
+    "status": "Seeded. One static HTML page, no backend, no storage, no network. Renders a hardcoded set of 29 repos as an interactive constellation map with twinkling stars, hover tooltips, a fortune-reading oracle, and a personality profile. Pure display toy.",
+    "data_streams": "Deliberately empty — this app reads nothing, stores nothing, sends nothing. The constellation data and horoscope text are baked into the page.",
+    "re_landing": "Rebuilt against this store's manifest/catalog/CI conventions from the quick-stupids playground original (repo-astrology.html). Changes from the playground version: filename convention (index.html), test infrastructure added, constellation line rendering simplified to use hex+alpha instead of broken rgba string manipulation."
+  }
+}

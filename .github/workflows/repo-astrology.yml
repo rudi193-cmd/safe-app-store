@@ -1,0 +1,43 @@
+name: repo-astrology
+
+on:
+  push:
+    paths:
+      - "apps/repo-astrology/**"
+      - ".github/workflows/repo-astrology.yml"
+  pull_request:
+    paths:
+      - "apps/repo-astrology/**"
+      - ".github/workflows/repo-astrology.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/repo-astrology/package-lock.json
+
+      - name: Install
+        working-directory: apps/repo-astrology
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+        run: npm ci
+
+      - name: Install Chromium
+        working-directory: apps/repo-astrology
+        run: npx playwright install --with-deps chromium
+
+      - name: Suite
+        working-directory: apps/repo-astrology
+        run: npm test
