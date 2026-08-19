@@ -7,3 +7,4 @@ rapidfuzz>=3.0.0
 mcp>=1.28.1,<2.0.0
 # Verified-corpus organ, extracted into its own repo (Ask Jeles is a consumer).
 jeles @ git+https://github.com/rudi193-cmd/jeles@master
+-e ../../libs/safe-integration

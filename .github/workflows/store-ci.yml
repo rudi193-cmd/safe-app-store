@@ -227,6 +227,7 @@ jobs:
           pip install -e libs/pg-sqlite-shim       # shared SQLite->Postgres shim (A5, law-gazelle)
           pip install -e libs/subject-consent      # third-party consent axis (intake-desk)
           pip install -e libs/lattice-constants    # shared 23-cubed lattice geometry (P3)
+          pip install -e libs/safe-integration     # Protocol-based SAFE session/intake/identity (P0)
           pip install -r apps/${{ matrix.app }}/requirements.txt
           pip install pytest ${{ matrix.test-deps }}
 
