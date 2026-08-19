@@ -1,0 +1,13 @@
+{
+  "app_id": "repo-astrology",
+  "majors": [
+    "browser"
+  ],
+  "relation": null,
+  "anchor": null,
+  "location": "apps/repo-astrology",
+  "maker": "USER",
+  "lane": null,
+  "state": "seeded",
+  "notes": "Single static HTML page. Night-sky star map of 29 starred GitHub repos arranged into themed constellations, with a horoscope oracle and personality profile. No backend, no storage, no network."
+}

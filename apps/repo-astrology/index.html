@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repo Astrology</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Nunito+Sans:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0a0e1a;
+  color: #e4dff0;
+  font-family: 'Nunito Sans', 'Segoe UI', sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+#starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.cosmos {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+header { text-align: center; margin-bottom: 2.5rem; }
+
+header h1 {
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-weight: 900;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  letter-spacing: 0.18em;
+  text-shadow: 0 0 40px rgba(62, 240, 194, 0.3), 0 0 80px rgba(62, 240, 194, 0.12);
+  margin-bottom: 0.3rem;
+}
+
+header .subtitle {
+  font-weight: 300;
+  font-style: italic;
+  font-size: 1.05rem;
+  color: #6b6890;
+  letter-spacing: 0.04em;
+}
+
+header .star-count {
+  display: inline-block;
+  margin-top: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: #3ef0c2;
+  background: rgba(62, 240, 194, 0.08);
+  border: 1px solid rgba(62, 240, 194, 0.15);
+  padding: 0.25rem 0.8rem;
+  border-radius: 100px;
+  letter-spacing: 0.06em;
+}
+
+.map-section { margin-bottom: 3rem; }
+
+.map-section h2,
+.profile h2 {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6b6890;
+  text-align: center;
+  margin-bottom: 1.2rem;
+}
+
+.constellation-map {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background:
+    radial-gradient(ellipse at 40% 30%, rgba(30, 20, 60, 0.5) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 70%, rgba(15, 25, 50, 0.4) 0%, transparent 50%);
+  border: 1px solid rgba(107, 104, 144, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.constellation-map svg.lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.star {
+  position: absolute;
+  z-index: 2;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+
+.star-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: transform 0.25s, box-shadow 0.25s;
+  animation: twinkle var(--twinkle-dur, 3s) ease-in-out var(--twinkle-delay, 0s) infinite alternate;
+}
+
+.star:hover .star-dot {
+  transform: scale(1.8);
+}
+
+.star.nova .star-dot { width: 10px; height: 10px; }
+
+.star-label {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem;
+  color: rgba(228, 223, 240, 0.35);
+  white-space: nowrap;
+  pointer-events: none;
+  transition: color 0.2s;
+  letter-spacing: 0.02em;
+}
+
+.star:hover .star-label { color: #3ef0c2; }
+
+.constellation-label {
+  position: absolute;
+  z-index: 3;
+  font-family: 'Cinzel', serif;
+  font-weight: 400;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+@keyframes twinkle {
+  from { opacity: 0.6; }
+  to   { opacity: 1;   }
+}
+
+.tooltip {
+  display: none;
+  position: fixed;
+  z-index: 100;
+  background: #161b35;
+  border: 1px solid rgba(107, 104, 144, 0.3);
+  border-radius: 6px;
+  padding: 0.7rem 0.9rem;
+  max-width: 300px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.tooltip.visible { display: block; }
+
+.tooltip-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #3ef0c2;
+  margin-bottom: 0.25rem;
+}
+
+.tooltip-desc {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin-bottom: 0.3rem;
+}
+
+.tooltip-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: #6b6890;
+}
+
+.oracle { text-align: center; margin-bottom: 3rem; }
+
+.oracle-btn {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #0a0e1a;
+  background: #3ef0c2;
+  border: none;
+  padding: 0.75rem 2.2rem;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.3s, transform 0.15s;
+  box-shadow: 0 0 20px rgba(62, 240, 194, 0.3);
+}
+
+.oracle-btn:hover {
+  background: #5cffd8;
+  box-shadow: 0 0 36px rgba(62, 240, 194, 0.3);
+  transform: translateY(-1px);
+}
+
+.oracle-btn:active { transform: translateY(0); }
+.oracle-btn:focus-visible { outline: 2px solid #3ef0c2; outline-offset: 3px; }
+
+.reading {
+  margin-top: 1.8rem;
+  max-width: 640px;
+  margin-inline: auto;
+  text-align: left;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.reading.visible { opacity: 1; transform: translateY(0); }
+
+.reading-title {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #ff6b4a;
+  margin-bottom: 0.6rem;
+  letter-spacing: 0.06em;
+}
+
+.reading-body {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+.reading-body em {
+  color: #3ef0c2;
+  font-style: normal;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+}
+
+.profile {
+  background: rgba(22, 27, 53, 0.6);
+  border: 1px solid rgba(107, 104, 144, 0.15);
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.1rem;
+}
+
+.stat { display: flex; flex-direction: column; gap: 0.3rem; }
+
+.stat-header { display: flex; justify-content: space-between; align-items: baseline; }
+
+.stat-name { font-size: 0.82rem; font-weight: 600; }
+
+.stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #3ef0c2;
+}
+
+.stat-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(107, 104, 144, 0.2);
+  overflow: hidden;
+}
+
+.stat-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #3ef0c2, #ff6b4a);
+  transition: width 1s ease-out;
+  width: 0;
+}
+
+.profile-verdict {
+  margin-top: 1.5rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid rgba(107, 104, 144, 0.15);
+  text-align: center;
+}
+
+.verdict-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6b6890;
+  margin-bottom: 0.3rem;
+}
+
+.verdict-text {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: #ff6b4a;
+  text-shadow: 0 0 20px rgba(255, 107, 74, 0.35);
+  letter-spacing: 0.04em;
+}
+
+.legend {
+  margin-top: 1.6rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid rgba(107, 104, 144, 0.1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.5rem;
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  color: #6b6890;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.legend-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+@media (max-width: 600px) {
+  .cosmos { padding: 2rem 1rem 3rem; }
+  .constellation-map { aspect-ratio: 4 / 5; }
+  .profile { padding: 1.4rem 1.2rem; }
+  .profile-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star-dot { animation: none; }
+  .reading { transition: none; }
+  .stat-fill { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+<div class="tooltip" id="tooltip">
+  <div class="tooltip-name"></div>
+  <div class="tooltip-desc"></div>
+  <div class="tooltip-meta"></div>
+</div>
+
+<div class="cosmos">
+  <header>
+    <h1>Repo Astrology</h1>
+    <p class="subtitle">What your GitHub stars say about you</p>
+    <span class="star-count">29 celestial bodies observed</span>
+  </header>
+
+  <section class="map-section">
+    <h2>The Constellations of rudi193-cmd</h2>
+    <div class="constellation-map" id="map"></div>
+  </section>
+
+  <section class="oracle">
+    <button class="oracle-btn" id="oracle-btn">Read My Stars</button>
+    <div class="reading" id="reading">
+      <div class="reading-title" id="reading-title"></div>
+      <div class="reading-body" id="reading-body"></div>
+    </div>
+  </section>
+
+  <section class="profile" id="profile">
+    <h2>Developer Personality Profile</h2>
+    <div class="profile-grid" id="profile-grid"></div>
+    <div class="profile-verdict">
+      <div class="verdict-label">Your Cosmic Developer Archetype</div>
+      <div class="verdict-text">The Sovereign Hermit Wizard</div>
+    </div>
+    <div class="legend" id="legend"></div>
+  </section>
+</div>
+
+<script>
+var REPOS = [
+  { name: "willow-mcp", full: "rudi193-cmd/willow-mcp", desc: "Agent-neutral MCP server with persistent memory and sandboxed task queue", lang: "Python", constellation: "willow" },
+  { name: "willow-2.0", full: "rudi193-cmd/willow-2.0", desc: "Local-first memory, MCP tools, and fleet coordination for AI agents", lang: "Python", constellation: "willow" },
+  { name: "willow-1.9", full: "rudi193-cmd/willow-1.9", desc: "Superseded by Willow 2.0 — archived", lang: "Python", constellation: "willow" },
+  { name: "willow-gate", full: "rudi193-cmd/willow-gate", desc: "Gate system for the Willow ecosystem", lang: "Python", constellation: "willow" },
+  { name: "willow-data-vault", full: "rudi193-cmd/willow-data-vault", desc: "Data vault for the Willow memory system", lang: "Python", constellation: "willow" },
+  { name: "kartikeya", full: "rudi193-cmd/kartikeya", desc: "Standalone bwrap-sandboxed task queue + worker. Backend-agnostic: SQLite or Postgres", lang: "Python", constellation: "willow" },
+  { name: "qiju", full: "jasonshrepo/qiju", desc: "Local-first, lossless session records for AI coding agents", lang: "Python", constellation: "willow" },
+  { name: "environment-almanac", full: "almanac-data/environment-almanac", desc: "An open, versioned index of public environmental data", lang: "Python", constellation: "almanac" },
+  { name: "economy-almanac", full: "almanac-data/economy-almanac", desc: "An open, versioned index of public economic data", lang: "Python", constellation: "almanac" },
+  { name: "health-almanac", full: "almanac-data/health-almanac", desc: "An open, versioned index of public health data", lang: "Python", constellation: "almanac" },
+  { name: "climate-almanac", full: "almanac-data/climate-almanac", desc: "An open, versioned index of public climate data — catalog, not warehouse", lang: "Python", constellation: "almanac" },
+  { name: "almanac-template", full: "almanac-data/almanac-template", desc: "Template for building a self-monitoring catalog of public data", lang: "Python", constellation: "almanac" },
+  { name: "safe-app-store", full: "rudi193-cmd/safe-app-store", desc: "The SAFE App Store — local-first apps. No ports. No servers. No subscriptions", lang: "Python", constellation: "sovereign" },
+  { name: "awesome-sovereign-software", full: "rudi193-cmd/awesome-sovereign-software", desc: "Software you own. Apps that run without accounts, servers, or subscriptions", lang: "Python", constellation: "sovereign" },
+  { name: "redential-cli", full: "rudi193-cmd/redential-cli", desc: "Turn private work into an NDA-safe credential that shows what you can build", lang: "TypeScript", constellation: "sovereign" },
+  { name: "build-your-own-x", full: "codecrafters-io/build-your-own-x", desc: "Master programming by recreating your favorite technologies from scratch", lang: "Markdown", constellation: "scholar" },
+  { name: "maths-cs-ai-compendium", full: "HenryNdubuaku/maths-cs-ai-compendium", desc: "Become a cracked AI/ML researcher/engineer covering maths, computing, and ML", lang: "TypeScript", constellation: "scholar" },
+  { name: "community", full: "Emerging-Rule/community", desc: "Open knowledge base for K-12 educators, researchers, and builders", lang: "HTML", constellation: "scholar" },
+  { name: "cwc-workshops", full: "anthropics/cwc-workshops", desc: "Claude workshops and tutorials", lang: "TypeScript", constellation: "scholar" },
+  { name: "Chinese-NLP-Corpus", full: "OYE93/Chinese-NLP-Corpus", desc: "Collections of Chinese NLP corpus", lang: "Python", constellation: "seeker" },
+  { name: "mrc-for-flat-nested-ner", full: "ShannonAI/mrc-for-flat-nested-ner", desc: "A Unified MRC Framework for Named Entity Recognition (ACL 2020)", lang: "Python", constellation: "seeker" },
+  { name: "multimodal-ai-americas", full: "GENIA-Americas/multimodal-ai-americas", desc: "Federated, regionally-grounded AI development across the Western Hemisphere", lang: "", constellation: "seeker" },
+  { name: "code-review-benchmark", full: "withmartian/code-review-benchmark", desc: "Benchmark for code review systems", lang: "Python", constellation: "seeker" },
+  { name: "aaabench", full: "ukanwat/aaabench", desc: "Give a coding agent a real game engine and ask it to build an open-world game", lang: "Shell", constellation: "seeker" },
+  { name: "production-readiness-checklist", full: "MarinJursic/production-readiness-checklist", desc: "Evidence-driven production readiness checklist for shipping web applications", lang: "Python", constellation: "scribe" },
+  { name: "DispatchesFromReality", full: "rudi193-cmd/DispatchesFromReality", desc: "Professional writings by Sean Campbell", lang: "Python", constellation: "scribe" },
+  { name: "corpus-lens", full: "rudi193-cmd/corpus-lens", desc: "Corpus analysis and inspection tool", lang: "Python", constellation: "scribe" },
+  { name: "UTETY", full: "rudi193-cmd/UTETY", desc: "Utility project", lang: "Python", constellation: "scribe" },
+  { name: "Reddit-Devvit", full: "AllHailSeizure/Reddit-Devvit", desc: "Reddit/Devvit projects", lang: "TypeScript", constellation: "outlier" }
+];
+
+var CONSTELLATIONS = {
+  willow:    { label: "The Willow",    color: "#3ef0c2", cx: 30, cy: 30 },
+  almanac:   { label: "The Almanac",   color: "#7b9ff5", cx: 75, cy: 25 },
+  sovereign: { label: "The Sovereign", color: "#ff6b4a", cx: 18, cy: 72 },
+  scholar:   { label: "The Scholar",   color: "#f0d83e", cx: 55, cy: 70 },
+  seeker:    { label: "The Seeker",    color: "#c77dff", cx: 82, cy: 60 },
+  scribe:    { label: "The Scribe",    color: "#ff9ebc", cx: 50, cy: 38 },
+  outlier:   { label: "The Outlier",   color: "#ff6b4a", cx: 92, cy: 12 }
+};
+
+function seededRand(seed) {
+  var s = seed;
+  return function() {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+(function positionStars() {
+  var rng = seededRand(42);
+  var groups = {};
+  REPOS.forEach(function(r) {
+    if (!groups[r.constellation]) groups[r.constellation] = [];
+    groups[r.constellation].push(r);
+  });
+
+  Object.keys(groups).forEach(function(key) {
+    var c = CONSTELLATIONS[key];
+    var repos = groups[key];
+    var count = repos.length;
+    repos.forEach(function(r, i) {
+      var angle = (2 * Math.PI * i) / count + rng() * 0.6;
+      var radius = 5 + rng() * 7;
+      r.x = Math.max(3, Math.min(97, c.cx + Math.cos(angle) * radius));
+      r.y = Math.max(3, Math.min(97, c.cy + Math.sin(angle) * radius));
+    });
+  });
+})();
+
+// --- Starfield canvas ---
+var canvas = document.getElementById('starfield');
+var ctx = canvas.getContext('2d');
+var bgStars = [];
+
+function initCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  bgStars = [];
+  var count = Math.floor((canvas.width * canvas.height) / 2000);
+  var rng = seededRand(999);
+  for (var i = 0; i < count; i++) {
+    bgStars.push({
+      x: rng() * canvas.width,
+      y: rng() * canvas.height,
+      r: rng() * 1.2 + 0.3,
+      baseAlpha: rng() * 0.5 + 0.15,
+      phase: rng() * Math.PI * 2,
+      speed: rng() * 0.8 + 0.3
+    });
+  }
+}
+
+function drawStarfield(t) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (var i = 0; i < bgStars.length; i++) {
+    var s = bgStars[i];
+    var alpha = s.baseAlpha + Math.sin(t * 0.001 * s.speed + s.phase) * 0.15;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(228, 223, 240, ' + Math.max(0.05, alpha) + ')';
+    ctx.fill();
+  }
+  requestAnimationFrame(drawStarfield);
+}
+
+initCanvas();
+requestAnimationFrame(drawStarfield);
+window.addEventListener('resize', initCanvas);
+
+// --- Constellation map ---
+var map = document.getElementById('map');
+var svgNS = 'http://www.w3.org/2000/svg';
+var linesSVG = document.createElementNS(svgNS, 'svg');
+linesSVG.classList.add('lines');
+linesSVG.setAttribute('viewBox', '0 0 100 100');
+linesSVG.setAttribute('preserveAspectRatio', 'none');
+map.appendChild(linesSVG);
+
+var tooltip = document.getElementById('tooltip');
+var tooltipName = tooltip.querySelector('.tooltip-name');
+var tooltipDesc = tooltip.querySelector('.tooltip-desc');
+var tooltipMeta = tooltip.querySelector('.tooltip-meta');
+
+var groups = {};
+REPOS.forEach(function(r) {
+  if (!groups[r.constellation]) groups[r.constellation] = [];
+  groups[r.constellation].push(r);
+});
+
+Object.keys(groups).forEach(function(key) {
+  var c = CONSTELLATIONS[key];
+  var repos = groups[key];
+
+  for (var i = 0; i < repos.length - 1; i++) {
+    var line = document.createElementNS(svgNS, 'line');
+    line.setAttribute('x1', repos[i].x);
+    line.setAttribute('y1', repos[i].y);
+    line.setAttribute('x2', repos[i + 1].x);
+    line.setAttribute('y2', repos[i + 1].y);
+    line.setAttribute('stroke', c.color + '1f');
+    line.setAttribute('stroke-width', '0.3');
+    linesSVG.appendChild(line);
+  }
+  if (repos.length > 2) {
+    var closeLine = document.createElementNS(svgNS, 'line');
+    closeLine.setAttribute('x1', repos[repos.length - 1].x);
+    closeLine.setAttribute('y1', repos[repos.length - 1].y);
+    closeLine.setAttribute('x2', repos[0].x);
+    closeLine.setAttribute('y2', repos[0].y);
+    closeLine.setAttribute('stroke', c.color + '1f');
+    closeLine.setAttribute('stroke-width', '0.3');
+    linesSVG.appendChild(closeLine);
+  }
+
+  var label = document.createElement('div');
+  label.className = 'constellation-label';
+  label.textContent = c.label;
+  label.style.left = c.cx + '%';
+  label.style.top = Math.max(1, c.cy - 14) + '%';
+  label.style.transform = 'translateX(-50%)';
+  label.style.color = c.color + '40';
+  map.appendChild(label);
+});
+
+var rng2 = seededRand(77);
+REPOS.forEach(function(r) {
+  var c = CONSTELLATIONS[r.constellation];
+  var star = document.createElement('div');
+  star.className = 'star' + (r.name === 'willow-mcp' || r.name === 'safe-app-store' ? ' nova' : '');
+  star.style.left = r.x + '%';
+  star.style.top = r.y + '%';
+
+  var dot = document.createElement('div');
+  dot.className = 'star-dot';
+  dot.style.setProperty('--twinkle-dur', (2 + rng2() * 3).toFixed(1) + 's');
+  dot.style.setProperty('--twinkle-delay', (rng2() * 2).toFixed(1) + 's');
+  dot.style.background = c.color;
+  dot.style.boxShadow = '0 0 6px 2px ' + c.color + '50';
+
+  var lbl = document.createElement('div');
+  lbl.className = 'star-label';
+  lbl.textContent = r.name;
+
+  star.appendChild(dot);
+  star.appendChild(lbl);
+  map.appendChild(star);
+
+  star.addEventListener('mouseenter', function() {
+    tooltipName.textContent = r.full;
+    tooltipDesc.textContent = r.desc;
+    tooltipMeta.textContent = [r.lang, r.constellation].filter(Boolean).join(' · ');
+    tooltip.classList.add('visible');
+  });
+  star.addEventListener('mousemove', function(e) {
+    var tx = e.clientX + 12;
+    var ty = e.clientY + 12;
+    if (tx + 310 > window.innerWidth) tx = e.clientX - 310;
+    if (ty + 120 > window.innerHeight) ty = e.clientY - 120;
+    tooltip.style.left = tx + 'px';
+    tooltip.style.top = ty + 'px';
+  });
+  star.addEventListener('mouseleave', function() {
+    tooltip.classList.remove('visible');
+  });
+});
+
+// --- Oracle readings ---
+var READINGS = [
+  { title: "The Transit of Willow Through the House of Dependencies", body: 'With <em>willow-mcp</em> ascending and <em>willow-2.0</em> in retrograde, your dependency tree is about to become sentient. The stars suggest you have built not one memory system, but five, each slightly different, each claiming to be the canonical one. The cosmos whispers: “have you tried just using a text file?”' },
+  { title: "Mercury in Retrograde, Almanac in Production", body: 'The conjunction of <em>environment-almanac</em>, <em>economy-almanac</em>, <em>health-almanac</em>, and <em>climate-almanac</em> reveals a soul who believes all of human knowledge should be versioned, indexed, and served via Python. The stars see you at 2 AM, whispering “catalog, not warehouse” to yourself while adding yet another YAML schema.' },
+  { title: "The Sovereign Ascendant", body: '<em>safe-app-store</em> opposes <em>awesome-sovereign-software</em> in the Fifth House of No Subscriptions. You have rejected the cloud, the server, the port, and the account. The stars wonder: do you also reject the concept of other people using your software, or is that just a side effect?' },
+  { title: "A Scholar’s Moon Rises", body: 'The alignment of <em>build-your-own-x</em> with <em>maths-cs-ai-compendium</em> suggests someone who bookmarks “Learn X From Scratch” repos at 11 PM and opens them at never o’clock. <em>cwc-workshops</em> flickers nearby — you attended the workshop. You starred the repo. You have not yet built the thing.' },
+  { title: "The NER Anomaly", body: '<em>Chinese-NLP-Corpus</em> and <em>mrc-for-flat-nested-ner</em> orbit silently among your stars, surrounded by local-first task queues and sovereign app stores. The cosmos does not judge, but it is confused. These are ACL 2020 papers. Everything else is “no servers, no subscriptions.” What happened that night?' },
+  { title: "The Prophecy of kartikeya", body: 'A sandboxed task queue named after a Hindu god of war sits in your constellation, backend-agnostic across SQLite and Postgres. <em>kartikeya</em> waits, patient and bwrap-wrapped, for tasks that may never come. The stars see six repos that could send it work and none that do. The queue is empty. The queue is always empty.' },
+  { title: "The Outlier Speaks", body: 'In the far corner of your sky, alone and untethered to any constellation, <em>Reddit-Devvit</em> pulses with chaotic energy. Among 28 stars of sovereign software, memory systems, and NLP papers, you starred a Reddit bot framework. The stars have no explanation. Neither do you. This is your most honest star.' },
+  { title: "The Credential Paradox", body: '<em>redential-cli</em> promises to turn private work into NDA-safe credentials. But the stars note that your most impressive work lives in repos named things like <em>quick-stupids</em> and <em>UTETY</em>. The credential says “I can build.” The repo name says “I was bored at 3 AM.” Both are true. The cosmos accepts this duality.' },
+  { title: "Venus Enters the Data Vault", body: '<em>willow-data-vault</em> guards its secrets while <em>DispatchesFromReality</em> publishes yours. You are simultaneously the most private and most public developer in Albuquerque. The data vault has no README. The dispatches have too many. Balance, the stars suggest, is not your strong suit.' },
+  { title: "The Superseded Conjunction", body: '<em>willow-1.9</em> is archived, superseded by <em>willow-2.0</em>, which will itself be superseded by whatever you build next Tuesday. The stars have seen this cycle before. They call it “the eternal refactor.” You call it “progress.” <em>qiju</em> records every session, losslessly, so future archaeologists can trace exactly where it went wrong.' }
+];
+
+var readingIndex = 0;
+var btn = document.getElementById('oracle-btn');
+var readingEl = document.getElementById('reading');
+var readingTitle = document.getElementById('reading-title');
+var readingBody = document.getElementById('reading-body');
+
+// Shuffle once at load using seeded rng so tests are deterministic
+(function() {
+  var rng = seededRand(1337);
+  for (var i = READINGS.length - 1; i > 0; i--) {
+    var j = Math.floor(rng() * (i + 1));
+    var tmp = READINGS[i];
+    READINGS[i] = READINGS[j];
+    READINGS[j] = tmp;
+  }
+})();
+
+btn.addEventListener('click', function() {
+  readingEl.classList.remove('visible');
+  setTimeout(function() {
+    var r = READINGS[readingIndex % READINGS.length];
+    readingTitle.textContent = r.title;
+    readingBody.innerHTML = r.body;
+    readingEl.classList.add('visible');
+    readingIndex++;
+  }, 150);
+});
+
+// --- Personality Profile ---
+var STATS = [
+  { name: "Python Devotion", value: 86 },
+  { name: "Local-First Zealotry", value: 94 },
+  { name: "Cloud Avoidance Index", value: 91 },
+  { name: "Data Cataloging Compulsion", value: 72 },
+  { name: "Willow Ecosystem Lock-in", value: 100 },
+  { name: "Bookmark-to-Build Ratio", value: 12 },
+  { name: "NLP Paper Hoarding", value: 38 },
+  { name: "Naming Whimsy", value: 97 }
+];
+
+var grid = document.getElementById('profile-grid');
+STATS.forEach(function(s) {
+  var stat = document.createElement('div');
+  stat.className = 'stat';
+  stat.innerHTML =
+    '<div class="stat-header">' +
+      '<span class="stat-name">' + s.name + '</span>' +
+      '<span class="stat-value">' + s.value + '%</span>' +
+    '</div>' +
+    '<div class="stat-bar"><div class="stat-fill" data-width="' + s.value + '"></div></div>';
+  grid.appendChild(stat);
+});
+
+var legend = document.getElementById('legend');
+Object.keys(CONSTELLATIONS).forEach(function(key) {
+  var c = CONSTELLATIONS[key];
+  var item = document.createElement('div');
+  item.className = 'legend-item';
+  item.innerHTML = '<span class="legend-dot" style="background:' + c.color + '"></span>' + c.label;
+  legend.appendChild(item);
+});
+
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) {
+      entry.target.querySelectorAll('.stat-fill').forEach(function(fill) {
+        fill.style.width = fill.dataset.width + '%';
+      });
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.3 });
+observer.observe(document.getElementById('profile'));
+</script>
+
+</body>
+</html>
