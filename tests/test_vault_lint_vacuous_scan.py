@@ -71,8 +71,13 @@ def test_a_real_leak_still_fails(tmp_path):
 
 
 def test_the_store_has_exactly_three_unknowns():
-    """Named rather than counted loosely: if a fourth non-Python app lands, this
+    """Named rather than counted loosely: if a fifth non-Python app lands, this
     fails and someone reads the sentence above instead of adding a row.
+
+    UTETY-Reddit-Bots is a policy/docs-only directory — no Python code, just
+    BOTS.md, LICENSE, PRIVACY.md, README.md, and TERMS.md. It previously held
+    a stale safe_integration.py that made it lint PASS vacuously; P0 deleted
+    that orphan and revealed the app as genuinely Python-free.
 
     band-camp-arcade joined jarvis as the store's second Python-free app —
     five static HTML/JS games, no backend. Same reasoning as jarvis: this
@@ -88,7 +93,7 @@ def test_the_store_has_exactly_three_unknowns():
     """
     apps = sorted(d for d in (REPO / "apps").iterdir() if d.is_dir())
     unknown = [d.name for d in apps if lint.lint_app(d)["verdict"] == "UNKNOWN"]
-    assert unknown == ["band-camp-arcade", "jarvis", "marching-arts-shell"], unknown
+    assert unknown == ["UTETY-Reddit-Bots", "band-camp-arcade", "jarvis", "marching-arts-shell"], unknown
 
 
 def test_the_module_is_not_broken_shut(tmp_path):
