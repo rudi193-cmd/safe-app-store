@@ -35,6 +35,7 @@
     "postgres_read",
     "store_read"
   ],
+  "store_scope": ["user-{uuid}/ask-jeles/**"],
   "privacy_tier": "mixed",
   "local_processing": 0.80,
   "dev_server": {
