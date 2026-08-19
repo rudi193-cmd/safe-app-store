@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import os
 import sys
 import threading
 from pathlib import Path
 from typing import Any, Callable
+
+from mcp_connect import parse_tool_payload as _parse_tool_payload_generic
 
 from story_paths import app_data
 
@@ -152,24 +153,6 @@ def reset_for_tests() -> None:
     _test_override = None
 
 
-def _parse_tool_payload(result: Any) -> Any:
-    if result.isError:
-        parts = [getattr(c, "text", str(c)) for c in (result.content or [])]
-        raise RuntimeError("; ".join(parts) or "MCP tool error")
-    for block in result.content or []:
-        text = getattr(block, "text", None)
-        if not text:
-            continue
-        text = text.strip()
-        if text.startswith("{") or text.startswith("["):
-            try:
-                return json.loads(text)
-            except json.JSONDecodeError:
-                pass
-        return text
-    return {}
-
-
 def call_tool(name: str, inputs: dict[str, Any], timeout: float = 120) -> Any:
     if _test_override is not None:
         return _test_override(name, inputs)
@@ -178,7 +161,7 @@ def call_tool(name: str, inputs: dict[str, Any], timeout: float = 120) -> Any:
     assert _mcp_session is not None
     payload = {"app_id": APP_ID, **inputs}
     result = _mcp_call_sync(_mcp_session.call_tool(name, payload), timeout=timeout)
-    return _parse_tool_payload(result)
+    return _parse_tool_payload_generic(result)
 
 
 def jeles_ask(question: str, *, sources: list[str] | None = None, limit: int = 2) -> dict:
