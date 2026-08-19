@@ -756,7 +756,8 @@ def _mirror_research_if_present(research_id: str, uuid: str) -> None:
             "created_at": datetime.now().isoformat(),
             **store.research_payload(node),
         }
-        client = soil_protocol._get_client()
+        from storage_backend import get_backend
+        client = get_backend()
         if client:
             client.put(collection, record, record_id=record["id"])
     except Exception:

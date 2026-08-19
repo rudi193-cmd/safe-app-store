@@ -2,3 +2,4 @@ textual==8.2.7
 mcp>=1.28.1
 -e ../../libs/safe-integration
 -e ../../libs/mcp-connect
+-e ../../libs/storage-backend
