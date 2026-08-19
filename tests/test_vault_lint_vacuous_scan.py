@@ -93,7 +93,7 @@ def test_the_store_has_exactly_three_unknowns():
     """
     apps = sorted(d for d in (REPO / "apps").iterdir() if d.is_dir())
     unknown = [d.name for d in apps if lint.lint_app(d)["verdict"] == "UNKNOWN"]
-    assert unknown == ["UTETY-Reddit-Bots", "band-camp-arcade", "jarvis", "marching-arts-shell"], unknown
+    assert unknown == ["UTETY-Reddit-Bots", "band-camp-arcade", "jarvis", "marching-arts-shell", "repo-astrology"], unknown
 
 
 def test_the_module_is_not_broken_shut(tmp_path):
