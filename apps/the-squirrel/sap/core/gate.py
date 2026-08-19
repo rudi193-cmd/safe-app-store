@@ -42,9 +42,6 @@ records to it; unset, records are plaintext JSON (still a record).
 """
 
 import atexit
-import hashlib
-import hmac
-import json
 import os
 import secrets as _pysecrets
 import sys
@@ -53,6 +50,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from threading import Lock, local
 
+from auth_gate import build_signed_header
 from sap.core import receipts as _receipts
 
 _state = local()
@@ -81,12 +79,6 @@ _OPERATIONS = {
     "export": ("read", True),   # PII leaving the box: read + exfiltration flag
 }
 
-_FIELD_NAMES = sorted({
-    "agent_id", "agent_name", "last_gate", "pass_count", "fail_count", "drift",
-    "nonce", "trust_level", "timestamp", "tools", "state_hash", "reserved",
-})
-
-
 def _gate_dir() -> Path:
     from sap.core.vault import squirrel_home
     return Path(os.environ.get(
@@ -106,24 +98,17 @@ def _operator_key_fpr() -> str:
 def _signed_header(role: str, secret: bytes, *, nonce: str = None,
                    timestamp: int = None, tools=None) -> dict:
     spec = ROLES[role]
-    header = {
-        "agent_id": spec["agent_id"],
-        "agent_name": role,
-        "last_gate": "the-squirrel",
-        "pass_count": spec["pass_floor"],
-        "fail_count": 0,
-        "drift": 0,
-        "nonce": nonce or _pysecrets.token_hex(16),
-        "trust_level": spec["trust"],
-        "timestamp": timestamp if timestamp is not None else int(time.time() * 1000),
-        "tools": list(spec["tools"] if tools is None else tools),
-        "state_hash": hashlib.sha256(f"the-squirrel:{role}".encode()).hexdigest(),
-        "reserved": 0,
-    }
-    canonical = json.dumps({k: header[k] for k in _FIELD_NAMES},
-                           sort_keys=True, separators=(",", ":")).encode()
-    header["signature"] = hmac.new(secret, canonical, hashlib.sha256).hexdigest()
-    return header
+    return build_signed_header(
+        agent_id=spec["agent_id"],
+        agent_name=role,
+        last_gate="the-squirrel",
+        trust_level=spec["trust"],
+        tools=list(spec["tools"] if tools is None else tools),
+        secret=secret,
+        pass_count=spec["pass_floor"],
+        nonce=nonce,
+        timestamp=timestamp,
+    )
 
 
 def _build_backend() -> dict:

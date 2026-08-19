@@ -10,14 +10,11 @@ Same actors and trust ceilings as sap/core/gate.py: journal (the user,
 Steady) and jeles (the LLM, Rookie).
 """
 
-import hashlib
-import hmac
-import json
 import secrets as _pysecrets
-import time
 from pathlib import Path
 
-from willow_gate import TRUST_LEVELS, WillowGate, _SIGNED_FIELDS
+from auth_gate import build_signed_header
+from willow_gate import TRUST_LEVELS, WillowGate
 
 from .store import Denied, Store
 
@@ -31,24 +28,17 @@ ROLES = {
 
 def _signed_header(role, secret, *, nonce=None, timestamp=None, tools=None):
     spec = ROLES[role]
-    header = {
-        "agent_id": spec["agent_id"],
-        "agent_name": role,
-        "last_gate": "the-squirrel-gatefirst",
-        "pass_count": spec["pass_floor"],
-        "fail_count": 0,
-        "drift": 0,
-        "nonce": nonce or _pysecrets.token_hex(16),
-        "trust_level": spec["trust"],
-        "timestamp": timestamp if timestamp is not None else int(time.time() * 1000),
-        "tools": list(spec["tools"] if tools is None else tools),
-        "state_hash": hashlib.sha256(f"gatefirst:{role}".encode()).hexdigest(),
-        "reserved": 0,
-    }
-    canonical = json.dumps({k: header[k] for k in _SIGNED_FIELDS},
-                           sort_keys=True, separators=(",", ":")).encode()
-    header["signature"] = hmac.new(secret, canonical, hashlib.sha256).hexdigest()
-    return header
+    return build_signed_header(
+        agent_id=spec["agent_id"],
+        agent_name=role,
+        last_gate="the-squirrel-gatefirst",
+        trust_level=spec["trust"],
+        tools=list(spec["tools"] if tools is None else tools),
+        secret=secret,
+        pass_count=spec["pass_floor"],
+        nonce=nonce,
+        timestamp=timestamp,
+    )
 
 
 # ── The handles — capability, not check ──────────────────────────────────────

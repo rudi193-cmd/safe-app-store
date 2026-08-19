@@ -230,6 +230,7 @@ jobs:
           pip install -e libs/safe-integration     # Protocol-based SAFE session/intake/identity (P0)
           pip install -e libs/mcp-connect           # shared MCP stdio client (P1)
           pip install -e libs/storage-backend       # SOIL storage Protocol (P2)
+          pip install -e libs/auth-gate             # AuthGate Protocol + signed headers (P4)
           pip install -r apps/${{ matrix.app }}/requirements.txt
           pip install pytest ${{ matrix.test-deps }}
 
