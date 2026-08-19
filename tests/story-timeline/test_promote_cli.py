@@ -15,7 +15,7 @@ def reset_modules(tmp_path, monkeypatch):
         "willow_edges",
         "story_protocol",
         "soil_protocol",
-        "safe_integration",
+        "si_bridge",
         "promote",
     ):
         sys.modules.pop(name, None)

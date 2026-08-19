@@ -22,7 +22,7 @@ from textual.widgets import (
 
 import timeline_db as db
 import willow_edges
-import safe_integration
+import si_bridge as safe_integration
 import migrate
 import story_protocol as proto
 import intelligence

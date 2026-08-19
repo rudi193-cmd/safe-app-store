@@ -253,7 +253,7 @@ def main():
     if not args.file.exists():
         sys.exit(f"File not found: {args.file}")
 
-    import safe_integration
+    import si_bridge as safe_integration
     uuid = safe_integration.get_user_uuid()
 
     if args.dry_run:

@@ -12,7 +12,7 @@ from pathlib import Path
 _APP_PATH = str(Path(__file__).parents[2] / "apps" / "story-timeline")
 _CONFLICT_MODULES = {
     "migrate",
-    "safe_integration",
+    "si_bridge",
     "timeline_db",
     "willow_edges",
     "story_protocol",

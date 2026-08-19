@@ -20,7 +20,7 @@ import argparse
 import json
 import sys
 
-import safe_integration
+import si_bridge as safe_integration
 import story_protocol as proto
 
 
