@@ -8,6 +8,7 @@
 **/.mcp.json
 !.mcp.json.example
 !**/.mcp.json.example
+.memory-service/
 __pycache__/
 *.pyc
 *.pyo
