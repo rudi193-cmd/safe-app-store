@@ -13,7 +13,7 @@
   ],
   "privacy_tier": "public",
   "local_processing": 0.0,
-  "entry_point": "safe_integration:status",
+  "entry_point": "devvit/",
   "license": "MIT",
   "repository": "https://github.com/rudi193-cmd/safe-app-llmphysics-bot"
 }

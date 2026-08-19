@@ -40,7 +40,7 @@
   "privacy_tier": "mixed",
   "local_processing": 1.0,
   "port": 8425,
-  "entry_point": "safe_integration:status",
+  "entry_point": "gatefirst/app.py",
   "license": "MIT",
   "repository": "https://github.com/rudi193-cmd/safe-app-the-squirrel"
 }

@@ -1,3 +1,4 @@
+-e ../../libs/lattice-constants
 openai>=1.30.0
 anthropic>=0.28.0
 pydantic>=2.8
