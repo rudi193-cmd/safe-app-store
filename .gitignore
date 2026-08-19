@@ -1,6 +1,13 @@
 .superpowers/
 .worktrees/
 .cursor/
+
+# Host-local MCP client configs (absolute paths, this machine only).
+# Portable template, if an app needs one: apps/<app>/.mcp.json.example
+.mcp.json
+**/.mcp.json
+!.mcp.json.example
+!**/.mcp.json.example
 __pycache__/
 *.pyc
 *.pyo

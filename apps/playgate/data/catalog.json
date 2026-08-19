@@ -1,21 +1,18 @@
 {
   "catalog_version": 1,
   "note": [
-    "Every entry here is `assumed`, and that is not a placeholder to be filled",
-    "in later with something better-looking. Nobody has sat with a child and",
-    "counted interruptions for any of these, and no tracker lookup has been run",
-    "against them either, so `assumed` is the true state and writing anything",
-    "stronger would be the exact failure this app exists to refuse.",
+    "Interruption provenance on every entry is still `assumed`. Nobody has sat",
+    "with a child and counted stops for any of these — writing `fitted` or",
+    "`measured` without that work would be the failure this app exists to refuse.",
     "",
-    "`fitted` and `measured` records are exercised in tests/ against fixtures.",
-    "They are absent here because producing one requires work nobody has done:",
-    "`fitted` needs a stated derivation rule and a real tracker lookup,",
-    "`measured` needs ten minutes, a child, and someone watching.",
+    "apk_path and sha256 are now set. The bytes live in data/apks/ (fetched from",
+    "F-Droid via tools/fetch_apks.py; see data/apks/SOURCES.json). At install time",
+    "serve() reads from the vault apk directory — run fetch_apks.py --to-vault, or",
+    "copy the verified files there yourself. Playgate still does not download.",
     "",
-    "apk_path and sha256 are null because this app does not download. An",
-    "operator puts an APK on disk and records its digest; until then the",
-    "install path refuses rather than fetching, which is the intended",
-    "behaviour and not an unfinished one."
+    "Toca Boca World is listed but has no apk_path yet: it is not on F-Droid.",
+    "Record an APK you already have with tools/record_apk.py, then set apk_path",
+    "and sha256 in this file."
   ],
   "apps": [
     {
@@ -25,9 +22,9 @@
       "age_band": "7+",
       "abi": "universal",
       "package": "name.boyle.chris.sgtpuzzles",
-      "version": null,
-      "apk_path": null,
-      "sha256": null,
+      "version": "2025-09-12-1919-23762278-fdroid",
+      "apk_path": "sgt-puzzles.apk",
+      "sha256": "6b36d5537984523c57984a784156eb853a92c940fded286483687484f3d652e4",
       "interruption": {
         "provenance": "assumed",
         "note": "nobody has watched this run"
@@ -41,9 +38,9 @@
       "age_band": "10+",
       "abi": "universal",
       "package": "com.shatteredpixel.shatteredpixeldungeon",
-      "version": null,
-      "apk_path": null,
-      "sha256": null,
+      "version": "3.3.8",
+      "apk_path": "shattered-pixel-dungeon.apk",
+      "sha256": "be901407280a5b3b281969e068f725ed5d52c9cd9a7b55013de68487ad419ec4",
       "interruption": {
         "provenance": "assumed",
         "note": "nobody has watched this run"
@@ -57,9 +54,9 @@
       "age_band": "6+",
       "abi": "universal",
       "package": "com.dozingcatsoftware.bouncy",
-      "version": null,
-      "apk_path": null,
-      "sha256": null,
+      "version": "1.16.0",
+      "apk_path": "vector-pinball.apk",
+      "sha256": "ffda0d9cb0b1b2aa58be9559dda891c4fa24391bc481d297a8e3d96c31f62721",
       "interruption": {
         "provenance": "assumed",
         "note": "nobody has watched this run"
@@ -73,12 +70,28 @@
       "age_band": "5+",
       "abi": "universal",
       "package": "org.jfedor.frozenbubble",
+      "version": "4.4",
+      "apk_path": "frozen-bubble.apk",
+      "sha256": "bf291a12e88c84e559bd4f0faf99163a6a5b55da995df69ef10f888c6bba77e4",
+      "interruption": {
+        "provenance": "assumed",
+        "note": "nobody has watched this run"
+      },
+      "tracker_provenance": "assumed"
+    },
+    {
+      "id": "toca-boca-world",
+      "title": "Toca Boca World",
+      "blurb": "A big creative sandbox — dress up, build rooms, make stories. Optional purchases; the publisher says it is ad-free, but nobody here has counted interruptions yet.",
+      "age_band": "4+",
+      "abi": "universal",
+      "package": "com.tocaboca.tocalifeworld",
       "version": null,
       "apk_path": null,
       "sha256": null,
       "interruption": {
         "provenance": "assumed",
-        "note": "nobody has watched this run"
+        "note": "not on F-Droid; operator must supply the APK and record its digest with tools/record_apk.py"
       },
       "tracker_provenance": "assumed"
     }

@@ -16,6 +16,7 @@ carry it into any copy of the app, and lose it on a reinstall.
 """
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 try:
@@ -35,6 +36,11 @@ except ImportError:  # not yet installed via `pip install -e libs/vault-paths`
     import vault_paths as _vp  # type: ignore[no-redef]
 
 APP_ID = "playgate"
+
+# Shipped beside the catalog — same tier as data/catalog.json. Fetched locally via
+# tools/fetch_apks.py; not written at runtime except when serve() stages copies
+# into the vault apk directory (see stage_seed_apks).
+SEED_APK_DIR = Path(__file__).resolve().parents[1] / "data" / "apks"
 
 # The seed catalog is deliberately *not* resolved here. It is shipped content
 # rather than user data — it travels with the app, is read-only at runtime, and
@@ -63,3 +69,28 @@ def apk_dir() -> Path:
     PLAYGATE_APK_DIR overrides.
     """
     return _vp.resolve(APP_ID, "apks", env_vars=("PLAYGATE_APK_DIR",))
+
+
+def stage_seed_apks(apps, apk_root: Path) -> list[str]:
+    """Copy verified seed APKs into the vault when the catalog names them but the
+    vault copy is absent.
+
+    Playgate does not download at runtime. Seed bytes live in data/apks/ after
+    fetch_apks.py; install reads from the vault. Staging on serve closes that
+    gap for the shipped catalog without putting ~50 MiB in git or asking every
+    operator to remember --to-vault.
+    """
+    apk_root.mkdir(parents=True, exist_ok=True)
+    staged: list[str] = []
+    for app in apps:
+        if not app.apk_path:
+            continue
+        dest = apk_root / app.apk_path
+        if dest.is_file():
+            continue
+        src = SEED_APK_DIR / app.apk_path
+        if not src.is_file():
+            continue
+        shutil.copy2(src, dest)
+        staged.append(app.apk_path)
+    return staged

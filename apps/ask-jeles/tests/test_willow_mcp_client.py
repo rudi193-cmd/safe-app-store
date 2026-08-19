@@ -89,14 +89,14 @@ def test_ensure_started_retries_after_cooldown(monkeypatch):
     monkeypatch.setattr(wmc, "RETRY_COOLDOWN", 0.05)
 
     assert wmc.ensure_started(timeout=1) is False
-    first_loop = wmc._mcp_loop
-    assert first_loop is not None
+    first_attempt_at = wmc._last_attempt_at
+    assert first_attempt_at is not None
 
-    # A second call inside the cooldown window must NOT spawn a fresh
-    # attempt — a failed connect shouldn't cost a new subprocess/thread on
-    # every single forward_gap() call while willow-mcp is still down.
+    # A second call inside the cooldown window must NOT schedule a fresh
+    # attempt — cooldown keys off _last_attempt_at, not whether _mcp_loop
+    # is still alive (a fast-failing attempt clears its loop before this).
     assert wmc.ensure_started(timeout=1) is False
-    assert wmc._mcp_loop is first_loop
+    assert wmc._last_attempt_at == first_attempt_at
 
     time.sleep(0.1)
 
@@ -104,4 +104,4 @@ def test_ensure_started_retries_after_cooldown(monkeypatch):
     # — this is the actual bug being guarded against: "best effort" must not
     # silently become "one effort" for the rest of a long-running session.
     assert wmc.ensure_started(timeout=1) is False
-    assert wmc._mcp_loop is not first_loop
+    assert wmc._last_attempt_at > first_attempt_at

@@ -96,6 +96,33 @@ def test_app_dir_is_under_the_vault_root(monkeypatch, tmp_path):
     assert paths.app_dir() == tmp_path / "vault" / "playgate"
 
 
+def test_stage_seed_apks_copies_missing_vault_bytes_from_data_apks(monkeypatch, tmp_path):
+    from playgate.catalog import App
+    from playgate.interruption import Interruption
+
+    seed = tmp_path / "seed"
+    seed.mkdir()
+    (seed / "game.apk").write_bytes(b"apk bytes")
+    vault = tmp_path / "vault" / "apks"
+    monkeypatch.setattr(paths, "SEED_APK_DIR", seed)
+    app = App(
+        id="example",
+        title="Example",
+        blurb="A game.",
+        age_band="7+",
+        abi="universal",
+        package="com.example.game",
+        version=None,
+        sha256="00",
+        apk_path="game.apk",
+        interruption=Interruption(provenance="assumed"),
+        tracker_provenance="assumed",
+    )
+    staged = paths.stage_seed_apks([app], vault)
+    assert staged == ["game.apk"]
+    assert (vault / "game.apk").read_bytes() == b"apk bytes"
+
+
 # -- the server refuses rather than guessing ------------------------------
 
 def test_an_unconfigured_host_refuses_to_install_rather_than_searching_itself():
