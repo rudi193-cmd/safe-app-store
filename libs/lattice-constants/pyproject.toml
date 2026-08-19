@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lattice-constants"
+version = "0.1.0"
+description = "Shared 23-cubed lattice structural constants. Apps supply their own DOMAINS and TEMPORAL_STATES; this package provides DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE, and the try-Willow-first import helper."
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
