@@ -84,9 +84,10 @@ def test_boot_sequence_reconciles_edges(tmp_path, monkeypatch):
     importlib.reload(migrate)
     importlib.reload(timeline_db)
     importlib.reload(willow_edges)
+    import storage_backend
+    importlib.reload(storage_backend)
     mock = _MockSoilClient()
-    willow_edges._CLIENT = mock
-    willow_edges._CLIENT_INIT_FAILED = False
+    storage_backend.set_backend(mock)
 
     node_id = timeline_db.add_node(type_="character", fields={"name": "Real"})
     willow_edges.add_edge(node_id, "ghost-id", "knows", uuid="boot-test-uuid")

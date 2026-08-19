@@ -8,14 +8,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../apps/story-tim
 TEST_UUID = "test-user-0000"
 
 
-class _MockSoilClient:
-    """In-memory SoilClient for tests — no MCP server required."""
-    _available = True
-
+class _MockStorageBackend:
     def __init__(self):
         self._store: dict[str, dict] = {}
 
-    def put(self, collection, record, record_id=None):
+    def put(self, collection, record, *, record_id=""):
         key = record_id or record.get("id")
         self._store[key] = dict(record)
         return key
@@ -32,12 +29,13 @@ class _MockSoilClient:
 
 @pytest.fixture()
 def edges(monkeypatch):
+    import storage_backend
     import willow_edges
     import importlib
+    importlib.reload(storage_backend)
     importlib.reload(willow_edges)
-    mock = _MockSoilClient()
-    willow_edges._CLIENT = mock
-    willow_edges._CLIENT_INIT_FAILED = False
+    mock = _MockStorageBackend()
+    storage_backend.set_backend(mock)
     return willow_edges
 
 
@@ -77,12 +75,12 @@ def test_reconcile_orphans_keeps_valid(edges):
     assert len(edges.edges_for("node-1", uuid=TEST_UUID)) == 1
 
 
-def test_graceful_degradation_when_willow_unavailable(monkeypatch):
+def test_graceful_degradation_when_backend_unavailable():
+    import storage_backend
     import willow_edges
     import importlib
+    importlib.reload(storage_backend)
     importlib.reload(willow_edges)
-    willow_edges._CLIENT = None
-    willow_edges._CLIENT_INIT_FAILED = True
     result = willow_edges.add_edge("a", "b", "rel", uuid=TEST_UUID)
     assert result is None
     assert willow_edges.edges_for("a", uuid=TEST_UUID) == []

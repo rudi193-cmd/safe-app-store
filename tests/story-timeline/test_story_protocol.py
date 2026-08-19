@@ -59,22 +59,24 @@ def proto(db):
 @pytest.fixture()
 def edges(monkeypatch):
     import importlib
+    import storage_backend
     import willow_edges
+    importlib.reload(storage_backend)
     importlib.reload(willow_edges)
     mock = _MockSoilClient()
-    willow_edges._CLIENT = mock
-    willow_edges._CLIENT_INIT_FAILED = False
+    storage_backend.set_backend(mock)
     return willow_edges
 
 
 @pytest.fixture()
 def soil(monkeypatch):
     import importlib
+    import storage_backend
     import soil_protocol
+    importlib.reload(storage_backend)
     importlib.reload(soil_protocol)
     mock = _MockSoilClient()
-    soil_protocol._CLIENT = mock
-    soil_protocol._CLIENT_INIT_FAILED = False
+    storage_backend.set_backend(mock)
     return soil_protocol
 
 
@@ -172,7 +174,8 @@ def test_mirror_protocol_record(soil, proto):
     timeline = proto.create_timeline(project["id"], "World")
     assert soil.mirror_protocol_record(timeline, uuid=TEST_UUID) is True
     collection = proto.collection_path(TEST_UUID, proto.COLLECTION_TIMELINES)
-    records = soil._CLIENT.list(collection)
+    from storage_backend import get_backend
+    records = get_backend().list(collection)
     assert any(r["id"] == timeline["id"] for r in records)
 
 
@@ -211,7 +214,8 @@ def test_mirror_provenance(soil, proto):
     assert ok is True
     collection = proto.collection_path(TEST_UUID, proto.COLLECTION_ATOMS).rstrip("/")
     # atoms path has no trailing slash in mirror_provenance
-    records = soil._CLIENT.list(f"user-{TEST_UUID}/story-timeline/atoms")
+    from storage_backend import get_backend
+    records = get_backend().list(f"user-{TEST_UUID}/story-timeline/atoms")
     assert records[0]["type"] == "provenance"
     assert records[0]["entry_id"] == "entry-1"
 

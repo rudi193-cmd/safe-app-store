@@ -1,3 +1,2 @@
--e ../../libs/auth-gate
 requests
 textual>=0.47.0
