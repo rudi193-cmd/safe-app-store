@@ -12,7 +12,8 @@
     "store_add_edge",
     "store_edges_for"
   ],
-  "sap_scope": "user-{uuid}/story-timeline/**",
+  "store_scope": ["user-{uuid}/story-timeline/**"],
+  "privacy_tier": "client_only",
   "protocol": {
     "record_types": [
       "commonplace_item",

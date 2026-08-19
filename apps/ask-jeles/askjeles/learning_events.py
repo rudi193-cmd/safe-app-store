@@ -84,7 +84,7 @@ def append_event(event: dict[str, Any]) -> Path:
 def stage_to_intake(event: dict[str, Any]) -> dict[str, Any]:
     """Stage the event to Willow intake queue via safe_integration (best effort)."""
     try:
-        from safe_integration import contribute
+        from safe_integration.intake import contribute
 
         return contribute(
             json.dumps(event, ensure_ascii=False, indent=2),

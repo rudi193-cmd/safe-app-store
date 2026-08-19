@@ -1,3 +1,4 @@
+-e ../../libs/auth-gate
 psycopg2-binary==2.9.9
 watchdog>=6.0.0
 markdown>=3.6

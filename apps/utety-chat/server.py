@@ -13,7 +13,7 @@ from typing import List, Dict
 import uuid
 
 from chat_engine import ChatSession, ProfessorRoster
-from safe_integration import SAFESession
+from utety_session import UTETYSession as SAFESession
 
 # SAP gate — dev server only
 try:

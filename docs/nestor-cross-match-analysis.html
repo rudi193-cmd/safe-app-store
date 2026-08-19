@@ -1,0 +1,1108 @@
+<title>Nestor Cross-Match Analysis</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --bg: #f7f6f3;
+  --bg-card: #ffffff;
+  --bg-cluster: #f0efe9;
+  --text: #2c2a25;
+  --text-muted: #7a756b;
+  --text-dim: #a09a8e;
+  --border: #ddd8cd;
+  --border-light: #eae6dc;
+  --accent: #b5632a;
+  --accent-light: #f5e6d8;
+  --accent-muted: #d4a87c;
+  --score-high: #4a7c59;
+  --score-mid: #8a7940;
+  --score-low: #9e7e6a;
+  --tag-bg: #e8e4da;
+  --tag-text: #5a5549;
+  --layer-1: #6b7fb5;
+  --layer-2: #7a9e6b;
+  --layer-3: #b5632a;
+  --layer-4: #8a6bb5;
+  --layer-5: #5a8e9e;
+  --layer-x: #7a756b;
+  --shadow: 0 1px 3px rgba(44,42,37,0.06);
+  --shadow-hover: 0 2px 8px rgba(44,42,37,0.10);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1c1b18;
+    --bg-card: #26251f;
+    --bg-cluster: #2e2d27;
+    --text: #e4e0d8;
+    --text-muted: #9a9488;
+    --text-dim: #6a645a;
+    --border: #3a3832;
+    --border-light: #33312b;
+    --accent: #d4843f;
+    --accent-light: #3a2e20;
+    --accent-muted: #8a6538;
+    --score-high: #6aae7a;
+    --score-mid: #b5a85a;
+    --score-low: #b89a82;
+    --tag-bg: #33312b;
+    --tag-text: #b0a898;
+    --layer-1: #8a9ec8;
+    --layer-2: #8ab87a;
+    --layer-3: #d4843f;
+    --layer-4: #a88ac8;
+    --layer-5: #7ab0c0;
+    --layer-x: #9a9488;
+    --shadow: 0 1px 3px rgba(0,0,0,0.2);
+    --shadow-hover: 0 2px 8px rgba(0,0,0,0.3);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1c1b18;
+  --bg-card: #26251f;
+  --bg-cluster: #2e2d27;
+  --text: #e4e0d8;
+  --text-muted: #9a9488;
+  --text-dim: #6a645a;
+  --border: #3a3832;
+  --border-light: #33312b;
+  --accent: #d4843f;
+  --accent-light: #3a2e20;
+  --accent-muted: #8a6538;
+  --score-high: #6aae7a;
+  --score-mid: #b5a85a;
+  --score-low: #b89a82;
+  --tag-bg: #33312b;
+  --tag-text: #b0a898;
+  --layer-1: #8a9ec8;
+  --layer-2: #8ab87a;
+  --layer-3: #d4843f;
+  --layer-4: #a88ac8;
+  --layer-5: #7ab0c0;
+  --layer-x: #9a9488;
+  --shadow: 0 1px 3px rgba(0,0,0,0.2);
+  --shadow-hover: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page { max-width: 960px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+header {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+header h1 {
+  font-family: 'IBM Plex Mono', 'Menlo', monospace;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+header .subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  max-width: 55ch;
+}
+header .meta {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.section { margin-bottom: 2.5rem; }
+.section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+.section-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+  max-width: 60ch;
+}
+
+/* Clusters */
+.cluster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+.cluster-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.15s ease;
+}
+.cluster-card:hover { box-shadow: var(--shadow-hover); }
+.cluster-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.cluster-count {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+}
+.cluster-members {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.cluster-member {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+}
+.cluster-member .tag { flex-shrink: 0; }
+.cluster-edge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin-top: 0.5rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--border-light);
+}
+
+/* Tags */
+.tag {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.tag-L1 { background: color-mix(in srgb, var(--layer-1) 15%, transparent); color: var(--layer-1); }
+.tag-L2 { background: color-mix(in srgb, var(--layer-2) 15%, transparent); color: var(--layer-2); }
+.tag-L3 { background: color-mix(in srgb, var(--layer-3) 15%, transparent); color: var(--layer-3); }
+.tag-L4 { background: color-mix(in srgb, var(--layer-4) 15%, transparent); color: var(--layer-4); }
+.tag-L5 { background: color-mix(in srgb, var(--layer-5) 15%, transparent); color: var(--layer-5); }
+.tag-X { background: color-mix(in srgb, var(--layer-x) 15%, transparent); color: var(--layer-x); }
+
+/* Score bars */
+.score {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.score-high { color: var(--score-high); }
+.score-mid { color: var(--score-mid); }
+.score-low { color: var(--score-low); }
+
+/* Finding cards */
+.finding-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.finding-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.finding-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  user-select: none;
+}
+.finding-header:hover { background: var(--bg-cluster); }
+.finding-header:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.finding-chevron {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  color: var(--text-dim);
+  transition: transform 0.15s ease;
+}
+.finding-card.open .finding-chevron { transform: rotate(90deg); }
+.finding-tag-area { flex-shrink: 0; }
+.finding-source {
+  flex: 1;
+  font-size: 0.8rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.finding-top-score {
+  flex-shrink: 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.finding-body {
+  display: none;
+  padding: 0 1rem 1rem;
+  border-top: 1px solid var(--border-light);
+}
+.finding-card.open .finding-body { display: block; }
+.finding-texts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-top: 0.75rem;
+}
+@media (max-width: 640px) { .finding-texts { grid-template-columns: 1fr; } }
+.finding-text-block {}
+.finding-text-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.3rem;
+}
+.finding-text-content {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.match-list { display: flex; flex-direction: column; gap: 0.25rem; }
+.match-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  font-size: 0.75rem;
+}
+.match-bar-wrap {
+  flex-shrink: 0;
+  width: 50px;
+  height: 4px;
+  background: var(--border-light);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.match-bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+.match-source {
+  flex: 1;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.72rem;
+}
+
+/* Insight boxes */
+.insights {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+.insight {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow);
+}
+.insight-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+.insight-body {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Cross-layer table */
+.cross-table-wrap { overflow-x: auto; }
+.cross-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+.cross-table th {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+.cross-table td {
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+}
+.cross-table tr:hover td { background: var(--bg-cluster); }
+.cross-table .score-cell {
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.cross-arrow {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+}
+
+/* Filter controls */
+.controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+.filter-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+.filter-btn:hover { border-color: var(--accent-muted); color: var(--text); }
+.filter-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.filter-btn.active {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Summary stats */
+.stats-row {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+.stat-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-top: 0.2rem;
+}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Nestor Cross-Match Analysis</h1>
+    <p class="subtitle">What Nestor's StringMatcher found when it scored 30 MCP coupling audit findings against each other. Clusters, cross-layer connections, and the combinations that matter for decision-making.</p>
+    <div class="meta">
+      <span>30 findings</span>
+      <span>5 coupling layers</span>
+      <span>StringMatcher / difflib</span>
+      <span>threshold: 0.30</span>
+    </div>
+  </header>
+
+  <div class="section">
+    <div class="stats-row">
+      <div class="stat">
+        <span class="stat-value">6</span>
+        <span class="stat-label">Clusters found</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">15</span>
+        <span class="stat-label">Standalone findings</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">0.523</span>
+        <span class="stat-label">Highest affinity</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">10</span>
+        <span class="stat-label">Cross-layer links</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Clusters</div>
+    <p class="section-desc">Connected components at score &ge; 0.40. These are findings Nestor sees as structurally related &mdash; same vocabulary, overlapping concerns, or parallel shape.</p>
+    <div class="cluster-grid">
+
+      <div class="cluster-card">
+        <div class="cluster-title">Auth Gate <span class="cluster-count">2 findings</span></div>
+        <div class="cluster-members">
+          <div class="cluster-member"><span class="tag tag-L2">L2</span> the-squirrel ~30 files via WillowGate</div>
+          <div class="cluster-member"><span class="tag tag-L2">L2</span> law-gazelle reaches into _SIGNED_FIELDS</div>
+        </div>
+        <div class="cluster-edge">Peak affinity: <span class="score score-high">0.523</span> &mdash; highest pair in the dataset</div>
+      </div>
+
+      <div class="cluster-card">
+        <div class="cluster-title">safe_integration core <span class="cluster-count">3 findings</span></div>
+        <div class="cluster-members">
+          <div class="cluster-member"><span class="tag tag-L3">L3</span> 17 copies, 17 distinct implementations</div>
+          <div class="cluster-member"><span class="tag tag-L3">L3</span> Only 6 of 17 are live consumers</div>
+          <div class="cluster-member"><span class="tag tag-L3">L3</span> Conflates 3 distinct contracts</div>
+        </div>
+        <div class="cluster-edge">Triangle: <span class="score score-high">0.464</span> / <span class="score score-high">0.432</span> / <span class="score score-high">0.416</span></div>
+      </div>
+
+      <div class="cluster-card">
+        <div class="cluster-title">sys.path imports <span class="cluster-count">2 findings</span></div>
+        <div class="cluster-members">
+          <div class="cluster-member"><span class="tag tag-L2">L2</span> SoilClient via sys.path.insert</div>
+          <div class="cluster-member"><span class="tag tag-L2">L2</span> llm_router via sys.path.insert</div>
+        </div>
+        <div class="cluster-edge">Affinity: <span class="score score-high">0.444</span> &mdash; identical import pattern</div>
+      </div>
+
+      <div class="cluster-card">
+        <div class="cluster-title">Solved abstractions <span class="cluster-count">3 findings</span></div>
+        <div class="cluster-members">
+          <div class="cluster-member"><span class="tag tag-L1">L1</span> 4 apps with MCP client connections</div>
+          <div class="cluster-member"><span class="tag tag-L2">L2</span> libs/willow-read KnowledgeClient</div>
+          <div class="cluster-member"><span class="tag tag-L2">L2</span> libs/willow-pg Postgres pooling</div>
+        </div>
+        <div class="cluster-edge">Cross-layer cluster: <span class="score score-high">0.443</span> / <span class="score score-mid">0.400</span></div>
+      </div>
+
+      <div class="cluster-card">
+        <div class="cluster-title">Manifest evolution <span class="cluster-count">2 findings</span></div>
+        <div class="cluster-members">
+          <div class="cluster-member"><span class="tag tag-L4">L4</span> store_scope: 5 real, 5 empty</div>
+          <div class="cluster-member"><span class="tag tag-L4">L4</span> story-timeline has the future format</div>
+        </div>
+        <div class="cluster-edge">Affinity: <span class="score score-high">0.464</span></div>
+      </div>
+
+      <div class="cluster-card">
+        <div class="cluster-title">Invisible-to-grep <span class="cluster-count">3 findings</span></div>
+        <div class="cluster-members">
+          <div class="cluster-member"><span class="tag tag-L1">L1</span> jarvis hand-rolled OAuth+PKCE client</div>
+          <div class="cluster-member"><span class="tag tag-L5">L5</span> llmphysics .js manifest invisible</div>
+          <div class="cluster-member"><span class="tag tag-L5">L5</span> game-lab: no manifest at all</div>
+        </div>
+        <div class="cluster-edge">Cross-layer: <span class="score score-high">0.423</span> / <span class="score score-high">0.406</span> &mdash; shared trait: invisible to standard tooling</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">What the clusters mean</div>
+    <div class="insights">
+      <div class="insight">
+        <div class="insight-title">Auth gate is one problem, not two</div>
+        <div class="insight-body">the-squirrel (30 files) and law-gazelle (1 chokepoint) cluster at 0.523 &mdash; highest in the dataset. Both reach into _SIGNED_FIELDS. One AuthGate Protocol solves both, but law-gazelle is the easier first target.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-title">safe_integration is a tight triangle</div>
+        <div class="insight-body">17-copies, orphaned-copies, and three-contracts form a strongly connected triangle (0.43&ndash;0.46). The matcher confirms what the audit found: the copy count, the dead code, and the contract conflation are the same problem from three angles. Fix the contracts, the copies and orphans resolve.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-title">Two sys.path imports want the same fix</div>
+        <div class="insight-body">SoilClient and llm_router cluster at 0.444 &mdash; both use identical sys.path.insert(0, willow_root) bootstrap. A shared import-resolution pattern handles both.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-title">Solved abstractions already form a family</div>
+        <div class="insight-body">willow-read, willow-pg, and the MCP client connections cluster together cross-layer. The matcher sees these as structurally similar &mdash; the already-solved problems share vocabulary and shape with the unsolved ones. The template is there.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-title">The invisible things cluster</div>
+        <div class="insight-body">jarvis (JS client, invisible to grep), llmphysics (.js manifest), and game-lab (no manifest) form a cross-layer cluster. Shared trait: invisible to standard scan tooling. These are the things an audit misses and Nestor caught by vocabulary overlap.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-title">Manifest store_scope has a clear path</div>
+        <div class="insight-body">store_scope declarations and story-timeline's capability format cluster at 0.464. The evolutionary path is already defined: from bare prefixes to named abstract capabilities. story-timeline is the template.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Cross-layer connections</div>
+    <p class="section-desc">Strongest links between findings in different coupling layers. These reveal shared mechanics or common fix patterns that span the architecture.</p>
+    <div class="cross-table-wrap">
+      <table class="cross-table">
+        <thead>
+          <tr>
+            <th>Score</th>
+            <th>Finding A</th>
+            <th></th>
+            <th>Finding B</th>
+            <th>Implication</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="score-cell score-high">0.423</td>
+            <td><span class="tag tag-L1">L1</span> jarvis</td>
+            <td class="cross-arrow">&harr;</td>
+            <td><span class="tag tag-L5">L5</span> llmphysics</td>
+            <td style="font-size:0.72rem;color:var(--text-muted)">Both invisible to standard grep &mdash; JS clients that evade Python-centric scans</td>
+          </tr>
+          <tr>
+            <td class="score-cell score-mid">0.400</td>
+            <td><span class="tag tag-L1">L1</span> mcp-clients</td>
+            <td class="cross-arrow">&harr;</td>
+            <td><span class="tag tag-L2">L2</span> kb-read</td>
+            <td style="font-size:0.72rem;color:var(--text-muted)">MCP transport and KB read are the same pluggability problem at different layers</td>
+          </tr>
+          <tr>
+            <td class="score-cell score-mid">0.398</td>
+            <td><span class="tag tag-L2">L2</span> postgres</td>
+            <td class="cross-arrow">&harr;</td>
+            <td><span class="tag tag-L5">L5</span> already-agnostic</td>
+            <td style="font-size:0.72rem;color:var(--text-muted)">willow-pg consumers are functionally agnostic already &mdash; the abstraction worked</td>
+          </tr>
+          <tr>
+            <td class="score-cell score-mid">0.396</td>
+            <td><span class="tag tag-L2">L2</span> kb-read</td>
+            <td class="cross-arrow">&harr;</td>
+            <td><span class="tag tag-L5">L5</span> gold-standard</td>
+            <td style="font-size:0.72rem;color:var(--text-muted)">KnowledgeClient Protocol and oakenscrolls injection are the same idea</td>
+          </tr>
+          <tr>
+            <td class="score-cell score-mid">0.392</td>
+            <td><span class="tag tag-L3">L3</span> template-exists</td>
+            <td class="cross-arrow">&harr;</td>
+            <td><span class="tag tag-L4">L4</span> future-format</td>
+            <td style="font-size:0.72rem;color:var(--text-muted)">Pluggability template and manifest evolution share &ldquo;protocol declaration&rdquo; vocabulary</td>
+          </tr>
+          <tr>
+            <td class="score-cell score-mid">0.388</td>
+            <td><span class="tag tag-L1">L1</span> mcp-clients</td>
+            <td class="cross-arrow">&harr;</td>
+            <td><span class="tag tag-L2">L2</span> soil-storage</td>
+            <td style="font-size:0.72rem;color:var(--text-muted)">Both are direct willow imports &mdash; one at transport, one at data layer</td>
+          </tr>
+          <tr>
+            <td class="score-cell score-mid">0.381</td>
+            <td><span class="tag tag-L2">L2</span> auth-gate</td>
+            <td class="cross-arrow">&harr;</td>
+            <td><span class="tag tag-X">X</span> roadmap</td>
+            <td style="font-size:0.72rem;color:var(--text-muted)">Auth gate is the roadmap's hardest item (P4) &mdash; matcher confirms the weight</td>
+          </tr>
+          <tr>
+            <td class="score-cell score-low">0.369</td>
+            <td><span class="tag tag-L1">L1</span> ask-jeles</td>
+            <td class="cross-arrow">&harr;</td>
+            <td><span class="tag tag-L3">L3</span> template-exists</td>
+            <td style="font-size:0.72rem;color:var(--text-muted)">ask-jeles generic client and willow_read pluggability are both &ldquo;the template already exists&rdquo;</td>
+          </tr>
+          <tr>
+            <td class="score-cell score-low">0.365</td>
+            <td><span class="tag tag-L3">L3</span> dead-stubs</td>
+            <td class="cross-arrow">&harr;</td>
+            <td><span class="tag tag-L4">L4</span> bug</td>
+            <td style="font-size:0.72rem;color:var(--text-muted)">Silent failures: dead stubs return error strings, store_scope bug silently blocks</td>
+          </tr>
+          <tr>
+            <td class="score-cell score-low">0.363</td>
+            <td><span class="tag tag-L2">L2</span> auth-gate-gazelle</td>
+            <td class="cross-arrow">&harr;</td>
+            <td><span class="tag tag-L4">L4</span> bug</td>
+            <td style="font-size:0.72rem;color:var(--text-muted)">Gate coupling and manifest type error both live in the permission subsystem</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">All 30 findings</div>
+    <p class="section-desc">Each finding with its recommendation and what Nestor matches it to. Click to expand.</p>
+    <div class="controls">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="L1">L1 MCP clients</button>
+      <button class="filter-btn" data-filter="L2">L2 imports</button>
+      <button class="filter-btn" data-filter="L3">L3 safe_integration</button>
+      <button class="filter-btn" data-filter="L4">L4 manifests</button>
+      <button class="filter-btn" data-filter="L5">L5 agnostic</button>
+      <button class="filter-btn" data-filter="X">Cross-cutting</button>
+    </div>
+    <div class="finding-list" id="finding-list"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Decision signals</div>
+    <div class="insights">
+      <div class="insight">
+        <div class="insight-title">P0 is confirmed: safe_integration</div>
+        <div class="insight-body">The safe_integration triangle (3 findings, all mutually connected at 0.41&ndash;0.46) is the densest cluster. 17 copies, 11 orphaned, 3 conflated contracts. The matcher agrees with the roadmap: this is the highest-leverage fix.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-title">P1 template already exists</div>
+        <div class="insight-body">ask-jeles's generic MCP client connects cross-layer to the pluggability template (0.369). The solved-abstractions cluster (willow-read + willow-pg + MCP clients) proves the extraction pattern works. Don't design from scratch.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-title">Auth gate needs sequencing</div>
+        <div class="insight-body">0.523 affinity between the-squirrel and law-gazelle, but law-gazelle is a single chokepoint vs 30-file fan-out. Do gazelle first as the AuthGate Protocol prototype, then tackle squirrel.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-title">The ai-game-master bug is real</div>
+        <div class="insight-body">L4-bug connects to both dead-stubs (0.365) and auth-gate-gazelle (0.363) &mdash; three silent permission failures in the same subsystem. Fix the type error immediately, investigate the pattern.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-title">The invisible cluster is a scan gap</div>
+        <div class="insight-body">jarvis + llmphysics + game-lab cluster not by coupling type but by invisibility to standard tooling. Any future audit that only greps Python will miss these. Add JS manifest scanning and no-manifest detection.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-title">49% agnostic validates the approach</div>
+        <div class="insight-body">willow-pg's connection to already-agnostic (0.398) and gold-standard (0.378) confirms: abstractions that exist and are used actually decouple. The remaining 51% is extraction, not invention.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {
+    tag: "L1-mcp-clients", layer: "L1",
+    source: "4 apps + store TUI have direct MCP client connections via stdio_client. Endpoint discovery (_willow_root/_mcp_launch) is copy-pasted 4x across ask-jeles, semantic-translator, story-timeline, store_mcp.py.",
+    target: "Extract ask-jeles mcp_generic.py/mcp_registry.py into libs/mcp-connect. Configurable endpoint, multi-transport.",
+    matches: [
+      { score: 0.400, tag: "L2-kb-read-solved", source: "libs/willow-read KnowledgeClient Protocol with set_client() injection. 7 apps use it. Already solved." },
+      { score: 0.388, tag: "L2-soil-storage", source: "story-timeline imports SoilClient via sys.path.insert. 3 duplicated _get_client() bootstraps." },
+      { score: 0.375, tag: "L2-llm-router", source: "nasa-archive, llmphysics: direct import of Willow core llm_router via sys.path.insert." },
+      { score: 0.365, tag: "L1-ask-jeles-template", source: "ask-jeles already has generic multi-server MCP client: mcp_generic.py reads .mcp.json." },
+      { score: 0.358, tag: "vault-paths-precedent", source: "vault-paths extraction: 9 copies -> 1 lib (box audit A5)." },
+    ]
+  },
+  {
+    tag: "L1-jarvis", layer: "L1",
+    source: "jarvis has hand-rolled OAuth+PKCE MCP JSON-RPC client invisible to standard grep patterns for stdio_client/mcp_client.",
+    target: "Rewrite jarvis WillowClient to target MCP spec generically. Use same configurable endpoint pattern.",
+    matches: [
+      { score: 0.423, tag: "L5-llmphysics-misclassified", source: "llmphysics: non-standard .js manifest invisible to scans." },
+      { score: 0.353, tag: "L1-mcp-clients", source: "4 apps + store TUI have direct MCP client connections via stdio_client." },
+      { score: 0.344, tag: "L5-game-lab", source: "game-lab: only app with no manifest at all." },
+    ]
+  },
+  {
+    tag: "L1-ask-jeles-template", layer: "L1",
+    source: "ask-jeles already has generic multi-server MCP client: mcp_generic.py reads .mcp.json, discovers arbitrary servers.",
+    target: "Extract into shared libs/mcp-connect. This is the template — don't write a new generic client from scratch.",
+    matches: [
+      { score: 0.369, tag: "L3-template-exists", source: "willow_read.py already solves pluggability: Protocol + set_client() + graceful degradation." },
+      { score: 0.365, tag: "L1-mcp-clients", source: "4 apps + store TUI have direct MCP client connections via stdio_client." },
+      { score: 0.337, tag: "L4-signing-vs-enforcement", source: "sap_gate.py signs manifests (Ed25519 + hash-chained ledger) but never enforces store_scope." },
+    ]
+  },
+  {
+    tag: "L1-ratatosk", layer: "L1",
+    source: "ratatosk is tool-name-agnostic: no hardcoded tool names, full dynamic pass-through via list_tools().",
+    target: "Already server-agnostic in tool selection. Only the launch command is hardcoded — parameterize it.",
+    matches: [
+      { score: 0.368, tag: "L2-claim-verifier", source: "source-trail: core feature (verify_text) is 100% delegated to core.source_trail." },
+      { score: 0.339, tag: "L2-persona", source: "ratatosk crown.py: from willow.fylgja import persona." },
+    ]
+  },
+  {
+    tag: "L2-kb-read-solved", layer: "L2",
+    source: "libs/willow-read KnowledgeClient Protocol with set_client() injection. 7 apps use it. Already solved.",
+    target: "Replicate this pattern for all other Layer 2 categories. the-binder should consume shared lib not parallel copy.",
+    matches: [
+      { score: 0.443, tag: "L2-postgres-solved", source: "libs/willow-pg: 4 apps use it for Postgres pooling. Clean, single import." },
+      { score: 0.400, tag: "L1-mcp-clients", source: "4 apps + store TUI have direct MCP client connections via stdio_client." },
+      { score: 0.396, tag: "L5-gold-standard", source: "oakenscrolls-office and private-ledger: willow_bridge.py with injected callable." },
+    ]
+  },
+  {
+    tag: "L2-soil-storage", layer: "L2",
+    source: "story-timeline imports SoilClient via sys.path.insert. 3 duplicated _get_client() bootstraps. ~10 call sites.",
+    target: "Define StorageBackend Protocol (put/list/delete). Single willow_store lib collapses 3 duplicated bootstraps.",
+    matches: [
+      { score: 0.444, tag: "L2-llm-router", source: "nasa-archive, llmphysics: direct import of Willow core llm_router via sys.path.insert." },
+      { score: 0.388, tag: "L1-mcp-clients", source: "4 apps + store TUI have direct MCP client connections via stdio_client." },
+      { score: 0.371, tag: "L2-kb-read-solved", source: "libs/willow-read KnowledgeClient Protocol with set_client() injection." },
+    ]
+  },
+  {
+    tag: "L2-auth-gate", layer: "L2",
+    source: "the-squirrel: ~30 files import sap.core.gate -> willow_gate.WillowGate. Reaches into private _SIGNED_FIELDS.",
+    target: "Define AuthGate Protocol (check_in/authorize/check_out). Deepest coupling, hardest target. ~30 file fan-out.",
+    matches: [
+      { score: 0.523, tag: "L2-auth-gate-gazelle", source: "law-gazelle: gazelle_gate.py imports willow_gate, reaches into wg._SIGNED_FIELDS." },
+      { score: 0.381, tag: "roadmap", source: "49% agnostic. 4 proven abstractions exist (willow-read, willow-pg, vault-paths, injection pattern)." },
+      { score: 0.353, tag: "L2-llm-router", source: "nasa-archive, llmphysics: direct import of Willow core llm_router." },
+    ]
+  },
+  {
+    tag: "L2-auth-gate-gazelle", layer: "L2",
+    source: "law-gazelle: gazelle_gate.py imports willow_gate, reaches into wg._SIGNED_FIELDS for signed header building.",
+    target: "Same AuthGate Protocol. Single chokepoint in law-gazelle vs 30-file fan-out in the-squirrel.",
+    matches: [
+      { score: 0.523, tag: "L2-auth-gate", source: "the-squirrel: ~30 files import sap.core.gate -> willow_gate.WillowGate." },
+      { score: 0.363, tag: "L4-bug", source: "ai-game-master: store_scope is string not list. Gate treats as [] (deny-all)." },
+      { score: 0.361, tag: "L5-gold-standard", source: "oakenscrolls-office and private-ledger: willow_bridge.py with injected callable." },
+    ]
+  },
+  {
+    tag: "L2-lattice-easy-win", layer: "L2",
+    source: "3 apps (dating-wellbeing, game, field-notes) duplicate lattice_fallback.py with identical constants.",
+    target: "Promote to libs/willow-lattice. Constants only, no willow import. Most mechanical fix in the entire audit.",
+    matches: [
+      { score: 0.333, tag: "L2-soil-storage", source: "story-timeline imports SoilClient via sys.path.insert." },
+      { score: 0.315, tag: "L1-jarvis", source: "jarvis has hand-rolled OAuth+PKCE MCP JSON-RPC client." },
+      { score: 0.312, tag: "vault-paths-precedent", source: "vault-paths extraction: 9 copies -> 1 lib." },
+    ]
+  },
+  {
+    tag: "L2-postgres-solved", layer: "L2",
+    source: "libs/willow-pg: 4 apps use it for Postgres pooling. Clean, single import. Already solved.",
+    target: "No action needed. Proven pattern to replicate for other categories.",
+    matches: [
+      { score: 0.443, tag: "L2-kb-read-solved", source: "libs/willow-read KnowledgeClient Protocol with set_client() injection." },
+      { score: 0.398, tag: "L5-already-agnostic", source: "20 of 41 apps (49%) have zero functional coupling to willow-mcp." },
+      { score: 0.378, tag: "L5-gold-standard", source: "oakenscrolls-office and private-ledger: willow_bridge.py with injected callable." },
+    ]
+  },
+  {
+    tag: "L2-claim-verifier", layer: "L2",
+    source: "source-trail: core feature (verify_text) is 100% delegated to core.source_trail via dynamic import.",
+    target: "Define ClaimVerifier Protocol (verify_text -> dict). Inject implementation.",
+    matches: [
+      { score: 0.368, tag: "L1-ratatosk", source: "ratatosk is tool-name-agnostic: no hardcoded tool names." },
+      { score: 0.343, tag: "L1-mcp-clients", source: "4 apps + store TUI have direct MCP client connections." },
+    ]
+  },
+  {
+    tag: "L2-llm-router", layer: "L2",
+    source: "nasa-archive, llmphysics: direct import of Willow core llm_router via sys.path.insert to stale sibling checkouts.",
+    target: "Define LLMRouter Protocol (complete/load_keys). llmphysics already has WILLOW_PROXY HTTP fallback constant.",
+    matches: [
+      { score: 0.444, tag: "L2-soil-storage", source: "story-timeline imports SoilClient via sys.path.insert." },
+      { score: 0.375, tag: "L1-mcp-clients", source: "4 apps + store TUI have direct MCP client connections." },
+      { score: 0.353, tag: "L2-auth-gate", source: "the-squirrel: ~30 files import sap.core.gate -> willow_gate.WillowGate." },
+      { score: 0.352, tag: "L5-llmphysics-misclassified", source: "llmphysics: non-standard .js manifest invisible to scans." },
+    ]
+  },
+  {
+    tag: "L2-persona", layer: "L2",
+    source: "ratatosk crown.py: from willow.fylgja import persona. Single _persona_gate() function.",
+    target: "Define PersonaProvider Protocol. Shallow, single call site.",
+    matches: [
+      { score: 0.360, tag: "L2-postgres-solved", source: "libs/willow-pg: 4 apps use it for Postgres pooling." },
+      { score: 0.352, tag: "L5-gold-standard", source: "oakenscrolls-office and private-ledger: willow_bridge.py with injected callable." },
+      { score: 0.345, tag: "roadmap", source: "49% agnostic. 4 proven abstractions exist." },
+    ]
+  },
+  {
+    tag: "L3-17-copies", layer: "L3",
+    source: "safe_integration.py: 17 copies, 17 distinct implementations. 4 families. Already tracked as issue #83.",
+    target: "Collapse to libs/safe-integration. Split into 2-3 Protocol interfaces. NullBackend replaces dead stubs.",
+    matches: [
+      { score: 0.432, tag: "L3-three-contracts", source: "safe_integration conflates 3 distinct contracts: KB/messaging, session/consent, identity/composite." },
+      { score: 0.416, tag: "L3-orphaned-copies", source: "safe_integration: only 6 of 17 copies are live consumers." },
+      { score: 0.357, tag: "L1-mcp-clients", source: "4 apps + store TUI have direct MCP client connections." },
+    ]
+  },
+  {
+    tag: "L3-dead-stubs", layer: "L3",
+    source: "safe_integration ask/ask_raw: always return 'LLM routing not available in portless mode'. Dead stubs everywhere.",
+    target: "'Portless mode' is willow-specific vocabulary hardcoded as user-facing text. Replace with NullBackend.",
+    matches: [
+      { score: 0.394, tag: "L3-orphaned-copies", source: "safe_integration: only 6 of 17 copies are live consumers." },
+      { score: 0.365, tag: "L4-bug", source: "ai-game-master: store_scope is string not list. Silent permission nullification." },
+      { score: 0.352, tag: "L3-three-contracts", source: "safe_integration conflates 3 distinct contracts." },
+    ]
+  },
+  {
+    tag: "L3-orphaned-copies", layer: "L3",
+    source: "safe_integration: only 6 of 17 copies are live consumers. 11 exist only for entry_point manifest health check.",
+    target: "11 orphaned copies: replace immediately with shared status() from libs/safe-integration.",
+    matches: [
+      { score: 0.464, tag: "L3-three-contracts", source: "safe_integration conflates 3 distinct contracts." },
+      { score: 0.416, tag: "L3-17-copies", source: "safe_integration.py: 17 copies, 17 distinct implementations." },
+      { score: 0.394, tag: "L3-dead-stubs", source: "safe_integration ask/ask_raw: always return 'LLM routing not available'." },
+    ]
+  },
+  {
+    tag: "L3-three-contracts", layer: "L3",
+    source: "safe_integration conflates 3 distinct contracts: KB/messaging, session/consent (SAFESession), identity/composite.",
+    target: "Split into separate Protocol interfaces. Conflating them is why the 17 copies diverged.",
+    matches: [
+      { score: 0.464, tag: "L3-orphaned-copies", source: "safe_integration: only 6 of 17 copies are live consumers." },
+      { score: 0.432, tag: "L3-17-copies", source: "safe_integration.py: 17 copies, 17 distinct implementations." },
+      { score: 0.360, tag: "L3-squirrel-precedent", source: "the-squirrel safe_integration already delegates to safe_app_common." },
+    ]
+  },
+  {
+    tag: "L3-template-exists", layer: "L3",
+    source: "willow_read.py already solves pluggability: Protocol + set_client() + graceful degradation. Working template.",
+    target: "Replicate KnowledgeClient pattern for full safe_integration surface. oakenscrolls-office injection is gold standard.",
+    matches: [
+      { score: 0.392, tag: "L4-future-format", source: "story-timeline manifest already has capability-declaration format." },
+      { score: 0.369, tag: "L1-ask-jeles-template", source: "ask-jeles already has generic multi-server MCP client." },
+      { score: 0.355, tag: "promoted-servers-design", source: "willow-mcp has 138 tools. Nestor 7 tools, Jeles 10 tools." },
+    ]
+  },
+  {
+    tag: "L3-squirrel-precedent", layer: "L3",
+    source: "the-squirrel safe_integration already delegates to external safe_app_common package. One app already migrated.",
+    target: "safe-app-common is the extraction target shape. Other apps should follow the-squirrel's lead.",
+    matches: [
+      { score: 0.360, tag: "L3-three-contracts", source: "safe_integration conflates 3 distinct contracts." },
+      { score: 0.355, tag: "L5-already-agnostic", source: "20 of 41 apps (49%) have zero functional coupling." },
+      { score: 0.336, tag: "L3-orphaned-copies", source: "safe_integration: only 6 of 17 copies are live consumers." },
+    ]
+  },
+  {
+    tag: "L4-store-scope", layer: "L4",
+    source: "store_scope in manifests: 5 real SOIL prefixes, 5 deliberately empty. Declaration only — enforcement is in willow-mcp.",
+    target: "Evolve toward abstract capability declarations. Any MCP server providing isolated namespaces fulfills the contract.",
+    matches: [
+      { score: 0.464, tag: "L4-future-format", source: "story-timeline manifest already has capability-declaration format." },
+      { score: 0.390, tag: "L5-game-lab", source: "game-lab: only app with no manifest at all." },
+      { score: 0.357, tag: "L4-bug", source: "ai-game-master: store_scope is string not list." },
+    ]
+  },
+  {
+    tag: "L4-future-format", layer: "L4",
+    source: "story-timeline manifest already has capability-declaration format: exposes/reads_from/protocol.collections.",
+    target: "Generalize story-timeline format as the standard. Other apps adopt it.",
+    matches: [
+      { score: 0.464, tag: "L4-store-scope", source: "store_scope in manifests: 5 real SOIL prefixes, 5 deliberately empty." },
+      { score: 0.392, tag: "L3-template-exists", source: "willow_read.py already solves pluggability." },
+      { score: 0.359, tag: "L4-signing-vs-enforcement", source: "sap_gate.py signs manifests but never enforces store_scope." },
+    ]
+  },
+  {
+    tag: "L4-bug", layer: "L4",
+    source: "ai-game-master: store_scope is string not list. Gate treats as [] (deny-all). Silent permission nullification bug.",
+    target: "Fix to list: [\"user-{uuid}/ai-game-master/**\"]. Real bug — declared permissions silently blocked.",
+    matches: [
+      { score: 0.365, tag: "L3-dead-stubs", source: "safe_integration ask/ask_raw: always return 'LLM routing not available'." },
+      { score: 0.363, tag: "L2-auth-gate-gazelle", source: "law-gazelle: gazelle_gate.py imports willow_gate, reaches into _SIGNED_FIELDS." },
+      { score: 0.357, tag: "L4-store-scope", source: "store_scope in manifests: 5 real SOIL prefixes, 5 deliberately empty." },
+    ]
+  },
+  {
+    tag: "L4-signing-vs-enforcement", layer: "L4",
+    source: "sap_gate.py signs manifests (Ed25519 + hash-chained ledger) but never enforces store_scope at runtime.",
+    target: "Signing and enforcement are separate mechanisms in separate repos.",
+    matches: [
+      { score: 0.392, tag: "L5-game-lab", source: "game-lab: only app with no manifest at all." },
+      { score: 0.359, tag: "L4-future-format", source: "story-timeline manifest already has capability-declaration format." },
+      { score: 0.343, tag: "L1-jarvis", source: "jarvis has hand-rolled OAuth+PKCE MCP JSON-RPC client." },
+    ]
+  },
+  {
+    tag: "L5-already-agnostic", layer: "L5",
+    source: "20 of 41 apps (49%) have zero functional coupling to willow-mcp. Already MCP-agnostic.",
+    target: "No decoupling work needed. oakenscrolls-office/private-ledger injection pattern is the target architecture.",
+    matches: [
+      { score: 0.398, tag: "L2-postgres-solved", source: "libs/willow-pg: 4 apps use it for Postgres pooling." },
+      { score: 0.356, tag: "L1-mcp-clients", source: "4 apps + store TUI have direct MCP client connections." },
+      { score: 0.355, tag: "L3-squirrel-precedent", source: "the-squirrel safe_integration already delegates to safe_app_common." },
+    ]
+  },
+  {
+    tag: "L5-gold-standard", layer: "L5",
+    source: "oakenscrolls-office and private-ledger: willow_bridge.py with injected callable, import ban enforced by test.",
+    target: "Gold standard. test_willow_bridge_is_pure_injection bans 'import willow'. Other apps should copy this pattern.",
+    matches: [
+      { score: 0.396, tag: "L2-kb-read-solved", source: "libs/willow-read KnowledgeClient Protocol with set_client() injection." },
+      { score: 0.378, tag: "L2-postgres-solved", source: "libs/willow-pg: 4 apps use it for Postgres pooling." },
+      { score: 0.361, tag: "L2-auth-gate-gazelle", source: "law-gazelle: gazelle_gate.py imports willow_gate." },
+    ]
+  },
+  {
+    tag: "L5-game-lab", layer: "L5",
+    source: "game-lab: only app with no manifest at all. Completely decoupled but invisible to catalog tooling.",
+    target: "Add a manifest for discoverability. Zero coupling work needed otherwise.",
+    matches: [
+      { score: 0.406, tag: "L5-llmphysics-misclassified", source: "llmphysics: non-standard .js manifest invisible to scans." },
+      { score: 0.392, tag: "L4-signing-vs-enforcement", source: "sap_gate.py signs manifests but never enforces store_scope." },
+      { score: 0.390, tag: "L4-store-scope", source: "store_scope in manifests: 5 real SOIL prefixes, 5 deliberately empty." },
+    ]
+  },
+  {
+    tag: "L5-llmphysics-misclassified", layer: "L5",
+    source: "llmphysics: non-standard .js manifest invisible to scans. Actually deeply coupled despite appearing Layer 5.",
+    target: "Migrate to standard safe-app-manifest.json. Flag jac_cli.py direct core import for LLMRouter Protocol migration.",
+    matches: [
+      { score: 0.423, tag: "L1-jarvis", source: "jarvis has hand-rolled OAuth+PKCE MCP JSON-RPC client." },
+      { score: 0.406, tag: "L5-game-lab", source: "game-lab: only app with no manifest at all." },
+      { score: 0.352, tag: "L2-llm-router", source: "nasa-archive, llmphysics: direct import of Willow core llm_router." },
+    ]
+  },
+  {
+    tag: "roadmap", layer: "X",
+    source: "49% agnostic. 4 proven abstractions exist (willow-read, willow-pg, vault-paths, injection pattern). Work is extraction not design.",
+    target: "P0: safe_integration (17->1). P1: MCP client lib. P2: StorageBackend. P3: lattice (3->1). P4: auth gate. P5: manifests.",
+    matches: [
+      { score: 0.381, tag: "L2-auth-gate", source: "the-squirrel: ~30 files import sap.core.gate -> willow_gate.WillowGate." },
+      { score: 0.358, tag: "L2-kb-read-solved", source: "libs/willow-read KnowledgeClient Protocol with set_client() injection." },
+      { score: 0.345, tag: "L2-persona", source: "ratatosk crown.py: from willow.fylgja import persona." },
+    ]
+  },
+  {
+    tag: "vault-paths-precedent", layer: "X",
+    source: "vault-paths extraction: 9 copies -> 1 lib (box audit A5). The proven precedent for safe_integration collapse.",
+    target: "Same extraction mechanics. vault-paths proved this repo can do it. safe_integration is the next one.",
+    matches: [
+      { score: 0.358, tag: "L1-mcp-clients", source: "4 apps + store TUI have direct MCP client connections." },
+      { score: 0.327, tag: "L4-bug", source: "ai-game-master: store_scope is string not list." },
+      { score: 0.322, tag: "L3-template-exists", source: "willow_read.py already solves pluggability." },
+    ]
+  },
+  {
+    tag: "promoted-servers-design", layer: "X",
+    source: "willow-mcp has 138 tools. Nestor 7 tools, Jeles 10 tools, kartikeya wraps task execution. Promoted organs are deliberate.",
+    target: "Promoted MCP servers withhold capabilities by design. Generic CRUD is the threat model they defend against.",
+    matches: [
+      { score: 0.355, tag: "L3-template-exists", source: "willow_read.py already solves pluggability." },
+      { score: 0.324, tag: "L1-ask-jeles-template", source: "ask-jeles already has generic multi-server MCP client." },
+    ]
+  },
+];
+
+function getLayerClass(tag) {
+  if (tag.startsWith('L1')) return 'tag-L1';
+  if (tag.startsWith('L2')) return 'tag-L2';
+  if (tag.startsWith('L3')) return 'tag-L3';
+  if (tag.startsWith('L4')) return 'tag-L4';
+  if (tag.startsWith('L5')) return 'tag-L5';
+  return 'tag-X';
+}
+
+function getLayerFromTag(tag) {
+  if (tag.startsWith('L1')) return 'L1';
+  if (tag.startsWith('L2')) return 'L2';
+  if (tag.startsWith('L3')) return 'L3';
+  if (tag.startsWith('L4')) return 'L4';
+  if (tag.startsWith('L5')) return 'L5';
+  return 'X';
+}
+
+function scoreClass(s) {
+  if (s >= 0.40) return 'score-high';
+  if (s >= 0.35) return 'score-mid';
+  return 'score-low';
+}
+
+function barColor(s) {
+  const root = getComputedStyle(document.documentElement);
+  if (s >= 0.40) return root.getPropertyValue('--score-high').trim();
+  if (s >= 0.35) return root.getPropertyValue('--score-mid').trim();
+  return root.getPropertyValue('--score-low').trim();
+}
+
+function renderFindings(filter) {
+  const list = document.getElementById('finding-list');
+  list.innerHTML = '';
+  const filtered = filter === 'all' ? DATA : DATA.filter(d => d.layer === filter);
+
+  filtered.forEach(d => {
+    const topScore = d.matches.length > 0 ? d.matches[0].score : 0;
+    const card = document.createElement('div');
+    card.className = 'finding-card';
+    card.innerHTML = `
+      <div class="finding-header" tabindex="0" role="button" aria-expanded="false">
+        <svg class="finding-chevron" viewBox="0 0 16 16" fill="currentColor"><path d="M6 3l5 5-5 5z"/></svg>
+        <span class="finding-tag-area"><span class="tag ${getLayerClass(d.tag)}">${d.tag}</span></span>
+        <span class="finding-source">${d.source}</span>
+        <span class="finding-top-score ${scoreClass(topScore)}">${topScore > 0 ? topScore.toFixed(3) : ''}</span>
+      </div>
+      <div class="finding-body">
+        <div class="finding-texts">
+          <div class="finding-text-block">
+            <div class="finding-text-label">Finding</div>
+            <div class="finding-text-content">${d.source}</div>
+          </div>
+          <div class="finding-text-block">
+            <div class="finding-text-label">Recommendation</div>
+            <div class="finding-text-content">${d.target}</div>
+          </div>
+        </div>
+        <div class="finding-text-label" style="margin-bottom:0.4rem">Cross-matches</div>
+        <div class="match-list">
+          ${d.matches.map(m => `
+            <div class="match-row">
+              <span class="score ${scoreClass(m.score)}">${m.score.toFixed(3)}</span>
+              <span class="match-bar-wrap"><span class="match-bar" style="width:${(m.score / 0.55) * 100}%;background:${barColor(m.score)}"></span></span>
+              <span class="tag ${getLayerClass(m.tag)}">${m.tag}</span>
+              <span class="match-source">${m.source}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    const header = card.querySelector('.finding-header');
+    header.addEventListener('click', () => {
+      card.classList.toggle('open');
+      header.setAttribute('aria-expanded', card.classList.contains('open'));
+    });
+    header.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); header.click(); }
+    });
+    list.appendChild(card);
+  });
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderFindings(btn.dataset.filter);
+  });
+});
+
+renderFindings('all');
+</script>

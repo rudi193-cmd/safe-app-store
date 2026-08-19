@@ -10,6 +10,8 @@ import threading
 from pathlib import Path
 from typing import Any
 
+from mcp_connect import parse_tool_payload
+
 log = logging.getLogger("store.mcp")
 
 APP_ID = "safe-app-store"
@@ -141,31 +143,13 @@ def ensure_started(timeout: float = 45) -> bool:
     return _mcp_ready
 
 
-def _parse_tool_payload(result: Any) -> Any:
-    if result.isError:
-        parts = [getattr(c, "text", str(c)) for c in (result.content or [])]
-        raise RuntimeError("; ".join(parts) or "MCP tool error")
-    for block in result.content or []:
-        text = getattr(block, "text", None)
-        if not text:
-            continue
-        text = text.strip()
-        if text.startswith("{") or text.startswith("["):
-            try:
-                return json.loads(text)
-            except json.JSONDecodeError:
-                pass
-        return text
-    return {}
-
-
 def call_tool(name: str, inputs: dict[str, Any], timeout: float = 60) -> Any:
     if not ensure_started():
         raise RuntimeError(_mcp_error or "MCP unavailable")
     assert _mcp_session is not None
     payload = {"app_id": APP_ID, **inputs}
     result = _mcp_call_sync(_mcp_session.call_tool(name, payload), timeout)
-    return _parse_tool_payload(result)
+    return parse_tool_payload(result)
 
 
 def app_list() -> list[dict]:

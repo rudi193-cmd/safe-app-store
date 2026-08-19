@@ -9,8 +9,10 @@ from pathlib import Path
 from typing import List, Dict, Optional
 from datetime import datetime
 
-# Willow via Pigeon bus — one drop point for all Willow interactions
-import safe_integration as _willow
+try:
+    from willow_read import search as _kb_search
+except ImportError:
+    def _kb_search(q, limit=5): return []
 from consult_engine import build_prompt as _build_prompt_shared
 
 try:
@@ -23,7 +25,7 @@ except ImportError:
 
 def _willow_context(query: str, limit: int = 3) -> str:
     """Fetch relevant atoms from Willow's knowledge graph for this query."""
-    results = _willow.query(query, limit=limit)
+    results = _kb_search(query, limit=limit)
     if not results:
         return ""
     lines = ["### Willow Knows:"]
@@ -37,7 +39,7 @@ def _willow_context(query: str, limit: int = 3) -> str:
 
 def _fleet_ask(prompt: str, tier: str = "free"):
     """Ask Willow via Pigeon bus. Returns object with .content and .provider."""
-    result = _willow.ask_raw(prompt, tier=tier)
+    result = {"ok": False, "error": "LLM routing not available in portless mode"}
 
     class _R:
         content = result.get("result", "") if result.get("ok") else ""

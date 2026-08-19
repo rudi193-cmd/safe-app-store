@@ -12,9 +12,8 @@ from textual.containers import Horizontal, Vertical
 from textual.widgets import Footer, Header, Label, ListItem, ListView, Static, TextArea
 from textual import work
 
-# safe_integration lives one level up (apps/source-trail/)
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-import safe_integration as _si
+import claim_verifier as _si
 
 
 class ClaimItem(ListItem):

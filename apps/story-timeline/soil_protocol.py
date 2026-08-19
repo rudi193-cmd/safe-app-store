@@ -3,60 +3,23 @@ soil_protocol.py — SOIL collection helpers for story-timeline protocol records
 
 Mirrors protocol nodes and provenance atoms to stable SOIL paths so other
 Willow tools can read commonplace → timeline wiring without the TUI.
-Degrades gracefully when Willow is unavailable.
+Degrades gracefully when no StorageBackend is configured.
 """
 from __future__ import annotations
 
 import re
 import sys
 from datetime import datetime
-from typing import Optional
 
-import story_paths
 import story_protocol
-
-_CLIENT = None
-_CLIENT_INIT_FAILED = False
-
-
-def _get_client():
-    global _CLIENT, _CLIENT_INIT_FAILED
-
-    if _CLIENT is not None:
-        return _CLIENT
-    if _CLIENT_INIT_FAILED:
-        return None
-
-    try:
-        willow_root = story_paths.willow_root()
-        if willow_root is None:
-            sys.stderr.write(
-                "[soil_protocol] init failed: no Willow checkout found (set WILLOW_ROOT)\n"
-            )
-            _CLIENT_INIT_FAILED = True
-            return None
-        if str(willow_root) not in sys.path:
-            sys.path.insert(0, str(willow_root))
-        from sap.clients.soil_client import SoilClient
-        client = SoilClient(app_id=story_protocol.APP_ID)
-        if not client._available:
-            sys.stderr.write("[soil_protocol] SoilClient unavailable\n")
-            _CLIENT_INIT_FAILED = True
-            return None
-        _CLIENT = client
-        return _CLIENT
-    except Exception as exc:
-        sys.stderr.write(f"[soil_protocol] init failed: {exc}\n")
-        _CLIENT_INIT_FAILED = True
-        return None
+from storage_backend import get_backend
 
 
 def mirror_protocol_record(node: dict, *, uuid: str) -> bool:
-    """Mirror a protocol node to its typed SOIL collection."""
     collection_suffix = story_protocol.collection_for_type(node.get("type", ""))
     if not collection_suffix:
         return False
-    client = _get_client()
+    client = get_backend()
     if not client or not uuid:
         return False
     collection = story_protocol.collection_path(uuid, collection_suffix)
@@ -75,8 +38,7 @@ def mirror_provenance(
     provenance: dict,
     uuid: str,
 ) -> bool:
-    """Write a provenance atom linking a timeline entry to its source."""
-    client = _get_client()
+    client = get_backend()
     if not client or not uuid:
         return False
     safe_uuid = re.sub(r"[^a-zA-Z0-9_\-]", "-", uuid)
@@ -97,10 +59,3 @@ def mirror_provenance(
     except Exception as exc:
         sys.stderr.write(f"[soil_protocol] mirror_provenance failed: {exc}\n")
         return False
-
-
-def reset_client() -> None:
-    """Test helper — reset cached SoilClient state."""
-    global _CLIENT, _CLIENT_INIT_FAILED
-    _CLIENT = None
-    _CLIENT_INIT_FAILED = False

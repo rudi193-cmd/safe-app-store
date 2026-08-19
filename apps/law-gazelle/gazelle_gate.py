@@ -25,7 +25,6 @@ b17: LGGATE1  ΔΣ=42
 """
 from __future__ import annotations
 
-import json
 import os
 import sys
 from pathlib import Path
@@ -185,24 +184,21 @@ def build_header(agent_id: str, secret_hex: str, trust: int, tools: list[str],
                  nonce: str | None = None, timestamp: int | None = None,
                  last_gate: str = "saps1", state_hash: str = "0" * 64) -> dict:
     """Client-side helper: build and HMAC-sign a 13-field header."""
-    import hashlib
-    import hmac
-    import secrets
-    import time
-
-    wg = _import_willow_gate()
-    header: dict[str, Any] = {
-        "agent_id": agent_id, "agent_name": agent_id, "last_gate": last_gate,
-        "pass_count": pass_count, "fail_count": fail_count, "drift": drift,
-        "nonce": nonce or secrets.token_hex(16), "trust_level": trust,
-        "timestamp": timestamp if timestamp is not None else int(time.time() * 1000),
-        "tools": tools, "state_hash": state_hash, "signature": "", "reserved": 0,
-    }
-    canonical = json.dumps({k: header[k] for k in wg._SIGNED_FIELDS},
-                           sort_keys=True, separators=(",", ":")).encode()
-    header["signature"] = hmac.new(bytes.fromhex(secret_hex), canonical,
-                                   hashlib.sha256).hexdigest()
-    return header
+    from auth_gate import build_signed_header
+    return build_signed_header(
+        agent_id=agent_id,
+        agent_name=agent_id,
+        last_gate=last_gate,
+        trust_level=trust,
+        tools=tools,
+        secret=bytes.fromhex(secret_hex),
+        pass_count=pass_count,
+        fail_count=fail_count,
+        drift=drift,
+        nonce=nonce,
+        timestamp=timestamp,
+        state_hash=state_hash,
+    )
 
 
 if __name__ == "__main__":

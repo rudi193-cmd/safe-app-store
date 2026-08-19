@@ -1,89 +1,15 @@
-"""
-safe_integration.py — User identity + session composite for story-timeline v2.
+"""safe_integration — story-timeline bridge to libs/safe-integration.
 
-Reads user UUID from <vault_root>/user_identity.json (provisioned by willow-seed).
-Identity is shared willow state, so it lives at the vault root (honors
-WILLOW_STORE_ROOT), not under this app's own data directory.
-Writes a structured session composite atom to Willow on app close.
-Talks to Willow via SoilClient (MCP/stdio) — all calls go through the SAP gate.
-Degrades gracefully if Willow is unavailable.
+Configures the identity module with this app's vault path and re-exports
+get_user_uuid / write_session_composite so callers keep using
+`safe_integration.get_user_uuid()` unchanged.
 """
-import json
-import re
-import sys
-from datetime import datetime
-from typing import Optional
-
-import story_paths
 from story_paths import vault_root
+from safe_integration.identity import (
+    set_identity_client, get_user_uuid, write_session_composite,
+)
 
-_IDENTITY_PATH = vault_root() / "user_identity.json"
+set_identity_client(None, app_id="story-timeline",
+                    identity_path=vault_root() / "user_identity.json")
 
-_CLIENT = None
-_CLIENT_INIT_FAILED = False
-
-APP_ID = "story-timeline"
-
-
-def _get_client():
-    global _CLIENT, _CLIENT_INIT_FAILED
-
-    if _CLIENT is not None:
-        return _CLIENT
-    if _CLIENT_INIT_FAILED:
-        return None
-
-    try:
-        willow_root = story_paths.willow_root()
-        if willow_root is None:
-            sys.stderr.write(
-                "[safe_integration] store init failed: no Willow checkout found (set WILLOW_ROOT)\n"
-            )
-            _CLIENT_INIT_FAILED = True
-            return None
-        if str(willow_root) not in sys.path:
-            sys.path.insert(0, str(willow_root))
-        from sap.clients.soil_client import SoilClient
-        client = SoilClient(app_id=APP_ID)
-        if not client._available:
-            sys.stderr.write("[safe_integration] store init failed: SoilClient unavailable\n")
-            _CLIENT_INIT_FAILED = True
-            return None
-        _CLIENT = client
-        return _CLIENT
-    except Exception as e:
-        sys.stderr.write(f"[safe_integration] store init failed: {e}\n")
-        _CLIENT_INIT_FAILED = True
-        return None
-
-
-def get_user_uuid() -> Optional[str]:
-    try:
-        data = json.loads(_IDENTITY_PATH.read_text())
-        return data.get("uuid") or None
-    except (FileNotFoundError, json.JSONDecodeError, OSError):
-        return None
-
-
-def write_session_composite(stats: dict, uuid: str) -> bool:
-    client = _get_client()
-    if not client or not uuid:
-        return False
-    safe_uuid = re.sub(r"[^a-zA-Z0-9_\-]", "-", uuid)
-    collection = f"user-{safe_uuid}/story-timeline/atoms"
-    now = datetime.now()
-    atom_id = f"session-{now.strftime('%Y%m%dT%H%M%S')}"
-    record = {
-        "id": atom_id,
-        "type": "session_composite",
-        "app_id": APP_ID,
-        "user_uuid": uuid,
-        "created_at": now.isoformat(),
-        **stats,
-    }
-    try:
-        result = client.put(collection, record, record_id=atom_id)
-        return result is not None
-    except Exception as e:
-        sys.stderr.write(f"[safe_integration] write_session_composite failed: {e}\n")
-        return False
+__all__ = ["get_user_uuid", "write_session_composite"]

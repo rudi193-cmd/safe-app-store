@@ -8,24 +8,14 @@ Lattice constants imported from Willow's user_lattice.py.
 DB connection follows Willow's core/db.py pattern (psycopg2, pooled).
 """
 
-import os
-import sys
+from lattice_constants import load_lattice
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any
 
 from willow_pg import get_connection as _pg_connection, release_connection, validate_schema
 
-# Import 23-cubed lattice constants from Willow — only trust WILLOW_CORE if it
-# actually holds user_lattice.py, so a stale path never lands on sys.path (ST-PATH-01).
-_WILLOW_CORE = os.environ.get("WILLOW_CORE", os.path.expanduser("~/github/Willow/core"))
-if os.path.isfile(os.path.join(_WILLOW_CORE, "user_lattice.py")):
-    sys.path.insert(0, _WILLOW_CORE)
-try:
-    from user_lattice import DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE
-except ImportError:
-    # Standalone mode: no Willow checkout. Fall back to app-local constants.
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from lattice_fallback import DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE
+from lattice_fallback import DOMAINS, TEMPORAL_STATES
+DOMAINS, TEMPORAL_STATES, DEPTH_MIN, DEPTH_MAX, LATTICE_SIZE = load_lattice(DOMAINS, TEMPORAL_STATES)
 
 # ---------------------------------------------------------------------------
 # Connection — via the shared willow_pg seam (box audit A5). One pooled,
