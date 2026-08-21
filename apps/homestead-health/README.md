@@ -1,9 +1,20 @@
 # Homestead · Health
 
+> # ⬆️ PROMOTED — this is not the canonical copy
+>
+> ### Canonical: **[homestead-affairs/homestead-health](https://github.com/homestead-affairs/homestead-health)**
+>
+> Promoted 2026-08-20. Ship, cut releases, and file issues **against the canonical repo.**
+>
+> **This copy is kept deliberately.** The playground has repeatedly been a useful source of
+> code and patterns for the larger builds, and it is still edited here — it is not dead and
+> should not be deleted. It is simply not the release artifact.
+>
+> The two have **diverged in both directions**. Treat any difference as a question to
+> resolve, never as this copy being behind by default.
+
 **Family health records the household holds itself.** Module three on
-**Homestead · Affairs**, sibling to `homestead-law` and `homestead-ledger`,
-incubating here toward promotion to `rudi193-cmd/homestead-health` — the
-law-gazelle → homestead-law path, walked again.
+**Homestead · Affairs**, sibling to `homestead-law` and `homestead-ledger`.
 
 The design is
 [`homestead/docs/PLAN-homestead-health.md`](https://github.com/rudi193-cmd/homestead/blob/main/docs/PLAN-homestead-health.md):

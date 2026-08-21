@@ -2,6 +2,22 @@
 
 # Law Gazelle
 
+> # ⬆️ PROMOTED — this is not the canonical copy
+>
+> ### Canonical: **[homestead-affairs/homestead-law](https://github.com/homestead-affairs/homestead-law)**
+>
+> **Note the rename:** `law-gazelle` shipped as **`homestead-law`** — module one of
+> **Homestead · Affairs**. "Law Gazelle" survives as the prose name. Promoted 2026-08-20.
+> Ship, cut releases, and file issues **against the canonical repo.**
+>
+> **This copy is kept deliberately.** The playground has repeatedly been a useful source of
+> code and patterns for the larger builds, and it is still edited here — it is not dead and
+> should not be deleted. It is simply not the release artifact.
+>
+> The two have **diverged in both directions**, and this copy is currently the *larger and
+> more recently touched* of the pair. Treat any difference as a question to resolve, never
+> as this copy being behind by default.
+
 **Local-first case command center** for private legal matter data.
 
 Law Gazelle reads operator-provided case databases from Nest and surfaces an urgent queue, milestone tracker, document context, and sidecar state in a Textual TUI. It also exposes an MCP surface for local LLM legal sessions.
