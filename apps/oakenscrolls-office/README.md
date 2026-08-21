@@ -1,7 +1,20 @@
 # Oakenscroll's Office
 
-> **Vendored copy** — canonical lives at
-> https://github.com/rudi193-cmd/oakenscrolls-office (Apache-2.0). Keep in sync.
+> # ⬆️ PROMOTED — this is not the canonical copy
+>
+> ### Canonical: **[hornbook-knowledge/oakenscrolls-office](https://github.com/hornbook-knowledge/oakenscrolls-office)** (Apache-2.0)
+>
+> Transferred to the `hornbook-knowledge` org 2026-08-20. **The old pointer on this line
+> said `rudi193-cmd/oakenscrolls-office`** — that redirects, but it is no longer the address.
+> Ship, cut releases, and file issues **against the canonical repo.**
+>
+> **This copy is kept deliberately.** The playground has repeatedly been a useful source of
+> code and patterns for the larger builds — it is not dead and should not be deleted. It is
+> simply not the release artifact.
+>
+> Unlike its siblings, this copy **is** the older of the pair (last touched 2026-07-27
+> against the canonical's 2026-08-10), so the earlier "keep in sync" note was fair here.
+> Check before copying anything back out.
 
 Where certainty gets graded. ΔΣ=42
 
