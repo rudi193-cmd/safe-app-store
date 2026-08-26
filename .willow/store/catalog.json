@@ -806,6 +806,24 @@
         "standup",
         "lab"
       ]
+    },
+    {
+      "id": "quick-stupids",
+      "name": "quick-stupids",
+      "description": "Files this app's local CLAUDE.md 'Rules that DO apply here' as verified jeles nuggets under quick-stupids/founding/. seed upserts, list shows what's on file, check <claim> searches this app's principles for ones that bear on the claim. First user of the libs/quick-stupids/ subject-app pattern.",
+      "author": "USER",
+      "status": "seeded",
+      "path": "apps/quick-stupids",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "tags": [
+        "founding",
+        "corpus",
+        "check",
+        "pattern"
+      ]
     }
   ]
 }

@@ -1,0 +1,29 @@
+{
+  "app_id": "quick-stupids",
+  "name": "quick-stupids",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "agent_type": "tool",
+  "description": "Files this app's local CLAUDE.md 'Rules that DO apply here' as verified jeles nuggets under the id prefix quick-stupids/founding/. seed upserts, list shows what's on file, check <claim> searches the app's own principles for ones that bear on the claim. First user of the libs/quick-stupids/ subject-app pattern.",
+  "author": "USER",
+  "data_streams": [
+    {
+      "id": "jeles_corpus",
+      "purpose": "verified nugget storage — the seeded principles land here under a stable id prefix so re-seeding upserts in place",
+      "retention": "operator-owned"
+    }
+  ],
+  "permissions": [
+    "jeles_write",
+    "jeles_fetch"
+  ],
+  "store_scope": [
+    "quick_stupids_*"
+  ],
+  "privacy_tier": "local_first",
+  "local_processing": 1.0,
+  "network": "none",
+  "entry_point": "app.py",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/rudi193-cmd/safe-app-store"
+}

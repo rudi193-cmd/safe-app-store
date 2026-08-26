@@ -1,0 +1,13 @@
+[project]
+name = "quick-stupids"
+version = "0.1.0"
+description = "The subject-app pattern: a fixed {question: answer} set of principles from a named source, filed as jeles nuggets under a per-app id prefix, with seed/list/check subcommands. Stdlib-only; jeles is the only runtime dependency, imported at module load."
+requires-python = ">=3.10"
+dependencies = ["jeles"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
