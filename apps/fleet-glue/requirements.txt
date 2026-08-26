@@ -1,0 +1,3 @@
+nestor-meaning
+jeles
+willow-mcp>=2.15.0

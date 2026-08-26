@@ -1,0 +1,37 @@
+{
+  "app_id": "fleet-glue",
+  "name": "fleet-glue",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "agent_type": "tool",
+  "description": "Reduces standup friction across Nestor, Jeles, and willow-mcp without laundering trust. Wires the established-lane recognizer via the shipped cascade seam (no monkeypatch), dual-writes gaps, corroborates claims into Nestor drafts, threads willow gap_ids through jeles promotion, and reads back Seal / Known / Reject / Gaps for triage. Never seals. Nothing here promotes a rung on its own — advisory_ratify calls willow_mcp.mem_ratify and returns the Decision, and every write lands as draft with citation warrants attached.",
+  "author": "USER",
+  "data_streams": [
+    {
+      "id": "lab_root",
+      "purpose": "Per-lab NESTOR_DB, ledger, seal.key, willow_home and SOIL root — one operator directory tree the standup command sets up",
+      "retention": "operator-owned"
+    }
+  ],
+  "permissions": [
+    "jeles_write",
+    "jeles_fetch",
+    "willow_kb_write",
+    "store_read",
+    "store_write"
+  ],
+  "store_scope": [
+    "fleet_glue_*"
+  ],
+  "privacy_tier": "local_first",
+  "local_processing": 1.0,
+  "network": "none",
+  "entry_point": "app.py",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/rudi193-cmd/safe-app-store",
+  "notes": {
+    "status": "Seeded from lab. 26/26 in the operator drive (see tests/test_drive.py). Nestor decision-graph consulted on placement: apps/ was ruled out for a build that writes to fleet stores, but the user asked to spin it up here anyway so we can play with it further. On promotion (per stores/README.md Article IV) this lifts out to its own repo — fleet_glue is not import-pure by design (its whole job is to bind Nestor+Jeles+Willow at the seams) but its core module tree does not import willow_mcp/jeles/nestor at top level: every binding is lazy inside the function that needs it.",
+    "wire": "hooks.install() registers a tier-1.5 recognizer through nestor.cascade.set_tier15_recognizer (decision 0205's seam). It does NOT monkeypatch cascade.translate_segment.",
+    "canon_door": "advisory_ratify builds a real willow_mcp.mem_ratify.RatifyRequest — proposer excluded per §0.2, quorum enforced, same-base-model witnesses flagged for human. Read-only; the caller decides whether to promote."
+  }
+}

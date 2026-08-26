@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-app-fleet-glue"
+version = "0.1.0"
+description = "Standup + cross-product glue for Nestor + Jeles + willow-mcp. Never seals; binds through shipped seams; leaves canon-door decisions to willow_mcp.mem_ratify."
+requires-python = ">=3.11"
+# The three organs. Pinned to the same PyPI names willow-mcp[nestor] uses,
+# so `pip install .` composes with an existing willow install without
+# yanking a second copy of jeles.
+dependencies = [
+    "nestor-meaning",
+    "jeles",
+    "willow-mcp>=2.15.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+fleet-glue = "fleet_glue.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

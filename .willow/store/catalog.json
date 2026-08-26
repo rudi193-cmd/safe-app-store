@@ -786,6 +786,26 @@
         "github",
         "browser"
       ]
+    },
+    {
+      "id": "fleet-glue",
+      "name": "fleet-glue",
+      "description": "Standup + cross-product glue for Nestor + Jeles + willow-mcp. Wires the tier-1.5 established recognizer through the shipped cascade seam (no monkeypatch), dual-writes gaps, corroborates claims to Nestor drafts, threads willow gap_ids through jeles promotion, and provides a read-only canon door via willow_mcp.mem_ratify. Never seals.",
+      "author": "USER",
+      "status": "seeded",
+      "path": "apps/fleet-glue",
+      "tier": "playground",
+      "majors": [
+        "python"
+      ],
+      "tags": [
+        "glue",
+        "nestor",
+        "jeles",
+        "willow-mcp",
+        "standup",
+        "lab"
+      ]
     }
   ]
 }
