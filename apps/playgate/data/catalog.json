@@ -94,6 +94,26 @@
         "note": "not on F-Droid; operator must supply the APK and record its digest with tools/record_apk.py"
       },
       "tracker_provenance": "assumed"
+    },
+    {
+      "id": "blockworld",
+      "title": "BlockWorld",
+      "blurb": "A blocky creative world. Build, fly, keep animals, play together on your own wifi. No timer, no streak, nothing to buy.",
+      "age_band": "5+",
+      "abi": "universal",
+      "package": "com.family.blockworld",
+      "version": "v7",
+      "apk_path": "blockworld.apk",
+      "sha256": "83b94ad045f467df3aa5040caad1862fbf94b1aa5c26a8cccb1948f43cd23b4e",
+      "interruption": {
+        "provenance": "measured",
+        "count_per_10min": 0,
+        "observed_version": "v6",
+        "observed_at": "2026-08-29",
+        "observed_by": "sean-campbell",
+        "note": "about three hours of play across two children on 2026-08-29, over several sittings before and after dinner; no interruption of any kind occurred"
+      },
+      "tracker_provenance": "assumed"
     }
   ]
 }
