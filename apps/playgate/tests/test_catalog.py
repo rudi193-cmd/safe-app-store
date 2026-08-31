@@ -135,13 +135,45 @@ def test_the_shipped_catalog_loads():
     assert catalog.load()
 
 
-def test_every_shipped_entry_is_honestly_assumed():
-    """Nobody has measured any of these. An entry claiming otherwise would be
-    the exact failure this app exists to refuse, committed in its own data file.
+def test_every_shipped_entry_states_a_provenance_it_can_defend():
+    """Until 2026-08-29 this test read `every shipped entry is assumed`, because
+    nobody had watched any of them run. That is no longer true: `blockworld` was
+    built here and played for about three hours by two children, and recording
+    it as `assumed` would have been its own small lie — an app measured at zero
+    interruptions and an app nobody has checked are opposite facts, which is the
+    whole argument this module rests on.
+
+    So the invariant is no longer a count of how many entries are unmeasured. It
+    is that no entry may claim more than someone actually did:
+
+      * `assumed` carries no count — there is nowhere for a number to come from.
+      * `measured` names a person, a date, and the build they watched, so that
+        `effective()` can demote it the moment that build changes.
+
+    `Interruption.__post_init__` enforces both on construction. This asserts
+    they hold for the data we actually ship, which is the part that can rot.
     """
     for app in catalog.load():
-        assert app.interruption.provenance == "assumed", app.id
-        assert app.view()["confidence"] == "assumed", app.id
+        record = app.interruption
+        assert record.provenance in ("assumed", "fitted", "measured"), app.id
+
+        if record.provenance == "assumed":
+            assert record.count_per_10min is None, app.id
+        else:
+            assert record.count_per_10min is not None, app.id
+
+        if record.provenance == "measured":
+            assert record.observed_by, app.id
+            assert record.observed_at, app.id
+            assert record.observed_version, app.id
+            # Shipping a build nobody watched is allowed — that is ordinary, a
+            # bug gets fixed between one sitting and the next. What is not
+            # allowed is going on claiming the observation afterwards. So when
+            # the shipped build is not the observed one, `effective()` must
+            # stop calling it measured. Requiring the two to be equal instead
+            # would forbid a state this module deliberately supports.
+            if record.observed_version != app.version:
+                assert record.effective(app.version).provenance != "measured", app.id
 
 
 def test_every_shipped_entry_pairs_apk_path_with_a_digest():

@@ -46,6 +46,16 @@
       "filename": "frozen-bubble.apk",
       "sha256": "bf291a12e88c84e559bd4f0faf99163a6a5b55da995df69ef10f888c6bba77e4",
       "url": "https://f-droid.org/repo/org.jfedor.frozenbubble_54.apk"
+    },
+    {
+      "catalog_id": "blockworld",
+      "package": "com.family.blockworld",
+      "version_code": 7,
+      "version_name": "v7",
+      "filename": "blockworld.apk",
+      "sha256": "83b94ad045f467df3aa5040caad1862fbf94b1aa5c26a8cccb1948f43cd23b4e",
+      "built_from": "workshop/kid-projects/blockworld — built locally with build-apk.sh, not downloaded",
+      "note": "not an F-Droid app; no upstream URL exists. The source it was built from is on this machine."
     }
   ]
 }
