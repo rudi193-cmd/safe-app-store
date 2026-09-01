@@ -1,0 +1,12 @@
+{
+  "app_id": "the-squirrel",
+  "major": "python",
+  "host": "safe-app-store",
+  "core_module": "db",
+  "pure_core": "db",
+  "semantic_seam": "db.persons:search_persons",
+  "repo_url": "https://github.com/rudi193-cmd/the-squirrel",
+  "host_repointed": false,
+  "author": "vishwakarma",
+  "verified_by": "sean campbell"
+}
