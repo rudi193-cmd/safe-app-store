@@ -79,3 +79,23 @@ def test_placeholder_is_not_a_secret():
 def test_plausible_date_rejects_semver_accepts_real_date():
     assert classify._plausible_date("0.4.27") is False
     assert classify._plausible_date("2021-06-14") is True
+
+
+# ── ocr: the text suffix set (offline) ─────────────────────────────────────────
+
+def test_jsonl_is_extracted_as_plaintext(tmp_path):
+    # .jsonl was excluded while .json was accepted, so seal ledgers and other
+    # line-delimited JSON were never walked at all. An omission here lands in
+    # no counter, so it has to be asserted behaviourally rather than read.
+    p = tmp_path / "seals.jsonl"
+    p.write_text('{"seal": 1}\n{"seal": 2}\n')
+    text, method = ocr.extract(p)
+    assert method == "plaintext"
+    assert '"seal": 2' in text
+
+
+def test_plaintext_family_stays_admitted():
+    # A suffix dropped from this set fails silently: not extracted, not failed,
+    # not skipped. Pin the families the Nest is known to receive.
+    for suffix in (".txt", ".md", ".json", ".jsonl", ".yaml", ".py", ".sql"):
+        assert suffix in ocr.supported_suffixes(), suffix
