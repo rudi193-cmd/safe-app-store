@@ -32,7 +32,7 @@ on `master`.
 
 ## What is canonical now
 
-`rudi193-cmd/Forge` (branch `master`) is the canonical source for:
+`forge-play/Forge` (branch `master`; PyPI `forge-play`) is the canonical source for — it moved there from `rudi193-cmd/Forge` on 2026-09-03 as a greenfield repository, and the record below was written against the older address:
 
 - `calibration.py`, `calibration_ledger.py`
 - `checkpoint.py`, `checkpoint_calibration.py`, `checkpoint_engagement.py`,
@@ -62,5 +62,5 @@ those three things live in `rudi193-cmd/Forge` — it has no counterpart there
 ## Reopen condition
 
 If a future edit needs to change the *behavior* of any module in this
-directory, that edit belongs in `rudi193-cmd/Forge`, not here. A change made
+directory, that edit belongs in `forge-play/Forge`, not here. A change made
 only to the archived copy here has no effect on anything that runs.

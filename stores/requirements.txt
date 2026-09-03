@@ -24,7 +24,7 @@ cryptography>=41.0
 # installed (see readiness_corpus.py's `_cmd_assess`). Not on PyPI, so a git
 # dependency, the same pattern the Nestor line below used. Left commented so
 # the stdlib-only default `pip install -r` stays clean:
-#   forge @ git+https://github.com/rudi193-cmd/Forge@master
+#   forge-play>=0.1.0,<1.0.0   # on PyPI since 2026-09-03 (import name: forge)
 #
 # stores/checkpoint_memory.py (D9/D12, docs/design/the-forge.md) needs
 # Nestor. Nestor is NOT on PyPI — `pip index versions nestor` returns "No

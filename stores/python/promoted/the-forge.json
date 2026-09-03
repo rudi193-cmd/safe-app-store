@@ -1,0 +1,58 @@
+{
+  "app_id": "the-forge",
+  "verdict": "PROMOTED",
+  "major": "python",
+  "major_reason": "major 'python' declared in promotion.json",
+  "repo_url": "https://github.com/forge-play/Forge",
+  "author": "vishwakarma",
+  "verified_by": "rudi193",
+  "recorded_at": "2026-09-03T04:58:23Z",
+  "candidate": "Forge",
+  "gates": [
+    {
+      "gate": "witnessed [M]",
+      "ok": true,
+      "detail": "author='vishwakarma' verified_by='rudi193' (attested \u2014 no seal declared)"
+    },
+    {
+      "gate": "own_repo [A]",
+      "ok": true,
+      "detail": "https://github.com/forge-play/Forge"
+    },
+    {
+      "gate": "host_repointed [A]",
+      "ok": true,
+      "detail": "attested"
+    },
+    {
+      "gate": "manifest [M]",
+      "ok": true,
+      "detail": "pyproject.toml (library-clean)"
+    },
+    {
+      "gate": "tests_green [M]",
+      "ok": true,
+      "detail": "329 passed, 10 skipped in 2.02s"
+    },
+    {
+      "gate": "vault_leak [M]",
+      "ok": true,
+      "detail": "no data leaks (PASS)"
+    },
+    {
+      "gate": "import_pure_core [M]",
+      "ok": true,
+      "detail": "forge: network-free at import"
+    },
+    {
+      "gate": "inversion [M]",
+      "ok": true,
+      "detail": "host not imported (seams injected)"
+    },
+    {
+      "gate": "semantic_seam [M]",
+      "ok": true,
+      "detail": "forge.checkpoint_memory:CheckpointMemory defined"
+    }
+  ]
+}
