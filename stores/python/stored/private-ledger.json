@@ -9,5 +9,5 @@
   "maker": "USER",
   "lane": null,
   "state": "gated",
-  "notes": null
+  "notes": "PROMOTED into its own repo, homestead-affairs/homestead-ledger. Until now this was recorded only inside homestead-health's notes ('homestead-ledger from apps/private-ledger') and not in this record, so private-ledger read as gated and unclaimed. NOT a code lift: homestead-ledger is a rewrite on the homestead-affairs engine (books/balance/recurring/importer/fingerprint over the shared intake/queue/registry/store skeleton), while this playground copy is the standalone financial ledger (ledger_db, pl_paths, subscriptions, web, lattice_fallback). The design travelled; the code did not. No stores/python/promoted/private-ledger.json exists: the shipped repo carries no promotion.json, and promote_check fails closed on it ('no promotion.json - cannot promote'). Minting the record needs author and verified_by (which must differ, SS0.2) and an honest `host`, and those are a human's to state, not this record's to assume - so the absence is named here rather than papered over. The apps/private-ledger playground copy stays on disk, per the sibling convention in homestead-health's record."
 }

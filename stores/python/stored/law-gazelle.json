@@ -9,5 +9,5 @@
   "maker": "SAFE App Store",
   "lane": null,
   "state": "gated",
-  "notes": null
+  "notes": "PROMOTED into its own repo, homestead-affairs/homestead-law. Until now this was recorded only inside homestead-health's notes ('homestead-law from apps/law-gazelle') and not in this record, so law-gazelle read as gated and unclaimed. NOT a code lift: homestead-law is a rewrite on the homestead-affairs engine (intake/queue/registry/store/nestor_seam/packs, sibling to homestead-health and homestead-ledger), while this playground copy is the Textual TUI legal app (gazelle_gate, gazelle_state, case_store, document_store, tui_routes, screens/). The design travelled; the code did not. No stores/python/promoted/law-gazelle.json exists: the shipped repo carries no promotion.json, and promote_check fails closed on it ('no promotion.json - cannot promote'). Minting the record needs author and verified_by (which must differ, SS0.2) and an honest `host`, and those are a human's to state, not this record's to assume - so the absence is named here rather than papered over. The apps/law-gazelle playground copy stays on disk, per the sibling convention in homestead-health's record."
 }
