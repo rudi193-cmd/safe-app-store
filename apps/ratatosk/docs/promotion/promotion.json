@@ -1,0 +1,14 @@
+{
+  "_staged": "Copy of apps/ratatosk/promotion.json for promotion docs. Live attestation is at the app root.",
+  "app_id": "ratatosk",
+  "author": "sean",
+  "verified_by": "rudi193",
+  "repo_url": "https://github.com/willow-memory/ratatosk",
+  "host": "safe-app-store",
+  "core_module": "promotion_seam",
+  "pure_core": "promotion_seam",
+  "semantic_seam": "promotion_seam.capabilities:CapabilityGate",
+  "host_repointed": true,
+  "major": "python",
+  "notes": "Platform session runtime on willow-memory/ratatosk. Host consumes willow-ratatosk from PyPI."
+}

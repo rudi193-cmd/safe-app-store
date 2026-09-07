@@ -1,0 +1,58 @@
+{
+  "app_id": "ratatosk",
+  "verdict": "PROMOTED",
+  "major": "python",
+  "major_reason": "major 'python' declared in promotion.json",
+  "repo_url": "https://github.com/willow-memory/ratatosk",
+  "author": "sean",
+  "verified_by": "rudi193",
+  "recorded_at": "2026-09-07T04:32:22Z",
+  "candidate": "ratatosk",
+  "gates": [
+    {
+      "gate": "witnessed [M]",
+      "ok": true,
+      "detail": "author='sean' verified_by='rudi193' (attested \u2014 no seal declared)"
+    },
+    {
+      "gate": "own_repo [A]",
+      "ok": true,
+      "detail": "https://github.com/willow-memory/ratatosk"
+    },
+    {
+      "gate": "host_repointed [A]",
+      "ok": true,
+      "detail": "attested"
+    },
+    {
+      "gate": "manifest [M]",
+      "ok": true,
+      "detail": "safe-app-manifest.json ok"
+    },
+    {
+      "gate": "tests_green [M]",
+      "ok": true,
+      "detail": "3 passed in 0.02s"
+    },
+    {
+      "gate": "vault_leak [M]",
+      "ok": true,
+      "detail": "no data leaks (PASS)"
+    },
+    {
+      "gate": "import_pure_core [M]",
+      "ok": true,
+      "detail": "promotion_seam: network-free at import"
+    },
+    {
+      "gate": "inversion [M]",
+      "ok": true,
+      "detail": "host not imported (seams injected)"
+    },
+    {
+      "gate": "semantic_seam [M]",
+      "ok": true,
+      "detail": "promotion_seam.capabilities:CapabilityGate defined"
+    }
+  ]
+}

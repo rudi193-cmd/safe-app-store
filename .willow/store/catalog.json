@@ -310,9 +310,9 @@
     {
       "id": "ratatosk",
       "name": "Ratatosk",
-      "description": "Sovereign Claude Code replacement. Direct Anthropic API, full tool loop, JSONL sessions, MCP client, Grove-wired. Yours to run. Yours to keep.",
+      "description": "Platform session runtime — sovereign Claude Code replacement. PROMOTED 2026-09-07 to willow-memory/ratatosk (willow-ratatosk 1.2.0 on PyPI). Playground launcher repointed; canonical package owns the runtime.",
       "author": "USER",
-      "status": "building",
+      "status": "gated",
       "path": "apps/ratatosk",
       "tier": "playground",
       "majors": [
