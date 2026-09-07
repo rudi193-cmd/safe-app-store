@@ -1,6 +1,6 @@
 {
-  "appId": "dev.quickstupids.jarvis",
-  "appName": "Jarvis",
+  "appId": "dev.willowmemory.willow",
+  "appName": "Willow",
   "webDir": "www",
   "android": {
     "allowMixedContent": false

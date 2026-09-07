@@ -348,6 +348,18 @@ body {
   color: var(--warn);
 }
 
+.caps button.ghost {
+  margin-top: 6px;
+  margin-right: 8px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
 .caps .why {
   display: block;
   color: var(--muted);

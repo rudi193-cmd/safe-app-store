@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#0b0d10" />
-    <title>Jarvis</title>
+    <title>Willow</title>
     <link rel="stylesheet" href="./styles.css" />
     <link
       rel="icon"
@@ -14,7 +14,7 @@
   <body>
     <header class="bar">
       <button id="memory-toggle" class="ghost" aria-label="Memory">memory</button>
-      <h1>Jarvis</h1>
+      <h1>Willow</h1>
       <button id="settings-toggle" class="ghost" aria-label="Settings">settings</button>
     </header>
 
@@ -65,13 +65,33 @@
 
         <h3>Willow orchestrator</h3>
         <label for="willow-base-url">willow-mcp serve URL</label>
-        <input id="willow-base-url" type="text" placeholder="http://127.0.0.1:8765" autocomplete="off" spellcheck="false" />
+        <input id="willow-base-url" type="text" placeholder="http://127.0.0.1:8768" autocomplete="off" spellcheck="false" />
         <p class="fine" id="willow-status">Not connected.</p>
         <p class="fine">
-          Signs in with your own Google/Apple account against a willow-mcp instance running with <code>--serve</code>.
-          This session acts only as whatever identity the operator has bound it to on the host
-          (<code>willow-mcp confirm-binding</code>) — Jarvis cannot grant itself any standing.
+          Signs in against <code>willow-mcp --serve</code> (local default <code>:8768</code>, never
+          Grove <code>:8766</code>). On the phone this leaves this window for Google/Apple and comes
+          back here — a desktop popup cannot carry the code. This session acts only as whatever
+          identity the operator has bound it to on the host
+          (<code>willow-mcp confirm-binding</code>) — Willow cannot grant itself any standing.
         </p>
+
+        <h3>Organs (KB 2026B306)</h3>
+        <p class="fine">
+          Each install discloses what becomes possible and what becomes reachable. Enabling without
+          disclosure is refused. An organ that the server does not list stays closed.
+        </p>
+        <ul id="composition-list" class="caps"></ul>
+
+        <h3>Tier 0 homecoming</h3>
+        <p class="fine">
+          When this phone is a thumb drive, the session-end deposit is what comes home — not a second
+          vault. Copy the deposit, then <code>adb pull</code> or paste it onto the box for review /
+          <code>nestor import --apply</code>. The vault key stays home.
+        </p>
+        <menu>
+          <button type="button" id="homecoming-copy" class="ghost">Copy homecoming deposit</button>
+        </menu>
+        <p class="fine" id="homecoming-status"></p>
         <menu>
           <button type="button" id="willow-connect" class="ghost">Sign in</button>
           <button type="button" id="willow-disconnect" class="ghost">Disconnect</button>

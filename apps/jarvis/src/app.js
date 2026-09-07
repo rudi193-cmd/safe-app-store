@@ -3,10 +3,22 @@
 import { Memory } from './memory.js';
 import { probeAll } from './capability.js';
 import { Listener, Speaker, sentences } from './voice.js';
-import { TOOL_DEFS, QUIET_TOOLS, createToolRunner } from './tools.js';
+import { TOOL_DEFS, QUIET_TOOLS, createToolRunner, toModelTools } from './tools.js';
 import { Assistant, buildMemoryContext } from './claude.js';
 import { createPlatform } from './platform.js';
 import { WillowSession, handleOAuthRedirect } from './willow.js';
+import {
+  ORGANS,
+  WILLOW_MCP_SERVE_LOCAL,
+  disclose,
+  isLive,
+  loadState,
+  saveState,
+  serveUrlLooksForbidden,
+  setEnabled,
+  toolDefsFor,
+} from './composition.js';
+import { depositJson } from './homecoming.js';
 
 // A sign-in popup reloads this same page with `?code=...` in the query
 // string. Its only job is to hand that back to the window that opened it and
@@ -22,9 +34,12 @@ if (handleOAuthRedirect()) {
 }
 
 const $ = (id) => document.getElementById(id);
-const KEY_STORE = 'jarvis.apiKey';
-const EFFORT_STORE = 'jarvis.effort';
-const SPEAK_STORE = 'jarvis.speak';
+const KEY_STORE = 'willow.apiKey';
+const KEY_STORE_LEGACY = 'jarvis.apiKey';
+const EFFORT_STORE = 'willow.effort';
+const EFFORT_STORE_LEGACY = 'jarvis.effort';
+const SPEAK_STORE = 'willow.speak';
+const SPEAK_STORE_LEGACY = 'jarvis.speak';
 
 const els = {
   transcript: $('transcript'),
@@ -47,6 +62,9 @@ const els = {
   willowStatus: $('willow-status'),
   willowConnect: $('willow-connect'),
   willowDisconnect: $('willow-disconnect'),
+  compositionList: $('composition-list'),
+  homecomingCopy: $('homecoming-copy'),
+  homecomingStatus: $('homecoming-status'),
 };
 
 const caps = probeAll();
@@ -57,6 +75,8 @@ let platform = null;
 // Resolved at boot, once platform.keys exists — see boot(). null until then,
 // same pattern as platform itself.
 let willow = null;
+let compositionState = loadState();
+let presentTools = [];
 const speaker = new Speaker();
 const session = `s-${Date.now().toString(36)}`;
 
@@ -76,7 +96,7 @@ function addTurn(role, text = '') {
   el.className = `turn ${role}`;
   const who = document.createElement('div');
   who.className = 'who';
-  who.textContent = role === 'user' ? 'you' : role === 'assistant' ? 'jarvis' : role;
+  who.textContent = role === 'user' ? 'you' : role === 'assistant' ? 'willow' : role;
   const body = document.createElement('div');
   body.className = 'body';
   body.textContent = text;
@@ -134,6 +154,75 @@ function renderWillowStatus() {
     : 'Not connected.';
 }
 
+function compositionApi() {
+  return {
+    isLive: (organId) => isLive(compositionState, organId, presentTools),
+  };
+}
+
+function liveToolDefs() {
+  return toolDefsFor(TOOL_DEFS, compositionState, presentTools);
+}
+
+function renderComposition() {
+  if (!els.compositionList) return;
+  els.compositionList.replaceChildren();
+  for (const organ of ORGANS) {
+    const li = document.createElement('li');
+    const live = isLive(compositionState, organ.id, presentTools);
+    const present = (presentTools || []).some((name) => organ.detectTools.includes(name));
+    const head = document.createElement('span');
+    head.className = live ? 'yes' : 'no';
+    head.textContent = `${live ? '✓' : '—'} ${organ.name}${present ? ' (server lists it)' : ' (absent on server)'}`;
+    li.append(head);
+
+    const possible = document.createElement('span');
+    possible.className = 'why';
+    possible.textContent = `possible: ${organ.possible.join('; ')}`;
+    const reachable = document.createElement('span');
+    reachable.className = 'why';
+    reachable.textContent = `reachable: ${organ.reachable.join('; ')}`;
+    li.append(possible, reachable);
+
+    const discloseBtn = document.createElement('button');
+    discloseBtn.type = 'button';
+    discloseBtn.className = 'ghost';
+    discloseBtn.textContent = compositionState.disclosed[organ.id] ? 'Disclosed' : 'Disclose';
+    discloseBtn.disabled = Boolean(compositionState.disclosed[organ.id]);
+    discloseBtn.addEventListener('click', () => {
+      compositionState = saveState(disclose(compositionState, organ.id));
+      renderComposition();
+    });
+
+    const enableBtn = document.createElement('button');
+    enableBtn.type = 'button';
+    enableBtn.className = 'ghost';
+    const on = Boolean(compositionState.enabled[organ.id]);
+    enableBtn.textContent = on ? 'Disable' : 'Enable';
+    enableBtn.addEventListener('click', () => {
+      try {
+        compositionState = saveState(setEnabled(compositionState, organ.id, !on));
+      } catch (err) {
+        addTurn('notice', err.message);
+      }
+      renderComposition();
+    });
+    li.append(discloseBtn, enableBtn);
+    els.compositionList.append(li);
+  }
+}
+
+async function refreshPresentTools() {
+  presentTools = [];
+  if (!willow?.connected) return;
+  try {
+    presentTools = await willow.listTools();
+  } catch (err) {
+    presentTools = [];
+    els.willowStatus.textContent = `Signed in, but tools/list failed: ${err.message}`;
+  }
+}
+
 async function renderMemory() {
   const { facts, provenance } = await memory.recall({ limit: 200 });
   els.memoryProvenance.textContent = facts.length
@@ -173,7 +262,7 @@ async function fireDueReminders() {
     // durable rung the notification has been scheduled with the system since
     // the moment it was set, so posting one here would fire it twice.
     if (!platform?.reminders.durable && typeof Notification === 'function' && Notification.permission === 'granted') {
-      new Notification('Jarvis', { body: r.text });
+      new Notification('Willow', { body: r.text });
     }
   }
 }
@@ -219,6 +308,7 @@ async function ask(userText) {
     memory,
     session,
     willow,
+    composition: compositionApi(),
     remindersDurable: Boolean(platform?.reminders.durable),
     onReminderScheduled: async (row) => {
       // Hand it to the OS when we can. `schedule` returns false on the web
@@ -236,7 +326,7 @@ async function ask(userText) {
       history,
       userText: text,
       memoryContext,
-      tools: TOOL_DEFS,
+      tools: toModelTools(liveToolDefs()),
       runTool,
       onText: (delta) => {
         body.textContent += delta;
@@ -330,8 +420,9 @@ els.settingsToggle.addEventListener('click', () => {
   els.apiKey.value = cachedKey || '';
   els.effort.value = localStorage.getItem(EFFORT_STORE) || 'low';
   els.speakToggle.checked = localStorage.getItem(SPEAK_STORE) !== 'off';
-  els.willowBaseUrl.value = willow?.baseUrl || '';
+  els.willowBaseUrl.value = willow?.baseUrl || WILLOW_MCP_SERVE_LOCAL;
   renderWillowStatus();
+  renderComposition();
   renderCapabilities();
   els.settings.showModal();
 });
@@ -346,10 +437,16 @@ els.willowConnect.addEventListener('click', async () => {
     els.willowStatus.textContent = 'Enter a willow-mcp serve URL first.';
     return;
   }
+  if (serveUrlLooksForbidden(baseUrl)) {
+    els.willowStatus.textContent = 'Refused: :8766 is the Grove desk (D4 loopback). Sign in to willow-mcp --serve (local :8768).';
+    return;
+  }
   els.willowStatus.textContent = 'Opening sign-in…';
   try {
     await willow.signIn(baseUrl);
+    await refreshPresentTools();
     renderWillowStatus();
+    renderComposition();
   } catch (err) {
     els.willowStatus.textContent = `Sign-in failed: ${err.message}`;
   }
@@ -358,7 +455,21 @@ els.willowConnect.addEventListener('click', async () => {
 els.willowDisconnect.addEventListener('click', async () => {
   if (!willow) return;
   await willow.signOut();
+  presentTools = [];
   renderWillowStatus();
+  renderComposition();
+});
+
+els.homecomingCopy?.addEventListener('click', async () => {
+  const { facts } = await memory.recall({ limit: 2000 });
+  const text = depositJson(facts);
+  try {
+    await navigator.clipboard.writeText(text);
+    els.homecomingStatus.textContent = `Copied ${facts.length} fact(s) as a phone-seat-deposit.`;
+  } catch {
+    els.homecomingStatus.textContent = 'Clipboard refused — deposit is in the last notice.';
+    addTurn('notice', text);
+  }
 });
 
 els.settings.addEventListener('close', async () => {
@@ -409,10 +520,31 @@ async function boot() {
     notes: platform.keys.notes,
   };
   cachedKey = await platform.keys.get(KEY_STORE);
+  if (!cachedKey) {
+    const legacy = await platform.keys.get(KEY_STORE_LEGACY);
+    if (legacy) {
+      cachedKey = legacy;
+      await platform.keys.set(KEY_STORE, legacy);
+    }
+  }
+  if (!localStorage.getItem(EFFORT_STORE) && localStorage.getItem(EFFORT_STORE_LEGACY)) {
+    localStorage.setItem(EFFORT_STORE, localStorage.getItem(EFFORT_STORE_LEGACY));
+  }
+  if (!localStorage.getItem(SPEAK_STORE) && localStorage.getItem(SPEAK_STORE_LEGACY)) {
+    localStorage.setItem(SPEAK_STORE, localStorage.getItem(SPEAK_STORE_LEGACY));
+  }
   // Loads any config + tokens saved from a previous sign-in. A missing or
   // expired token surfaces the first time a willow_ tool is actually called,
   // not here — this just restores what was stored.
   willow = await new WillowSession({ keys: platform.keys }).load();
+  try {
+    if (await willow.completeSignInFromRedirect()) {
+      addTurn('notice', 'Signed in to willow-mcp.');
+    }
+  } catch (err) {
+    addTurn('error', `Sign-in failed: ${err.message}`);
+  }
+  await refreshPresentTools();
   speaker.enabled = localStorage.getItem(SPEAK_STORE) !== 'off';
   bindMic();
   renderCapabilities();
@@ -432,6 +564,7 @@ async function boot() {
   // suite would be asserting against a stand-in that never runs in
   // production. See test/README notes in jarvis/README.md.
   window.__jarvis = { memory, caps, ask, history, createToolRunner, session, buildMemoryContext, platform, willow };
+  window.__willow = window.__jarvis;
   document.body.dataset.ready = '1';
 }
 

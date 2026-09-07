@@ -113,12 +113,14 @@ export const TOOL_DEFS = [
   },
   {
     name: 'willow_whoami',
+    organ: 'grove',
     description:
-      'Report the fleet identity this session is signed in as: the resolved app_id, permissions, and whether this is the human-only orchestrator seat. Call this when the user asks what account Jarvis is connected as, or before any other willow_ tool call if you are not sure the connection is live. If not signed in, the result says so — that is not an error to route around.',
+      'Report the fleet identity this session is signed in as: the resolved app_id, permissions, and whether this is the human-only orchestrator seat. Call this when the user asks what account Willow is connected as, or before any other willow_ tool call if you are not sure the connection is live. If not signed in, the result says so — that is not an error to route around.',
     input_schema: { type: 'object', properties: {} },
   },
   {
     name: 'willow_dispatch_list',
+    organ: 'grove',
     description:
       'List fleet dispatch packets (work assigned between agents), newest first. Call this when the user asks what work is in flight, what is pending, or what a given agent is working on. Read-only.',
     input_schema: {
@@ -133,6 +135,7 @@ export const TOOL_DEFS = [
   },
   {
     name: 'willow_dispatch_read',
+    organ: 'grove',
     description:
       'Read one dispatch packet in full: who assigned it, to whom, its phase and priority, current status, and the complete assignment brief. Call this when the user asks about a specific dispatch by id, or after willow_dispatch_list surfaces one worth reading in full. Read-only.',
     input_schema: {
@@ -143,6 +146,7 @@ export const TOOL_DEFS = [
   },
   {
     name: 'willow_verify_handoff',
+    organ: 'grove',
     description:
       'Check a completed dispatch\'s handoff: whether its closeout exists and its declarations actually hold (checklist resolved, envelope clean, findings present). Call this when the user asks whether an agent\'s work is actually done, before considering willow_agent_clear. Read-only — it checks, it does not release anything.',
     input_schema: {
@@ -153,6 +157,7 @@ export const TOOL_DEFS = [
   },
   {
     name: 'willow_dispatch_send',
+    organ: 'grove',
     description:
       'Assign a work packet to another agent in the fleet. This is a write against the orchestrator seat — call it only when the user has explicitly directed you to send this specific assignment, never on your own initiative. willow-mcp gates who may actually complete this: if this session is not bound to the human-orchestrator identity, expect and report the denial rather than retrying.',
     input_schema: {
@@ -170,6 +175,7 @@ export const TOOL_DEFS = [
   },
   {
     name: 'willow_agent_clear',
+    organ: 'grove',
     description:
       'Release a specialist agent after its handoff has been verified, clearing it for its next packet. This is a write against the orchestrator seat — call it only when the user has explicitly asked to clear this specific agent for this specific dispatch, and only after willow_verify_handoff, never on your own judgement that work "looks done". willow-mcp gates who may actually complete this and will report a denial rather than a fabricated success if this session lacks the standing.',
     input_schema: {
@@ -179,6 +185,28 @@ export const TOOL_DEFS = [
         dispatch_id: { type: 'string', description: 'The dispatch packet id being closed out.' },
       },
       required: ['target_app', 'dispatch_id'],
+    },
+  },
+  {
+    name: 'nestor_ask',
+    organ: 'nestor',
+    description:
+      'Ask Nestor whether a human has sealed an answer. Call this first when Nestor is installed and the user asks a factual or policy question. Serve a sealed answer verbatim. If pending, say so — do not invent a seal.',
+    input_schema: {
+      type: 'object',
+      properties: { text: { type: 'string', description: 'The phrase to look up.' } },
+      required: ['text'],
+    },
+  },
+  {
+    name: 'jeles_corpus_search',
+    organ: 'jeles',
+    description:
+      'Search the Jeles corpus via the federated MCP. Call only when Jeles is installed and disclosed. Fail closed if federation is not actually reachable.',
+    input_schema: {
+      type: 'object',
+      properties: { query: { type: 'string', description: 'Corpus query.' } },
+      required: ['query'],
     },
   },
 ];
@@ -192,6 +220,8 @@ export const QUIET_TOOLS = new Set([
   'willow_dispatch_list',
   'willow_dispatch_read',
   'willow_verify_handoff',
+  'nestor_ask',
+  'jeles_corpus_search',
 ]);
 
 // The app_id argument every willow-mcp tool call requires. In serve mode
@@ -199,7 +229,11 @@ export const QUIET_TOOLS = new Set([
 // server ignores this and resolves the real identity from the signed-in
 // session's operator-confirmed binding instead, so this is a placeholder to
 // satisfy the schema, not a claim about who the call runs as.
-const WILLOW_CALL_APP_ID = 'jarvis';
+const WILLOW_CALL_APP_ID = 'willow';
+
+export function toModelTools(defs) {
+  return (defs || []).map(({ organ, ...rest }) => rest);
+}
 
 /** Normalizes a WillowSession#callTool result into the {data, text, isError} shape the UI expects. */
 function fromWillowResult(result) {
@@ -293,7 +327,18 @@ export function createToolRunner({
   // parameter predates willow-mcp integration and must keep working with no
   // fleet connection at all.
   willow = null,
+  composition = null,
 }) {
+  const organClosed = (organ) => {
+    if (!composition) return null;
+    if (composition.isLive(organ)) return null;
+    return {
+      data: null,
+      isError: true,
+      text: `Organ "${organ}" is not live (fail closed). Disclose it in settings; it appears only when willow-mcp actually lists it.`,
+    };
+  };
+
   const handlers = {
     async remember(input) {
       const fact = await memory.remember({ ...input, session });
@@ -372,6 +417,8 @@ export function createToolRunner({
     },
 
     async willow_whoami() {
+      const closed = organClosed('grove');
+      if (closed) return closed;
       if (!willow?.connected) {
         return { data: null, text: 'Not connected to willow-mcp. Tell the user to open settings and sign in.' };
       }
@@ -380,6 +427,8 @@ export function createToolRunner({
     },
 
     async willow_dispatch_list(input = {}) {
+      const closed = organClosed('grove');
+      if (closed) return closed;
       if (!willow?.connected) {
         return { data: null, text: 'Not connected to willow-mcp. Tell the user to open settings and sign in.' };
       }
@@ -388,6 +437,8 @@ export function createToolRunner({
     },
 
     async willow_dispatch_read(input) {
+      const closed = organClosed('grove');
+      if (closed) return closed;
       if (!willow?.connected) {
         return { data: null, text: 'Not connected to willow-mcp. Tell the user to open settings and sign in.' };
       }
@@ -396,6 +447,8 @@ export function createToolRunner({
     },
 
     async willow_verify_handoff(input) {
+      const closed = organClosed('grove');
+      if (closed) return closed;
       if (!willow?.connected) {
         return { data: null, text: 'Not connected to willow-mcp. Tell the user to open settings and sign in.' };
       }
@@ -404,6 +457,8 @@ export function createToolRunner({
     },
 
     async willow_dispatch_send(input) {
+      const closed = organClosed('grove');
+      if (closed) return closed;
       if (!willow?.connected) {
         return { data: null, text: 'Not connected to willow-mcp. Tell the user to open settings and sign in.' };
       }
@@ -412,11 +467,43 @@ export function createToolRunner({
     },
 
     async willow_agent_clear(input) {
+      const closed = organClosed('grove');
+      if (closed) return closed;
       if (!willow?.connected) {
         return { data: null, text: 'Not connected to willow-mcp. Tell the user to open settings and sign in.' };
       }
       const result = await willow.callTool('agent_clear', { app_id: WILLOW_CALL_APP_ID, ...input });
       return fromWillowResult(result);
+    },
+
+    async nestor_ask(input) {
+      const closed = organClosed('nestor');
+      if (closed) return closed;
+      if (!willow?.connected) {
+        return { data: null, text: 'Not connected to willow-mcp. Tell the user to open settings and sign in.' };
+      }
+      try {
+        return fromWillowResult(await willow.callTool('nestor_ask', { app_id: WILLOW_CALL_APP_ID, text: input.text }));
+      } catch (err) {
+        return fromWillowResult(
+          await willow.callTool('nestor_tool_route', { app_id: WILLOW_CALL_APP_ID, text: input.text }),
+        );
+      }
+    },
+
+    async jeles_corpus_search(input) {
+      const closed = organClosed('jeles');
+      if (closed) return closed;
+      if (!willow?.connected) {
+        return { data: null, text: 'Not connected to willow-mcp. Tell the user to open settings and sign in.' };
+      }
+      return fromWillowResult(
+        await willow.callTool('federation_call', {
+          app_id: WILLOW_CALL_APP_ID,
+          tool: 'corpus_search',
+          arguments: { query: input.query },
+        }),
+      );
     },
   };
 

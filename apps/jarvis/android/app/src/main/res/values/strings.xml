@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Jarvis</string>
-    <string name="title_activity_main">Jarvis</string>
-    <string name="package_name">dev.quickstupids.jarvis</string>
-    <string name="custom_url_scheme">dev.quickstupids.jarvis</string>
+    <string name="app_name">Willow</string>
+    <string name="title_activity_main">Willow</string>
+    <string name="package_name">dev.willowmemory.willow</string>
+    <string name="custom_url_scheme">dev.willowmemory.willow</string>
 </resources>

@@ -1,5 +1,9 @@
 # jarvis
 
+**Production name is Willow.** This directory is the historical checkout
+(re-landed from the quick-stupids playground). Launcher, OAuth client, and
+Android `applicationId` ship as Willow / `dev.willowmemory.willow`.
+
 A voice-first assistant that runs entirely in a browser tab. Hold the circle,
 talk, get an answer read back. It remembers things about you between sessions,
 and it can act — set reminders, read the device clock and battery, look things
@@ -229,6 +233,14 @@ but no Android SDK, no Gradle, and it is Linux, so no Xcode. `npx cap add
 android` scaffolds and Capacitor detects all four plugins — that much is real
 and verified — but nothing was ever compiled, installed, or run on a device or
 emulator.
+
+**2026-09-06:** a debug APK was assembled on this box (`JAVA_HOME` = OpenJDK 21;
+system `java` is 25 and Gradle 8.14.3 rejects it) and installed on Waydroid as
+`dev.willowmemory.willow`, launcher label Willow. Capacitor registered
+LocalNotifications, Preferences, and Haptics; `platform.js` and the composition
+modules loaded in the WebView. Live OAuth discovery answers on
+`http://127.0.0.1:8768` (reachable from the device via `adb reverse`). Completing
+PKCE still needs the operator at the sign-in popup. iOS remains unbuilt.
 
 **So every native branch in `src/platform.js` has executed zero times.** Not
 once, anywhere. What covers them instead:

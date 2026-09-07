@@ -27,7 +27,10 @@ import { buildMemoryContext } from '../src/claude.js';
 import { sentences } from '../src/voice.js';
 import { probeReminderDurability, probeSpeechInput } from '../src/capability.js';
 import { isNative, platformName, hasPlugin, Reminders, KeyStore } from '../src/platform.js';
-import { generatePkce, buildAuthorizeUrl, parseSseJsonRpc, discoverMetadata, registerClient } from '../src/willow.js';
+import { generatePkce, buildAuthorizeUrl, parseSseJsonRpc, discoverMetadata, registerClient, CLIENT_NAME, canonicalRedirectUri, bindDiscoveredEndpoints } from '../src/willow.js';
+import { disclose, emptyState, isLive, setEnabled, serveUrlLooksForbidden, toolDefsFor, WILLOW_MCP_SERVE_LOCAL } from '../src/composition.js';
+import { memoryDeposit } from '../src/homecoming.js';
+import { TOOL_DEFS } from '../src/tools.js';
 
 class Assert extends Error {}
 
@@ -868,6 +871,7 @@ test('WILLOW registerClient registers as a public client bound to the given redi
     eq(registration.client_id, 'issued-client-id');
     eq(sentBody.token_endpoint_auth_method, 'none', 'a static page with no build step cannot keep a client_secret — this must register as public');
     eq(sentBody.redirect_uris, ['http://localhost:8080/index.html'], 'the redirect URI given must be the one registered');
+    eq(sentBody.client_name, 'willow', 'OAuth client_name is the production name, not the playground name');
   } finally {
     globalThis.fetch = original;
   }
@@ -945,6 +949,74 @@ test('WILLOW a successful willow-mcp read passes its filters through and surface
   const result = await run('willow_dispatch_list', { status: 'pending' });
   eq(result.isError, false, 'a clean read must not be reported as an error');
   eq(result.data.total, 0, 'the underlying result data must reach the caller, not just its text');
+  memory.close();
+});
+
+test('INVARIANT composition enable without disclose fails closed', () => {
+  let thrown = null;
+  try {
+    setEnabled(emptyState(), 'nestor', true);
+  } catch (err) {
+    thrown = err;
+  }
+  ok(thrown && thrown.message.includes('fail closed'), 'enable without disclose must throw');
+});
+
+test('INVARIANT composition organ is live only when disclosed, enabled, and listed by the server', () => {
+  let state = disclose(emptyState(), 'nestor');
+  state = setEnabled(state, 'nestor', true);
+  eq(isLive(state, 'nestor', []), false, 'absent on the server stays closed');
+  eq(isLive(state, 'nestor', ['nestor_ask']), true, 'listed detecting tool opens the organ');
+});
+
+test('INVARIANT organ-tagged tools stay out of the model list until the organ is live', () => {
+  const names = toolDefsFor(TOOL_DEFS, emptyState(), ['whoami', 'nestor_ask']).map((d) => d.name);
+  ok(!names.includes('willow_whoami'), 'grove tools are organ-tagged and must not appear before disclose+enable');
+  ok(!names.includes('nestor_ask'), 'nestor tools must not appear before disclose+enable');
+});
+
+test('WILLOW canonicalRedirectUri collapses index.html to the origin root', () => {
+  eq(canonicalRedirectUri({ origin: 'https://localhost', pathname: '/index.html' }), 'https://localhost/');
+  eq(canonicalRedirectUri({ origin: 'https://localhost', pathname: '/' }), 'https://localhost/');
+});
+
+test('WILLOW bindDiscoveredEndpoints keeps DCR on the typed loopback when issuer is hostlocal.app', () => {
+  const meta = bindDiscoveredEndpoints('http://127.0.0.1:8768', {
+    issuer: 'https://http127-0-0-19000.hostlocal.app/',
+    authorization_endpoint: 'https://http127-0-0-19000.hostlocal.app/authorize',
+    token_endpoint: 'https://http127-0-0-19000.hostlocal.app/token',
+    registration_endpoint: 'https://http127-0-0-19000.hostlocal.app/register',
+  });
+  eq(meta.registration_endpoint, 'http://127.0.0.1:8768/register');
+  eq(meta.token_endpoint, 'http://127.0.0.1:8768/token');
+  eq(meta.authorization_endpoint, 'http://127.0.0.1:8768/authorize');
+});
+
+test('INVARIANT :8766 is a forbidden willow-mcp URL', () => {
+  eq(serveUrlLooksForbidden('http://127.0.0.1:8766'), true);
+  eq(serveUrlLooksForbidden(WILLOW_MCP_SERVE_LOCAL), false);
+  eq(CLIENT_NAME, 'willow');
+});
+
+test('INVARIANT homecoming deposit is a deposit, not a vault replica', () => {
+  const deposit = memoryDeposit([{ id: 1, subject: 'tea', text: 'earl grey', kind: 'preference', provenance: 'stated', aliases: ['grey'], createdAt: 1, live: true }]);
+  eq(deposit.kind, 'phone-seat-deposit');
+  eq(deposit.transport, 'tier0-usb');
+  eq(deposit.key_stays_home, true);
+  eq(deposit.facts[0].subject, 'tea');
+});
+
+test('WILLOW nestor_ask fails closed when composition says the organ is not live', async () => {
+  const { memory } = await fresh();
+  const run = createToolRunner({
+    memory,
+    session: 'test',
+    willow: { connected: true, callTool: async () => ({ text: 'should not run', data: {}, isError: false }) },
+    composition: { isLive: () => false },
+  });
+  const result = await run('nestor_ask', { text: 'Android app status' });
+  eq(result.isError, true);
+  ok(result.text.includes('fail closed'), result.text);
   memory.close();
 });
 
