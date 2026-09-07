@@ -162,7 +162,7 @@ export class Reminders {
       notifications: [
         {
           id: Number(id),
-          title: 'Jarvis',
+          title: 'Willow',
           body: String(text),
           schedule: { at: new Date(at), allowWhileIdle: true },
         },
