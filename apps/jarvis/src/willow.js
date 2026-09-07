@@ -24,13 +24,14 @@
 // Authorization spec and willow-mcp's own route names, not `measured`, until
 // it has actually completed a sign-in against a running instance.
 
-const CLIENT_NAME = 'jarvis';
+export const CLIENT_NAME = 'willow';
 const MCP_PROTOCOL_VERSION = '2025-06-18';
 const OAUTH_REDIRECT_MESSAGE = 'willow-oauth-redirect';
 
-const CONFIG_KEY = 'jarvis.willowConfig'; // { baseUrl, clientId, authorizationEndpoint, tokenEndpoint } — not secret
-const ACCESS_TOKEN_KEY = 'jarvis.willowAccessToken';
-const REFRESH_TOKEN_KEY = 'jarvis.willowRefreshToken';
+const CONFIG_KEY = 'willow.willowConfig'; // { baseUrl, clientId, authorizationEndpoint, tokenEndpoint } — not secret
+const ACCESS_TOKEN_KEY = 'willow.willowAccessToken';
+const REFRESH_TOKEN_KEY = 'willow.willowRefreshToken';
+const OAUTH_PENDING_KEY = 'willow.oauthPending';
 
 // --- PKCE + framing, pure enough to unit test without a network -------------
 
@@ -90,16 +91,50 @@ export function parseSseJsonRpc(text) {
 
 // --- discovery + dynamic client registration ---------------------------------
 
+export function canonicalRedirectUri(loc = globalThis.location) {
+  const path = loc.pathname === '/index.html' || loc.pathname === '' ? '/' : loc.pathname;
+  return `${loc.origin}${path}`;
+}
+
+/**
+ * This box's --serve advertises issuer https://http127-0-0-19000.hostlocal.app/
+ * (WILLOW_MCP_URL) even when the operator typed http://127.0.0.1:8768. Following
+ * that host from the phone is how authorize/register 400 or vanish: the WebView
+ * leaves the reverse-tunneled loopback. Keep DCR and token on the URL the
+ * operator entered. The server may still 302 /authorize to its issuer for the
+ * Google/Apple page — that hop is willow-mcp's, not this client's.
+ */
+export function bindDiscoveredEndpoints(baseUrl, meta) {
+  const base = String(baseUrl).replace(/\/$/, '');
+  const fallback = {
+    authorization_endpoint: `${base}/authorize`,
+    token_endpoint: `${base}/token`,
+    registration_endpoint: `${base}/register`,
+  };
+  if (!meta || typeof meta !== 'object') return fallback;
+  try {
+    const advertised = new URL(meta.authorization_endpoint || meta.issuer || base);
+    const entered = new URL(base.includes('://') ? base : `http://${base}`);
+    const rewritten =
+      advertised.hostname !== entered.hostname || /hostlocal\.app$/i.test(advertised.hostname);
+    if (rewritten) return { ...meta, ...fallback };
+  } catch {
+    return { ...meta, ...fallback };
+  }
+  return {
+    ...meta,
+    authorization_endpoint: meta.authorization_endpoint || fallback.authorization_endpoint,
+    token_endpoint: meta.token_endpoint || fallback.token_endpoint,
+    registration_endpoint: meta.registration_endpoint || fallback.registration_endpoint,
+  };
+}
+
 export async function discoverMetadata(baseUrl) {
   const res = await fetch(`${baseUrl}/.well-known/oauth-authorization-server`);
-  if (res.ok) return res.json();
+  if (res.ok) return bindDiscoveredEndpoints(baseUrl, await res.json());
   // Fallback to the MCP SDK's conventional route names. Not verified against
   // a running server — see the file-level note on what is assumed here.
-  return {
-    authorization_endpoint: `${baseUrl}/authorize`,
-    token_endpoint: `${baseUrl}/token`,
-    registration_endpoint: `${baseUrl}/register`,
-  };
+  return bindDiscoveredEndpoints(baseUrl, null);
 }
 
 export async function registerClient(meta, redirectUri) {
@@ -147,9 +182,36 @@ export function handleOAuthRedirect() {
     },
     location.origin,
   );
-  document.title = 'Jarvis — sign-in complete, you can close this window';
+  document.title = 'Willow — sign-in complete, you can close this window';
   window.close();
   return true;
+}
+
+export function readOAuthCallback() {
+  const params = new URLSearchParams(location.search);
+  if (!params.has('code') && !params.has('error')) return null;
+  return {
+    code: params.get('code'),
+    state: params.get('state'),
+    error: params.get('error'),
+  };
+}
+
+function readPending() {
+  try {
+    const raw = localStorage.getItem(OAUTH_PENDING_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writePending(pending) {
+  localStorage.setItem(OAUTH_PENDING_KEY, JSON.stringify(pending));
+}
+
+function clearPending() {
+  localStorage.removeItem(OAUTH_PENDING_KEY);
 }
 
 function popupAuthorize(url) {
@@ -221,6 +283,12 @@ class WillowClient {
     return this.#initialized;
   }
 
+  async listTools() {
+    await this.#ensureInitialized();
+    const result = await this.#rpc('tools/list', {});
+    return (result.tools || []).map((t) => t.name).filter(Boolean);
+  }
+
   async callTool(name, args = {}) {
     await this.#ensureInitialized();
     const result = await this.#rpc('tools/call', { name, arguments: args });
@@ -274,7 +342,7 @@ export class WillowSession {
   async signIn(baseUrl) {
     const trimmed = baseUrl.replace(/\/$/, '');
     const meta = await discoverMetadata(trimmed);
-    const redirectUri = `${location.origin}${location.pathname}`;
+    const redirectUri = canonicalRedirectUri();
     const registration = await registerClient(meta, redirectUri);
     const { verifier, challenge } = await generatePkce();
     const state = randomState();
@@ -286,28 +354,68 @@ export class WillowSession {
       state,
     });
 
-    const redirect = await popupAuthorize(authorizeUrl);
-    if (redirect.error) throw new Error(`willow-mcp: sign-in denied (${redirect.error})`);
-    if (redirect.state !== state) throw new Error('willow-mcp: state mismatch on sign-in redirect — aborting');
+    const pending = {
+      verifier,
+      state,
+      redirectUri,
+      baseUrl: trimmed,
+      clientId: registration.client_id,
+      tokenEndpoint: meta.token_endpoint,
+      authorizationEndpoint: meta.authorization_endpoint,
+    };
 
-    const tokens = await this.#exchangeToken(meta.token_endpoint, {
+    // Capacitor has no real window.opener. A popup either never returns or
+    // lands the code on a page that is not this WebView — that is the 400
+    // (or a silent close) on the phone. Same-window navigation comes back to
+    // https://localhost/?code= and completeSignInFromRedirect finishes it.
+    const cap = globalThis.Capacitor;
+    const native = Boolean(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
+    if (native) {
+      writePending(pending);
+      location.assign(authorizeUrl);
+      return this;
+    }
+
+    const redirect = await popupAuthorize(authorizeUrl);
+    await this.#finishSignIn(pending, redirect);
+    return this;
+  }
+
+  async completeSignInFromRedirect() {
+    const callback = readOAuthCallback();
+    const pending = readPending();
+    if (!callback || !pending) return false;
+    try {
+      await this.#finishSignIn(pending, callback);
+    } finally {
+      clearPending();
+      history.replaceState({}, '', `${location.origin}${location.pathname}`);
+    }
+    return true;
+  }
+
+  async #finishSignIn(pending, redirect) {
+    if (redirect.error) throw new Error(`willow-mcp: sign-in denied (${redirect.error})`);
+    if (redirect.state !== pending.state) throw new Error('willow-mcp: state mismatch on sign-in redirect — aborting');
+
+    const tokens = await this.#exchangeToken(pending.tokenEndpoint, {
       grant_type: 'authorization_code',
       code: redirect.code,
-      redirect_uri: redirectUri,
-      client_id: registration.client_id,
-      code_verifier: verifier,
+      redirect_uri: pending.redirectUri,
+      client_id: pending.clientId,
+      code_verifier: pending.verifier,
     });
 
     this.#config = {
-      baseUrl: trimmed,
-      clientId: registration.client_id,
-      authorizationEndpoint: meta.authorization_endpoint,
-      tokenEndpoint: meta.token_endpoint,
+      baseUrl: pending.baseUrl,
+      clientId: pending.clientId,
+      authorizationEndpoint: pending.authorizationEndpoint,
+      tokenEndpoint: pending.tokenEndpoint,
     };
     localStorage.setItem(CONFIG_KEY, JSON.stringify(this.#config));
     await this.#storeTokens(tokens);
-    this.baseUrl = trimmed;
-    this.client = new WillowClient({ baseUrl: trimmed, accessToken: tokens.access_token });
+    this.baseUrl = pending.baseUrl;
+    this.client = new WillowClient({ baseUrl: pending.baseUrl, accessToken: tokens.access_token });
     return this;
   }
 
@@ -318,6 +426,17 @@ export class WillowSession {
     this.#config = null;
     this.baseUrl = null;
     this.client = null;
+  }
+
+  async listTools() {
+    if (!this.client) throw new Error('willow-mcp: not signed in — open settings and connect');
+    try {
+      return await this.client.listTools();
+    } catch (err) {
+      if (err.code !== 401) throw err;
+      await this.#refresh();
+      return this.client.listTools();
+    }
   }
 
   /** Runs a tool call, refreshing the access token once on a 401 before giving up. */

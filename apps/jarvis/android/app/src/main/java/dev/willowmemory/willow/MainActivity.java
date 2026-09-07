@@ -1,4 +1,4 @@
-package dev.quickstupids.jarvis;
+package dev.willowmemory.willow;
 
 import com.getcapacitor.BridgeActivity;
 
