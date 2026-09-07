@@ -1,36 +1,40 @@
 {
   "app_id": "ratatosk",
   "name": "Ratatosk",
-  "version": "1.0.1",
+  "version": "1.2.0",
   "safe_version": ">=2.0.0",
   "b17": "L3178",
   "agent_type": "tool",
-  "description": "Sovereign Claude Code replacement. Direct Anthropic API, full tool loop, JSONL sessions, hook execution, MCP client, Grove-wired. Yours to run. Yours to keep.",
-  "author": "USER",
+  "description": "Willow platform session runtime — MCP client, capability gate, JSONL sessions, Grove bus, tier-0 deposit sync.",
+  "author": "sean",
   "data_streams": [
     {
       "id": "sessions",
-      "purpose": "JSONL session logs written to ~/.claude/projects/",
+      "purpose": "JSONL session logs under $WILLOW_HOME/ratatosk/sessions/",
       "retention": "permanent",
-      "description": "Session transcripts stored locally. Never sent upstream."
+      "description": "Session transcripts stored locally."
+    },
+    {
+      "id": "deposits",
+      "purpose": "Tier-0 sync deposit bundles under $WILLOW_HOME/ratatosk/sync-out/",
+      "retention": "permanent",
+      "description": "Exported when --deposit is passed."
     },
     {
       "id": "grove_events",
-      "purpose": "Session start/end events posted to Grove for fleet visibility",
+      "purpose": "Session start/end on Grove bus via MCP",
       "retention": "permanent",
-      "description": "Posted to Grove only when RATATOSK_GROVE_CHANNEL is set."
+      "description": "Requires RATATOSK_GROVE_CHANNEL and --mcp."
     }
   ],
   "permissions": [
     "local_llm",
-    "filesystem_write",
-    "willow_kb_read",
-    "willow_kb_write"
+    "filesystem_write"
   ],
   "privacy_tier": "local",
   "local_processing": 1.0,
   "entry_point": "ratatosk.crown:main",
   "license": "MIT",
-  "repository": "https://github.com/rudi193-cmd/safe-app-store",
-  "notes": "ANTHROPIC_API_KEY required for cloud mode. RATATOSK_MCP_PATH for MCP wiring (default: willow-2.0/sap/unified_mcp.sh). RATATOSK_GROVE_CHANNEL to enable Grove event posting."
+  "repository": "https://github.com/willow-memory/ratatosk",
+  "notes": "Playground launcher depends on willow-ratatosk (PyPI). MCP via willow-mcp (RATATOSK_MCP_COMMAND). Grove via grove_send_message when --mcp."
 }

@@ -6,8 +6,8 @@
   "relation": null,
   "anchor": null,
   "location": "apps/ratatosk",
-  "maker": "USER",
+  "maker": "sean",
   "lane": null,
-  "state": "building",
-  "notes": null
+  "state": "gated",
+  "notes": "Promoted 2026-09-07 to willow-memory/ratatosk (willow-ratatosk 1.2.0 on PyPI). Playground launcher repointed; sources archived at stores/_ratatosk_extracted/."
 }

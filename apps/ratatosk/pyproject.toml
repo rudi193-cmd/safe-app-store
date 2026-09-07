@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ratatosk-playground-launcher"
+version = "1.1.0"
+description = "SAFE playground launcher for willow-ratatosk"
+requires-python = ">=3.10"
+dependencies = [
+  "willow-ratatosk>=1.2.0",
+]
+
+[project.scripts]
+ratatosk = "ratatosk.crown:main"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["README.md", "pyproject.toml", "safe-app-manifest.json", "promotion.json"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
