@@ -139,9 +139,31 @@ The fingerprint function is **injected** (`fingerprint_declared`,
 - **The `skipped` bucket.** Any key `apply` declined to act on, with a reason:
   `path_gone` (declared path no longer exists), `no_materializer` (code cannot be
   conjured), `needs_human` (a stub was written but a field a machine must not
-  invent — e.g. a `reason`, a `maker` — was left blank), `would_delete`
-  (`stale`, and `--allow-delete` not set). `skipped` is a first-class output, not
-  a silent drop, so a partial apply is always fully accounted for.
+  invent — e.g. a `reason`, a `maker` — was left blank, or the directory was a
+  declared path under an id/basename slip, or the divergence was an
+  unfixable manifest problem), `would_delete` (`stale`, and `--allow-delete`
+  not set). `skipped` is a first-class output, not a silent drop, so a
+  partial apply is always fully accounted for.
+- **The `_archived_apps/` convention.** When `--allow-delete` archives a
+  `stale` directory, it moves `apps/<id>/` to `_archived_apps/<id>/` (never
+  `rm`, per store rule 4) in the same repo root. This is a new location, so it
+  is named here explicitly: `_archived_apps/` lives outside `apps/`, which is
+  the only tree `catalog_lint.py`'s coverage check
+  (`for app_dir in ... (REPO / "apps").iterdir()`) walks — so an archived
+  directory never trips the "no catalog entry" gate lint already runs.
+  Nothing needs to be added to lint for this to hold; the convention is safe
+  *because* it sits outside the tree lint already covers, not because lint
+  was extended to know about it.
+- **Declared-by-path is not stale, even under an id/basename slip.** The
+  declared set is keyed by catalog id; the materialized set is keyed by
+  directory basename. Rule 8 says these should be equal, but when they are
+  not — a catalog entry named `renamed-foo` whose `path` still points at
+  `apps/foo` — the directory `apps/foo` is not `stale`: some catalog entry
+  names it, just not under its own basename as the key. `apply` checks every
+  `stale` key's basename against the set of basenames the declared side's
+  `path` fields name, and refuses to archive or stub a match
+  (`skipped: needs_human`), leaving the id/basename disagreement itself to
+  `catalog_lint`'s existing rule-8 check to report.
 
 `ApplyResult` = `{applied[], skipped[], noop[]}`, each entry carrying its key,
 the verdict it came from, and the action taken or the reason it was not.

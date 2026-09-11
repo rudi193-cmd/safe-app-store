@@ -66,7 +66,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -239,79 +238,121 @@ def _real_majors(repo: Path) -> set[str]:
 
 
 def _load_stored_records(repo: Path) -> dict[str, dict]:
+    """Fail-closed like catalog.json: a keeping record that cannot be read or
+    parsed must not be silently dropped — a truncated record has previously
+    let --apply realign a catalog entry away from the tier it should hold."""
     out: dict[str, dict] = {}
     for major in sorted(_real_majors(repo)):
         for rp in sorted((repo / "stores" / major / "stored").glob("*.json")):
             try:
                 rec = json.loads(rp.read_text())
-            except json.JSONDecodeError:
-                continue
+            except (OSError, json.JSONDecodeError) as exc:
+                raise CorpusError(
+                    f"{rp.relative_to(repo)}: unreadable/malformed keeping record: {exc}"
+                ) from exc
             if rec.get("app_id"):
                 out[rec["app_id"]] = rec
     return out
 
 
 def _load_promoted_records(repo: Path) -> dict[str, tuple[str, dict]]:
+    """Fail-closed, same reasoning as `_load_stored_records`."""
     out: dict[str, tuple[str, dict]] = {}
     for major in sorted(_real_majors(repo)):
         for rp in sorted((repo / "stores" / major / "promoted").glob("*.json")):
             try:
                 rec = json.loads(rp.read_text())
-            except json.JSONDecodeError:
-                continue
+            except (OSError, json.JSONDecodeError) as exc:
+                raise CorpusError(
+                    f"{rp.relative_to(repo)}: unreadable/malformed promoted record: {exc}"
+                ) from exc
             if rec.get("app_id"):
                 out[rec["app_id"]] = (major, rec)
     return out
 
 
 def _load_pending_ids(repo: Path) -> set[str]:
+    """Fail-closed, same reasoning as `_load_stored_records` — an unreadable
+    pending.json used to be silently emptied, which would report every
+    pending app as `stale`/`missing` for the wrong reason (a read failure)
+    rather than refusing outright.
+
+    Only ids with BOTH `reason` and `blocked_on` recorded are exempt
+    (`declared_absent`) — matching catalog_lint's lint_records(), which
+    errors on a pending entry missing either field. An entry that names an
+    app but not why it's absent is not a recorded absence; it must remain a
+    flagged (`missing`/`stale`) verdict, not a silent exemption.
+    """
     p = repo / "stores" / "pending.json"
     if not p.is_file():
         return set()
     try:
         data = json.loads(p.read_text())
-    except json.JSONDecodeError:
-        return set()
-    return {e.get("app_id") for e in data.get("pending", []) if e.get("app_id")}
+    except (OSError, json.JSONDecodeError) as exc:
+        raise CorpusError(f"stores/pending.json unreadable/malformed: {exc}") from exc
+    return {
+        e.get("app_id") for e in data.get("pending", [])
+        if e.get("app_id") and e.get("reason") and e.get("blocked_on")
+    }
 
 
-def project_declared(entry: dict) -> dict:
+def project_declared(entry: dict, *, archived: bool = False) -> dict:
     """The declared fact-projection, read off the catalog entry — the facts the
     catalog *claims*: its id, tier, sorted majors, status, and the basename of
     the local path it names. A `tier: promoted` entry carries no comparable
     state (promoted records have none), so status is dropped for it — the same
-    scoping catalog_lint's lint_generated_fields() applies."""
+    scoping catalog_lint's lint_generated_fields() applies.
+
+    `archived` is decided by the caller from BOTH sides (catalog_lint.py:411's
+    scoping is per-side; here it must be per-key) — see
+    `_compute_cross_side_flags`. A key is archived-exempt the moment EITHER
+    side calls it archived, so a keeping record that drifts off `archived`
+    while the catalog still says `archived` (a human decision) is never
+    reported `source_changed` and never realigned out from under it.
+    """
     cat = entry["catalog"]
     tier = cat.get("tier")
-    basename = os.path.basename(cat["path"]) if cat.get("path") else None
-    # Archived entries keep only `archived` and their identity (rule 4: archive,
-    # don't delete — some have no majors/tier left to derive). catalog_lint's
-    # lint_generated_fields() scopes them out of the tier/majors/status check;
-    # the reconciler mirrors that so it never invents drift lint would not flag.
-    if cat.get("status") == "archived":
+    basename = Path(cat["path"]).name if cat.get("path") else None
+    if archived or cat.get("status") == "archived":
         return {"app_id": cat.get("id"), "tier": None, "majors": [],
                 "status": "archived", "path_basename": basename}
+    majors = cat.get("majors") or []
     return {
         "app_id": cat.get("id"),
         "tier": tier,
-        "majors": sorted(cat.get("majors") or []),
+        "majors": sorted(majors),
+        # Raw (unsorted) order too — catalog_lint compares the majors list
+        # ordered; the sorted `majors` field alone would miss an order-only
+        # drift (same set, different order) that lint still fails on.
+        "majors_order": tuple(majors),
         "status": None if tier == "promoted" else cat.get("status"),
         "path_basename": basename,
+        # The declared side has no notion of a manifest; it simply expects
+        # there to be no problem. `manifest_bad` (computed cross-side, same
+        # as `archived`) is what makes this diverge from the materialized
+        # side's actual answer.
+        "manifest_ok": True,
     }
 
 
-def project_materialized(m: dict) -> dict:
+def project_materialized(m: dict, *, archived: bool = False, manifest_bad: bool = False) -> dict:
     """The same shape, derived from disk: the directory basename, the manifest's
     app_id (falling back to the basename when there is no manifest — the same
     scoping lint uses), and the majors/state the keeping (or promoted) record
-    for that directory yields. Computed fresh; never persisted."""
+    for that directory yields. Computed fresh; never persisted.
+
+    `archived` and `manifest_bad` are cross-side facts the caller precomputes
+    (see `_compute_cross_side_flags`) — this function only ever sees its own
+    entry, so it cannot itself know the catalog's status or the archived state
+    the *other* side declares.
+    """
     manifest = m.get("manifest") or {}
     keeping = m.get("keeping")
     promoted = m.get("promoted")
     app_id = manifest.get("app_id") or m["dir_basename"]
     # Archived — mirror project_declared: identity facts only, generated fields
     # dropped, so an archived app is never a source_changed the lint would skip.
-    if (keeping or {}).get("state") == "archived":
+    if archived or (keeping or {}).get("state") == "archived":
         return {"app_id": app_id, "tier": None, "majors": [],
                 "status": "archived", "path_basename": m["dir_basename"]}
     # Keeping record wins when both exist — the same precedence catalog_lint's
@@ -319,29 +360,93 @@ def project_materialized(m: dict) -> dict:
     # playground app can keep a promoted record from an earlier lift while its
     # standing state is still read from the keeping record.
     if keeping:
-        return {
+        majors = keeping.get("majors") or []
+        base = {
             "app_id": app_id,
             "tier": "playground",
-            "majors": sorted(keeping.get("majors") or []),
+            "majors": sorted(majors),
+            "majors_order": tuple(majors),
             "status": keeping.get("state"),
             "path_basename": m["dir_basename"],
         }
-    if promoted:
+    elif promoted:
         major = promoted.get("major")
-        return {
+        majors = [major] if major else []
+        base = {
             "app_id": app_id,
             "tier": "promoted",
-            "majors": sorted([major] if major else []),
+            "majors": sorted(majors),
+            "majors_order": tuple(majors),
             "status": None,
             "path_basename": m["dir_basename"],
         }
-    return {
-        "app_id": app_id,
-        "tier": "playground",
-        "majors": sorted([]),
-        "status": None,
-        "path_basename": m["dir_basename"],
-    }
+    else:
+        base = {
+            "app_id": app_id,
+            "tier": "playground",
+            "majors": [],
+            "majors_order": (),
+            "status": None,
+            "path_basename": m["dir_basename"],
+        }
+    base["manifest_ok"] = not manifest_bad
+    return base
+
+
+def _compute_cross_side_flags(declared: dict, materialized: dict) -> tuple[frozenset, frozenset]:
+    """Facts neither `project_declared` nor `project_materialized` can compute
+    alone, because each only sees its own side's entry.
+
+    * `archived_keys` — a key is archived the moment EITHER the catalog status
+      or the keeping record's state says so (finding: archived scoping was
+      per-side, letting --apply un-archive a catalog entry when only one side
+      had moved off `archived`).
+    * `manifest_bad_keys` — a key whose materialized manifest is missing (when
+      the catalog status requires one: building/gated/stalled) or malformed
+      (unconditionally, any status) — exactly what catalog_lint's manifest
+      check (lint():172-188) errors on, which the old dir-name fallback let
+      --check silently call `up_to_date`.
+    """
+    archived_keys: set = set()
+    for key, d in declared.items():
+        if d["catalog"].get("status") == "archived":
+            archived_keys.add(key)
+    for key, m in materialized.items():
+        if (m.get("keeping") or {}).get("state") == "archived":
+            archived_keys.add(key)
+
+    manifest_bad_keys: set = set()
+    for key in set(declared) & set(materialized):
+        if key in archived_keys:
+            continue
+        cat_status = declared[key]["catalog"].get("status")
+        m = materialized[key]
+        if m.get("manifest_malformed"):
+            manifest_bad_keys.add(key)
+        elif m.get("manifest") is None and cat_status in ("building", "gated", "stalled"):
+            manifest_bad_keys.add(key)
+
+    return frozenset(archived_keys), frozenset(manifest_bad_keys)
+
+
+def _make_fingerprint_fns(archived_keys: frozenset, manifest_bad_keys: frozenset):
+    """Bind the cross-side facts into the single-arg fingerprint callables the
+    store-agnostic core expects. The key is recovered from the entry itself
+    (declared entries are keyed by catalog id, materialized by dir basename —
+    both are carried on the entry), so the core's `Callable[[object], dict]`
+    contract is untouched."""
+
+    def fp_declared(entry: dict) -> dict:
+        key = entry["catalog"].get("id")
+        return project_declared(entry, archived=key in archived_keys)
+
+    def fp_materialized(entry: dict) -> dict:
+        key = entry["dir_basename"]
+        return project_materialized(
+            entry, archived=key in archived_keys, manifest_bad=key in manifest_bad_keys
+        )
+
+    return fp_declared, fp_materialized
 
 
 def enumerate_store(repo: Path) -> tuple[dict, dict, frozenset]:
@@ -380,16 +485,24 @@ def enumerate_store(repo: Path) -> tuple[dict, dict, frozenset]:
                 continue
             name = d.name
             manifest = None
+            manifest_malformed = False
             mp = d / "safe-app-manifest.json"
             if mp.is_file():
                 try:
                     manifest = json.loads(mp.read_text())
                 except json.JSONDecodeError:
+                    # Malformed manifest is a per-entry lint ERROR, not a
+                    # whole-corpus fail-closed condition (unlike catalog.json
+                    # / keeping / promoted records) — it must surface as a
+                    # flagged verdict, not silently fall back to the
+                    # dir-name identity as if nothing were wrong.
                     manifest = None
+                    manifest_malformed = True
             prom = promoted.get(name)
             materialized[name] = {
                 "dir_basename": name,
                 "manifest": manifest,
+                "manifest_malformed": manifest_malformed,
                 "keeping": stored.get(name),
                 "promoted": prom[1] if prom else None,
             }
@@ -421,6 +534,16 @@ def _store_actions(repo: Path, declared: dict, materialized: dict) -> dict:
     """
 
     def realign_source_changed(v: Verdict, opts: dict) -> ActionResult:
+        if "manifest_ok" in v.diverging:
+            # The divergence is a missing/malformed manifest, not a catalog
+            # field the reconciler can regenerate — rewriting tier/majors/
+            # status would not make catalog_lint green (the manifest error
+            # persists), so this must not be claimed as "applied".
+            return ActionResult(
+                "skipped",
+                "needs_human: manifest missing or malformed — cannot be "
+                "healed by rewriting the catalog",
+            )
         m = materialized.get(v.key) or {}
         keeping = m.get("keeping")
         promoted = m.get("promoted")
@@ -432,11 +555,15 @@ def _store_actions(repo: Path, declared: dict, materialized: dict) -> dict:
             if keeping:
                 want = {
                     "tier": "playground",
-                    "majors": keeping.get("majors"),
+                    # Guard against a keeping record with `majors: null` —
+                    # realigning must never write a bare `null` into the
+                    # catalog's majors list.
+                    "majors": keeping.get("majors") or [],
                     "status": keeping.get("state"),
                 }
             elif promoted:
-                want = {"tier": "promoted", "majors": [promoted.get("major")]}
+                major = promoted.get("major")
+                want = {"tier": "promoted", "majors": [major] if major else []}
             else:
                 # No record to realign toward — a manifest-only divergence
                 # (app_id) a machine must not "fix" by renaming a directory.
@@ -450,7 +577,7 @@ def _store_actions(repo: Path, declared: dict, materialized: dict) -> dict:
             return ActionResult("skipped", "no_catalog_entry")
         if not changed:
             return ActionResult("noop", "already aligned")
-        path.write_text(json.dumps(catalog, indent=2) + "\n")
+        path.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n")
         return ActionResult("applied", "realigned catalog generated fields (tier/majors/status)")
 
     def route_missing(v: Verdict, opts: dict) -> ActionResult:
@@ -461,6 +588,21 @@ def _store_actions(repo: Path, declared: dict, materialized: dict) -> dict:
         return ActionResult("skipped", "no_materializer: code cannot be synthesized from a record")
 
     def heal_stale(v: Verdict, opts: dict) -> ActionResult:
+        # Declared is keyed by catalog id, materialized by directory basename
+        # (rule 8 says they should be equal, but an id/basename slip is
+        # exactly the kind of drift this tool exists to surface — not to act
+        # destructively on). If some catalog entry's `path` names this exact
+        # directory, it is not stale: it is declared, just under a different
+        # key than its own basename. Refuse to archive or stub it.
+        declared_path_basenames = {
+            Path(d["path"]).name for d in declared.values() if d.get("path")
+        }
+        if v.key in declared_path_basenames:
+            return ActionResult(
+                "skipped",
+                "needs_human: directory basename matches a declared catalog "
+                "path (id/basename slip) — not stale, refusing to archive or stub",
+            )
         if opts.get("allow_delete"):
             src = repo / "apps" / v.key
             if not src.is_dir():
@@ -489,7 +631,7 @@ def _store_actions(repo: Path, declared: dict, materialized: dict) -> dict:
             return ActionResult("noop", "pending stub already present")
         entries.append({"app_id": v.key, "reason": "", "blocked_on": ""})
         pending_path.parent.mkdir(parents=True, exist_ok=True)
-        pending_path.write_text(json.dumps(data, indent=2) + "\n")
+        pending_path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
         return ActionResult(
             "skipped",
             "needs_human: wrote blank pending stub — a human must supply reason/blocked_on",
@@ -508,11 +650,13 @@ def _store_actions(repo: Path, declared: dict, materialized: dict) -> dict:
 def run_reconcile(repo: Path | None = None) -> Report:
     repo = REPO if repo is None else repo
     declared, materialized, exempt = enumerate_store(repo)
+    archived_keys, manifest_bad_keys = _compute_cross_side_flags(declared, materialized)
+    fp_declared, fp_materialized = _make_fingerprint_fns(archived_keys, manifest_bad_keys)
     return reconcile(
         declared,
         materialized,
-        fingerprint_declared=project_declared,
-        fingerprint_materialized=project_materialized,
+        fingerprint_declared=fp_declared,
+        fingerprint_materialized=fp_materialized,
         exempt=exempt,
     )
 
@@ -525,11 +669,13 @@ def run_apply(
 ) -> tuple[Report, ApplyResult]:
     repo = REPO if repo is None else repo
     declared, materialized, exempt = enumerate_store(repo)
+    archived_keys, manifest_bad_keys = _compute_cross_side_flags(declared, materialized)
+    fp_declared, fp_materialized = _make_fingerprint_fns(archived_keys, manifest_bad_keys)
     report = reconcile(
         declared,
         materialized,
-        fingerprint_declared=project_declared,
-        fingerprint_materialized=project_materialized,
+        fingerprint_declared=fp_declared,
+        fingerprint_materialized=fp_materialized,
         exempt=exempt,
     )
     actions = _store_actions(repo, declared, materialized)
@@ -608,7 +754,10 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  applied  {e['key']}: {e['action']}")
             for e in result.skipped:
                 print(f"  skipped  {e['key']}: {e['reason']}")
-        return 0
+        # Non-zero when anything remains unresolved (`skipped`), so
+        # `make reconcile-apply` can fail CI instead of always reporting
+        # success just because the apply *ran*.
+        return 1 if result.skipped else 0
 
     if args.json:
         print(json.dumps(report.to_dict(), indent=2))

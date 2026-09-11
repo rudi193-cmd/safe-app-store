@@ -22,6 +22,8 @@ import shutil
 import sys
 from pathlib import Path
 
+import pytest
+
 _REPO = Path(__file__).resolve().parent.parent
 
 
@@ -446,3 +448,219 @@ def test_23_core_reproduces_propagate_engine_with_byte_identity_and_cp(tmp_path)
     assert (vertical / "new.txt").read_text() == "C"      # copied in
     assert (vertical / "changed.txt").read_text() == "NEW"  # realigned
     assert (vertical / "override.txt").read_text() == "LOCAL"  # untouched
+
+
+# ── 24-36: rework — closing dispatch F15FD466's cross-model audit findings ────
+
+
+# 24: HIGH — archived scoping was per-side; --apply could un-archive a
+# catalog entry when only the keeping record moved off `archived`.
+def test_24_archived_either_side_exempt_never_overwritten(tmp_path):
+    repo = _build_repo(
+        tmp_path,
+        catalog=[_cat("foo", status="archived")],
+        stored=[_stored("foo", state="gated", majors=["python"])],
+        apps=[("foo", _manifest("foo"))],
+    )
+    verdicts = _verdicts(sr.run_reconcile(repo))
+    assert verdicts["foo"] != "source_changed"
+    before = (repo / ".willow" / "store" / "catalog.json").read_text()
+    sr.run_apply(repo)
+    after = (repo / ".willow" / "store" / "catalog.json").read_text()
+    assert after == before  # a human's `archived` decision is never rewritten
+
+
+# 25: MEDIUM (2a) — majors ORDER differences: fingerprint sorts, lint compares
+# ordered. Same set, different order used to be silently `up_to_date`.
+def test_25_majors_order_drift_flagged(tmp_path, monkeypatch):
+    repo = _build_repo(
+        tmp_path,
+        catalog=[_cat("foo", majors=["node", "python"])],
+        stored=[_stored("foo", majors=["python", "node"])],
+        apps=[("foo", _manifest("foo"))],
+    )
+    report = sr.run_reconcile(repo)
+    v = report.by_verdict()["source_changed"][0]
+    assert "majors_order" in v.diverging
+    monkeypatch.setattr(catalog_lint, "REPO", repo)
+    errors, _ = catalog_lint.lint()
+    assert any("majors" in e for e in errors)  # lint fails here too — no longer quieter
+
+
+# 26: MEDIUM (2b) — a building/gated/stalled app with no manifest used to
+# dir-name-fallback to `up_to_date`; lint errors on it.
+def test_26_missing_manifest_when_required_flagged(tmp_path, monkeypatch):
+    repo = _build_repo(
+        tmp_path,
+        catalog=[_cat("foo", status="building")],
+        stored=[_stored("foo", state="building")],
+        apps=[("foo", None)],  # no safe-app-manifest.json
+    )
+    report = sr.run_reconcile(repo)
+    v = report.by_verdict()["source_changed"][0]
+    assert "manifest_ok" in v.diverging
+    monkeypatch.setattr(catalog_lint, "REPO", repo)
+    errors, _ = catalog_lint.lint()
+    assert any("manifest" in e for e in errors)
+    _report, result = sr.run_apply(repo)
+    reasons = {e["key"]: e["reason"] for e in result.skipped}
+    assert "needs_human" in reasons["foo"]  # can't fabricate a manifest
+
+
+# 27: MEDIUM (2c) — malformed manifest JSON used to fall back to dir-name
+# identity (up_to_date); lint errors regardless of status.
+def test_27_malformed_manifest_json_flagged(tmp_path, monkeypatch):
+    repo = _build_repo(
+        tmp_path,
+        catalog=[_cat("foo", status="seeded")],
+        stored=[_stored("foo", state="seeded")],
+        apps=[("foo", _manifest("foo"))],
+    )
+    (repo / "apps" / "foo" / "safe-app-manifest.json").write_text("{ not json")
+    report = sr.run_reconcile(repo)
+    v = report.by_verdict()["source_changed"][0]
+    assert "manifest_ok" in v.diverging
+    monkeypatch.setattr(catalog_lint, "REPO", repo)
+    errors, _ = catalog_lint.lint()
+    assert any("invalid" in e for e in errors)
+
+
+# 28: MEDIUM (2d) — a pending entry missing reason/blocked_on was exempted as
+# declared_absent; lint errors on it, so it must stay a flagged verdict.
+def test_28_pending_missing_reason_not_exempt(tmp_path, monkeypatch):
+    repo = _build_repo(
+        tmp_path,
+        catalog=[],
+        apps=[("bar", _manifest("bar"))],
+        pending=[{"app_id": "bar", "reason": "", "blocked_on": ""}],
+    )
+    verdicts = _verdicts(sr.run_reconcile(repo))
+    assert verdicts["bar"] != "declared_absent"
+    assert verdicts["bar"] in sr.DRIFT_VERDICTS
+    monkeypatch.setattr(catalog_lint, "REPO", repo)
+    errors, _ = catalog_lint.lint()
+    assert any("reason/blocked_on" in e for e in errors)
+
+
+# 29: MEDIUM (3) — malformed pending.json used to be silently emptied.
+def test_29_malformed_pending_json_fails_closed(tmp_path):
+    repo = _build_repo(
+        tmp_path, catalog=[_cat("foo")], stored=[_stored("foo")],
+        apps=[("foo", _manifest("foo"))],
+    )
+    (repo / "stores" / "pending.json").write_text("{ not json")
+    before = _snapshot(repo)
+    with pytest.raises(sr.CorpusError):
+        sr.run_reconcile(repo)
+    assert _snapshot(repo) == before  # fail-closed: no writes
+
+
+# 30: MEDIUM (3) — a malformed keeping record used to be silently skipped.
+def test_30_malformed_stored_record_fails_closed(tmp_path):
+    repo = _build_repo(tmp_path, catalog=[_cat("foo")], apps=[("foo", _manifest("foo"))])
+    (repo / "stores" / "python" / "stored" / "foo.json").write_text("{ not json")
+    before = _snapshot(repo)
+    with pytest.raises(sr.CorpusError):
+        sr.run_reconcile(repo)
+    assert _snapshot(repo) == before
+
+
+# 31: MEDIUM (3) — a truncated promoted record used to be silently skipped,
+# which could flip a promoted catalog entry's tier on --apply.
+def test_31_malformed_promoted_record_fails_closed(tmp_path):
+    repo = _build_repo(
+        tmp_path, catalog=[_cat("foo", tier="promoted")], apps=[("foo", _manifest("foo"))],
+    )
+    (repo / "stores" / "python" / "promoted" / "foo.json").write_text("{ not json")
+    before = _snapshot(repo)
+    with pytest.raises(sr.CorpusError):
+        sr.run_apply(repo)
+    assert _snapshot(repo) == before
+
+
+def test_31b_malformed_promoted_record_cli_exit_2_no_writes(tmp_path, monkeypatch):
+    repo = _build_repo(
+        tmp_path, catalog=[_cat("foo", tier="promoted")], apps=[("foo", _manifest("foo"))],
+    )
+    (repo / "stores" / "python" / "promoted" / "foo.json").write_text("{ not json")
+    before = _snapshot(repo)
+    monkeypatch.setattr(sr, "REPO", repo)
+    assert sr.main(["--apply"]) == 2
+    assert _snapshot(repo) == before
+
+
+# 32: MEDIUM (4) — --allow-delete must not archive a DECLARED directory on an
+# id-vs-basename slip (declared keyed by catalog id, materialized by dir name).
+def test_32_allow_delete_refuses_declared_path_basename_slip(tmp_path):
+    repo = _build_repo(
+        tmp_path,
+        catalog=[_cat("renamed-foo", path="apps/foo")],
+        stored=[_stored("renamed-foo", location="apps/foo")],
+        apps=[("foo", _manifest("foo"))],
+    )
+    _report, result = sr.run_apply(repo, allow_delete=True)
+    reasons = {e["key"]: e["reason"] for e in result.skipped}
+    assert "needs_human" in reasons.get("foo", "")
+    assert (repo / "apps" / "foo").is_dir()  # a path the catalog names is not stale
+
+
+# 33: LOW (5) — os.path.basename('apps/foo/') == '' for a trailing-slash
+# catalog path; Path.name gives 'foo'.
+def test_33_trailing_slash_catalog_path_basename(tmp_path):
+    repo = _build_repo(
+        tmp_path,
+        catalog=[_cat("foo", path="apps/foo/")],
+        stored=[_stored("foo")],
+        apps=[("foo", _manifest("foo"))],
+    )
+    assert _verdicts(sr.run_reconcile(repo)) == {"foo": "up_to_date"}
+
+
+# 34: LOW (5) — realign must guard a keeping record with `majors: null`
+# instead of writing a bare null into the catalog.
+def test_34_realign_guards_majors_none(tmp_path):
+    repo = _build_repo(
+        tmp_path,
+        catalog=[_cat("foo", majors=["node"], status="gated")],
+        stored=[_stored("foo", majors=["python"], state="building")],
+        apps=[("foo", _manifest("foo"))],
+    )
+    rec_path = repo / "stores" / "python" / "stored" / "foo.json"
+    rec = json.loads(rec_path.read_text())
+    rec["majors"] = None
+    rec_path.write_text(json.dumps(rec))
+    sr.run_apply(repo)
+    catalog = json.loads((repo / ".willow" / "store" / "catalog.json").read_text())
+    entry = next(e for e in catalog["apps"] if e["id"] == "foo")
+    assert entry["majors"] == []  # guarded — never a literal null
+
+
+# 35: LOW (5) — catalog must be written ensure_ascii=False (the real catalog
+# has non-ASCII lines).
+def test_35_catalog_write_ensure_ascii_false(tmp_path):
+    repo = _build_repo(
+        tmp_path,
+        catalog=[_cat("foo", majors=["node"], status="gated", description="café")],
+        stored=[_stored("foo", majors=["python"], state="building")],
+        apps=[("foo", _manifest("foo"))],
+    )
+    sr.run_apply(repo)
+    raw = (repo / ".willow" / "store" / "catalog.json").read_text()
+    assert "café" in raw  # not escaped to é
+
+
+# 36: LOW (5) — --apply's exit code must reflect remaining drift/skipped so
+# `make reconcile-apply` can fail CI.
+def test_36_apply_exit_code_reflects_skipped(tmp_path, monkeypatch):
+    stuck = _build_repo(tmp_path / "stuck", catalog=[], apps=[("bar", _manifest("bar"))])
+    monkeypatch.setattr(sr, "REPO", stuck)
+    assert sr.main(["--apply"]) != 0  # bar lands in skipped: would_delete
+
+    clean = _build_repo(
+        tmp_path / "clean",
+        catalog=[_cat("foo", majors=["node"], status="gated")],
+        stored=[_stored("foo", majors=["node"], state="gated")],
+        apps=[("foo", _manifest("foo"))],
+    )
+    monkeypatch.setattr(sr, "REPO", clean)
+    assert sr.main(["--apply"]) == 0  # nothing left unresolved
