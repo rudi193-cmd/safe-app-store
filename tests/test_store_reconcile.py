@@ -453,9 +453,15 @@ def test_23_core_reproduces_propagate_engine_with_byte_identity_and_cp(tmp_path)
 # ── 24-36: rework — closing dispatch F15FD466's cross-model audit findings ────
 
 
-# 24: HIGH — archived scoping was per-side; --apply could un-archive a
-# catalog entry when only the keeping record moved off `archived`.
-def test_24_archived_either_side_exempt_never_overwritten(tmp_path):
+# 24: HIGH — the archived exemption must be keyed on the CATALOG status only,
+# exactly matching catalog_lint.py:410 (`entry.get("status") == "archived"`),
+# never on the keeping record's state. Both directions are checked against
+# catalog_lint's actual exit so the two tools cannot silently disagree.
+#
+# Forward direction (catalog archived, keeping record moved to gated): this
+# stays CLOSED — the catalog's `archived` is a human decision, catalog_lint
+# exempts it unconditionally, and --apply must leave catalog.json untouched.
+def test_24a_catalog_archived_keeping_gated_stays_closed_and_agrees_with_lint(tmp_path, monkeypatch):
     repo = _build_repo(
         tmp_path,
         catalog=[_cat("foo", status="archived")],
@@ -468,6 +474,29 @@ def test_24_archived_either_side_exempt_never_overwritten(tmp_path):
     sr.run_apply(repo)
     after = (repo / ".willow" / "store" / "catalog.json").read_text()
     assert after == before  # a human's `archived` decision is never rewritten
+
+    monkeypatch.setattr(catalog_lint, "REPO", repo)
+    errors, _ = catalog_lint.lint()
+    assert errors == []  # catalog_lint also exempts this entry — agreement
+
+
+# Reverse direction (catalog gated, keeping record moved to archived): this
+# must NOT read as up_to_date/exempt here, because catalog_lint --strict still
+# errors on the catalog side (it never looks at the keeping record). Round-1
+# over-corrected by exempting on EITHER side, which hid this disagreement.
+def test_24b_keeping_archived_catalog_gated_not_exempt_and_agrees_with_lint(tmp_path, monkeypatch):
+    repo = _build_repo(
+        tmp_path,
+        catalog=[_cat("foo", status="gated")],
+        stored=[_stored("foo", state="archived", majors=["python"])],
+        apps=[("foo", _manifest("foo"))],
+    )
+    verdicts = _verdicts(sr.run_reconcile(repo))
+    assert verdicts["foo"] == "source_changed"  # NOT exempt
+
+    monkeypatch.setattr(catalog_lint, "REPO", repo)
+    errors, _ = catalog_lint.lint()
+    assert errors != []  # catalog_lint --strict also errors here — agreement
 
 
 # 25: MEDIUM (2a) — majors ORDER differences: fingerprint sorts, lint compares

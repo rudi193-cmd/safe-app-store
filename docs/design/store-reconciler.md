@@ -196,11 +196,25 @@ the verdict it came from, and the action taken or the reason it was not.
     input the same way `catalog_lint` does; it does not rewrite a witnessed
     promotion record, because that record is a signed decision, not generated
     state.
-- **Relation to `catalog_lint.py`:** the reconciler's `--check` is a superset
-  signal, but lint stays the CI gate (it is already wired into
+- **Relation to `catalog_lint.py`:** the reconciler is an **early signal ahead
+  of the catalog_lint hard gate, not a replacement for it**. `--check` covers
+  {id, tier, majors, majors-order, status, manifest presence/validity, pending
+  reason/blocked_on} — the same fields the canonical fact-projection (§1)
+  carries. It does **not** mirror every check catalog_lint makes; the
+  following are deferred (a fleet gap tracks full parity):
+  - keeping-record location resolves
+  - multi-major requires relation
+  - anchor-in-majors
+  - valid state enum
+  - duplicate id
+  - empty majors
+
+  lint stays the CI gate (it is already wired into
   `.github/workflows/store-ci.yml` as the "Catalog gate"). Sequence in CI:
   `store_reconcile --check` (drift report, non-blocking or advisory) →
-  `catalog_lint --strict` (the hard gate). A green tree has both agreeing.
+  `catalog_lint --strict` (the hard gate). A green tree has both agreeing, but
+  a green `--check` alone does not guarantee `catalog_lint --strict` will also
+  be green.
 
 ## 4. Shared primitive with almanac-data — **YES**
 

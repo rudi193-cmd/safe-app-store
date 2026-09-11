@@ -31,10 +31,24 @@ Verdicts (one per key, over the union of declared and materialized keys):
 each side — never mtime (a checkout stamps every file the same instant), never
 `version` (sparse and unenforced), never a byte-hash of the app code (the store
 keeps the *record*, not a copy of the code; hashing the bytes measures the wrong
-thing). It fires on exactly the disagreements catalog_lint enumerates — catalog
-`majors` != keeping-record `majors`, catalog `status` != record `state`, manifest
-`app_id` != directory name — reframed from error strings into a verdict that
-names the diverging fields.
+thing). It fires on the subset of disagreements catalog_lint enumerates that
+the projection above carries — catalog `majors` != keeping-record `majors`,
+catalog `status` != record `state`, manifest `app_id` != directory name —
+reframed from error strings into a verdict that names the diverging fields.
+
+**Coverage, honestly stated:** reconcile is an EARLY SIGNAL ahead of the
+catalog_lint hard gate, not a replacement for it. It covers {id, tier, majors,
+majors-order, status, manifest presence/validity, pending reason/blocked_on}.
+It does NOT mirror every catalog_lint check — the following are deferred (a
+fleet gap tracks full parity):
+  * keeping-record location resolves
+  * multi-major requires relation
+  * anchor-in-majors
+  * valid state enum
+  * duplicate id
+  * empty majors
+A green `--check` is a good sign, not a guarantee that `catalog_lint --strict`
+will also be green; only the latter is the CI gate.
 
 Apply (`--apply`) is idempotent and additive-only: it realigns a catalog entry's
 *generated* fields (tier/majors/status) to the keeping record, and — with
@@ -303,12 +317,15 @@ def project_declared(entry: dict, *, archived: bool = False) -> dict:
     state (promoted records have none), so status is dropped for it — the same
     scoping catalog_lint's lint_generated_fields() applies.
 
-    `archived` is decided by the caller from BOTH sides (catalog_lint.py:411's
-    scoping is per-side; here it must be per-key) — see
-    `_compute_cross_side_flags`. A key is archived-exempt the moment EITHER
-    side calls it archived, so a keeping record that drifts off `archived`
-    while the catalog still says `archived` (a human decision) is never
-    reported `source_changed` and never realigned out from under it.
+    `archived` is decided by the caller from the CATALOG side only, exactly
+    mirroring catalog_lint.py:410's own exemption — see
+    `_compute_cross_side_flags`. A key is archived-exempt only when the
+    catalog entry itself says `status: archived`; a keeping record that has
+    moved to `archived` while the catalog has not is NOT exempt here, because
+    catalog_lint --strict still errors on that catalog entry. Once the
+    catalog does say archived, a keeping record drifting off `archived` is
+    never reported `source_changed` and never realigned out from under it —
+    that direction stays closed on the catalog's say-so alone.
     """
     cat = entry["catalog"]
     tier = cat.get("tier")
@@ -397,10 +414,17 @@ def _compute_cross_side_flags(declared: dict, materialized: dict) -> tuple[froze
     """Facts neither `project_declared` nor `project_materialized` can compute
     alone, because each only sees its own side's entry.
 
-    * `archived_keys` — a key is archived the moment EITHER the catalog status
-      or the keeping record's state says so (finding: archived scoping was
-      per-side, letting --apply un-archive a catalog entry when only one side
-      had moved off `archived`).
+    * `archived_keys` — a key is archived exactly when the CATALOG status says
+      `archived`, mirroring catalog_lint.py's own exemption (lint():410,
+      `entry.get("status") == "archived"`). This is deliberately one-sided:
+      catalog_lint only ever reads the catalog side, so a keeping record that
+      has moved on to `archived` while the catalog entry has not (e.g.
+      catalog `status: gated` + keeping `state: archived`) must NOT read as
+      up_to_date here — catalog_lint --strict still errors on it, and this
+      reconciler has to agree. (Round-1 over-corrected by keying the
+      exemption on the keeping record's state too, which incorrectly closed
+      that gap and let --apply leave a non-archived catalog entry alone
+      while treating it as settled.)
     * `manifest_bad_keys` — a key whose materialized manifest is missing (when
       the catalog status requires one: building/gated/stalled) or malformed
       (unconditionally, any status) — exactly what catalog_lint's manifest
@@ -410,9 +434,6 @@ def _compute_cross_side_flags(declared: dict, materialized: dict) -> tuple[froze
     archived_keys: set = set()
     for key, d in declared.items():
         if d["catalog"].get("status") == "archived":
-            archived_keys.add(key)
-    for key, m in materialized.items():
-        if (m.get("keeping") or {}).get("state") == "archived":
             archived_keys.add(key)
 
     manifest_bad_keys: set = set()
