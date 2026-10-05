@@ -1,0 +1,7 @@
+Python 0.9.8 (tag v0.9.8, 1993-01-10) on x86_64 / gcc 13
+The tag has no Makefile, PROTO.h, patchlevel.h, sigtype.h, fgetsintr.h or dictobject.c
+(dictobject.c first appears 1993-03-27, commit 4b1302bd1d). The patch adds reconstructions
+and a build98/ directory with a hand Makefile, config.c and a backported dictobject.c.
+  git apply python-0.9.8-build.patch
+  cd build98 && make
+  cd ../Lib/test && ../../build98/python -c 'import testall'   # "Passed all tests.", output == testall.out

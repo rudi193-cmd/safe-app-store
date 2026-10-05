@@ -1,0 +1,43 @@
+From 007648ba6be03cfc1005f58d249a1f15f6b9e4f5 Mon Sep 17 00:00:00 2001
+From: rudi193-cmd <rudi193-cmd@users.noreply.github.com>
+Date: Sat, 3 Oct 2026 17:01:29 +0000
+Subject: [PATCH] gh-NNNNN: Skip VSOCK stream test when the transport reports
+ ENODEV
+
+On a VSOCK guest whose transport cannot reach its own CID, connect()
+fails with ENODEV and the server side of ThreadedVSOCKSocketStreamTest
+waits in accept() until LOOPBACK_TIMEOUT, so the test errors instead
+of skipping. Probe a connection to the local CID in setUp() and skip
+on ENODEV.
+
+Every added line is taken verbatim from CPython as of dcb1caef5bd8
+(2021-06-28).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01RZg885hiYVZjnaq6h1v2x6
+---
+ Lib/test/test_socket.py | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/Lib/test/test_socket.py b/Lib/test/test_socket.py
+index cd07e94..e316b2c 100644
+--- a/Lib/test/test_socket.py
++++ b/Lib/test/test_socket.py
+@@ -569,6 +569,14 @@ def __init__(self, methodName='runTest'):
+         ThreadableTest.__init__(self)
+ 
+     def setUp(self):
++        self.cli = socket.socket(socket.AF_VSOCK, socket.SOCK_STREAM)
++        self.addCleanup(self.cli.close)
++        cid = get_cid()
++        try:
++            self.cli.connect((cid, VSOCKPORT))
++        except OSError as e:
++            if e.errno == errno.ENODEV:
++                self.skipTest(str(e))
+         self.serv = socket.socket(socket.AF_VSOCK, socket.SOCK_STREAM)
+         self.addCleanup(self.serv.close)
+         self.serv.bind((socket.VMADDR_CID_ANY, VSOCKPORT))
+-- 
+2.43.0
+

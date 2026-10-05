@@ -1,0 +1,76 @@
+diff --git a/Lib/dbm/__init__.py b/Lib/dbm/__init__.py
+index 19a7072..6e47525 100644
+--- a/Lib/dbm/__init__.py
++++ b/Lib/dbm/__init__.py
+@@ -165,7 +165,7 @@ def whichdb(filename):
+         return ""
+ 
+     # Check for GNU dbm
+-    if magic == 0x13579ace:
++    if magic in (0x13579ace, 0x13579acd, 0x13579acf): # 2026: gdbm 64-bit and numsync magics, as in later Pythons
+         return "dbm.gnu"
+ 
+     ## Check for old Berkeley db hash file format v2
+diff --git a/Modules/_cursesmodule.c b/Modules/_cursesmodule.c
+index 3764f48..25932d7 100644
+--- a/Modules/_cursesmodule.c
++++ b/Modules/_cursesmodule.c
+@@ -809,7 +809,7 @@ PyCursesWindow_EchoChar(PyCursesWindowObject *self, PyObject *args)
+   }
+   
+ #ifdef WINDOW_HAS_FLAGS
+-  if (self->win->_flags & _ISPAD)
++  if (is_pad(self->win) /* 2026: WINDOW is opaque in modern ncurses */)
+     return PyCursesCheckERR(pechochar(self->win, ch | attr), 
+ 			    "echochar");
+   else
+@@ -1234,7 +1234,7 @@ PyCursesWindow_NoOutRefresh(PyCursesWindowObject *self, PyObject *args)
+ #ifndef WINDOW_HAS_FLAGS
+   if (0) {
+ #else
+-  if (self->win->_flags & _ISPAD) {
++  if (is_pad(self->win) /* 2026: WINDOW is opaque in modern ncurses */) {
+ #endif
+     switch(PyTuple_Size(args)) {
+     case 6:
+@@ -1403,7 +1403,7 @@ PyCursesWindow_Refresh(PyCursesWindowObject *self, PyObject *args)
+ #ifndef WINDOW_HAS_FLAGS
+   if (0) {
+ #else
+-  if (self->win->_flags & _ISPAD) {
++  if (is_pad(self->win) /* 2026: WINDOW is opaque in modern ncurses */) {
+ #endif
+     switch(PyTuple_Size(args)) {
+     case 6:
+@@ -1469,7 +1469,7 @@ PyCursesWindow_SubWin(PyCursesWindowObject *self, PyObject *args)
+ 
+   /* printf("Subwin: %i %i %i %i   \n", nlines, ncols, begin_y, begin_x); */
+ #ifdef WINDOW_HAS_FLAGS
+-  if (self->win->_flags & _ISPAD)
++  if (is_pad(self->win) /* 2026: WINDOW is opaque in modern ncurses */)
+     win = subpad(self->win, nlines, ncols, begin_y, begin_x);
+   else
+ #endif
+diff --git a/setup.py b/setup.py
+index d2931d1..ade9cba 100644
+--- a/setup.py
++++ b/setup.py
+@@ -359,6 +359,9 @@ class PyBuildExt(build_ext):
+             '/lib64', '/usr/lib64',
+             '/lib', '/usr/lib',
+             ]
++        # 2026: Debian multiarch library dir (upstream added this in 2.7.3/3.2.3)
++        add_dir_to_list(self.compiler.library_dirs, '/usr/lib/x86_64-linux-gnu')
++        lib_dirs.append('/usr/lib/x86_64-linux-gnu')
+         inc_dirs = self.compiler.include_dirs + ['/usr/include']
+         exts = []
+         missing = []
+@@ -778,6 +781,8 @@ class PyBuildExt(build_ext):
+                 # Some systems have -lndbm, others don't
+                 if self.compiler.find_library_file(lib_dirs, 'ndbm'):
+                     ndbm_libs = ['ndbm']
++                elif self.compiler.find_library_file(lib_dirs, 'gdbm_compat'):
++                    ndbm_libs = ['gdbm_compat', 'gdbm']  # 2026: Debian's ndbm.h is gdbm's
+                 else:
+                     ndbm_libs = []
+                 exts.append( Extension('_dbm', ['_dbmmodule.c'],

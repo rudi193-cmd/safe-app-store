@@ -1,0 +1,889 @@
+diff --git a/Include/PROTO.h b/Include/PROTO.h
+new file mode 100644
+index 0000000..a5af3d0
+--- /dev/null
++++ b/Include/PROTO.h
+@@ -0,0 +1,2 @@
++/* 2026 shim: PROTO.h was renamed myproto.h */
++#include "myproto.h"
+diff --git a/Include/fgetsintr.h b/Include/fgetsintr.h
+new file mode 100644
+index 0000000..0ed8046
+--- /dev/null
++++ b/Include/fgetsintr.h
+@@ -0,0 +1,2 @@
++/* Reconstructed 2026 */
++extern int fgets_intr PROTO((char *, int, FILE *));
+diff --git a/Include/sigtype.h b/Include/sigtype.h
+new file mode 100644
+index 0000000..9cf9b39
+--- /dev/null
++++ b/Include/sigtype.h
+@@ -0,0 +1,2 @@
++/* Reconstructed 2026 */
++#define SIGTYPE void
+diff --git a/Lib/test/test_grammar.py b/Lib/test/test_grammar.py
+index 0988574..ebdcd57 100644
+--- a/Lib/test/test_grammar.py
++++ b/Lib/test/test_grammar.py
+@@ -41,7 +41,7 @@ if maxint == 2147483647:
+ 		raise TestFailed, \
+ 			  'No OverflowError on huge integer literal ' + `s`
+ elif eval('maxint == 9223372036854775807'):
+-	if eval('9223372036854775807-1 != -01000000000000000000000'):
++	if eval('-9223372036854775807-1 != 01000000000000000000000'): # 2026: upstream fix from v1.1
+ 		raise TestFailed, 'max negative int'
+ 	if eval('01777777777777777777777') != -1: raise TestFailed, 'oct -1'
+ 	if eval('0xffffffffffffffff') != -1: raise TestFailed, 'hex -1'
+diff --git a/Makefile b/Makefile
+new file mode 100644
+index 0000000..20a4acb
+--- /dev/null
++++ b/Makefile
+@@ -0,0 +1,58 @@
++MAKE=		make
++
++SUBDIRS=	Parser Grammar Objects Python
++SUBDIRSTOO=	Include Extensions readline
++DISTFILES=	README Makefile configure configure.in
++DIST=		$(DISTFILES) $(SUBDIRS) $(SUBDIRSTOO)
++
++all:		config.status
++		for i in $(SUBDIRS); do \
++			(echo $$i; cd $$i; $(MAKE) all); \
++		done
++
++tags:		ctags -t Parser/*.[ch] Objects/*.[ch] Python/*.[ch] Include/*.h
++
++TAGS:		etags -t Parser/*.[ch] Objects/*.[ch] Python/*.[ch] Include/*.h
++
++depend:
++		for i in $(SUBDIRS); do \
++			(echo $$i; cd $$i; $(MAKE) depend); \
++		done
++
++localclean:
++		-rm -f core *~ [@,#]* *.old *.orig *.rej
++		-(cd Include; rm -f core *~ [@,#]* *.old *.orig *.rej)
++
++clean:		localclean
++		-for i in $(SUBDIRS); do \
++			(echo $$i; cd $$i; $(MAKE) clean); \
++		done
++
++localclobber:	localclean
++		-rm -f tags TAGS config.status
++
++clobber:	localclobber
++		-for i in $(SUBDIRS); do \
++			(echo $$i; cd $$i; $(MAKE) clobber); \
++		done
++
++distclean:	clobber
++		-for i in $(SUBDIRS); do \
++			if test -f $$i/Makefile.in; then \
++				rm -f $$i/Makefile; \
++			fi; \
++		done
++
++Makefiles:	config.status
++		./config.status
++
++config.status:	configure
++		./configure
++
++configure:	configure.in
++		autoconf
++ 
++tar:		dist.tar.Z
++
++dist.tar.Z:	$(DIST)
++		tar cf - $(DIST) | compress >dist.tar.Z
+diff --git a/Modules/posixmodule.c b/Modules/posixmodule.c
+index 07d12e7..e1cf599 100644
+--- a/Modules/posixmodule.c
++++ b/Modules/posixmodule.c
+@@ -694,7 +694,7 @@ posix_getpgrp(self, args)
+ #ifdef SYSV
+ 	return newintobject((long)getpgrp());
+ #else
+-	return newintobject((long)getpgrp(0));
++	return newintobject((long)getpgrp());
+ #endif
+ }
+ 
+@@ -708,7 +708,7 @@ posix_setpgrp(self, args)
+ #ifdef SYSV
+ 	if (setpgrp() < 0)
+ #else
+-	if (setpgrp(0, 0) < 0)
++	if (setpgid(0, 0) < 0)
+ #endif
+ 		return posix_error();
+ 	INCREF(None);
+diff --git a/Modules/timemodule.c b/Modules/timemodule.c
+index 5406907..fd99367 100644
+--- a/Modules/timemodule.c
++++ b/Modules/timemodule.c
+@@ -67,6 +67,7 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ #ifdef unix
+ #include <sys/types.h>
+ #include <sys/time.h> /* Implies <time.h> everywhere, as far as I know */
++#include <time.h> /* 2026: modern sys/time.h does not imply it */
+ #else /* !unix */
+ #include <time.h>
+ #endif /* !unix */
+diff --git a/Objects/Makefile.in b/Objects/Makefile.in
+index 42671d9..4e21a29 100644
+--- a/Objects/Makefile.in
++++ b/Objects/Makefile.in
+@@ -15,7 +15,7 @@ DEFS=		@DEFS@
+ # === Other things that are customizable but not by configure ===
+ 
+ TOP=		..
+-INCLDIR=	$(TOP)/Py
++INCLDIR=	$(TOP)/Include
+ OPT=		-g
+ CFLAGS=		$(OPT) -I$(INCLDIR) $(DEFS)
+ 
+diff --git a/Objects/fileobject.c b/Objects/fileobject.c
+index 518fe04..2d850f2 100644
+--- a/Objects/fileobject.c
++++ b/Objects/fileobject.c
+@@ -31,6 +31,7 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ #define BUF(v) GETSTRINGVALUE((stringobject *)v)
+ 
+ #include <errno.h>
++#define getline py_getline /* 2026: avoid POSIX getline() */
+ 
+ typedef struct {
+ 	OB_HEAD
+diff --git a/Parser/Makefile.in b/Parser/Makefile.in
+index b5649aa..85c68d7 100644
+--- a/Parser/Makefile.in
++++ b/Parser/Makefile.in
+@@ -15,7 +15,7 @@ DEFS=		@DEFS@
+ # === Other things that are customizable but not by configure ===
+ 
+ TOP=		..
+-INCLDIR=	$(TOP)/Py
++INCLDIR=	$(TOP)/Include
+ OPT=		-g
+ CFLAGS=		$(OPT) -I$(INCLDIR) $(DEFS)
+ 
+@@ -30,7 +30,7 @@ PARSEROBJS=	acceler.o grammar1.o \
+ 		intrcheck.o listnode.o myreadline.o node.o parser.o \
+ 		parsetok.o tokenizer.o bitset.o \
+ 		firstsets.o grammar.o metagrammar.o pgen.o \
+-		printgrammar.o
++		printgrammar.o fgetsintr.o
+ 
+ PGENOBJS=	pgenmain.o
+ 
+diff --git a/Parser/fgetsintr.c b/Parser/fgetsintr.c
+new file mode 100644
+index 0000000..335b890
+--- /dev/null
++++ b/Parser/fgetsintr.c
+@@ -0,0 +1,21 @@
++/* Reconstructed 2026: fgets that reports interrupts via errcode.h values */
++#include <stdio.h>
++#include <errno.h>
++#include "PROTO.h"
++#include "errcode.h"
++#include "intrcheck.h"
++int
++fgets_intr(char *buf, int size, FILE *fp)
++{
++	if (intrcheck())
++		return E_INTR;
++	errno = 0;
++	if (fgets(buf, size, fp) == NULL) {
++		if (intrcheck() || errno == EINTR) {
++			clearerr(fp);
++			return E_INTR;
++		}
++		return E_EOF;
++	}
++	return E_OK;
++}
+diff --git a/Parser/metagrammar.c b/Parser/metagrammar.c
+index c670555..f25be79 100644
+--- a/Parser/metagrammar.c
++++ b/Parser/metagrammar.c
+@@ -162,7 +162,7 @@ static label labels[19] = {
+ 	{7, 0},
+ 	{8, 0},
+ };
+-static grammar gram = {
++grammar gram = { /* 2026: was static, pgen.h declares it extern */
+ 	6,
+ 	dfas,
+ 	{19, labels},
+diff --git a/Python/Makefile.in b/Python/Makefile.in
+index 7340ed4..7af904b 100644
+--- a/Python/Makefile.in
++++ b/Python/Makefile.in
+@@ -17,7 +17,7 @@ LIBS=		@LIBS@
+ # === Other things that are customizable but not by configure ===
+ 
+ TOP=		..
+-INCLDIR=	$(TOP)/Py
++INCLDIR=	$(TOP)/Include
+ OPT=		-g
+ CFLAGS=		$(OPT) -I$(INCLDIR) $(DEFS)
+ 
+@@ -33,7 +33,7 @@ OBJS=		\
+ 		bltinmodule.o \
+ 		ceval.o cgensupport.o compile.o \
+ 		errors.o \
+-		frozenmain.o \
++		\
+ 		getmtime.o graminit.o \
+ 		import.o \
+ 		marshal.o mathmodule.o modsupport.o \
+@@ -41,7 +41,7 @@ OBJS=		\
+ 		regexmodule.o regexpr.o \
+ 		stropmodule.o structmember.o structmodule.o sysmodule.o \
+ 		timemodule.o traceback.o \
+-		version.o \
++		\
+ 		$(LIBOBJS)
+ 
+ LIB=		libPython.a
+diff --git a/Python/config.c b/Python/config.c
+new file mode 100644
+index 0000000..9b59807
+--- /dev/null
++++ b/Python/config.c
+@@ -0,0 +1,508 @@
++/***********************************************************
++Copyright 1991, 1992, 1993 by Stichting Mathematisch Centrum,
++Amsterdam, The Netherlands.
++
++                        All Rights Reserved
++
++Permission to use, copy, modify, and distribute this software and its 
++documentation for any purpose and without fee is hereby granted, 
++provided that the above copyright notice appear in all copies and that
++both that copyright notice and this permission notice appear in 
++supporting documentation, and that the names of Stichting Mathematisch
++Centrum or CWI not be used in advertising or publicity pertaining to
++distribution of the software without specific, written prior permission.
++
++STICHTING MATHEMATISCH CENTRUM DISCLAIMS ALL WARRANTIES WITH REGARD TO
++THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
++FITNESS, IN NO EVENT SHALL STICHTING MATHEMATISCH CENTRUM BE LIABLE
++FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
++OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++
++******************************************************************/
++
++/* Configurable Python configuration file */
++
++/* These modules are normally always included, but *may* be taken out */
++#define USE_MARSHAL	1	/* This is linked anyway */
++#define USE_MATH	1
++#define USE_STRUCT	1
++#define USE_TIME	1
++
++#ifdef macintosh
++#define USE_AUDIOOP	1
++#define USE_IMAGEOP	1
++#define USE_MAC		1
++#define USE_REGEX	1
++#define USE_STDWIN	1	/* You may turn this off */
++#define USE_STROP
++#endif
++
++#ifdef unix
++/* 2026: match the module objects Python/Makefile.in actually builds */
++#define USE_ARRAY	1
++#define USE_PARSER	1
++#define USE_POSIX	1
++#define USE_REGEX	1
++#define USE_STROP	1
++#endif
++
++#ifdef MSDOS
++#define USE_POSIX	1	/* Subset defined in posixmodule.c */
++#define USE_REGEX	1
++#define USE_STROP	1
++#define USE_PC		1
++#endif
++
++#include <stdio.h>
++
++#include "PROTO.h"
++#include "mymalloc.h"
++#include "osdefs.h"
++
++#include "patchlevel.h"
++
++#define VERSION "0.9.%d++ (%s)"
++
++#ifdef __DATE__
++#define DATE __DATE__
++#else
++#define DATE ">= 3 Nov 1993"
++#endif
++
++char version[80];
++
++char *argv0; /* For dynamic loading in import.c */
++
++extern char verbose;
++
++/*ARGSUSED*/
++void
++initargs(p_argc, p_argv)
++	int *p_argc;
++	char ***p_argv;
++{
++	sprintf(version, VERSION, PATCHLEVEL, DATE);
++
++	argv0 = **p_argv;
++
++#ifdef USE_FROZEN
++	if (verbose)
++#else
++	if (verbose || *p_argc < 2 && isatty(0) && isatty(1))
++#endif
++	{
++		printf("Python %s.\n", version);
++		printf(
++"Copyright 1990, 1991, 1992, 1993 Stichting Mathematisch Centrum, Amsterdam\n");
++	}
++}
++
++void
++initcalls()
++{
++}
++
++void
++donecalls()
++{
++#ifdef USE_AUDIO
++	asa_done();
++#endif
++}
++
++#ifndef PYTHONPATH
++
++#ifdef macintosh
++/* On the Mac, the search path is a space-separated list of directories */
++#define PYTHONPATH ": :lib :demo"
++#endif /* macintosh */
++
++#ifdef unix
++#define PYTHONPATH ".:/usr/local/lib/python"
++#endif /* unix */
++
++#ifdef MSDOS
++/* In MS-DOS, the delimiter is a semicolon */
++#define PYTHONPATH ".;..\\lib;\\python\\lib"
++#endif /* MSDOS */
++
++#ifndef PYTHONPATH
++ERROR; ERROR; On what kind of system are you?;
++#endif
++
++#endif /* !PYTHONPATH */
++
++extern char *getenv();
++
++char *
++getpythonpath()
++{
++#ifdef macintosh
++	return PYTHONPATH;
++#else /* !macintosh */
++	char *path = getenv("PYTHONPATH");
++	char *defpath = PYTHONPATH;
++	char *buf;
++	char *p;
++	int n;
++
++	if (path == 0 || *path == '\0')
++		return defpath;
++	n = strlen(path) + strlen(defpath) + 2;
++	buf = malloc(n);
++	if (buf == NULL)
++		return path; /* XXX too bad -- but not likely */
++	strcpy(buf, path);
++	p = buf + strlen(buf);
++	*p++ = DELIM;
++	strcpy(p, defpath);
++	return buf;
++#endif /* !macintosh */
++}
++
++
++/* Table of built-in modules.
++   These are initialized when first imported. */
++
++/* Standard modules */
++
++#ifdef USE_AL
++extern void inital();
++#endif
++#ifdef USE_AMOEBA
++extern void initamoeba();
++#endif
++#ifdef USE_AUDIO
++extern void initaudio();
++#endif
++#ifdef USE_AUDIOOP
++extern void initaudioop();
++#endif
++#ifdef USE_CD
++extern void initcd();
++#endif
++#ifdef USE_CL
++extern void initcl();
++#endif
++#ifdef USE_DBM
++extern void initdbm();
++#endif
++#ifdef USE_FCNTL
++extern void initfcntl();
++#endif
++#ifdef USE_FL
++extern void initfl();
++#endif
++#ifdef USE_FM
++extern void initfm();
++#endif
++#ifdef USE_GL
++extern void initgl();
++#endif
++#ifdef USE_GRP
++extern void initgrp();
++#endif
++#ifdef USE_IMGFILE
++extern void initimgfile();
++#endif
++#ifdef USE_JPEG
++extern void initjpeg();
++#endif
++#ifdef USE_MAC
++extern void initmac();
++#endif
++#ifdef USE_MARSHAL
++extern void initmarshal();
++#endif
++#ifdef USE_MATH
++extern void initmath();
++#endif
++#ifdef USE_NIS
++extern void initnis();
++#endif
++#ifdef USE_PANEL
++extern void initpanel();
++#endif
++#ifdef USE_POSIX
++extern void initposix();
++#endif
++#ifdef USE_PWD
++extern void initpwd();
++#endif
++#ifdef USE_REGEX
++extern void initregex();
++#endif
++#ifdef USE_ROTOR
++extern void initrotor();
++#endif
++#ifdef USE_SELECT
++extern void initselect();
++#endif
++#ifdef USE_SGI
++extern void initsgi();
++#endif
++#ifdef USE_SOCKET
++extern void initsocket();
++#endif
++#ifdef USE_STDWIN
++extern void initstdwin();
++#endif
++#ifdef USE_STROP
++extern void initstrop();
++#endif
++#ifdef USE_STRUCT
++extern void initstruct();
++#endif
++#ifdef USE_SUNAUDIODEV
++extern void initsunaudiodev();
++#endif
++#ifdef USE_THREAD
++extern void initthread();
++#endif
++#ifdef USE_SV
++extern void initsv();
++#endif
++#ifdef USE_TIME
++extern void inittime();
++#endif
++#ifdef USE_IMAGEOP
++extern void initimageop();
++#endif
++#ifdef USE_MPZ
++extern void initmpz();
++#endif
++#ifdef USE_MD5
++extern void initmd5();
++#endif
++#ifdef USE_ARRAY
++extern void initarray();
++#endif
++#ifdef USE_XT
++extern void initXt();
++#endif
++#ifdef USE_XAW
++extern void initXaw();
++#endif
++#ifdef USE_XM
++extern void initXm();
++#endif
++#ifdef USE_GLX
++extern void initGlx();
++#endif
++#ifdef USE_HTML
++extern void initHTML();
++#endif
++#ifdef USE_XLIB
++extern void initXlib();
++#endif
++#ifdef USE_PARSER
++extern void initparser();
++#endif
++#ifdef USE_RGBIMG
++extern void initrgbimg();
++#endif
++/* -- ADDMODULE MARKER 1 -- */
++
++struct {
++	char *name;
++	void (*initfunc)();
++} inittab[] = {
++
++#ifdef USE_AL
++	{"al",		inital},
++#endif
++
++#ifdef USE_AMOEBA
++	{"amoeba",	initamoeba},
++#endif
++
++#ifdef USE_AUDIO
++	{"audio",	initaudio},
++#endif
++
++#ifdef USE_AUDIOOP
++	{"audioop",	initaudioop},
++#endif
++
++#ifdef USE_CD
++	{"cd",		initcd},
++#endif
++
++#ifdef USE_CL
++	{"cl",		initcl},
++#endif
++
++#ifdef USE_DBM
++	{"dbm",		initdbm},
++#endif
++
++#ifdef USE_FCNTL
++	{"fcntl",	initfcntl},
++#endif
++
++#ifdef USE_FL
++	{"fl",		initfl},
++#endif
++
++#ifdef USE_FM
++	{"fm",		initfm},
++#endif
++
++#ifdef USE_GL
++	{"gl",		initgl},
++#endif
++
++#ifdef USE_GRP
++	{"grp",		initgrp},
++#endif
++
++#ifdef USE_IMGFILE
++	{"imgfile",	initimgfile},
++#endif
++
++#ifdef USE_JPEG
++	{"jpeg",	initjpeg},
++#endif
++
++#ifdef USE_MAC
++	{"mac",	initmac},
++#endif
++
++#ifdef USE_MARSHAL
++	{"marshal",	initmarshal},
++#endif
++
++#ifdef USE_MATH
++	{"math",	initmath},
++#endif
++
++#ifdef USE_NIS
++	{"nis",		initnis},
++#endif
++
++#ifdef USE_PANEL
++	{"pnl",		initpanel},
++#endif
++
++#ifdef USE_POSIX
++	{"posix",	initposix},
++#endif
++
++#ifdef USE_PWD
++	{"pwd",		initpwd},
++#endif
++
++#ifdef USE_REGEX
++	{"regex",	initregex},
++#endif
++
++#ifdef USE_ROTOR
++	{"rotor",	initrotor},
++#endif
++
++#ifdef USE_SELECT
++	{"select",	initselect},
++#endif
++
++#ifdef USE_SGI
++	{"sgi",		initsgi},
++#endif
++
++#ifdef USE_SOCKET
++	{"socket",	initsocket},
++#endif
++
++#ifdef USE_STDWIN
++	{"stdwin",	initstdwin},
++#endif
++
++#ifdef USE_STROP
++	{"strop",	initstrop},
++#endif
++
++#ifdef USE_STRUCT
++	{"struct",	initstruct},
++#endif
++
++#ifdef USE_SUNAUDIODEV
++	{"sunaudiodev",	initsunaudiodev},
++#endif
++
++#ifdef USE_SV
++	{"sv",		initsv},
++#endif
++
++#ifdef USE_THREAD
++	{"thread",	initthread},
++#endif
++
++#ifdef USE_TIME
++	{"time",	inittime},
++#endif
++
++#ifdef USE_IMAGEOP
++       {"imageop", initimageop},
++#endif
++
++#ifdef USE_MPZ
++       {"mpz", initmpz},
++#endif
++
++#ifdef USE_MD5
++       {"md5", initmd5},
++#endif
++
++#ifdef USE_ARRAY
++       {"array", initarray},
++#endif
++
++#ifdef USE_XT
++	{"Xt", initXt},
++#endif
++
++#ifdef USE_XAW
++	{"Xaw", initXaw},
++#endif
++
++#ifdef USE_XM
++	{"Xm", initXm},
++#endif
++
++#ifdef USE_GLX
++	{"Glx", initGlx},
++#endif
++
++#ifdef USE_HTML
++	{"HTML", initHTML},
++#endif
++
++#ifdef USE_XLIB
++       {"Xlib", initXlib},
++#endif
++
++#ifdef USE_PARSER
++       {"parser", initparser},
++#endif
++
++#ifdef USE_RGBIMG
++       {"rgbimg", initrgbimg},
++#endif
++
++/* -- ADDMODULE MARKER 2 -- */
++
++	{0,		0}		/* Sentinel */
++};
++
++#ifdef USE_FROZEN
++#include "frozen.c"
++#else
++struct frozen {
++	char *name;
++	char *code;
++	int size;
++} frozen_modules[] = {
++	{0, 0, 0}
++};
++#endif
+diff --git a/Python/marshal.c b/Python/marshal.c
+index e61815c..4cc1efe 100644
+--- a/Python/marshal.c
++++ b/Python/marshal.c
+@@ -38,6 +38,7 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ #define TYPE_NULL	'0'
+ #define TYPE_NONE	'N'
+ #define TYPE_INT	'i'
++#define TYPE_INT64	'I' /* 2026: backport from 1.5 */
+ #define TYPE_FLOAT	'f'
+ #define TYPE_LONG	'l'
+ #define TYPE_STRING	's'
+@@ -128,8 +129,18 @@ w_object(v, p)
+ 	else if (v == None)
+ 		w_byte(TYPE_NONE, p);
+ 	else if (is_intobject(v)) {
+-		w_byte(TYPE_INT, p);
+-		w_long(getintvalue(v), p);
++		/* 2026: backport of 1.5's TYPE_INT64; 1.0 truncated to 32 bits */
++		long x = getintvalue(v);
++		long y = x>>31;
++		if (y && y != -1) {
++			w_byte(TYPE_INT64, p);
++			w_long(x, p);
++			w_long(x>>32, p);
++		}
++		else {
++			w_byte(TYPE_INT, p);
++			w_long(x, p);
++		}
+ 	}
+ 	else if (is_longobject(v)) {
+ 		longobject *ob = (longobject *)v;
+@@ -259,7 +270,19 @@ r_long(p)
+ 	x |= (long)r_byte(p) << 8;
+ 	x |= (long)r_byte(p) << 16;
+ 	x |= (long)r_byte(p) << 24;
+-	/* XXX If your long is > 32 bits, add sign-extension here!!! */
++	/* 2026: sign extension for 64-bit long, as in 1.5 */
++	x <<= (8*sizeof(long) - 32);
++	x >>= (8*sizeof(long) - 32);
++	return x;
++}
++
++static long
++r_long64(p)
++	RFILE *p;
++{
++	register long x;
++	x = r_long(p);
++	x = (x & 0xFFFFFFFFL) | (r_long(p) << 32);
+ 	return x;
+ }
+ 
+@@ -287,6 +310,9 @@ r_object(p)
+ 	case TYPE_INT:
+ 		return newintobject(r_long(p));
+ 	
++	case TYPE_INT64:
++		return newintobject(r_long64(p));
++	
+ 	case TYPE_LONG:
+ 		{
+ 			int size;
+diff --git a/Python/modsupport.c b/Python/modsupport.c
+index beb5c34..5c6b807 100644
+--- a/Python/modsupport.c
++++ b/Python/modsupport.c
+@@ -99,7 +99,7 @@ do_arg(arg, p_format, p_va)
+ 	va_list *p_va;
+ {
+ 	char *format = *p_format;
+-	va_list va = *p_va;
++#define va (*p_va) /* 2026: va_list is an array type on x86_64 */
+ 	
+ 	if (arg == NULL)
+ 		return 0; /* Incomplete tuple or list */
+@@ -253,7 +253,7 @@ do_arg(arg, p_format, p_va)
+ 	
+ 	}
+ 	
+-	*p_va = va;
++#undef va
+ 	*p_format = format;
+ 	
+ 	return 1;
+@@ -546,13 +546,19 @@ vmkvalue(format, va)
+ {
+ 	char *f = format;
+ 	int n = countformat(f, '\0');
++	va_list lva; /* 2026: a va_list parameter is a pointer on x86_64; &va is not a va_list * */
++	object *res;
+ 	if (n < 0)
+ 		return NULL;
+ 	if (n == 0) {
+ 		INCREF(None);
+ 		return None;
+ 	}
++	va_copy(lva, va);
+ 	if (n == 1)
+-		return do_mkvalue(&f, &va);
+-	return do_mktuple(&f, &va, '\0', n);
++		res = do_mkvalue(&f, &lva);
++	else
++		res = do_mktuple(&f, &lva, '\0', n);
++	va_end(lva);
++	return res;
+ }
+diff --git a/Python/sysmodule.c b/Python/sysmodule.c
+index 2ad8a26..37573df 100644
+--- a/Python/sysmodule.c
++++ b/Python/sysmodule.c
+@@ -191,6 +191,9 @@ initsys()
+ 	dictinsert(sysdict, "stdout", sysout);
+ 	dictinsert(sysdict, "stderr", syserr);
+ 	dictinsert(sysdict, "version", v);
++	{ extern long getmaxint PROTO((void)); object *mi; /* 2026: backport from 1994-08-30 (1d5735e846) */
++	dictinsert(sysdict, "maxint", mi = newintobject(getmaxint()));
++	XDECREF(mi); }
+ 	dictinsert(sysdict, "modules", get_modules());
+ 	dictinsert(sysdict, "builtin_module_names",
+ 		   list_builtin_module_names());

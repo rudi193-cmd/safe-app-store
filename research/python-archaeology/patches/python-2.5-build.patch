@@ -1,0 +1,40 @@
+diff --git a/Include/patchlevel.h b/Include/patchlevel.h
+index 3043189..17fa4b0 100644
+--- a/Include/patchlevel.h
++++ b/Include/patchlevel.h
+@@ -29,7 +29,7 @@
+ #define PY_VERSION		"2.5"
+ 
+ /* Subversion Revision number of this file (not of the repository) */
+-#define PY_PATCHLEVEL_REVISION  "$Revision$"
++#define PY_PATCHLEVEL_REVISION  "$Revision: 51908 $" /* 2026: reconstructed from the r25:51908 release banner */
+ 
+ /* Version as a single 4-byte hex number, e.g. 0x010502B2 == 1.5.2b2.
+    Use this for numeric comparisons, e.g. #if PY_VERSION_HEX >= ... */
+diff --git a/Python/sysmodule.c b/Python/sysmodule.c
+index 2dbe283..6b92c1f 100644
+--- a/Python/sysmodule.c
++++ b/Python/sysmodule.c
+@@ -960,7 +960,7 @@ _check_and_flush (FILE *stream)
+ 
+ /* Subversion branch and revision management */
+ static const char _patchlevel_revision[] = PY_PATCHLEVEL_REVISION;
+-static const char headurl[] = "$HeadURL$";
++static const char headurl[] = "$HeadURL: svn+ssh://pythondev@svn.python.org/python/tags/r25/Python/sysmodule.c $"; /* 2026: svn keyword unexpanded in git; reconstructed */
+ static int svn_initialized;
+ static char patchlevel_revision[50]; /* Just the number */
+ static char branch[50];
+diff --git a/setup.py b/setup.py
+index 5d71181..d459cf3 100644
+--- a/setup.py
++++ b/setup.py
+@@ -297,6 +297,9 @@ class PyBuildExt(build_ext):
+             '/lib64', '/usr/lib64',
+             '/lib', '/usr/lib',
+             ]
++        # 2026: Debian multiarch library dir (upstream added this in 2.7.3/3.2.3)
++        add_dir_to_list(self.compiler.library_dirs, '/usr/lib/x86_64-linux-gnu')
++        lib_dirs.append('/usr/lib/x86_64-linux-gnu')
+         inc_dirs = self.compiler.include_dirs + ['/usr/include']
+         exts = []
+ 

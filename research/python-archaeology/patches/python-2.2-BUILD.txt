@@ -1,0 +1,7 @@
+Python 2.2 final (2001-12-21). No correct git tag exists: v2.2 -> r22p1 (2.2.1c2),
+2.2 -> 2011 "Close 2.2 branch" (2.2.3+). Use commit 22768184cb (cvs2svn creation of
+release22-maint, PY_VERSION "2.2", FINAL). No source changes needed.
+  git fetch --depth 1 origin 22768184cbbaa4bd6083c51c28183be7f4fc3d69 && git checkout FETCH_HEAD
+  CC=gcc OPT="-O1 -g -w -fwrapv -fcommon -fno-strict-aliasing -std=gnu89" ./configure
+  make
+  PYTHONPATH= ./python -tt Lib/test/regrtest.py      # 155 OK, 1 failed (test_time, 32-bit time_t), 30 skipped
