@@ -1,0 +1,10 @@
+Lib/test/test_socket.py:513                           self.cli = socket.socket(socket.AF_VSOCK, socket.SOCK_STREAM)
+Lib/test/test_socket.py:514                           self.addCleanup(self.cli.close)
+Lib/test/test_socket.py:515                           cid = get_cid()
+setup.py:16                                           try:
+Lib/test/test_socket.py:516                               self.cli.connect((cid, VSOCKPORT))
+Doc/library/subprocess.rst:1315                       except OSError as e:
+Lib/test/test_socket.py:2192                              if e.errno == errno.ENODEV:
+Lib/test/test_c_locale_coercion.py:413                        self.skipTest(str(e))
+
+0 line(s) without pre-AI origin

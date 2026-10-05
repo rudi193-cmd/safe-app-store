@@ -1,0 +1,5 @@
+Python 2.0 (tag v2.0, 2000-10-16) on x86_64 / gcc 13
+  git apply python-2.0-build.patch     # also deletes stray Include/config.h
+  CC=gcc OPT="-O1 -g -w -fcommon -fno-strict-aliasing -fwrapv -std=gnu89" ./configure
+  make            # serial; -j races the old recursive make
+  make test       # 82 OK, 0 failed, 25 skipped

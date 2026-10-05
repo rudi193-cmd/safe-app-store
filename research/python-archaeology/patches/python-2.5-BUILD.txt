@@ -1,0 +1,6 @@
+Python 2.5 (tag v2.5, 2006-09-18) on x86_64 / gcc 13
+  git apply python-2.5-build.patch
+  touch Include/Python-ast.h Python/Python-ast.c Include/graminit.h Python/graminit.c
+  CC=gcc OPT="-O1 -g -w -fwrapv -fcommon -fno-strict-aliasing -std=gnu89" ./configure
+  make
+  PYTHONPATH= ./python -tt Lib/test/regrtest.py      # 273 OK, 3 failed, 43 skipped

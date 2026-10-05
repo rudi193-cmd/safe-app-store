@@ -1,0 +1,6 @@
+Python 1.0.0 (commit 2a7cbe9, 1994-01-26) on x86_64 / gcc 13
+  git apply python-1.0.0-build.patch
+  CC=gcc ./configure
+  make MAKE="make INCLDIR=../Include OPT='-std=gnu89 -O0 -g -w -fcommon -fno-strict-aliasing -DBSD_TIME'"
+  (Python/ also needs VPATH=.:../Modules on the make line; see build log)
+  cd Lib/test && PYTHONPATH=../ ../../Python/python -c 'import testall'

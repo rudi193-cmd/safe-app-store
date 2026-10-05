@@ -1,0 +1,1455 @@
+diff --git a/Include/PROTO.h b/Include/PROTO.h
+new file mode 100644
+index 0000000000..4e28dbd316
+--- /dev/null
++++ b/Include/PROTO.h
+@@ -0,0 +1,8 @@
++/* Reconstructed 2026: original PROTO.h was never in VCS history */
++#ifndef PROTO_H
++#define PROTO_H
++#define HAVE_PROTOTYPES
++#define PROTO(x) x
++#define FPROTO(x) x
++#define ANY void
++#endif
+diff --git a/Include/fgetsintr.h b/Include/fgetsintr.h
+new file mode 100644
+index 0000000000..0ed80467ab
+--- /dev/null
++++ b/Include/fgetsintr.h
+@@ -0,0 +1,2 @@
++/* Reconstructed 2026 */
++extern int fgets_intr PROTO((char *, int, FILE *));
+diff --git a/Include/patchlevel.h b/Include/patchlevel.h
+new file mode 100644
+index 0000000000..77a501bbb3
+--- /dev/null
++++ b/Include/patchlevel.h
+@@ -0,0 +1,2 @@
++/* Reconstructed 2026: tag is release098 */
++#define PATCHLEVEL 8
+diff --git a/Include/sigtype.h b/Include/sigtype.h
+new file mode 100644
+index 0000000000..9cf9b398f6
+--- /dev/null
++++ b/Include/sigtype.h
+@@ -0,0 +1,2 @@
++/* Reconstructed 2026 */
++#define SIGTYPE void
+diff --git a/Modules/mathmodule.c b/Modules/mathmodule.c
+index 00aa5eb903..c9aab02f91 100644
+--- a/Modules/mathmodule.c
++++ b/Modules/mathmodule.c
+@@ -28,7 +28,7 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ 
+ #include <errno.h>
+ #ifndef errno
+-extern int errno;
++#include <errno.h>
+ #endif
+ 
+ #include "modsupport.h"
+diff --git a/Modules/posixmodule.c b/Modules/posixmodule.c
+index bab0c59769..333939969b 100644
+--- a/Modules/posixmodule.c
++++ b/Modules/posixmodule.c
+@@ -78,7 +78,7 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ /* XXX Aren't these always declared in unistd.h? */
+ extern char *strerror PROTO((int));
+ extern int chmod PROTO((const char *, mode_t));
+-extern char *getcwd PROTO((char *, int)); /* XXX or size_t? */
++extern char *getcwd PROTO((char *, size_t));
+ extern int mkdir PROTO((const char *, mode_t));
+ extern int chdir PROTO((const char *));
+ extern int link PROTO((const char *, const char *));
+@@ -662,7 +662,7 @@ posix_getpgrp(self, args)
+ #ifdef SYSV
+ 	return newintobject((long)getpgrp());
+ #else
+-	return newintobject((long)getpgrp(0));
++	return newintobject((long)getpgrp());
+ #endif
+ }
+ 
+@@ -676,7 +676,7 @@ posix_setpgrp(self, args)
+ #ifdef SYSV
+ 	if (setpgrp() < 0)
+ #else
+-	if (setpgrp(0, 0) < 0)
++	if (setpgid(0, 0) < 0)
+ #endif
+ 		return err_errno(PosixError);
+ 	INCREF(None);
+diff --git a/Modules/socketmodule.c b/Modules/socketmodule.c
+index c72c9fd529..1bc49609fa 100644
+--- a/Modules/socketmodule.c
++++ b/Modules/socketmodule.c
+@@ -179,7 +179,7 @@ setipaddr(name, addr_ret)
+ 		err_setstr(SocketError, "host not found");
+ 		return -1;
+ 	}
+-	memcpy((char *) &addr_ret->sin_addr, hp->h_addr, hp->h_length);
++	memcpy((char *) &addr_ret->sin_addr, hp->h_addr_list[0], hp->h_length);
+ 	return hp->h_length;
+ }
+ 
+diff --git a/Modules/timemodule.c b/Modules/timemodule.c
+index 89d889c7c4..5b5c39db20 100644
+--- a/Modules/timemodule.c
++++ b/Modules/timemodule.c
+@@ -85,10 +85,10 @@ time_time(self, args)
+ {
+ #ifdef HAVE_GETTIMEOFDAY
+ 	struct timeval t;
+-	struct timezone tz;
++	struct { int a, b; } tz;
+ 	if (!getnoarg(args))
+ 		return NULL;
+-	if (gettimeofday(&t, &tz) != 0) {
++	if (gettimeofday(&t, (void *)&tz) != 0) {
+ 		err_errno(IOError);
+ 		return NULL;
+ 	}
+@@ -309,8 +309,8 @@ long
+ millitimer()
+ {
+ 	struct timeval t;
+-	struct timezone tz;
+-	if (gettimeofday(&t, &tz) != 0)
++	struct { int a, b; } tz;
++	if (gettimeofday(&t, (void *)&tz) != 0)
+ 		return -1;
+ 	return t.tv_sec*1000 + t.tv_usec/1000;
+ }
+diff --git a/Objects/fileobject.c b/Objects/fileobject.c
+index b84819e3fb..a74f20a71f 100644
+--- a/Objects/fileobject.c
++++ b/Objects/fileobject.c
+@@ -32,7 +32,7 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ 
+ #include "errno.h"
+ #ifndef errno
+-extern int errno;
++#include <errno.h>
+ #endif
+ 
+ typedef struct {
+diff --git a/Objects/floatobject.c b/Objects/floatobject.c
+index 1a1598c91e..92112df7c1 100644
+--- a/Objects/floatobject.c
++++ b/Objects/floatobject.c
+@@ -31,7 +31,7 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ 
+ #include <errno.h>
+ #ifndef errno
+-extern int errno;
++#include <errno.h>
+ #endif
+ 
+ #include <ctype.h>
+diff --git a/Objects/intobject.c b/Objects/intobject.c
+index e10dab2b3e..095c58a91c 100644
+--- a/Objects/intobject.c
++++ b/Objects/intobject.c
+@@ -181,7 +181,7 @@ int_mul(v, w)
+ 	a = v->ob_ival;
+ 	b = w->ob_ival;
+ 	x = (double)a * (double)b;
+-	if (x > 0x7fffffff || x < (double) (long) 0x80000000)
++	if (x > 2147483647.0 || x < -2147483648.0) /* 2026: was (long)0x80000000, positive on LP64 */
+ 		return err_ovf("integer multiplication");
+ 	return newintobject(a * b);
+ }
+diff --git a/Objects/methodobject.c b/Objects/methodobject.c
+index d0b29c7ee0..e689fee75f 100644
+--- a/Objects/methodobject.c
++++ b/Objects/methodobject.c
+@@ -130,7 +130,7 @@ typeobject Methodtype = {
+ 	0,		/*tp_as_mapping*/
+ };
+ 
+-object *listmethods PROTO((struct methodlist *)); /* Forward */
++static object *listmethods PROTO((struct methodlist *)); /* Forward */
+ 
+ static object *
+ listmethods(ml)
+diff --git a/Python/compile.c b/Python/compile.c
+index 483e5247b4..15a578b563 100644
+--- a/Python/compile.c
++++ b/Python/compile.c
+@@ -41,7 +41,7 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ 
+ #include <ctype.h>
+ 
+-extern int errno;
++#include <errno.h>
+ 
+ #define OFF(x) offsetof(codeobject, x)
+ 
+@@ -438,6 +438,15 @@ parsenumber(s)
+ 	else
+ 		x = strtol(s, &end, 0);
+ 	if (*end == '\0') {
++		/* 2026: emulate the 32-bit long this code was written for */
++		if (s[0] == '0') {
++			if ((unsigned long) x > 0xffffffffUL)
++				errno = ERANGE;
++			else
++				x = (long)(int)(unsigned int) x;
++		}
++		else if (x > 2147483647L || x < -2147483647L-1)
++			errno = ERANGE;
+ 		if (errno != 0) {
+ 			err_setstr(OverflowError,
+ 				   "integer literal too large");
+diff --git a/Python/errors.c b/Python/errors.c
+index 5814dd749d..3f4746c30a 100644
+--- a/Python/errors.c
++++ b/Python/errors.c
+@@ -59,7 +59,7 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ 
+ #include <errno.h>
+ #ifndef errno
+-extern int errno;
++#include <errno.h>
+ #endif
+ 
+ #include "errcode.h"
+diff --git a/Python/fmod.c b/Python/fmod.c
+index 607f6a5f82..2f1d724137 100644
+--- a/Python/fmod.c
++++ b/Python/fmod.c
+@@ -27,7 +27,7 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ #include <math.h>
+ #include <errno.h>
+ 
+-extern int errno;
++#include <errno.h>
+ 
+ double
+ fmod(x, y)
+diff --git a/Python/getcwd.c b/Python/getcwd.c
+index 96c2291c8a..2be1efe0a6 100644
+--- a/Python/getcwd.c
++++ b/Python/getcwd.c
+@@ -30,7 +30,7 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ #include <stdio.h>
+ #include <errno.h>
+ 
+-extern int errno;
++#include <errno.h>
+ 
+ #ifndef NO_GETWD
+ 
+diff --git a/Python/marshal.c b/Python/marshal.c
+index 8e68e286f5..8c3774a932 100644
+--- a/Python/marshal.c
++++ b/Python/marshal.c
+@@ -34,7 +34,7 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ #include "marshal.h"
+ 
+ #include <errno.h>
+-extern int errno;
++#include <errno.h>
+ 
+ #define TYPE_NULL	'0'
+ #define TYPE_NONE	'N'
+@@ -176,7 +176,7 @@ rd_long(fp)
+ 	x |= (long)rd_byte(fp) << 8;
+ 	x |= (long)rd_byte(fp) << 16;
+ 	x |= (long)rd_byte(fp) << 24;
+-	/* XXX If your long is > 32 bits, add sign-extension here!!! */
++	x = (long)(int)x; /* 2026: sign-extension for 64-bit long, per the XXX here */
+ 	return x;
+ }
+ 
+diff --git a/Python/modsupport.c b/Python/modsupport.c
+index 1f281266c9..1a9d9f58bc 100644
+--- a/Python/modsupport.c
++++ b/Python/modsupport.c
+@@ -110,7 +110,7 @@ do_arg(arg, p_format, p_va)
+ 	va_list *p_va;
+ {
+ 	char *format = *p_format;
+-	va_list va = *p_va;
++#define va (*p_va)
+ 	
+ 	if (arg == NULL)
+ 		return 0; /* Incomplete tuple or list */
+@@ -264,7 +264,7 @@ do_arg(arg, p_format, p_va)
+ 	
+ 	}
+ 	
+-	*p_va = va;
++#undef va
+ 	*p_format = format;
+ 	
+ 	return 1;
+diff --git a/Python/pythonmain.c b/Python/pythonmain.c
+index 1c6469231d..2cf2ab681a 100644
+--- a/Python/pythonmain.c
++++ b/Python/pythonmain.c
+@@ -32,7 +32,7 @@ extern int verbose; /* Needed by import.c */
+ /* Interface to getopt(): */
+ extern int optind;
+ extern char *optarg;
+-extern int getopt PROTO((int, char **, char *));
++/* getopt declared by <unistd.h> */
+ 
+ main(argc, argv)
+ 	int argc;
+diff --git a/build98/Makefile b/build98/Makefile
+new file mode 100644
+index 0000000000..773efdadcb
+--- /dev/null
++++ b/build98/Makefile
+@@ -0,0 +1,11 @@
++CC=gcc
++CFLAGS=-std=gnu89 -DBSD_TIME -D_XOPEN_SOURCE=500 -D_XOPEN_SOURCE_EXTENDED -O0 -g -w -fcommon -fno-strict-aliasing -I../Include -I../Parser -I../Python -DPYTHONPATH='".:$(abspath ../Lib)"'
++VPATH=.:../Python:../Objects:../Parser:../Modules
++PY=bltinmodule.o ceval.o cgensupport.o compile.o errors.o import.o marshal.o modsupport.o pythonmain.o pythonrun.o structmember.o sysmodule.o traceback.o graminit.o
++OBJ=dictobject.o classobject.o fileobject.o floatobject.o frameobject.o funcobject.o intobject.o listobject.o longobject.o methodobject.o moduleobject.o object.o stringobject.o tupleobject.o typeobject.o
++PARSER=grammar.o acceler.o bitset.o firstsets.o grammar1.o intrcheck.o listnode.o node.o parser.o parsetok.o tokenizer.o
++MODS=config.o fgetsintr.o mathmodule.o posixmodule.o pwdmodule.o selectmodule.o socketmodule.o structmodule.o timemodule.o
++python: $(PY) $(OBJ) $(PARSER) $(MODS)
++	$(CC) -o $@ $^ -lm
++clean:
++	rm -f *.o python
+diff --git a/build98/config.c b/build98/config.c
+new file mode 100644
+index 0000000000..feba8c1090
+--- /dev/null
++++ b/build98/config.c
+@@ -0,0 +1,385 @@
++/***********************************************************
++Copyright 1991, 1992, 1993 by Stichting Mathematisch Centrum,
++Amsterdam, The Netherlands.
++
++                        All Rights Reserved
++
++Permission to use, copy, modify, and distribute this software and its 
++documentation for any purpose and without fee is hereby granted, 
++provided that the above copyright notice appear in all copies and that
++both that copyright notice and this permission notice appear in 
++supporting documentation, and that the names of Stichting Mathematisch
++Centrum or CWI not be used in advertising or publicity pertaining to
++distribution of the software without specific, written prior permission.
++
++STICHTING MATHEMATISCH CENTRUM DISCLAIMS ALL WARRANTIES WITH REGARD TO
++THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
++FITNESS, IN NO EVENT SHALL STICHTING MATHEMATISCH CENTRUM BE LIABLE
++FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
++OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++
++******************************************************************/
++
++/* Configurable Python configuration file */
++
++/* These modules are normally always included, but *may* be taken out */
++
++#define USE_MARSHAL	1	/* This is linked anyway */
++#define USE_MATH	1
++#define USE_PWD		1	/* Use together with grp */
++#define USE_POSIX	1
++#define USE_SELECT	1
++#define USE_SOCKET	1
++#define USE_STRUCT	1
++#define USE_TIME	1
++
++#include "PROTO.h"
++#include "mymalloc.h"
++
++#include "patchlevel.h"
++
++#define VERSION "0.9.%d (%s)"
++
++#ifdef __DATE__
++#define DATE __DATE__
++#else
++#define DATE ">= 8 Jan 1993"
++#endif
++
++#include <stdio.h>
++
++#ifdef USE_STDWIN
++#include <stdwin.h>
++#endif
++
++char version[80];
++
++char *argv0;
++
++/*ARGSUSED*/
++void
++initargs(p_argc, p_argv)
++	int *p_argc;
++	char ***p_argv;
++{
++	sprintf(version, VERSION, PATCHLEVEL, DATE);
++
++	argv0 = **p_argv;
++
++#ifdef USE_STDWIN
++	wargs(p_argc, p_argv);
++#endif
++	if (*p_argc < 2 && isatty(0) && isatty(1))
++	{
++		printf("Python %s.\n", version);
++		printf(
++"Copyright 1990, 1991, 1992 Stichting Mathematisch Centrum, Amsterdam\n");
++	}
++}
++
++void
++initcalls()
++{
++}
++
++void
++donecalls()
++{
++#ifdef USE_STDWIN
++	wdone();
++#endif
++#ifdef USE_AUDIO
++	asa_done();
++#endif
++}
++
++#ifndef PYTHONPATH
++#define PYTHONPATH ".:/usr/local/lib/python"
++#endif
++
++extern char *getenv();
++
++char *
++getpythonpath()
++{
++	char *path = getenv("PYTHONPATH");
++	char *defpath = PYTHONPATH;
++	char *buf;
++	int n;
++
++	if (path == 0 || *path == '\0')
++		return defpath;
++	n = strlen(path) + strlen(defpath) + 2;
++	buf = malloc(n);
++	if (buf == NULL)
++		return path; /* XXX too bad -- but not likely */
++	strcpy(buf, path);
++	strcat(buf, ":");
++	strcat(buf, defpath);
++	return buf;
++}
++
++
++/* Table of built-in modules.
++   These are initialized when first imported. */
++
++/* Standard modules */
++
++#ifdef USE_AL
++extern void inital();
++#endif
++#ifdef USE_AMOEBA
++extern void initamoeba();
++#endif
++#ifdef USE_AUDIO
++extern void initaudio();
++#endif
++#ifdef USE_AUDIOOP
++extern void initaudioop();
++#endif
++#ifdef USE_CD
++extern void initcd();
++#endif
++#ifdef USE_DBM
++extern void initdbm();
++#endif
++#ifdef USE_FCNTL
++extern void initfcntl();
++#endif
++#ifdef USE_FL
++extern void initfl();
++#endif
++#ifdef USE_FM
++extern void initfm();
++#endif
++#ifdef USE_GL
++extern void initgl();
++#endif
++#ifdef USE_GRP
++extern void initgrp();
++#endif
++#ifdef USE_IMGFILE
++extern void initimgfile();
++#endif
++#ifdef USE_JPEG
++extern void initjpeg();
++#endif
++#ifdef USE_MARSHAL
++extern void initmarshal();
++#endif
++#ifdef USE_MATH
++extern void initmath();
++#endif
++#ifdef USE_NIS
++extern void initnis();
++#endif
++#ifdef USE_PANEL
++extern void initpanel();
++#endif
++#ifdef USE_POSIX
++extern void initposix();
++#endif
++#ifdef USE_PWD
++extern void initpwd();
++#endif
++#ifdef USE_REGEX
++extern void initregex();
++#endif
++#ifdef USE_ROTOR
++extern void initrotor();
++#endif
++#ifdef USE_SELECT
++extern void initselect();
++#endif
++#ifdef USE_SGI
++extern void initsgi();
++#endif
++#ifdef USE_SOCKET
++extern void initsocket();
++#endif
++#ifdef USE_STDWIN
++extern void initstdwin();
++#endif
++#ifdef USE_STROP
++extern void initstrop();
++#endif
++#ifdef USE_STRUCT
++extern void initstruct();
++#endif
++#ifdef USE_SUNAUDIODEV
++extern void initsunaudiodev();
++#endif
++#ifdef USE_THREAD
++extern void initthread();
++#endif
++#ifdef USE_SV
++extern void initsv();
++#endif
++#ifdef USE_CL
++extern void initcl();
++#endif
++#ifdef USE_TIME
++extern void inittime();
++#endif
++#ifdef USE_IMAGEOP
++extern void initimageop();
++#endif
++#ifdef USE_MPZ
++extern void initmpz();
++#endif
++#ifdef USE_MD5
++extern void initmd5();
++#endif
++/* -- ADDMODULE MARKER 1 -- */
++
++struct {
++	char *name;
++	void (*initfunc)();
++} inittab[] = {
++
++#ifdef USE_AL
++	{"al",		inital},
++#endif
++
++#ifdef USE_AMOEBA
++	{"amoeba",	initamoeba},
++#endif
++
++#ifdef USE_AUDIO
++	{"audio",	initaudio},
++#endif
++
++#ifdef USE_AUDIOOP
++	{"audioop",	initaudioop},
++#endif
++
++#ifdef USE_CD
++	{"cd",		initcd},
++#endif
++
++#ifdef USE_DBM
++	{"dbm",		initdbm},
++#endif
++
++#ifdef USE_FCNTL
++	{"fcntl",	initfcntl},
++#endif
++
++#ifdef USE_FL
++	{"fl",		initfl},
++#endif
++
++#ifdef USE_FM
++	{"fm",		initfm},
++#endif
++
++#ifdef USE_GL
++	{"gl",		initgl},
++#endif
++
++#ifdef USE_GRP
++	{"grp",		initgrp},
++#endif
++
++#ifdef USE_IMGFILE
++	{"imgfile",	initimgfile},
++#endif
++
++#ifdef USE_JPEG
++	{"jpeg",	initjpeg},
++#endif
++
++#ifdef USE_MARSHAL
++	{"marshal",	initmarshal},
++#endif
++
++#ifdef USE_MATH
++	{"math",	initmath},
++#endif
++
++#ifdef USE_NIS
++	{"nis",		initnis},
++#endif
++
++#ifdef USE_PANEL
++	{"pnl",		initpanel},
++#endif
++
++#ifdef USE_POSIX
++	{"posix",	initposix},
++#endif
++
++#ifdef USE_PWD
++	{"pwd",		initpwd},
++#endif
++
++#ifdef USE_REGEX
++	{"regex",	initregex},
++#endif
++
++#ifdef USE_ROTOR
++	{"rotor",	initrotor},
++#endif
++
++#ifdef USE_SELECT
++	{"select",	initselect},
++#endif
++
++#ifdef USE_SGI
++	{"sgi",		initsgi},
++#endif
++
++#ifdef USE_SOCKET
++	{"socket",	initsocket},
++#endif
++
++#ifdef USE_STDWIN
++	{"stdwin",	initstdwin},
++#endif
++
++#ifdef USE_STROP
++	{"strop",	initstrop},
++#endif
++
++#ifdef USE_STRUCT
++	{"struct",	initstruct},
++#endif
++
++#ifdef USE_SUNAUDIODEV
++	{"sunaudiodev",	initsunaudiodev},
++#endif
++
++#ifdef USE_SV
++	{"sv",		initsv},
++#endif
++
++#ifdef USE_CL
++	{"cl",		initcl},
++#endif
++
++#ifdef USE_THREAD
++	{"thread",	initthread},
++#endif
++
++#ifdef USE_TIME
++	{"time",	inittime},
++#endif
++
++#ifdef USE_IMAGEOP
++       {"imageop", initimageop},
++#endif
++
++#ifdef USE_MPZ
++       {"mpz", initmpz},
++#endif
++
++#ifdef USE_MD5
++       {"md5", initmd5},
++#endif
++
++/* -- ADDMODULE MARKER 2 -- */
++
++	{0,		0}		/* Sentinel */
++};
+diff --git a/build98/dictobject.c b/build98/dictobject.c
+new file mode 100644
+index 0000000000..e2be509469
+--- /dev/null
++++ b/build98/dictobject.c
+@@ -0,0 +1,714 @@
++/*
++Backport (2026) of Objects/dictobject.c from commit 4b1302bd1d (1993-03-27)
++to the 0.9.8 tree, whose own dictobject.c was never in version control.
++0.9.8 has no tp_hash, so keys are restricted to strings (as 0.9.8 dicts
++were) and hashed here.
++*/
++/***********************************************************
++Copyright 1991, 1992, 1993 by Stichting Mathematisch Centrum,
++Amsterdam, The Netherlands.
++
++                        All Rights Reserved
++
++Permission to use, copy, modify, and distribute this software and its 
++documentation for any purpose and without fee is hereby granted, 
++provided that the above copyright notice appear in all copies and that
++both that copyright notice and this permission notice appear in 
++supporting documentation, and that the names of Stichting Mathematisch
++Centrum or CWI not be used in advertising or publicity pertaining to
++distribution of the software without specific, written prior permission.
++
++STICHTING MATHEMATISCH CENTRUM DISCLAIMS ALL WARRANTIES WITH REGARD TO
++THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
++FITNESS, IN NO EVENT SHALL STICHTING MATHEMATISCH CENTRUM BE LIABLE
++FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
++OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++
++******************************************************************/
++
++/* Mapping object implementation; using a hash table */
++
++#include "allobjects.h"
++#include "dictobject.h"
++#include "modsupport.h"
++
++#define Mappingtype Dicttype
++#define is_mappingobject is_dictobject
++#define newmappingobject newdictobject
++#define mappinglookup dict2lookup
++#define mappinginsert dict2insert
++#define mappingremove dict2remove
++#define getmappingsize getdictsize
++#define getmappingkey getdict2key
++#define getmappingkeys getdictkeys
++
++static long
++hashobject(v)
++	object *v;
++{
++	register int len;
++	register unsigned char *p;
++	register long x;
++	if (!is_stringobject(v)) {
++		err_setstr(TypeError, "dictionary key must be string");
++		return -1;
++	}
++	len = getstringsize(v);
++	p = (unsigned char *) getstringvalue(v);
++	x = *p << 7;
++	while (--len >= 0)
++		x = (x * 1000003) ^ *p++;
++	x ^= getstringsize(v);
++	if (x == -1)
++		x = -2;
++	return x;
++}
++
++
++/*
++Table of primes suitable as keys, in ascending order.
++The first line are the largest primes less than some powers of two,
++the second line is the largest prime less than 6000,
++and the third line is a selection from Knuth, Vol. 3, Sec. 6.1, Table 1.
++The final value is a sentinel and should cause the memory allocation
++of that many entries to fail (if none of the earlier values cause such
++failure already).
++*/
++static unsigned int primes[] = {
++	3, 7, 13, 31, 61, 127, 251, 509, 1021, 2017, 4093,
++	5987,
++	9551, 15683, 19609, 31397,
++	0xffffffff /* All bits set -- truncation OK */
++};
++
++/* Object used as dummy key to fill deleted entries */
++static object *dummy; /* Initialized by first call to newmappingobject() */
++
++/*
++Invariant for entries: when in use, de_value is not NULL and de_key is
++not NULL and not dummy; when not in use, de_value is NULL and de_key
++is either NULL or dummy.  A dummy key value cannot be replaced by
++NULL, since otherwise other keys may be lost.
++*/
++typedef struct {
++	long me_hash;
++	object *me_key;
++	object *me_value;
++} mappingentry;
++
++/*
++To ensure the lookup algorithm terminates, the table size must be a
++prime number and there must be at least one NULL key in the table.
++The value ma_fill is the number of non-NULL keys; ma_used is the number
++of non-NULL, non-dummy keys.
++To avoid slowing down lookups on a near-full table, we resize the table
++when it is more than half filled.
++*/
++typedef struct {
++	OB_HEAD
++	int ma_fill;
++	int ma_used;
++	int ma_size;
++	mappingentry *ma_table;
++} mappingobject;
++
++object *
++newmappingobject()
++{
++	register mappingobject *mp;
++	if (dummy == NULL) { /* Auto-initialize dummy */
++		dummy = newstringobject("<dummy key>");
++		if (dummy == NULL)
++			return NULL;
++	}
++	mp = NEWOBJ(mappingobject, &Mappingtype);
++	if (mp == NULL)
++		return NULL;
++	mp->ma_size = primes[0];
++	mp->ma_table = (mappingentry *) calloc(sizeof(mappingentry), mp->ma_size);
++	if (mp->ma_table == NULL) {
++		DEL(mp);
++		return err_nomem();
++	}
++	mp->ma_fill = 0;
++	mp->ma_used = 0;
++	return (object *)mp;
++}
++
++/*
++The basic lookup function used by all operations.
++This is essentially Algorithm D from Knuth Vol. 3, Sec. 6.4.
++Open addressing is preferred over chaining since the link overhead for
++chaining would be substantial (100% with typical malloc overhead).
++
++First a 32-bit hash value, 'sum', is computed from the key string.
++The first character is added an extra time shifted by 8 to avoid hashing
++single-character keys (often heavily used variables) too close together.
++All arithmetic on sum should ignore overflow.
++
++The initial probe index is then computed as sum mod the table size.
++Subsequent probe indices are incr apart (mod table size), where incr
++is also derived from sum, with the additional requirement that it is
++relative prime to the table size (i.e., 1 <= incr < size, since the size
++is a prime number).  My choice for incr is somewhat arbitrary.
++*/
++static mappingentry *lookmapping PROTO((mappingobject *, object *, long));
++static mappingentry *
++lookmapping(mp, key, hash)
++	register mappingobject *mp;
++	object *key;
++	long hash;
++{
++	register int i, incr;
++	register unsigned long sum = (unsigned long) hash;
++	register mappingentry *freeslot = NULL;
++	/* We must come up with (i, incr) such that 0 <= i < ma_size
++	   and 0 < incr < ma_size and both are a function of hash */
++	i = sum % mp->ma_size;
++	do {
++		sum = sum + sum + sum + 1;
++		incr = sum % mp->ma_size;
++	} while (incr == 0);
++	for (;;) {
++		register mappingentry *ep = &mp->ma_table[i];
++		if (ep->me_key == NULL) {
++			if (freeslot != NULL)
++				return freeslot;
++			else
++				return ep;
++		}
++		if (ep->me_key == dummy) {
++			if (freeslot != NULL)
++				freeslot = ep;
++		}
++		else if (ep->me_hash == hash &&
++			 cmpobject(ep->me_key, key) == 0) {
++			return ep;
++		}
++		i = (i + incr) % mp->ma_size;
++	}
++}
++
++/*
++Internal routine to insert a new item into the table.
++Used both by the internal resize routine and by the public insert routine.
++Eats a reference to key and one to value.
++*/
++static void insertmapping PROTO((mappingobject *, object *, long, object *));
++static void
++insertmapping(mp, key, hash, value)
++	register mappingobject *mp;
++	object *key;
++	long hash;
++	object *value;
++{
++	register mappingentry *ep;
++	ep = lookmapping(mp, key, hash);
++	if (ep->me_value != NULL) {
++		DECREF(ep->me_value);
++		DECREF(key);
++	}
++	else {
++		if (ep->me_key == NULL)
++			mp->ma_fill++;
++		else
++			DECREF(ep->me_key);
++		ep->me_key = key;
++		ep->me_hash = hash;
++		mp->ma_used++;
++	}
++	ep->me_value = value;
++}
++
++/*
++Restructure the table by allocating a new table and reinserting all
++items again.  When entries have been deleted, the new table may
++actually be smaller than the old one.
++*/
++static int mappingresize PROTO((mappingobject *));
++static int
++mappingresize(mp)
++	mappingobject *mp;
++{
++	register int oldsize = mp->ma_size;
++	register int newsize;
++	register mappingentry *oldtable = mp->ma_table;
++	register mappingentry *newtable;
++	register mappingentry *ep;
++	register int i;
++	newsize = mp->ma_size;
++	for (i = 0; ; i++) {
++		if (primes[i] > mp->ma_used*2) {
++			newsize = primes[i];
++			break;
++		}
++	}
++	newtable = (mappingentry *) calloc(sizeof(mappingentry), newsize);
++	if (newtable == NULL) {
++		err_nomem();
++		return -1;
++	}
++	mp->ma_size = newsize;
++	mp->ma_table = newtable;
++	mp->ma_fill = 0;
++	mp->ma_used = 0;
++	for (i = 0, ep = oldtable; i < oldsize; i++, ep++) {
++		if (ep->me_value != NULL)
++			insertmapping(mp,ep->me_key,ep->me_hash,ep->me_value);
++		else {
++			XDECREF(ep->me_key);
++		}
++	}
++	DEL(oldtable);
++	return 0;
++}
++
++object *
++mappinglookup(op, key)
++	object *op;
++	object *key;
++{
++	long hash;
++	if (!is_mappingobject(op)) {
++		err_badcall();
++		return NULL;
++	}
++	hash = hashobject(key);
++	if (hash == -1)
++		return NULL;
++	return lookmapping((mappingobject *)op, key, hash) -> me_value;
++}
++
++int
++mappinginsert(op, key, value)
++	register object *op;
++	object *key;
++	object *value;
++{
++	register mappingobject *mp;
++	register long hash;
++	if (!is_mappingobject(op)) {
++		err_badcall();
++		return -1;
++	}
++	hash = hashobject(key);
++	if (hash == -1)
++		return -1;
++	mp = (mappingobject *)op;
++	/* if fill >= 2/3 size, resize */
++	if (mp->ma_fill*3 >= mp->ma_size*2) {
++		if (mappingresize(mp) != 0) {
++			if (mp->ma_fill+1 > mp->ma_size)
++				return -1;
++		}
++	}
++	INCREF(value);
++	INCREF(key);
++	insertmapping(mp, key, hash, value);
++	return 0;
++}
++
++int
++mappingremove(op, key)
++	object *op;
++	object *key;
++{
++	register mappingobject *mp;
++	register long hash;
++	register mappingentry *ep;
++	if (!is_mappingobject(op)) {
++		err_badcall();
++		return -1;
++	}
++	hash = hashobject(key);
++	if (hash == -1)
++		return -1;
++	mp = (mappingobject *)op;
++	ep = lookmapping(mp, key, hash);
++	if (ep->me_value == NULL) {
++		err_setval(KeyError, key);
++		return -1;
++	}
++	DECREF(ep->me_key);
++	INCREF(dummy);
++	ep->me_key = dummy;
++	DECREF(ep->me_value);
++	ep->me_value = NULL;
++	mp->ma_used--;
++	return 0;
++}
++
++int
++getmappingsize(op)
++	register object *op;
++{
++	if (!is_mappingobject(op)) {
++		err_badcall();
++		return -1;
++	}
++	return ((mappingobject *)op) -> ma_size;
++}
++
++object *
++getmappingkey(op, i)
++	object *op;
++	register int i;
++{
++	/* XXX This can't return errors since its callers assume
++	   that NULL means there was no key at that point */
++	register mappingobject *mp;
++	if (!is_mappingobject(op)) {
++		/* err_badcall(); */
++		return NULL;
++	}
++	mp = (mappingobject *)op;
++	if (i < 0 || i >= mp->ma_size) {
++		/* err_badarg(); */
++		return NULL;
++	}
++	if (mp->ma_table[i].me_value == NULL) {
++		/* Not an error! */
++		return NULL;
++	}
++	return (object *) mp->ma_table[i].me_key;
++}
++
++/* Methods */
++
++static void
++mapping_dealloc(mp)
++	register mappingobject *mp;
++{
++	register int i;
++	register mappingentry *ep;
++	for (i = 0, ep = mp->ma_table; i < mp->ma_size; i++, ep++) {
++		if (ep->me_key != NULL)
++			DECREF(ep->me_key);
++		if (ep->me_value != NULL)
++			DECREF(ep->me_value);
++	}
++	if (mp->ma_table != NULL)
++		DEL(mp->ma_table);
++	DEL(mp);
++}
++
++static int
++mapping_print(mp, fp, flags)
++	register mappingobject *mp;
++	register FILE *fp;
++	register int flags;
++{
++	register int i;
++	register int any;
++	register mappingentry *ep;
++	fprintf(fp, "{");
++	any = 0;
++	for (i = 0, ep = mp->ma_table; i < mp->ma_size; i++, ep++) {
++		if (ep->me_value != NULL) {
++			if (any++ > 0)
++				fprintf(fp, ", ");
++			if (printobject((object *)ep->me_key, fp, flags) != 0)
++				return -1;
++			fprintf(fp, ": ");
++			if (printobject(ep->me_value, fp, flags) != 0)
++				return -1;
++		}
++	}
++	fprintf(fp, "}");
++	return 0;
++}
++
++static void
++js(pv, w)
++	object **pv;
++	object *w;
++{
++	joinstring(pv, w);
++	XDECREF(w);
++}
++
++static object *
++mapping_repr(mp)
++	mappingobject *mp;
++{
++	auto object *v;
++	object *sepa, *colon;
++	register int i;
++	register int any;
++	register mappingentry *ep;
++	v = newstringobject("{");
++	sepa = newstringobject(", ");
++	colon = newstringobject(": ");
++	any = 0;
++	for (i = 0, ep = mp->ma_table; i < mp->ma_size; i++, ep++) {
++		if (ep->me_value != NULL) {
++			if (any++)
++				joinstring(&v, sepa);
++			js(&v, reprobject(ep->me_key));
++			joinstring(&v, colon);
++			js(&v, reprobject(ep->me_value));
++		}
++	}
++	js(&v, newstringobject("}"));
++	XDECREF(sepa);
++	XDECREF(colon);
++	return v;
++}
++
++static int
++mapping_length(mp)
++	mappingobject *mp;
++{
++	return mp->ma_used;
++}
++
++static object *
++mapping_subscript(mp, key)
++	mappingobject *mp;
++	register object *key;
++{
++	object *v;
++	long hash = hashobject(key);
++	if (hash == -1)
++		return NULL;
++	v = lookmapping(mp, key, hash) -> me_value;
++	if (v == NULL)
++		err_setval(KeyError, key);
++	else
++		INCREF(v);
++	return v;
++}
++
++static int
++mapping_ass_sub(mp, v, w)
++	mappingobject *mp;
++	object *v, *w;
++{
++	if (w == NULL)
++		return mappingremove((object *)mp, v);
++	else
++		return mappinginsert((object *)mp, v, w);
++}
++
++static mapping_methods mapping_as_mapping = {
++	mapping_length,	/*mp_length*/
++	mapping_subscript,	/*mp_subscript*/
++	mapping_ass_sub,	/*mp_ass_subscript*/
++};
++
++static object *
++mapping_keys(mp, args)
++	register mappingobject *mp;
++	object *args;
++{
++	register object *v;
++	register int i, j;
++	if (!getnoarg(args))
++		return NULL;
++	v = newlistobject(mp->ma_used);
++	if (v == NULL)
++		return NULL;
++	for (i = 0, j = 0; i < mp->ma_size; i++) {
++		if (mp->ma_table[i].me_value != NULL) {
++			object *key = mp->ma_table[i].me_key;
++			INCREF(key);
++			setlistitem(v, j, key);
++			j++;
++		}
++	}
++	return v;
++}
++
++object *
++getmappingkeys(mp)
++	object *mp;
++{
++	if (mp == NULL || !is_mappingobject(mp)) {
++		err_badcall();
++		return NULL;
++	}
++	return mapping_keys((mappingobject *)mp, (object *)NULL);
++}
++
++static int
++mapping_compare(a, b)
++	mappingobject *a, *b;
++{
++	object *akeys, *bkeys;
++	int i, n, res;
++	if (a == b)
++		return 0;
++	if (a->ma_used == 0) {
++		if (b->ma_used != 0)
++			return -1;
++		else
++			return 0;
++	}
++	else {
++		if (b->ma_used == 0)
++			return 1;
++	}
++	akeys = mapping_keys(a, (object *)NULL);
++	bkeys = mapping_keys(b, (object *)NULL);
++	if (akeys == NULL || bkeys == NULL) {
++		/* Oops, out of memory -- what to do? */
++		/* For now, sort on address! */
++		XDECREF(akeys);
++		XDECREF(bkeys);
++		if (a < b)
++			return -1;
++		else
++			return 1;
++	}
++	sortlist(akeys);
++	sortlist(bkeys);
++	n = a->ma_used < b->ma_used ? a->ma_used : b->ma_used; /* smallest */
++	res = 0;
++	for (i = 0; i < n; i++) {
++		object *akey, *bkey, *aval, *bval;
++		long ahash, bhash;
++		akey = getlistitem(akeys, i);
++		bkey = getlistitem(bkeys, i);
++		res = cmpobject(akey, bkey);
++		if (res != 0)
++			break;
++		ahash = hashobject(akey);
++		if (ahash == -1)
++			err_clear(); /* Don't want errors here */
++		bhash = hashobject(bkey);
++		if (bhash == -1)
++			err_clear(); /* Don't want errors here */
++		aval = lookmapping(a, akey, ahash) -> me_value;
++		bval = lookmapping(b, bkey, bhash) -> me_value;
++		res = cmpobject(aval, bval);
++		if (res != 0)
++			break;
++	}
++	if (res == 0) {
++		if (a->ma_used < b->ma_used)
++			res = -1;
++		else if (a->ma_used > b->ma_used)
++			res = 1;
++	}
++	DECREF(akeys);
++	DECREF(bkeys);
++	return res;
++}
++
++static object *
++mapping_has_key(mp, args)
++	register mappingobject *mp;
++	object *args;
++{
++	object *key;
++	long hash;
++	register long ok;
++	if (!getargs(args, "O", &key))
++		return NULL;
++	hash = hashobject(key);
++	if (hash == -1)
++		return NULL;
++	ok = lookmapping(mp, key, hash)->me_value != NULL;
++	return newintobject(ok);
++}
++
++static struct methodlist mapp_methods[] = {
++	{"keys",	mapping_keys},
++	{"has_key",	mapping_has_key},
++	{NULL,		NULL}		/* sentinel */
++};
++
++static object *
++mapping_getattr(mp, name)
++	mappingobject *mp;
++	char *name;
++{
++	return findmethod(mapp_methods, (object *)mp, name);
++}
++
++typeobject Mappingtype = {
++	OB_HEAD_INIT(&Typetype)
++	0,
++	"mapping",
++	sizeof(mappingobject),
++	0,
++	mapping_dealloc,	/*tp_dealloc*/
++	mapping_print,		/*tp_print*/
++	mapping_getattr,	/*tp_getattr*/
++	0,			/*tp_setattr*/
++	mapping_compare,	/*tp_compare*/
++	mapping_repr,		/*tp_repr*/
++	0,			/*tp_as_number*/
++	0,			/*tp_as_sequence*/
++	&mapping_as_mapping,	/*tp_as_mapping*/
++};
++
++/* For backward compatibility with old dictionary interface */
++
++static object *last_name_object;
++static char *last_name_char;
++
++object *
++dictlookup(v, key)
++	object *v;
++	char *key;
++{
++	if (key != last_name_char) {
++		XDECREF(last_name_object);
++		last_name_object = newstringobject(key);
++		if (last_name_object == NULL) {
++			last_name_char = NULL;
++			return NULL;
++		}
++		last_name_char = key;
++	}
++	return mappinglookup(v, last_name_object);
++}
++
++int
++dictinsert(v, key, item)
++	object *v;
++	char *key;
++	object *item;
++{
++	if (key != last_name_char) {
++		XDECREF(last_name_object);
++		last_name_object = newstringobject(key);
++		if (last_name_object == NULL) {
++			last_name_char = NULL;
++			return NULL;
++		}
++		last_name_char = key;
++	}
++	return mappinginsert(v, last_name_object, item);
++}
++
++int
++dictremove(v, key)
++	object *v;
++	char *key;
++{
++	if (key != last_name_char) {
++		XDECREF(last_name_object);
++		last_name_object = newstringobject(key);
++		if (last_name_object == NULL) {
++			last_name_char = NULL;
++			return NULL;
++		}
++		last_name_char = key;
++	}
++	return mappingremove(v, last_name_object);
++}
++
++char *
++getdictkey(v, i)
++	object *v;
++	int i;
++{
++	object *key = getmappingkey(v, i);
++	if (key == NULL)
++		return NULL;
++	return getstringvalue(key);
++}
+diff --git a/build98/fgetsintr.c b/build98/fgetsintr.c
+new file mode 100644
+index 0000000000..335b890c3b
+--- /dev/null
++++ b/build98/fgetsintr.c
+@@ -0,0 +1,21 @@
++/* Reconstructed 2026: fgets that reports interrupts via errcode.h values */
++#include <stdio.h>
++#include <errno.h>
++#include "PROTO.h"
++#include "errcode.h"
++#include "intrcheck.h"
++int
++fgets_intr(char *buf, int size, FILE *fp)
++{
++	if (intrcheck())
++		return E_INTR;
++	errno = 0;
++	if (fgets(buf, size, fp) == NULL) {
++		if (intrcheck() || errno == EINTR) {
++			clearerr(fp);
++			return E_INTR;
++		}
++		return E_EOF;
++	}
++	return E_OK;
++}

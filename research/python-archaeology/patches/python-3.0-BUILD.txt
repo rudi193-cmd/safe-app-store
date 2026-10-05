@@ -1,0 +1,10 @@
+Python 3.0 (tag v3.0, 2008-12-03) on x86_64 / gcc 13
+  git apply python-3.0-build.patch
+  CC=gcc OPT="-O1 -g -w -fwrapv -fcommon -fno-strict-aliasing" ./configure
+  make -j8
+  ./python -E Lib/test/regrtest.py -w
+Result as root: 293 OK, 4 failed, 24 skipped; after whichdb fix test_dbm passes.
+  test_httpservers: fails only as root (passes under setpriv --reuid=65534)
+  test_zlib: zlib >=1.2.9 accepts wbits=0; test expects ValueError
+  test_smtplib: intermittent (3/10), EBADF race in the test's asyncore server
+Uninstalled build tree: set LANG=C.UTF-8 and PYTHONPATH=build/lib.* or stdout is ascii
