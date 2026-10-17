@@ -459,7 +459,7 @@ class StorySession:
             view.update({
                 "scene_id": None, "scene_title": None,
                 "beat_id": None, "beat_kind": None,
-                "prompt": None, "suggests": None,
+                "prompt": None, "suggests": None, "set_piece": False,
             })
             return view
         scene = self._current_scene()
@@ -471,6 +471,7 @@ class StorySession:
             "beat_kind": beat["kind"],
             "prompt": beat["prompt"],
             "suggests": beat.get("suggests"),
+            "set_piece": bool(beat.get("set_piece", False)),  # C15
         })
         return view
 

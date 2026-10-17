@@ -163,6 +163,27 @@ class OneScriptSink:
                     "path": "-".join(self.path)})
         self._emit(row)
 
+    # -- a model's refused move pick (R12; menu.py) ---------------------------
+    def escalate(self, refusal: dict) -> dict:
+        """One ``escalate`` verdict row for a pick ``menu.menu_policy`` refused
+        (off the menu, ESCALATE, unreachable): what was offered, what came
+        back, what code took instead. Code's record of a refusal, so the
+        human sees it; never a seal, never a move of its own."""
+        at = dict(self._at)
+        row = self._base("escalate")
+        row.update({
+            "where": at.get("scene"), "scene": at.get("scene"), "beat": at.get("beat"),
+            "seat": refusal.get("seat"),
+            "verdict": "escalate",
+            "reason": f"{refusal.get('reason')}: {refusal.get('why')}; code took "
+                      f"{refusal.get('took')}",
+            "menu": list(refusal.get("menu") or []),
+            "got": refusal.get("got"),
+            "took": refusal.get("took"),
+            "to": refusal.get("to", "human"),
+        })
+        return self._emit(row)
+
     # -- decision beats: proposed, never sealed here -------------------------
     def decision(self, pending: dict, propose: Callable[[dict, list], dict]) -> str:
         """Write the ``decision`` verdict row that closes the path so far, then
