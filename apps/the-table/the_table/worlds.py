@@ -83,6 +83,11 @@ def _validate_beat(path: Any, beat: dict, scene_index: int, beat_index: int, sta
     _require_type(path, beat["id"], str, f"{where}.id")
     _require_type(path, beat["prompt"], str, f"{where}.prompt")
     kind = beat["kind"]
+    # box-build C15 (SPEC-documented §13 J7): an optional ``set_piece`` marker,
+    # default false, on any beat. It is the ONLY beat a flowering turn may be
+    # asked about, and what it says back is a draft, never a fact (R12).
+    if "set_piece" in beat:
+        _require_type(path, beat["set_piece"], bool, f"{where}.set_piece")
     if kind == "action":
         _require_keys(path, beat, ("suggests", "outcomes"), where)
         _require_type(path, beat["suggests"], str, f"{where}.suggests")

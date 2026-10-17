@@ -38,10 +38,10 @@ does, and avoids every trap that module's docstring documents:
   * ``engine.stats`` is overridden fresh from THIS module's own per-seat
     character sheet before every roll, never read from
     ``engine_state.json``;
-  * the global ``random`` module is seeded once, in ``reset(seed)``
-    (``Engine.roll`` draws from it directly, not an owned generator -- see
-    ``game_engine_adapter.py``'s trap #3 for why this is a documented
-    coupling of ``engine_v1_7.py`` itself, not a choice made here).
+  * dice come from a per-session SHA-256 stream swapped into the engine for
+    one roll at a time (the default); ``rng_factory=LEGACY`` instead seeds
+    the global ``random`` once in ``reset(seed)`` -- see
+    ``game_engine_adapter.py``'s trap #3.
 The sys.path shim that makes ``apps/game`` importable
 (``_ensure_game_engine_on_path``) is reused directly from
 ``game_engine_adapter.py`` rather than duplicated -- one shim, one place.
@@ -88,7 +88,7 @@ a timeline) is later work, out of scope here -- ``seal()`` only records into
 this session's own in-memory state, which is discarded when the session is.
 
 Turn model, mechanically:
-  * ``reset(seed)`` seeds the global RNG, positions at scene 0 / beat 0,
+  * ``reset(seed)`` builds the session's dice stream (LEGACY: seeds the global RNG), positions at scene 0 / beat 0,
     builds one stat sheet per seated character (world's ``base_stat`` fills
     in any stat a character's own ``stats`` dict omits).
   * ``legal_moves(seat)`` on an action beat: ``[("act", stat), ...]`` for
@@ -123,10 +123,13 @@ from __future__ import annotations
 
 import random
 import re
+from collections.abc import Callable
 from typing import Any, Optional
 
+from .dice_source import roll
 from .game_engine_adapter import _ensure_game_engine_on_path
 from .game_session import Observation, Result
+from .stream import resolve_factory, seed_label
 from .worlds import load_world
 
 _ensure_game_engine_on_path()
@@ -181,7 +184,14 @@ def _is_not_a_person(by: str) -> bool:
 class StorySession:
     """``GameSession`` over an authored world, plus the propose/seal seam."""
 
-    def __init__(self, world_path) -> None:
+    def __init__(self, world_path, rng_factory: Callable | None = None) -> None:
+        # J2/R6/R7 (C9): the DEFAULT is the SHA-256 stream, one per session,
+        # swapped in for exactly one Engine.roll at a time. ``rng_factory=LEGACY``
+        # keeps the old global ``random`` (to reproduce a recorded legacy run).
+        # The roll record is on ``last_roll`` and in ledger rows, never in views.
+        self._rng_factory = resolve_factory(rng_factory)
+        self._rng = None
+        self.last_roll: dict | None = None
         self.world = load_world(world_path)
         self._seated = [c for c in self.world["characters"] if c["seat"]]
         self.seats: int = len(self._seated)
@@ -199,10 +209,12 @@ class StorySession:
     # -- GameSession -------------------------------------------------------
 
     def reset(self, seed: int) -> Observation:
-        # Trap 3 (game_engine_adapter.py): Engine.roll draws from the GLOBAL
-        # random module -- seed it here so a story is reproducible from this
-        # call forward.
-        random.seed(seed)
+        # Trap 3 (game_engine_adapter.py): the default stream is swapped into
+        # Engine.roll per roll; only LEGACY seeds the GLOBAL random here.
+        self._rng = self._rng_factory(seed) if self._rng_factory else None
+        self.last_roll = None
+        if self._rng is None:
+            random.seed(seed)  # LEGACY only
 
         # Trap 2: Engine() reads apps/game/engine_state.json via
         # _load_state(); this module never reads that dict -- engine.stats
@@ -223,7 +235,7 @@ class StorySession:
         self._terminal = False
 
         scene = self._current_scene()
-        narration = [f"{self.world['title']} begins (seed={seed}).", self.world["setting"]]
+        narration = [f"{self.world['title']} begins ({seed_label(self._rng, seed)}).", self.world["setting"]]
         narration.extend(scene["opening"])
 
         seat = self.current_seat()
@@ -283,7 +295,9 @@ class StorySession:
         self._engine.stats = {
             _ENGINE_STAT_MAP.get(s, s): value for s, value in self._seat_stats[seat].items()
         }
-        result, _engine_status = self._engine.roll(stat)
+        internal = _ENGINE_STAT_MAP.get(stat, stat)
+        result, _engine_status, self.last_roll = roll(
+            self._engine, stat, self._rng, self._engine.stats.get(internal, 0))
 
         # StorySession's OWN strong/weak/miss read of the raw sum -- see the
         # module docstring's "WHAT IS NOT REUSED, ON PURPOSE" section for
@@ -445,7 +459,7 @@ class StorySession:
             view.update({
                 "scene_id": None, "scene_title": None,
                 "beat_id": None, "beat_kind": None,
-                "prompt": None, "suggests": None,
+                "prompt": None, "suggests": None, "set_piece": False,
             })
             return view
         scene = self._current_scene()
@@ -457,6 +471,7 @@ class StorySession:
             "beat_kind": beat["kind"],
             "prompt": beat["prompt"],
             "suggests": beat.get("suggests"),
+            "set_piece": bool(beat.get("set_piece", False)),  # C15
         })
         return view
 

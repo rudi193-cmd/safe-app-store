@@ -96,7 +96,12 @@ def run_session(
     obs = game.reset(seed)
 
     if sink is not None:
-        sink.open_session(session_id, {"seed": seed, "seats": game.seats})
+        meta = {"seed": seed, "seats": game.seats}
+        deal = getattr(game, "last_roll", None)
+        if deal is not None:  # J2: a deal-time record (Crazy Eights) rides open_session once
+            meta["roll"] = deal
+        sink.open_session(session_id, meta)
+    last_roll = getattr(game, "last_roll", None)
 
     turns = 0
     while not game.is_terminal():
@@ -114,10 +119,12 @@ def run_session(
 
         if sink is not None:
             note = obs.narration[0] if obs.narration else ""
-            sink.snapshot(
-                {"turn": turns, "seat": seat, "move": move, "view": obs.view},
-                note=note,
-            )
+            state = {"turn": turns, "seat": seat, "move": move, "view": obs.view}
+            roll = getattr(game, "last_roll", None)
+            if roll is not None and roll is not last_roll:  # a roll happened this turn
+                state["roll"] = roll  # J2: seed id, counter, generator id ride the row
+                last_roll = roll
+            sink.snapshot(state, note=note)
 
         turns += 1
 
