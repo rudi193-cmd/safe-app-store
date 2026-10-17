@@ -216,9 +216,7 @@ def beat_path(pending: dict) -> str:
     """Where one-script writes a sealed beat: ``world/<world id>/<fact id>.md``
     (one-script's ``table.beat_path``, restated here: the-table never imports
     onescript)."""
-    if pending.get("world"):
-        return f"world/{pending['world']}/{pending['fact_id']}.md"
-    return f"world/{pending['fact_id']}.md"
+    return f"world/{pending.get('world')}/{pending['fact_id']}.md"
 
 
 def play_to_decision(session: Any, policy: Callable, sink: Any, *, seed: Any,

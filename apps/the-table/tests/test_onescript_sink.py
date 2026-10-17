@@ -250,3 +250,22 @@ def test_ledger_and_record_both_written_through_a_tee():
         ledger.close()
     finally:
         shutil.rmtree(box, ignore_errors=True)
+
+
+@pytest.mark.parametrize("edit", ["suggests", "beat_id", "stats", "add_beat"])
+def test_round3_N2_world_key_moves_with_every_input_the_odds_read(edit):
+    """probe_r2b: a world edited after the forecast (a beat's suggested stat,
+    its id, the world's stats, another action beat) is another key."""
+    w = load_world(world())
+    w2 = copy.deepcopy(w)
+    beat = next(b for b in w2["scenes"][0]["beats"] if b["kind"] == "action")
+    if edit == "suggests":
+        beat["suggests"] = next(s for s in w2["stats"] if s != beat["suggests"])
+    elif edit == "beat_id":
+        beat["id"] = beat["id"] + "x"
+    elif edit == "stats":
+        w2["stats"] = list(reversed(w2["stats"]))
+    else:
+        w2["scenes"][0]["beats"].insert(0, copy.deepcopy(beat) | {"id": "b0"})
+    assert peaks.world_key(w2) != peaks.world_key(w)
+    assert peaks.world_key(copy.deepcopy(w)) == peaks.world_key(w)  # and stable
