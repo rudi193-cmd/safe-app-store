@@ -23,9 +23,9 @@ from __future__ import annotations
 import hashlib
 import random as _random
 import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any
-from collections.abc import Iterator
 
 from .stream import EngineMismatch, ReplayRefused, replay
 
