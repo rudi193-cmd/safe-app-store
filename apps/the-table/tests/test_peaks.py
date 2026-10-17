@@ -527,9 +527,12 @@ def test_exact_refuses_above_the_path_cap():
         peaks.exact(w)
     with pytest.raises(ValueError, match="MAX_ACTION_BEATS"):
         peaks.distribution(w, top=5)  # top does not lift the cap
-    # exactly at the cap is allowed: its per-beat table builds without
-    # enumerating (action_beats alone), proving the cap is > not >=
-    assert len(peaks.action_beats(w)[:peaks.MAX_ACTION_BEATS]) == peaks.MAX_ACTION_BEATS
+    # exactly at the cap is allowed: exact() really enumerates 3**10 paths
+    # (a `>=` guard would fail here)
+    w["scenes"][0]["beats"] = w["scenes"][0]["beats"][:peaks.MAX_ACTION_BEATS]
+    ex = peaks.exact(w)
+    assert len(ex["paths"]) == 3 ** peaks.MAX_ACTION_BEATS
+    assert sum(x["p"] for x in ex["paths"]) == 1
 
 
 def test_exact_memoises_text_reads(monkeypatch):
@@ -570,7 +573,14 @@ def test_partial_path_is_ambiguous_by_onescripts_rule():
 
 # -- end to end through one-script (audit e2e.py) ---------------------------
 
-_ONESCRIPT_DIR = os.environ.get("ONESCRIPT_DIR", "/home/user/sandbox/repos/willow-bot/one-script")
+_ONESCRIPT_DEFAULT = "/home/user/sandbox/repos/willow-bot/one-script"
+_ONESCRIPT_DIR = os.environ.get("ONESCRIPT_DIR", _ONESCRIPT_DEFAULT)
+E2E_NOT_CHECKED = (
+    "E2E GUARANTEE NOT CHECKED HERE: one-script (willow-bot/one-script) is not at "
+    f"{_ONESCRIPT_DIR!r} ({'ONESCRIPT_DIR is set' if 'ONESCRIPT_DIR' in os.environ else 'ONESCRIPT_DIR is unset; default path'}). "
+    "The forecast -> seal -> reconcile round trip and check_distribution admission of "
+    "peaks.distribution() are NOT proven by this run; set ONESCRIPT_DIR to the one-script checkout."
+)
 
 
 def _onescript():
@@ -634,7 +644,7 @@ def _forecast_seal_reconcile(tmp, os_, world, outcome):
 def test_distribution_passes_onescript_check_distribution():
     os_ = _onescript()
     if os_ is None:
-        pytest.skip(f"one-script not at {_ONESCRIPT_DIR} (set ONESCRIPT_DIR)")
+        pytest.skip(E2E_NOT_CHECKED)
     check = os_["reverse"].check_distribution
     for name in _WORLD_NAMES:
         for policy in peaks.POLICIES:
@@ -649,7 +659,7 @@ def test_forecast_seal_reconcile_end_to_end(name, tmp_path):
     # -> seal_tip -> reconcile, named by path_index and by full path.
     os_ = _onescript()
     if os_ is None:
-        pytest.skip(f"one-script not at {_ONESCRIPT_DIR} (set ONESCRIPT_DIR)")
+        pytest.skip(E2E_NOT_CHECKED)
     world = load_named_world(name)
     d, row = _forecast_seal_reconcile(tmp_path / "idx", os_, world, {"path_index": 2})
     assert row["state"] == "reconciled" and row["graded_by"] is None
@@ -657,3 +667,75 @@ def test_forecast_seal_reconcile_end_to_end(name, tmp_path):
     assert row["predicted_band"] == d[2]["band"] and row["predicted_p"] == d[2]["p"]
     d, row = _forecast_seal_reconcile(tmp_path / "path", os_, world, {"path": d[3]["path"]})
     assert row["state"] == "reconciled" and row["path_index"] == 3
+
+
+# -- scene openings introduce cast (audit nit N-b) -----------------------------
+
+_EXPERIMENT_PEAKS = os.environ.get(
+    "EXPERIMENT_PEAKS",
+    "/home/user/sandbox/repos/willows-grove/seat/willow/experiments/foreshadow-2026-10-16/peaks.py",
+)
+
+
+def _opening_world() -> dict:
+    """Scene 2's opening names Carol before any outcome does; b3's outcomes
+    all name her too. Carol is therefore MET on every path through b3 but
+    INTRODUCED by no outcome: she arrives with the opening."""
+    w = _world()
+    w["scenes"][1] = {
+        "id": "s2", "title": "Later", "place": "room",
+        "opening": ["Later, the room again. Carol is waiting by the door."],
+        "beats": [
+            {"id": "b3", "kind": "action", "prompt": "Carol asks.", "suggests": "Grit",
+             "outcomes": {"strong": "Carol nods.", "weak": "Carol shrugs.",
+                          "miss": "Carol and Bob argue."}},
+            {"id": "b4", "kind": "decision", "prompt": "Who sealed the door?",
+             "proposes": {"fact": "Carol sealed the door.", "proposed_by": "carol"}},
+        ],
+    }
+    return w
+
+
+def test_scene_opening_introduces_cast_before_its_beats():
+    # Hand-computed: dropping `known |= scene_cast[scene_at]` would make b3
+    # introduce Carol on weak-weak-* paths (she is first named by its outcome
+    # there), so firsts would gain a b3 entry and this fails.
+    ex = peaks.exact(_opening_world())
+    by = {p["path"]: p for p in ex["paths"]}
+    assert len(by) == 27
+    for path, p in by.items():
+        assert "carol" in p["met"], path
+        assert not any(f["beat"] == "b3" and "carol" in f["introduces"] for f in p["firsts"]), path
+    # weak-weak-weak: Alice (setting), Bob (b2 weak), Carol (s2 opening only)
+    assert by["weak-weak-weak"]["met"] == ["alice", "bob", "carol"]
+    assert by["weak-weak-weak"]["firsts"] == [{"beat": "b2", "bucket": "weak", "introduces": ["bob"]}]
+    # weak-strong-miss: Bob by b2 strong; b3 miss names Bob and Carol, both known
+    assert by["weak-strong-miss"]["firsts"] == [{"beat": "b2", "bucket": "strong", "introduces": ["bob"]}]
+    # strong-strong-strong: Carol by b1 strong (before the opening), Bob by b2
+    assert by["strong-strong-strong"]["firsts"] == [
+        {"beat": "b1", "bucket": "strong", "introduces": ["carol"]},
+        {"beat": "b2", "bucket": "strong", "introduces": ["bob"]},
+    ]
+
+
+def test_exact_matches_original_experiment_peaks_by_path():
+    # The port against the original experiment module, loaded by path. Its
+    # exact() uses floats and imports StorySession via THE_TABLE_DIR.
+    if not os.path.isfile(_EXPERIMENT_PEAKS):
+        pytest.skip(f"original experiment peaks.py not at {_EXPERIMENT_PEAKS!r} (set EXPERIMENT_PEAKS)")
+    import importlib.util
+    os.environ.setdefault("THE_TABLE_DIR", os.path.dirname(_HERE))
+    spec = importlib.util.spec_from_file_location("foreshadow_peaks", _EXPERIMENT_PEAKS)
+    orig = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(orig)
+    for w in (_opening_world(), _world(), load_named_world("ironworks")):
+        for policy in peaks.POLICIES:
+            sheets = peaks.sheets_for(w)
+            mine = {p["path"]: p for p in peaks.exact(w, sheets, policy)["paths"]}
+            theirs = {p["path"]: p for p in orig.exact(w, sheets, policy)["paths"]}
+            assert set(mine) == set(theirs)
+            for path, t in theirs.items():
+                m = mine[path]
+                assert math.isclose(float(m["p"]), t["p"], abs_tol=1e-12), path
+                assert (m["curve"], m["firsts"], m["met"], m["held"]) == (
+                    t["curve"], t["firsts"], t["met"], t["held"]), path
