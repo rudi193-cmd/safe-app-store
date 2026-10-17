@@ -114,10 +114,11 @@ def run_session(
 
         if sink is not None:
             note = obs.narration[0] if obs.narration else ""
-            sink.snapshot(
-                {"turn": turns, "seat": seat, "move": move, "view": obs.view},
-                note=note,
-            )
+            state = {"turn": turns, "seat": seat, "move": move, "view": obs.view}
+            roll = getattr(game, "last_roll", None)
+            if roll is not None:  # J2: seed id, counter, generator id ride the row
+                state["roll"] = roll
+            sink.snapshot(state, note=note)
 
         turns += 1
 

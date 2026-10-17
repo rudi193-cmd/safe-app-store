@@ -161,9 +161,9 @@ _ensure_game_engine_on_path()
 
 from engine_v1_7 import Engine  # noqa: E402  (import after path shim, on purpose)
 
-from .dice_source import roll_record, rolled_with
+from .dice_source import roll
 from .game_session import Observation, Result
-from .stream import rng_fields
+from .stream import resolve_factory
 
 _MOVES = tuple(("act", stat) for stat in _STAT_MAP)  # fixed, side-effect-free every beat
 
@@ -174,13 +174,14 @@ class SceneSession:
     seats = 1
 
     def __init__(self, beats: int = 6, rng_factory: Callable | None = None) -> None:
-        # J2/R6/R7: with no factory the scene is exactly what it was (the global
-        # ``random`` seeded in reset, C9: old runs keep their generator). With
-        # one -- e.g. ``lambda s: StreamRandom.from_seed(s)`` -- reset builds a
-        # per-session source and every roll runs inside ``rolled_with``, so two
-        # live scenes no longer share, or reseed, global state.
+        # J2/R6/R7 (C9): the DEFAULT is the SHA-256 stream, one per session, so
+        # two live scenes no longer share or reseed global state. Pass
+        # ``rng_factory=LEGACY`` to run on the old global ``random`` (and
+        # reproduce a recorded legacy run); any factory returning a
+        # ``randint``-shaped source also works. The source and roll record live
+        # on ``last_roll`` and in ledger rows, never in ``obs.view``.
         self.beats = beats
-        self._rng_factory = rng_factory
+        self._rng_factory = resolve_factory(rng_factory)
         self._rng = None
         self.last_roll: dict | None = None
         self._engine: Engine | None = None
@@ -200,7 +201,7 @@ class SceneSession:
         self._rng = self._rng_factory(seed) if self._rng_factory else None
         self.last_roll = None
         if self._rng is None:
-            random.seed(seed)
+            random.seed(seed)  # LEGACY only
 
         # Trap 2: Engine() reads apps/game/engine_state.json via
         # _load_state(); overwrite immediately with a fresh, deterministic
@@ -260,13 +261,8 @@ class SceneSession:
 
         # THE reused rule -- 2d6 + stat, bucketed -- nothing about this
         # arithmetic is reimplemented here.
-        if self._rng is None:
-            result, status = self._engine.roll(stat)
-        else:
-            before = self._rng.counter
-            with rolled_with(self._rng):
-                result, status = self._engine.roll(stat)
-            self.last_roll = roll_record(self._rng, before)
+        result, status, self.last_roll = roll(
+            self._engine, stat, self._rng, self._engine.stats.get(_STAT_MAP[stat], 0))
         self._last_result = result
         self._last_status = status
         self._tally[status] += 1
@@ -328,9 +324,6 @@ class SceneSession:
         return {approach: self._engine.stats[internal] for approach, internal in _STAT_MAP.items()}
 
     def _view(self) -> dict:
-        return {**self._view_base(), **rng_fields(self._rng)}
-
-    def _view_base(self) -> dict:
         return {
             "beat": self._beat,
             "beats_total": self.beats,

@@ -109,7 +109,6 @@ _ensure_game_lab_sims_on_path()
 from crazy_eights import SUITS, is_legal, legal_cards, make_deck  # noqa: E402
 
 from .game_session import Observation, Result
-from .stream import rng_fields
 
 # Defensive cap on total steps in a single game -- independent of, and much
 # larger than, any realistic game (52-card deck, 20 dealt, <=31 ever drawn
@@ -124,8 +123,11 @@ class CrazyEightsSession:
     seats = 4
 
     def __init__(self, rng_factory: Callable | None = None) -> None:
-        # J2/R6: injected source, the way dice5e takes ``rng``. Default is
-        # ``random.Random`` (C9: old seeds keep their deals).
+        # J2/R6: injected source, the way dice5e takes ``rng``. Default stays
+        # ``random.Random`` (C8/C9: old seeds keep their deals); pass
+        # ``rng_factory=lambda s: StreamRandom.from_seed(s)`` for the stream.
+        # The source is named on ``last_roll``, never in a per-seat view.
+        self.last_roll = None
         self._rng_factory = rng_factory
         self._rng = None
         self._hands: list | None = None
@@ -143,6 +145,10 @@ class CrazyEightsSession:
     def reset(self, seed: int) -> Observation:
         rng = self._rng_factory(seed) if self._rng_factory else random.Random(seed)  # OWN rng -- never touches the global `random` module
         self._rng = rng
+        self.last_roll = {
+            "generator_id": getattr(rng, "generator_id", "random/Random"),
+            **({"seed_id": rng.seed_id, "counter_before": 0} if hasattr(rng, "seed_id") else {}),
+        }
         deck = make_deck()
         rng.shuffle(deck)
 
@@ -158,6 +164,8 @@ class CrazyEightsSession:
         self._terminal = False
         self._steps_taken = 0
 
+        if hasattr(rng, "seed_id"):
+            self.last_roll["counter"] = rng.counter  # the deal's draws
         narration = [
             f"New Crazy Eights game (seed={seed}). "
             f"Top card: {tuple(top)}, active suit: {self._active_suit}.",
@@ -292,7 +300,6 @@ class CrazyEightsSession:
         hand = self._hands[seat]
         opponent_hand_sizes = [len(self._hands[s]) for s in range(4) if s != seat]
         return {
-            **rng_fields(self._rng),
             "seat": seat,
             "hand": [list(card) for card in hand],
             "discard_top": list(self._discard_top),

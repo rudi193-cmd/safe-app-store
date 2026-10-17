@@ -126,10 +126,10 @@ import re
 from collections.abc import Callable
 from typing import Any, Optional
 
-from .dice_source import roll_record, rolled_with
+from .dice_source import roll
 from .game_engine_adapter import _ensure_game_engine_on_path
 from .game_session import Observation, Result
-from .stream import rng_fields
+from .stream import resolve_factory
 from .worlds import load_world
 
 _ensure_game_engine_on_path()
@@ -185,10 +185,11 @@ class StorySession:
     """``GameSession`` over an authored world, plus the propose/seal seam."""
 
     def __init__(self, world_path, rng_factory: Callable | None = None) -> None:
-        # J2/R6/R7: no factory = today's behaviour (global random seeded in
-        # reset); a factory gives each session its own source, swapped in for
-        # exactly one Engine.roll at a time.
-        self._rng_factory = rng_factory
+        # J2/R6/R7 (C9): the DEFAULT is the SHA-256 stream, one per session,
+        # swapped in for exactly one Engine.roll at a time. ``rng_factory=LEGACY``
+        # keeps the old global ``random`` (to reproduce a recorded legacy run).
+        # The roll record is on ``last_roll`` and in ledger rows, never in views.
+        self._rng_factory = resolve_factory(rng_factory)
         self._rng = None
         self.last_roll: dict | None = None
         self.world = load_world(world_path)
@@ -214,7 +215,7 @@ class StorySession:
         self._rng = self._rng_factory(seed) if self._rng_factory else None
         self.last_roll = None
         if self._rng is None:
-            random.seed(seed)
+            random.seed(seed)  # LEGACY only
 
         # Trap 2: Engine() reads apps/game/engine_state.json via
         # _load_state(); this module never reads that dict -- engine.stats
@@ -295,13 +296,9 @@ class StorySession:
         self._engine.stats = {
             _ENGINE_STAT_MAP.get(s, s): value for s, value in self._seat_stats[seat].items()
         }
-        if self._rng is None:
-            result, _engine_status = self._engine.roll(stat)
-        else:
-            before = self._rng.counter
-            with rolled_with(self._rng):
-                result, _engine_status = self._engine.roll(stat)
-            self.last_roll = roll_record(self._rng, before)
+        internal = _ENGINE_STAT_MAP.get(stat, stat)
+        result, _engine_status, self.last_roll = roll(
+            self._engine, stat, self._rng, self._engine.stats.get(internal, 0))
 
         # StorySession's OWN strong/weak/miss read of the raw sum -- see the
         # module docstring's "WHAT IS NOT REUSED, ON PURPOSE" section for
@@ -458,7 +455,6 @@ class StorySession:
             "character_name": character["name"],
             "stats": dict(self._seat_stats[seat]),
             "pending_seal": self.pending_seal(),
-            **rng_fields(self._rng),
         }
         if self._terminal:
             view.update({
