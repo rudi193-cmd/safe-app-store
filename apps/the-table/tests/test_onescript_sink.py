@@ -54,10 +54,10 @@ def world(name="hasbeen"):
     return os.path.join(WORLDS, f"{name}.json")
 
 
-def play(name="hasbeen", seed=SEED, forecast=None, path=None):
+def play(name="hasbeen", seed=SEED, forecast=None, path=None, check=None):
     rec = FakeRecord()
     s = StorySession(path or world(name))
-    sink = osk.OneScriptSink(rec.write, forecast=forecast)
+    sink = osk.OneScriptSink(rec.write, check=check, forecast=forecast)
     pending = osk.play_to_decision(s, osk.suggested_policy(), sink, seed=seed, session_id="s1")
     return s, sink, rec, pending
 
@@ -145,8 +145,15 @@ def test_a_decision_beat_is_proposed_never_sealed_here():
     last = rec.rows[-1]
     assert last["what"] == "decision" and last["fact_id"] == pending["fact_id"]
     assert last["path"] == "-".join(sink.path)
-    assert got == [(pending, [last["hash"]])]
+    assert got == [({**pending, "world": "hasbeen-late-shift"}, [last["hash"]])]
     assert s.pending_seal() == pending  # proposing does not advance the story
+
+
+def sealed_answer(pending, world_id="hasbeen-late-shift", **over):
+    """What one-script's beat_seal says for a proof over THIS beat."""
+    return {"state": "sealed", "by": "human",
+            "path": f"world/{world_id}/{pending['fact_id']}.md",
+            "data": pending["fact"], "fact_id": pending["fact_id"], **over}
 
 
 @pytest.mark.parametrize("answer", [
@@ -158,29 +165,65 @@ def test_a_decision_beat_is_proposed_never_sealed_here():
 ])
 def test_hand_written_seal_never_advances_story(answer):
     """A seal by a name instead of a proof is refused: pending_seal() stays set."""
-    s, _, _, pending = play()
+    s, sink, _, pending = play(check=lambda sub: answer)
     with pytest.raises(osk.BeatNotSealed):
-        osk.apply_beat_seal(s, pending["fact_id"], SUB, lambda sub: answer)
+        sink.apply_beat_seal(s, pending, SUB)
+    assert s.pending_seal() == pending
+
+
+def test_a_sink_with_no_checker_seals_nothing():
+    s, sink, _, pending = play()
+    with pytest.raises(osk.BeatNotSealed, match="no seal checker"):
+        sink.apply_beat_seal(s, pending, SUB)
     assert s.pending_seal() == pending
 
 
 def test_a_verified_seal_advances_the_story_with_the_verifier_named():
-    s, _, _, pending = play()
     asked = []
-    osk.apply_beat_seal(s, pending["fact_id"], SUB,
-                        lambda sub: asked.append(sub) or {"state": "sealed", "by": "human"})
+    s, sink, _, pending = play(check=lambda sub: asked.append(sub) or sealed_answer(pending))
+    sink.apply_beat_seal(s, pending, SUB)
     assert asked == [SUB]
     assert s.pending_seal() is None
     assert f"{pending['fact_id']} SEALED by human" in s.result().summary
 
 
+@pytest.mark.parametrize("over", [
+    {"path": "world/aetheris-the-waking-tide/s1::b3.md"},  # another world's s1::b3
+    {"path": "world/hasbeen-late-shift/s2::b5.md"},        # another beat
+    {"path": "world/s1::b3.md"},                           # no world named
+    {"data": "The bridge is out."},                        # another fact
+])
+def test_B2_a_seal_over_another_beat_or_world_moves_nothing(over):
+    s, sink, _, pending = play(check=lambda sub: sealed_answer(pending, **over))
+    with pytest.raises(osk.BeatNotSealed, match="not this beat"):
+        sink.apply_beat_seal(s, pending, SUB)
+    assert s.pending_seal() == pending
+
+
 def test_a_machine_name_on_a_verified_seal_is_still_refused_by_the_story():
     """The story's name check stays as a second gate behind the proof."""
-    s, _, _, pending = play()
+    s, sink, _, pending = play(check=lambda sub: sealed_answer(pending, by="claude"))
     with pytest.raises(ValueError):
-        osk.apply_beat_seal(s, pending["fact_id"], SUB,
-                            lambda sub: {"state": "sealed", "by": "claude"})
+        sink.apply_beat_seal(s, pending, SUB)
     assert s.pending_seal() == pending
+
+
+def test_S2_the_open_row_names_the_world_and_its_sheets():
+    _, _, rec, _ = play()
+    key = peaks.world_key(load_world(world()))
+    opened = rec.rows[0]
+    assert (opened["world"], opened["sheets_sha"]) == (key["world"], key["sheets_sha"])
+    assert key["world"] == "hasbeen-late-shift" and len(key["sheets_sha"]) == 64
+
+
+def test_S2_the_sheets_hash_moves_with_a_stat(tmp_path):
+    w = load_world(world())
+    with open(world()) as fh:
+        raw = json.load(fh)
+    raw["characters"][0]["stats"] = {k: v + 1 for k, v in raw["characters"][0]["stats"].items()}
+    p = tmp_path / "w.json"
+    p.write_text(json.dumps(raw))
+    assert peaks.world_key(load_world(str(p)))["sheets_sha"] != peaks.world_key(w)["sheets_sha"]
 
 
 # -- gm.run_session, unchanged, and the Tee ------------------------------------

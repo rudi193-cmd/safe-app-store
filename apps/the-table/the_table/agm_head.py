@@ -11,7 +11,7 @@ sealed tip, so the human's tip covers it.
 as a package): ``verify_chain`` first, then the last row's hash. Three states,
 never collapsed (INVARIANTS §1):
 
-  read         {"state": "read", "n": rows, "head": last hash}
+  read         {"state": "read", "n": rows, "head": last hash, "db_sha": file hash}
   broken       {"state": "broken", "why": verify_ledger's detail}
   unreachable  {"state": "unreachable", "why": ...}  db absent, unreadable,
                or older than the chain (verify_ledger exit 2)
@@ -62,7 +62,8 @@ def read(db_path: str) -> dict:
             con.close()
     except sqlite3.Error as e:
         return {"state": "unreachable", "why": f"campaign.db unreadable: {e}"}
-    return {"state": "read", "n": n, "head": last[0] if last else GENESIS}
+    return {"state": "read", "n": n, "head": last[0] if last else GENESIS,
+            "db_sha": db_sha(db_path)}
 
 
 def db_sha(db_path: str) -> str | None:
@@ -74,12 +75,14 @@ def db_sha(db_path: str) -> str | None:
 
 
 def row(db_path: str) -> dict:
-    """``{"n", "head", "db_sha"}`` for ``table.agm_head``; raises ``ValueError``
-    on a ledger that is broken or unreachable (never anchored)."""
+    """``{"n", "head", "db_sha", "db"}`` for ``table.agm_head``; raises
+    ``ValueError`` on a ledger that is broken or unreachable (never
+    anchored). ``db`` is where it was read (N4)."""
     got = read(db_path)
     if got["state"] != "read":
         raise ValueError(f"not anchored: the ledger is {got['state']}: {got.get('why')}")
-    return {"n": got["n"], "head": got["head"], "db_sha": db_sha(db_path)}
+    return {"n": got["n"], "head": got["head"], "db_sha": got["db_sha"],
+            "db": os.path.abspath(db_path)}
 
 
 def reader(db_path: str):

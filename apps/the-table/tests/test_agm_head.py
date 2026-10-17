@@ -36,9 +36,11 @@ def ledger():
 
 def test_the_head_is_the_ledger_sinks_head(ledger):
     got = agm_head.read(ledger.db_path)
-    assert got == {"state": "read", "n": 4, "head": ledger.head()}
+    assert got == {"state": "read", "n": 4, "head": ledger.head(),
+                   "db_sha": agm_head.db_sha(ledger.db_path)}
     r = agm_head.row(ledger.db_path)
     assert (r["n"], r["head"]) == (4, ledger.head()) and len(r["db_sha"]) == 64
+    assert r["db"] == os.path.abspath(ledger.db_path)  # N4: where it was read
 
 
 def test_a_missing_db_is_unreachable():
@@ -94,3 +96,16 @@ def test_a_file_that_is_not_a_db_is_unreachable(tmp_path):
     db = tmp_path / "campaign.db"
     db.write_bytes(b"not sqlite at all" * 100)
     assert agm_head.read(str(db))["state"] == "unreachable"
+
+
+def test_ledger_side_A7_append_then_cut_back_reads_the_anchored_head(ledger):
+    """The documented limit (one-script table.check_agm_head): rows appended
+    after the anchor and cut back leave (n, head) as anchored; only the
+    file's hash can show it was touched."""
+    before = agm_head.read(ledger.db_path)
+    ledger.snapshot({"turn": 9}, note="late")
+    ledger.snapshot({"turn": 10}, note="later")
+    ledger._con.execute("DELETE FROM ledger WHERE id > 4")
+    ledger._con.commit()
+    after = agm_head.read(ledger.db_path)
+    assert (after["n"], after["head"]) == (before["n"], before["head"])

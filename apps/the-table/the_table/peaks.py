@@ -78,7 +78,9 @@ CLI (the one place this module touches I/O):
 """
 from __future__ import annotations
 
+import hashlib
 import itertools
+import json
 import math
 import re
 from fractions import Fraction
@@ -168,6 +170,18 @@ def sheets_for(world: dict) -> list[dict]:
         eng = engine_view(raw)
         out.append({s: eng[_ENGINE_STAT_MAP.get(s, s)] for s in raw})
     return out
+
+
+def world_key(world: dict) -> dict:
+    """What a table forecast is about, as one-script's ``forecast(table=...)``
+    takes it and the verdict sink's ``open`` row carries it (box-build SPEC W2
+    S2): the world's ``id`` and a SHA-256 over the stat sheets the engine
+    reads (``sheets_for``, canonical JSON). The distribution is exact for
+    these sheets only; a session on another world or other sheets can't
+    supply its outcome."""
+    sheets = json.dumps(sheets_for(world), sort_keys=True, separators=(",", ":"))
+    return {"world": str(world.get("id")),
+            "sheets_sha": hashlib.sha256(sheets.encode()).hexdigest()}
 
 
 def action_beats(world: dict) -> list[dict]:
