@@ -177,7 +177,8 @@ def world_inputs(world: dict) -> dict:
     sheets the engine reads (``sheets_for``: per seat, each world stat's value
     after the engine's alias pass), the world's stats, the engine's stat map,
     and each action beat before the first decision (id, kind, suggests,
-    scene). The verdict sink writes this on a session's ``open`` row so
+    scene, set_piece: R22, the model picks the stat only on a set piece, code
+    takes ``suggests`` on every other beat). The verdict sink writes this on a session's ``open`` row so
     one-script can re-hash it to the forecast's ``sheets_sha`` and read each
     roll's modifier from it (box-build R23a), never from the roll record."""
     return {
@@ -185,7 +186,8 @@ def world_inputs(world: dict) -> dict:
         "stats": list(world.get("stats", [])),
         "stat_map": dict(_ENGINE_STAT_MAP),
         "beats": [{"id": b.get("id"), "kind": b.get("kind"), "suggests": b.get("suggests"),
-                   "scene": b.get("_scene")} for b in action_beats(world)],
+                   "scene": b.get("_scene"), "set_piece": b.get("set_piece") is True}
+                  for b in action_beats(world)],
     }
 
 
