@@ -292,3 +292,12 @@ def test_a_beacon_session_on_a_seed_that_is_not_randomness_is_refused():
         osk.play_to_decision(StorySession(world()), osk.suggested_policy(), sink,
                              seed=7, session_id="s1")
     assert rec.rows == []
+
+
+def test_R23a_the_open_row_carries_the_world_inputs_its_key_hashes():
+    _, _, rec, _ = play()
+    w = load_world(world())
+    opened = rec.rows[0]
+    assert opened["world_inputs"] == peaks.world_inputs(w)
+    text = json.dumps(opened["world_inputs"], sort_keys=True, separators=(",", ":"))
+    assert hashlib.sha256(text.encode()).hexdigest() == opened["sheets_sha"]

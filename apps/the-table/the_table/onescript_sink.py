@@ -39,7 +39,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-from .peaks import bucket, world_key
+from .peaks import bucket, world_inputs, world_key
 from .stream import StreamRandom
 
 Writer = Callable[[dict], dict]
@@ -125,6 +125,9 @@ class OneScriptSink:
         world = getattr(self.game, "world", None)
         if isinstance(world, dict):  # S2: which world, which sheets
             row.update(world_key(world))
+            # R23a: the inputs that sheets_sha hashes, so one-script re-hashes
+            # them and reads each roll's modifier from the sheet, not the roll
+            row["world_inputs"] = world_inputs(world)
         if self.forecast is not None:
             row["forecast"] = self.forecast  # a row can't name a hash before it exists
         if self.beacon_round is not None:

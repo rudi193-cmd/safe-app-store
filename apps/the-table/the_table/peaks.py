@@ -172,23 +172,31 @@ def sheets_for(world: dict) -> list[dict]:
     return out
 
 
-def world_key(world: dict) -> dict:
-    """What a table forecast is about, as one-script's ``forecast(table=...)``
-    takes it and the verdict sink's ``open`` row carries it (box-build SPEC W2
-    S2): the world's ``id`` and a SHA-256 over every input ``exact()`` reads
-    for the odds: the stat sheets the engine reads (``sheets_for``), the
-    world's stats, the engine's stat map, and each action beat before the
-    first decision (id, kind, suggests, scene). The distribution is exact for
-    these inputs only; a session on another world, other sheets, or a world
-    edited after the forecast can't supply its outcome."""
-    inputs = {
+def world_inputs(world: dict) -> dict:
+    """Every input ``exact()`` reads for the odds, as plain JSON: the stat
+    sheets the engine reads (``sheets_for``: per seat, each world stat's value
+    after the engine's alias pass), the world's stats, the engine's stat map,
+    and each action beat before the first decision (id, kind, suggests,
+    scene). The verdict sink writes this on a session's ``open`` row so
+    one-script can re-hash it to the forecast's ``sheets_sha`` and read each
+    roll's modifier from it (box-build R23a), never from the roll record."""
+    return {
         "sheets": sheets_for(world),
         "stats": list(world.get("stats", [])),
-        "stat_map": _ENGINE_STAT_MAP,
+        "stat_map": dict(_ENGINE_STAT_MAP),
         "beats": [{"id": b.get("id"), "kind": b.get("kind"), "suggests": b.get("suggests"),
                    "scene": b.get("_scene")} for b in action_beats(world)],
     }
-    text = json.dumps(inputs, sort_keys=True, separators=(",", ":"))
+
+
+def world_key(world: dict) -> dict:
+    """What a table forecast is about, as one-script's ``forecast(table=...)``
+    takes it and the verdict sink's ``open`` row carries it (box-build SPEC W2
+    S2): the world's ``id`` and a SHA-256 over ``world_inputs(world)``
+    (canonical JSON: sorted keys, no spaces). The distribution is exact for
+    these inputs only; a session on another world, other sheets, or a world
+    edited after the forecast can't supply its outcome."""
+    text = json.dumps(world_inputs(world), sort_keys=True, separators=(",", ":"))
     return {"world": str(world.get("id")),
             "sheets_sha": hashlib.sha256(text.encode()).hexdigest()}
 
