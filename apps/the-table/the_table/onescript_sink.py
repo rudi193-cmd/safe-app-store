@@ -14,8 +14,9 @@ What a row carries: the session, the step, the seat index and the character
 id (never a name: "The players are never written down", forge-convergence
 §638), the move, the 2d6+stat ``total`` and its ``verdict`` (strong / weak /
 miss), the ``last_roll`` record (seed id, counter, result, engine hash -- never
-the seed itself), and the ``path`` so far. A verdict row is code's record of
-what happened. It is never a seal (R10, the A5 class).
+the seed itself; the ``open`` row of a forecast's session carries the beacon
+round and its public randomness, W4 break 1), and the ``path`` so far. A
+verdict row is code's record of what happened. It is never a seal (R10, the A5 class).
 
 A decision beat is NOT stepped and NOT sealed here. ``decision`` writes a
 ``decision`` verdict row and hands the beat, with its world id, to
@@ -54,8 +55,9 @@ class BeatNotSealed(RuntimeError):
 
 
 def _seed_id(seed: Any) -> str | None:
-    """The stream's hashed seed id; the seed itself is never written (a
-    beacon seed fixes every later die)."""
+    """The stream's hashed seed id. A roll row never carries the seed; a
+    forecast's ``open`` row carries the beacon randomness once the round has
+    fired (it is public then, and it is what one-script checks)."""
     try:
         return StreamRandom.from_seed(seed).seed_id
     except (TypeError, ValueError):
@@ -67,8 +69,12 @@ class OneScriptSink:
 
     def __init__(self, write: Writer, *, check: Checker | None = None,
                  forecast: str | None = None, game: Any = None,
-                 game_name: str = "story") -> None:
+                 game_name: str = "story", beacon_round: int | None = None) -> None:
         self._write = write
+        # W4 break 1: the drand round the forecast awaits. The session is seeded
+        # by that round's randomness, so the open row carries both (the beacon
+        # is public once it fires); one-script checks them against the round.
+        self.beacon_round = beacon_round
         self._check = check       # one-script's table.beat_seal, bound to the box
         self.forecast = forecast  # the wager hash this session plays for, if any
         self.game = game          # read for the beat about to be rolled, if given
@@ -121,6 +127,12 @@ class OneScriptSink:
             row.update(world_key(world))
         if self.forecast is not None:
             row["forecast"] = self.forecast  # a row can't name a hash before it exists
+        if self.beacon_round is not None:
+            seed = meta.get("seed")
+            if not (isinstance(seed, str) and len(seed) == 64):
+                raise SinkRefused("a beacon session is seeded by the round's randomness "
+                                  "(64 hex), not by another seed")
+            row.update({"beacon_round": self.beacon_round, "randomness": seed.lower()})
         self._emit(row)
         self._peek()
 

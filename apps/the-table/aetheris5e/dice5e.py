@@ -25,10 +25,22 @@ without owning the grammar:
 The RNG stays the caller's: every path draws from the injected ``rng`` (a
 ``random.Random``), never the global module, so seeded fights and Monte-Carlo
 sweeps remain reproducible.
+
+R6 LIMIT (W4 break 6, T15): the ``dice`` library's keep-highest/keep-lowest
+operators ignore an injected ``random`` and shuffle with the GLOBAL module
+(``dice/elements.py:409-418`` builds the kwargs and drops them; ``:625``
+falls back to ``random``; third party, not ours to edit). So keep forms are
+rolled here, never by the library: ``AdBhK`` / ``AdBlK`` on the fast path
+above, over the injected ``rng``. Any other expression the library rolls is
+watched: if it moves the global ``random`` state while an ``rng`` was handed
+in, the state is put back and the roll is REFUSED (``ValueError``), never
+returned from the wrong source.
 """
 from __future__ import annotations
 
+import random as _random
 import re
+import threading
 
 import dice as _dice  # MIT — borntyping/python-dice
 
@@ -38,8 +50,32 @@ _KEEP = re.compile(r"(\d+)d(\d+)([hl])(\d+)")            # AdB h/l K  (advantage
 _COMPILED: dict = {}   # expr -> callable(rng) -> int   (the cache)
 
 
+_GLOBAL_LOCK = threading.Lock()
+
+
+class GlobalRandomUsed(ValueError):
+    """The ``dice`` library drew from the global ``random`` though an ``rng``
+    was injected (its keep operators do; R6 limit)."""
+
+
 def _lib_total(expr: str, rng) -> int:
-    v = _dice.roll(expr, random=rng)
+    """The library's roll, refused if it touched the global ``random`` while
+    ``rng`` was injected (the state is put back first)."""
+    if rng is _random:
+        v = _dice.roll(expr, random=rng)
+    else:
+        with _GLOBAL_LOCK:
+            before = _random.getstate()
+            v = _dice.roll(expr, random=rng)
+            moved = _random.getstate() != before
+            if moved:
+                _random.setstate(before)
+        if moved:
+            raise GlobalRandomUsed(
+                f"{expr!r}: the dice library rolled part of this with the global "
+                "random, not the injected stream (its keep-highest/lowest operators "
+                "ignore `random=`); write keep forms as AdBhK or AdBlK, which this "
+                "seam rolls on the stream (R6 limit)")
     return int(v) if isinstance(v, int) else sum(int(x) for x in v)
 
 

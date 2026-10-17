@@ -269,3 +269,26 @@ def test_round3_N2_world_key_moves_with_every_input_the_odds_read(edit):
         w2["scenes"][0]["beats"].insert(0, copy.deepcopy(beat) | {"id": "b0"})
     assert peaks.world_key(w2) != peaks.world_key(w)
     assert peaks.world_key(copy.deepcopy(w)) == peaks.world_key(w)  # and stable
+
+
+# -- W4 break 1: a forecast's session is seeded by its beacon round ------------
+def test_a_beacon_session_names_its_round_and_randomness_on_the_open_row():
+    rec = FakeRecord()
+    sink = osk.OneScriptSink(rec.write, forecast="ab" * 32, beacon_round=6558999)
+    osk.play_to_decision(StorySession(world()), osk.suggested_policy(), sink,
+                         seed=SEED, session_id="s1")
+    opened, rolls = rec.rows[0], [r for r in rec.rows if r["what"] == "roll"]
+    assert (opened["beacon_round"], opened["randomness"]) == (6558999, SEED)
+    assert opened["seed_id"] == hashlib.sha256(bytes.fromhex(SEED)).hexdigest()[:16]
+    assert all(r["roll"]["seed_id"] == opened["seed_id"] for r in rolls)
+    assert all(SEED not in json.dumps(r) for r in rec.rows[1:])  # the open row only
+    assert rolls[0]["roll"]["counter_before"] == 0
+
+
+def test_a_beacon_session_on_a_seed_that_is_not_randomness_is_refused():
+    rec = FakeRecord()
+    sink = osk.OneScriptSink(rec.write, beacon_round=6558999)
+    with pytest.raises(osk.SinkRefused, match="round's randomness"):
+        osk.play_to_decision(StorySession(world()), osk.suggested_policy(), sink,
+                             seed=7, session_id="s1")
+    assert rec.rows == []

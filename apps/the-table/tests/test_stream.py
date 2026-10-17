@@ -513,3 +513,31 @@ class TestCrazyEights(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestDice5eKeepFormsOnTheStream(unittest.TestCase):
+    """W4 break 6 / T15 (R6 limit): the `dice` library's keep operators ignore
+    an injected random; dice5e rolls AdBhK / AdBlK itself, on the stream, and
+    refuses a library roll that touches the global random under a stream."""
+
+    def test_keep_forms_never_touch_global_random(self):
+        from aetheris5e import dice5e
+        seed = "ab" * 32
+        got = []
+        for g in (0, 1):
+            random.seed(g)
+            before = random.getstate()
+            got.append([dice5e.total(e, StreamRandom.from_seed(seed))
+                        for e in ("6d6l4", "4d6h3", "2d20h1", "2d20l1")])
+            self.assertEqual(random.getstate(), before)
+        self.assertEqual(got[0], got[1])
+
+    def test_a_library_keep_form_under_a_stream_is_refused_and_put_back(self):
+        from aetheris5e import dice5e
+        random.seed(3)
+        before = random.getstate()
+        with self.assertRaisesRegex(dice5e.GlobalRandomUsed, "R6 limit"):
+            dice5e.total("4d6l3+1", StreamRandom.from_seed("cd" * 32))
+        self.assertEqual(random.getstate(), before)
+        # the global module itself, handed in, is the caller's own choice
+        self.assertTrue(4 <= dice5e.total("4d6l3+1", random) <= 19)
