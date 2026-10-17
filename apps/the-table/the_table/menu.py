@@ -164,7 +164,9 @@ def menu_policy(
         return took
 
     def _policy(game: Any, seat: int) -> Any:
-        legal = list(game.legal_moves(seat))
+        # the game's own method, through its class: a chooser that bolts a
+        # `legal_moves` onto the instance widens nothing
+        legal = list(type(game).legal_moves(game, seat))
         if not legal:  # C14: a decision beat has no move; it is the human's
             raise RuntimeError(
                 "no legal move for this seat: a decision beat is never on the menu"
@@ -231,7 +233,7 @@ def ratatosk_choose(
     first ``propose`` row's ``path`` is the pick (``read_pick`` and
     ``move_of`` judge it; this adapter judges nothing). ``run`` is injected
     (``subprocess.run`` by default) so a test can fake the subprocess. A
-    missing or failed command, a timeout, or no row is ``None`` -> the policy
+    missing command, a non-zero exit, a timeout, or no row is ``None`` -> the policy
     records ``unreachable`` and code picks."""
     cmd = tuple(cmd)
 
@@ -245,9 +247,11 @@ def ratatosk_choose(
                 argv += ["--model", model]
             argv.append(QUESTION)
             try:
-                run(argv, cwd=d, stdin=subprocess.DEVNULL, capture_output=True,
-                    timeout=timeout, check=False)
+                done = run(argv, cwd=d, stdin=subprocess.DEVNULL, capture_output=True,
+                           timeout=timeout, check=False)
             except (OSError, subprocess.TimeoutExpired):
+                return None
+            if getattr(done, "returncode", 1) != 0:  # NIT-7: a failed turn is no pick
                 return None
             if not out.is_file():
                 return None
