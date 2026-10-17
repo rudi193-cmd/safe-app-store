@@ -257,6 +257,21 @@ class TestDefaultIsTheStream(unittest.TestCase):
         self.assertEqual([r["counter_before"] for r in recs[1:]], [r["counter"] for r in recs[:-1]])
 
 
+class TestResetNarration(unittest.TestCase):
+    def test_reset_narrates_seed_id_not_the_seed(self):
+        hexseed = "ab" * 32
+        for obs in (SceneSession().reset(hexseed), StorySession(_WORLD).reset(hexseed),
+                    CrazyEightsSession(rng_factory=factory).reset(hexseed)):
+            text = " ".join(obs.narration)
+            self.assertNotIn(hexseed, text)
+            self.assertIn("seed_id=" + StreamRandom.from_seed(hexseed).seed_id, text)
+
+    def test_legacy_narration_unchanged(self):
+        self.assertIn("(seed=5)", SceneSession(rng_factory=LEGACY).reset(5).narration[0])
+        self.assertIn("(seed=5)", StorySession(_WORLD, rng_factory=LEGACY).reset(5).narration[0])
+        self.assertIn("(seed=5)", CrazyEightsSession().reset(5).narration[0])
+
+
 class TestLegacyOptOut(unittest.TestCase):
     """C9: an old recorded run is still reproducible, under its own name."""
 

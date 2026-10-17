@@ -129,7 +129,7 @@ from typing import Any, Optional
 from .dice_source import roll
 from .game_engine_adapter import _ensure_game_engine_on_path
 from .game_session import Observation, Result
-from .stream import resolve_factory
+from .stream import resolve_factory, seed_label
 from .worlds import load_world
 
 _ensure_game_engine_on_path()
@@ -235,7 +235,7 @@ class StorySession:
         self._terminal = False
 
         scene = self._current_scene()
-        narration = [f"{self.world['title']} begins (seed={seed}).", self.world["setting"]]
+        narration = [f"{self.world['title']} begins ({seed_label(self._rng, seed)}).", self.world["setting"]]
         narration.extend(scene["opening"])
 
         seat = self.current_seat()

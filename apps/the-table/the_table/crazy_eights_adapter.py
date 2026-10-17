@@ -109,6 +109,7 @@ _ensure_game_lab_sims_on_path()
 from crazy_eights import SUITS, is_legal, legal_cards, make_deck  # noqa: E402
 
 from .game_session import Observation, Result
+from .stream import seed_label
 
 # Defensive cap on total steps in a single game -- independent of, and much
 # larger than, any realistic game (52-card deck, 20 dealt, <=31 ever drawn
@@ -167,7 +168,7 @@ class CrazyEightsSession:
         if hasattr(rng, "seed_id"):
             self.last_roll["counter"] = rng.counter  # the deal's draws
         narration = [
-            f"New Crazy Eights game (seed={seed}). "
+            f"New Crazy Eights game ({seed_label(rng, seed)}). "
             f"Top card: {tuple(top)}, active suit: {self._active_suit}.",
         ]
         return Observation(

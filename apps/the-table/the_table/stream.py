@@ -169,6 +169,15 @@ class StreamRandom:
                 "counter": self.counter}
 
 
+def seed_label(rng, seed) -> str:
+    """What a reset may narrate about its seed: the stream's hashed ``seed_id``
+    (a beacon seed fixes every later die, so it is never narrated); a legacy
+    or plain ``random.Random`` run keeps the old ``seed=<n>`` text."""
+    if isinstance(rng, StreamRandom):
+        return f"seed_id={rng.seed_id}"
+    return f"seed={seed}"
+
+
 def replay(seed: int | bytes | str, record: dict, label: bytes = b"") -> StreamRandom:
     """Rebuild the stream a recorded roll came from, positioned at
     ``record["counter_before"]``.

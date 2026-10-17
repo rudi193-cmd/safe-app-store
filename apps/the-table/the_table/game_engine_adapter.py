@@ -161,7 +161,7 @@ from engine_v1_7 import Engine  # noqa: E402  (import after path shim, on purpos
 
 from .dice_source import roll
 from .game_session import Observation, Result
-from .stream import resolve_factory
+from .stream import resolve_factory, seed_label
 
 _MOVES = tuple(("act", stat) for stat in _STAT_MAP)  # fixed, side-effect-free every beat
 
@@ -219,7 +219,7 @@ class SceneSession:
         self._terminal = False
 
         narration = [
-            f"A new scene opens (seed={seed}), {self.beats} beats to play out. "
+            f"A new scene opens ({seed_label(self._rng, seed)}), {self.beats} beats to play out. "
             f"Declare an approach each beat -- Grit, Weird, Cute, or Cool -- and the dice answer.",
         ]
         return Observation(seat=0, view=self._view(), narration=narration, terminal=False)
