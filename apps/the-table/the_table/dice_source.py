@@ -15,13 +15,20 @@ back (at the outermost exit, always what was found before the first swap) and
 (global ``random``) roll goes through the same door with the real ``random``
 module as its source, so a thread cannot see a stream swapped in under it.
 
+Do NOT hold the swap across a ``yield`` or any generator/coroutine suspension:
+the lock stays held by this thread while suspended, other threads block, and
+the engine keeps pointing at the injected source until resumed. Use it only
+around the single ``Engine.roll`` call (as ``roll`` below does).
+
 The engine is targeted by ``type(engine).roll.__globals__`` -- the namespace
 ``Engine.roll`` really resolves ``random`` in -- not by an import name.
 """
 from __future__ import annotations
 
 import hashlib
+import os
 import random as _random
+import sys
 import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -67,19 +74,28 @@ def rolled_with(rng: Any, engine: Any = None) -> Iterator[Any]:
             elif held is rng:
                 g["random"] = previous
             if held is not rng:
-                raise RuntimeError(
+                err = RuntimeError(
                     "engine random source was changed under rolled_with "
                     "(non-LIFO exit or outside write)")
+                inflight = sys.exc_info()[1]
+                if inflight is None:
+                    raise err
+                # the roll itself raised: keep THAT error, attach ours
+                inflight.add_note(f"{err}")
+                inflight.swap_mismatch = err
 
 
 def engine_hash(engine: Any = None) -> str:
     """sha256 of the engine module's source bytes: names the rules a roll used."""
     g = _globals_of(engine if engine is not None else _engine_class())
     path = g["__file__"]
-    if path not in _ENGINE_HASH:
+    stat = os.stat(path)
+    key = (stat.st_mtime_ns, stat.st_size)  # cache can't go stale: re-read on any change
+    cached = _ENGINE_HASH.get(path)
+    if cached is None or cached[0] != key:
         with open(path, "rb") as f:
-            _ENGINE_HASH[path] = hashlib.sha256(f.read()).hexdigest()
-    return _ENGINE_HASH[path]
+            cached = _ENGINE_HASH[path] = (key, hashlib.sha256(f.read()).hexdigest())
+    return cached[1]
 
 
 def roll(engine: Any, stat: str, rng: Any, stat_value: int) -> tuple:
@@ -93,7 +109,7 @@ def roll(engine: Any, stat: str, rng: Any, stat_value: int) -> tuple:
     rec = {
         "generator_id": getattr(source, "generator_id",
                                 "random/global" if rng is None else "random/Random"),
-        "result": result, "status": status, "stat_value": stat_value,
+        "stat": stat, "result": result, "status": status, "stat_value": stat_value,
         "engine_hash": engine_hash(engine),
     }
     if before is not None:
@@ -101,23 +117,43 @@ def roll(engine: Any, stat: str, rng: Any, stat_value: int) -> tuple:
     return result, status, rec
 
 
-def replay_roll(seed, record: dict, label: bytes = b""):
+def replay_roll(seed, record: dict, sheet: dict | None = None, label: bytes = b"",
+                *, unbound_stat_ok: bool = False):
     """Re-verify a recorded roll: the engine source must match the record's
     hash, the stream is rebuilt at ``counter_before``, the roll is redone on a
-    fresh engine and must give the recorded result, status and counter."""
+    fresh engine and must give the recorded result, status and counter.
+
+    The stat modifier is NOT trusted from the record. Pass ``sheet`` -- the
+    engine stat dict the roll used, rebuilt by the caller from the session /
+    world (e.g. ``SceneSession``'s ``engine.stats`` or a ``StorySession`` seat
+    sheet mapped to engine keys); the engine itself maps ``record["stat"]``
+    onto it, and the result and counter must still come out as recorded. With
+    no ``sheet`` the replay is refused (``ReplayRefused``), because
+    ``stat_value`` is self-declared and nothing verifiable binds it; set
+    ``unbound_stat_ok=True`` to replay on the record's own ``stat_value``
+    (dice and counter are still verified, the modifier is only as honest as the
+    row)."""
     want = record.get("engine_hash")
     have = engine_hash()
     if want != have:
         raise EngineMismatch(f"record was rolled by engine {want!r}; loaded engine is {have!r}")
     rng = replay(seed, record, label)
-    for k in ("result", "status", "stat_value"):
+    for k in ("result", "status", "stat"):
         if k not in record:
             raise ReplayRefused(f"record lacks {k!r} -- cannot re-verify the roll")
     Engine = _engine_class()
     eng = Engine()
-    eng.stats = {"_s": record["stat_value"]}
+    name = record["stat"]
+    if sheet is not None:
+        eng.stats = dict(sheet)
+    elif unbound_stat_ok and "stat_value" in record:
+        eng.stats, name = {"_s": record["stat_value"]}, "_s"
+    else:
+        raise ReplayRefused(
+            "stat_value is not bound by anything verifiable: pass the stat sheet "
+            "(or unbound_stat_ok=True to trust the row's own stat_value)")
     with rolled_with(rng, eng):
-        result, status = eng.roll("_s")
+        result, status = eng.roll(name)
     if (result, status, rng.counter) != (record["result"], record["status"], record["counter"]):
         raise ReplayRefused(
             f"replay gave {(result, status, rng.counter)!r}, record says "

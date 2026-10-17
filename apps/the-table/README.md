@@ -90,12 +90,13 @@ the prose is its own. It carefully avoids every persistence trap in
 `engine_v1_7.py` — it never calls `apply_debility` / `restore_debility` /
 `_save_state`, all three of which would write `apps/game/engine_state.json`;
 it applies the one-line debility-floor rule itself, in-adapter, against a
-fresh `engine.stats` dict it constructs in `reset()`. Determinism is a
-documented coupling of `engine_v1_7.py` itself: `Engine.roll` draws from the
-*global* `random` module rather than an owned generator, so `reset(seed)`
-calls `random.seed(seed)` directly — meaning two scenes must be run to
-completion one at a time, never constructed up front and interleaved (see the
-determinism note in `the_table/proof.py`). Move vocabulary:
+fresh `engine.stats` dict it constructs in `reset()`. Determinism: `Engine.roll` draws from the
+*global* `random` module, so the adapter swaps in a per-session SHA-256 stream
+(`the_table/stream.py`, the default) for exactly one roll at a time
+(`the_table/dice_source.py`); two scenes can be alive and interleaved, and the
+global `random` is never touched. `rng_factory=LEGACY` is the explicit opt-out
+that reseeds the global `random` as before (to reproduce old recorded runs); a
+legacy scene must run to completion one at a time. Move vocabulary:
 `("act", "Grit"|"Weird"|"Cute"|"Cool")` — the four approaches, offered
 unconditionally every beat. `result()` uses a documented SOFT win heuristic
 (`winners=[0]` iff successes ≥ chaos bursts) rather than a hard win

@@ -18,15 +18,13 @@ Prints a short human-readable section per game (transcript-ish, Result, turn
 count, chain head, verify result), then one combined line, and exits 0 only
 if EVERY registered game verifies clean.
 
-DETERMINISM NOTE (why games run one at a time, never interleaved): the
-`scene` game (SceneSession, over apps/game's engine) reseeds the GLOBAL
-`random` module in its own `reset()` -- see game_engine_adapter.py's module
-docstring, trap 3. `crazy_eights` and `bureau` each own a private
-`random.Random(seed)` and are unaffected by that, but the reverse is not
-true: constructing every session up front and stepping them in an
-interleaved order would let `scene`'s reseed land between two of another
-game's `random_policy` draws (`random_policy` draws from the SAME global
-module `random.seed()` reseeds) and silently perturb it. So this loop
+DETERMINISM NOTE (why games still run one at a time): `scene` (SceneSession,
+over apps/game's engine) now draws from its own SHA-256 stream by default and
+no longer reseeds the GLOBAL `random` (game_engine_adapter.py, trap 3; only
+`rng_factory=LEGACY` does). `crazy_eights` keeps a private `random.Random`
+and `bureau` its own xorshift. The one remaining global user is
+`random_policy`'s caller-supplied `random.Random`, and a LEGACY scene's
+reseed, so this loop stays conservative. It
 `make()`s, runs to completion, and verifies ONE game before moving to the
 next -- never two sessions alive and stepping at once.
 """

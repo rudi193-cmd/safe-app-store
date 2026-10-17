@@ -50,18 +50,16 @@ THE TRAPS IN ``engine_v1_7.py`` -- and how this adapter avoids every one:
      ``engine_state.json`` contains, or whether it exists at all.
 
   3. ``Engine.roll`` draws from the GLOBAL ``random`` module
-     (``random.randint``), not an owned ``random.Random`` instance -- unlike
-     ``crazy_eights_adapter.py``, which deliberately owns its own generator
-     precisely to avoid this. There is no way to seed *this* engine per-call
-     without touching global state, so ``reset(seed)`` calls
-     ``random.seed(seed)`` directly. This is a documented, deliberate
-     coupling of ``engine_v1_7.py`` itself (not a design choice made here):
-     determinism for a ``SceneSession`` requires (a) seeding the global RNG
-     in ``reset()`` and (b) running single-threaded / not interleaving two
-     scenes' rolls on the same process without reseeding between them. A
-     caller that needs two independent deterministic scenes in one process
-     must call ``reset(seed)`` on each immediately before driving it, not
-     construct both up front and alternate steps between them.
+     (``random.randint``), not an owned generator. The adapter does not seed
+     it: by DEFAULT each session owns a SHA-256 stream (``stream.py``) that
+     ``dice_source.rolled_with`` swaps into the engine module's ``random``
+     name for exactly one roll, under a lock, then restores. apps/game is not
+     edited. Two scenes may be alive and interleaved; the global ``random`` is
+     never touched. ``rng_factory=LEGACY`` is the explicit opt-out: ``reset``
+     then calls ``random.seed(seed)`` as it used to (to reproduce recorded
+     legacy runs), and a legacy scene must not be interleaved with another
+     without reseeding between them (call ``reset(seed)`` on each right
+     before driving it).
 
   4. Importing ``engine_v1_7`` is side-effect-free: the module top level only
      defines constants and the ``Engine`` class body -- no code runs at
@@ -195,9 +193,8 @@ class SceneSession:
     # -- GameSession -----------------------------------------------------
 
     def reset(self, seed: int) -> Observation:
-        # Trap 3: Engine.roll draws from the GLOBAL random module -- seed it
-        # here so a scene is reproducible from this call forward.
-        # (With an rng_factory the source is per-session and the global is left alone.)
+        # Trap 3: by default the per-session stream is swapped in for each roll
+        # and the global random is left alone; only LEGACY reseeds the global.
         self._rng = self._rng_factory(seed) if self._rng_factory else None
         self.last_roll = None
         if self._rng is None:

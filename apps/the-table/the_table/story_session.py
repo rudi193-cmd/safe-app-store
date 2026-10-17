@@ -38,10 +38,10 @@ does, and avoids every trap that module's docstring documents:
   * ``engine.stats`` is overridden fresh from THIS module's own per-seat
     character sheet before every roll, never read from
     ``engine_state.json``;
-  * the global ``random`` module is seeded once, in ``reset(seed)``
-    (``Engine.roll`` draws from it directly, not an owned generator -- see
-    ``game_engine_adapter.py``'s trap #3 for why this is a documented
-    coupling of ``engine_v1_7.py`` itself, not a choice made here).
+  * dice come from a per-session SHA-256 stream swapped into the engine for
+    one roll at a time (the default); ``rng_factory=LEGACY`` instead seeds
+    the global ``random`` once in ``reset(seed)`` -- see
+    ``game_engine_adapter.py``'s trap #3.
 The sys.path shim that makes ``apps/game`` importable
 (``_ensure_game_engine_on_path``) is reused directly from
 ``game_engine_adapter.py`` rather than duplicated -- one shim, one place.
@@ -88,7 +88,7 @@ a timeline) is later work, out of scope here -- ``seal()`` only records into
 this session's own in-memory state, which is discarded when the session is.
 
 Turn model, mechanically:
-  * ``reset(seed)`` seeds the global RNG, positions at scene 0 / beat 0,
+  * ``reset(seed)`` builds the session's dice stream (LEGACY: seeds the global RNG), positions at scene 0 / beat 0,
     builds one stat sheet per seated character (world's ``base_stat`` fills
     in any stat a character's own ``stats`` dict omits).
   * ``legal_moves(seat)`` on an action beat: ``[("act", stat), ...]`` for
@@ -209,9 +209,8 @@ class StorySession:
     # -- GameSession -------------------------------------------------------
 
     def reset(self, seed: int) -> Observation:
-        # Trap 3 (game_engine_adapter.py): Engine.roll draws from the GLOBAL
-        # random module -- seed it here so a story is reproducible from this
-        # call forward.
+        # Trap 3 (game_engine_adapter.py): the default stream is swapped into
+        # Engine.roll per roll; only LEGACY seeds the GLOBAL random here.
         self._rng = self._rng_factory(seed) if self._rng_factory else None
         self.last_roll = None
         if self._rng is None:

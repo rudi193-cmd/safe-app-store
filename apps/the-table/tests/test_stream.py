@@ -20,8 +20,6 @@ import time
 import unittest
 from pathlib import Path
 
-from crazy_eights import make_deck  # on sys.path via the adapter shim
-
 from the_table import game_engine_adapter as gea
 from the_table.crazy_eights_adapter import CrazyEightsSession
 from the_table.dice_source import engine_hash, replay_roll, rolled_with
@@ -241,7 +239,7 @@ class TestDefaultIsTheStream(unittest.TestCase):
         self.assertEqual((v1, r1), (v2, r2))
         self.assertEqual(
             set(r1), {"seed_id", "generator_id", "counter", "counter_before",
-                      "result", "status", "stat_value", "engine_hash"})
+                      "stat", "result", "status", "stat_value", "engine_hash"})
         self.assertEqual(r1["engine_hash"], engine_hash())
         self.assertGreater(r1["counter"], r1["counter_before"])
         self.assertNotIn(Stream.from_seed(77).seed.hex(), json.dumps(r1))
@@ -306,11 +304,21 @@ class TestReplay(unittest.TestCase):
 
     def test_roll_record_replays_and_reverifies_the_values(self):
         rec = self._rec()
-        rng = replay_roll(31337, rec)
+        sheet = {"Efficiency": 2}  # the sheet a fresh scene gives "Cool"
+        rng = replay_roll(31337, rec, sheet)
         self.assertEqual(rng.counter, rec["counter"])
-        bad = dict(rec, result=rec["result"] + 1)
         with self.assertRaises(ReplayRefused):
-            replay_roll(31337, bad)
+            replay_roll(31337, dict(rec, result=rec["result"] + 1), sheet)
+        with self.assertRaises(ReplayRefused):  # a wrong sheet gives a different result
+            replay_roll(31337, rec, {"Efficiency": 9})
+
+    def test_replay_refuses_an_unbound_stat_value(self):
+        rec = self._rec()
+        with self.assertRaises(ReplayRefused):
+            replay_roll(31337, rec)
+        replay_roll(31337, rec, unbound_stat_ok=True)
+        with self.assertRaises(ReplayRefused):  # a lied stat_value is caught by the result
+            replay_roll(31337, dict(rec, stat_value=rec["stat_value"] + 3), unbound_stat_ok=True)
 
     def test_mismatched_generator_refuses_replay(self):  # T16
         rec = self._rec()
@@ -381,6 +389,19 @@ class TestSwapSafety(unittest.TestCase):
                 pass
         self.assertIs(ENGINE_GLOBALS["random"], random)
 
+    def test_roll_error_is_not_masked_by_a_swap_mismatch(self):  # X2
+        class Meddler(StreamRandom):
+            def randint(self, a, b):
+                ENGINE_GLOBALS["random"] = random  # someone else writes the name
+                raise KeyError("the roll's own error")
+
+        with self.assertRaises(KeyError) as cm:  # noqa: SIM117
+            with rolled_with(Meddler(Stream(b"m")), gea.Engine()) as r:
+                r.randint(1, 6)
+        self.assertIsInstance(cm.exception.swap_mismatch, RuntimeError)
+        self.assertIn("changed under rolled_with", "".join(cm.exception.__notes__))
+        self.assertIs(ENGINE_GLOBALS["random"], random)
+
     def test_non_lifo_exit_raises_and_nothing_leaks(self):
         a, b = rolled_with(StreamRandom.from_seed(1)), rolled_with(StreamRandom.from_seed(2))
         a.__enter__()
@@ -418,8 +439,45 @@ class TestSwapSafety(unittest.TestCase):
         self.assertEqual((p.exists(), p.read_bytes() if p.exists() else None), before)
 
 
+class TestLedgerRollRows(unittest.TestCase):  # X3
+    def test_crazy_eights_deal_is_recorded_once_not_per_turn(self):
+        with tempfile.TemporaryDirectory() as box:
+            sink = LedgerSink(box_dir=box)
+            run_session(CrazyEightsSession(rng_factory=factory), first_legal_policy(),
+                        seed=2, sink=sink)
+            ok = sink.verify()
+            rows = [(k, json.loads(s)) for k, s in
+                    sink._con.execute("SELECT kind, state FROM ledger ORDER BY id")]
+            sink.close()
+        self.assertTrue(ok)
+        self.assertEqual(rows[0][0], "session_open")
+        self.assertEqual(rows[0][1]["roll"]["generator_id"], GENERATOR_ID)
+        self.assertTrue(all("roll" not in s for k, s in rows if k == "turn"))
+
+    def test_scene_rows_carry_a_roll_every_turn_even_when_values_repeat(self):
+        with tempfile.TemporaryDirectory() as box:
+            sink = LedgerSink(box_dir=box)
+            run_session(SceneSession(beats=6, rng_factory=LEGACY), first_legal_policy(),
+                        seed=0, sink=sink)
+            ok = sink.verify()
+            turns = [json.loads(s) for (s,) in
+                     sink._con.execute("SELECT state FROM ledger WHERE kind='turn'")]
+            sink.close()
+        self.assertTrue(ok)
+        self.assertTrue(all(t["roll"]["generator_id"] == "random/global" for t in turns))
+        self.assertEqual(len(turns), 6)
+
+
+class TestEngineHash(unittest.TestCase):  # X4
+    def test_hash_follows_the_source_file(self):
+        import hashlib
+        path = ENGINE_GLOBALS["__file__"]
+        self.assertEqual(engine_hash(), hashlib.sha256(Path(path).read_bytes()).hexdigest())
+
+
 class TestCrazyEights(unittest.TestCase):
     def test_default_is_random_random_unchanged(self):  # C8
+        from crazy_eights import make_deck  # on sys.path once the adapter is imported
         legacy = CrazyEightsSession()
         view = legacy.reset(8).view
         d = random.Random(8)
