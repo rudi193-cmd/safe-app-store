@@ -166,21 +166,24 @@ class OneScriptSink:
     # -- a model's refused move pick (R12; menu.py) ---------------------------
     def escalate(self, refusal: dict) -> dict:
         """One ``escalate`` verdict row for a pick ``menu.menu_policy`` refused
-        (off the menu, ESCALATE, unreachable): what was offered, what came
-        back, what code took instead. Code's record of a refusal, so the
-        human sees it; never a seal, never a move of its own."""
+        (off the menu, ESCALATE, unreachable): the menu offered, the pick's
+        path as a capped string and nothing else of what the model sent (S4),
+        and what code took instead. Code's record of a refusal, so the human
+        sees it; never a seal, never a move of its own. The reason is fixed
+        text: no model words ride on it."""
         at = dict(self._at)
         row = self._base("escalate")
+        path = refusal.get("path")
         row.update({
             "where": at.get("scene"), "scene": at.get("scene"), "beat": at.get("beat"),
             "seat": refusal.get("seat"),
             "verdict": "escalate",
-            "reason": f"{refusal.get('reason')}: {refusal.get('why')}; code took "
-                      f"{refusal.get('took')}",
-            "menu": list(refusal.get("menu") or []),
-            "got": refusal.get("got"),
+            "reason": f"{refusal.get('reason')}: the model's pick was refused; "
+                      f"code took {refusal.get('took')}",
+            "menu": [str(m) for m in refusal.get("menu") or []],
+            "pick": path if isinstance(path, str) else None,  # never `path`: the rolls' path
             "took": refusal.get("took"),
-            "to": refusal.get("to", "human"),
+            "to": "human",
         })
         return self._emit(row)
 
