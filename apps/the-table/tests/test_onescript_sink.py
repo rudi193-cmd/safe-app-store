@@ -1,0 +1,209 @@
+"""the-table -- test_onescript_sink.py (J4, box-build SPEC R10; SPEC-documented §9 (d)).
+
+The sink is tested against an in-memory stand-in for one-script's
+``table.verdict`` (the host injects the real one; the-table never imports
+onescript). The cross-repo loop -- real record, real seals -- is
+box-build/e2e/test_w2_rows.py.
+"""
+from __future__ import annotations
+
+import copy
+import hashlib
+import json
+import os
+import shutil
+import sys
+import tempfile
+
+import pytest
+
+_APP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, _APP_ROOT)
+
+from the_table import onescript_sink as osk
+from the_table import peaks, registry
+from the_table.dice_source import replay_roll
+from the_table.gm import random_policy, run_session
+from the_table.ledger_sink import LedgerSink
+from the_table.story_session import StorySession
+from the_table.worlds import load_world
+
+WORLDS = os.path.join(_APP_ROOT, "worlds")
+SUB = "proposal:" + "cd" * 32
+SEED = hashlib.sha256(b"sink:hasbeen").hexdigest()
+
+
+class FakeRecord:
+    """Stands in for ``table.verdict`` bound to a box: a chained list."""
+
+    def __init__(self, refuse_at: int | None = None):
+        self.rows: list[dict] = []
+        self.refuse_at = refuse_at
+
+    def write(self, row: dict) -> dict:
+        if self.refuse_at is not None and len(self.rows) == self.refuse_at:
+            return {"refused": "no table key on this box", "code": 1}
+        prev = self.rows[-1]["hash"] if self.rows else "0" * 64
+        body = {"n": len(self.rows), "kind": "verdict", "who": "table", "prev": prev, **row}
+        body["hash"] = hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()
+        self.rows.append(body)
+        return {"row": body, "code": 0}
+
+
+def world(name="hasbeen"):
+    return os.path.join(WORLDS, f"{name}.json")
+
+
+def play(name="hasbeen", seed=SEED, forecast=None, path=None):
+    rec = FakeRecord()
+    s = StorySession(path or world(name))
+    sink = osk.OneScriptSink(rec.write, forecast=forecast)
+    pending = osk.play_to_decision(s, osk.suggested_policy(), sink, seed=seed, session_id="s1")
+    return s, sink, rec, pending
+
+
+def test_story_turns_become_verdict_rows():
+    """One verdict row per action beat; replaying each roll from the seed and
+    the seat's own sheet reproduces its total and counter."""
+    _, _, rec, pending = play()
+    w = load_world(world())
+    beats = peaks.action_beats(w)
+    rolls = [r for r in rec.rows if r["what"] == "roll"]
+    assert pending is not None and len(rolls) == len(beats)
+    assert [r["beat"] for r in rolls] == [b["id"] for b in beats]
+    for r in rolls:
+        sheet = peaks.engine_view(peaks.raw_sheets_for(w)[r["seat"]])
+        replay_roll(SEED, r["roll"], sheet=sheet)  # raises on any mismatch
+        assert r["total"] == r["roll"]["result"]
+        assert r["verdict"] == peaks.bucket(r["total"])
+
+
+def test_each_roll_row_carries_the_last_roll_and_the_path_so_far():
+    _, sink, rec, _ = play()
+    rolls = [r for r in rec.rows if r["what"] == "roll"]
+    for i, r in enumerate(rolls):
+        assert r["path"] == "-".join(x["verdict"] for x in rolls[: i + 1])
+        assert {"seed_id", "counter", "result", "engine_hash"} <= set(r["roll"])
+    assert sink.path == [r["verdict"] for r in rolls]
+
+
+def test_the_seed_is_never_written_only_its_id():
+    _, _, rec, _ = play()
+    assert SEED not in json.dumps(rec.rows)
+    opened = rec.rows[0]
+    assert opened["what"] == "open" and opened["seed_id"] == rec.rows[1]["roll"]["seed_id"]
+
+
+def test_the_open_row_names_the_forecast_it_plays_for():
+    _, _, rec, _ = play(forecast="ab" * 32)
+    assert rec.rows[0]["forecast"] == "ab" * 32
+    assert all("forecast" not in r for r in rec.rows[1:])
+
+
+def test_verdict_row_carries_no_person(tmp_path):
+    """A world whose character is named like a player: rows hold the seat and
+    the character id, never a name (forge-convergence §638)."""
+    with open(world()) as fh:
+        w = copy.deepcopy(json.load(fh))
+    for i, c in enumerate(w["characters"]):
+        c["name"] = f"Sean Campbell {i}"
+    p = tmp_path / "named.json"
+    p.write_text(json.dumps(w))
+    _, _, rec, _ = play(path=str(p))
+    text = json.dumps(rec.rows)
+    assert "Sean" not in text and "character_name" not in text
+    rolls = [r for r in rec.rows if r["what"] == "roll"]
+    assert all(isinstance(r["seat"], int) and r["character"] for r in rolls)
+
+
+def test_a_verdict_row_never_carries_a_seal_field():
+    _, _, rec, _ = play()
+    for r in rec.rows:
+        assert not {"proof", "pair", "subject", "via", "verifier", "wager", "outcome"} & set(r)
+
+
+def test_a_refused_row_stops_the_sink():
+    rec = FakeRecord(refuse_at=2)
+    s = StorySession(world())
+    sink = osk.OneScriptSink(rec.write)
+    with pytest.raises(osk.SinkRefused):
+        osk.play_to_decision(s, osk.suggested_policy(), sink, seed=SEED, session_id="s1")
+    assert len(rec.rows) == 2
+
+
+# -- decision beats -----------------------------------------------------------
+def test_a_decision_beat_is_proposed_never_sealed_here():
+    s, sink, rec, pending = play()
+    got = []
+
+    def propose(p, cites):
+        got.append((p, cites))
+        return {"subject": "proposal:" + "cd" * 32, "code": 0}
+
+    sub = sink.decision(pending, propose)
+    assert sub == "proposal:" + "cd" * 32
+    last = rec.rows[-1]
+    assert last["what"] == "decision" and last["fact_id"] == pending["fact_id"]
+    assert last["path"] == "-".join(sink.path)
+    assert got == [(pending, [last["hash"]])]
+    assert s.pending_seal() == pending  # proposing does not advance the story
+
+
+@pytest.mark.parametrize("answer", [
+    {"state": "unsealed", "why": "a seal row over this subject is on record, but no proof"},
+    {"state": "unreachable", "why": "no Nestor store"},
+    {"by": "Sean"},          # a name handed in alone
+    "Sean",
+    None,
+])
+def test_hand_written_seal_never_advances_story(answer):
+    """A seal by a name instead of a proof is refused: pending_seal() stays set."""
+    s, _, _, pending = play()
+    with pytest.raises(osk.BeatNotSealed):
+        osk.apply_beat_seal(s, pending["fact_id"], SUB, lambda sub: answer)
+    assert s.pending_seal() == pending
+
+
+def test_a_verified_seal_advances_the_story_with_the_verifier_named():
+    s, _, _, pending = play()
+    asked = []
+    osk.apply_beat_seal(s, pending["fact_id"], SUB,
+                        lambda sub: asked.append(sub) or {"state": "sealed", "by": "human"})
+    assert asked == [SUB]
+    assert s.pending_seal() is None
+    assert f"{pending['fact_id']} SEALED by human" in s.result().summary
+
+
+def test_a_machine_name_on_a_verified_seal_is_still_refused_by_the_story():
+    """The story's name check stays as a second gate behind the proof."""
+    s, _, _, pending = play()
+    with pytest.raises(ValueError):
+        osk.apply_beat_seal(s, pending["fact_id"], SUB,
+                            lambda sub: {"state": "sealed", "by": "claude"})
+    assert s.pending_seal() == pending
+
+
+# -- gm.run_session, unchanged, and the Tee ------------------------------------
+def test_result_row_after_terminal_through_run_session():
+    rec = FakeRecord()
+    game = registry.make("scene")
+    res = run_session(game, random_policy(__import__("random").Random(3)), seed=7,
+                      sink=osk.OneScriptSink(rec.write, game_name="scene"))
+    results = [r for r in rec.rows if r["what"] == "result"]
+    assert len(results) == 1 and results[0]["reason"] == res.summary
+    assert results[0]["scores"] == res.scores and rec.rows[0]["what"] == "open"
+
+
+def test_ledger_and_record_both_written_through_a_tee():
+    box = tempfile.mkdtemp(prefix="the-table-tee-")
+    try:
+        ledger, rec = LedgerSink(box_dir=box), FakeRecord()
+        game = registry.make("scene")
+        run_session(game, random_policy(__import__("random").Random(3)), seed=7,
+                    sink=osk.Tee(ledger, osk.OneScriptSink(rec.write, game_name="scene")))
+        assert ledger.verify() is True, ledger._last_verify_output
+        n = ledger._con.execute("SELECT COUNT(*) FROM ledger").fetchone()[0]
+        assert n == len(rec.rows)
+        ledger.close()
+    finally:
+        shutil.rmtree(box, ignore_errors=True)
