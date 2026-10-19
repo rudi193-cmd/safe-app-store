@@ -497,12 +497,12 @@ class TestStorySessionLedgerIntegration(_WorldFixtureMixin, unittest.TestCase):
         is empty on a decision beat -- so this test seals out-of-band
         (as a human at the table would) between run_session calls, one
         scene-of-play at a time up to the first decision, then resumes."""
-        from the_table.ledger_sink import LedgerSink
+        from ._record import RecordedSink
 
         box_dir = tempfile.mkdtemp(prefix="the-table-test-story-")
         try:
             game = StorySession(self.world_path)
-            sink = LedgerSink(box_dir=box_dir)
+            sink = RecordedSink(box_dir=box_dir)
             try:
                 # Drive by hand (not run_session) because a decision beat's
                 # legal_moves() is empty and only seal() -- not a Policy --
@@ -689,14 +689,14 @@ class TestShippedWorlds(unittest.TestCase):
         that the ledger the run wrote verifies under ai-game-master's own
         verifier -- the same end-to-end guarantee test_registry.py makes for
         each registered game."""
-        from the_table.ledger_sink import LedgerSink
+        from ._record import RecordedSink
 
         for name, path in available_worlds().items():
             with self.subTest(world=name):
                 box_dir = tempfile.mkdtemp(prefix=f"the-table-world-{name}-")
                 try:
                     game = StorySession(path)
-                    sink = LedgerSink(box_dir=box_dir)
+                    sink = RecordedSink(box_dir=box_dir)
                     try:
                         obs = game.reset(0)
                         sink.open_session(f"world-{name}", {"seed": 0, "seats": game.seats})

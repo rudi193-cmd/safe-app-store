@@ -3,8 +3,8 @@
 SPEC W2 (box-build ``SPEC.md`` rulings R9, R10), SPEC-documented §9 J4,
 SPEC-rival §2 / §8 R3-one-record.
 
-``OneScriptSink`` has the ``LedgerSink`` duck type ``gm.run_session`` already
-takes (``open_session`` / ``snapshot`` / ``close_session``, ``gm.py:95-113``),
+``OneScriptSink`` has the three-method sink surface ``gm.run_session`` takes
+(``open_session`` / ``snapshot`` / ``close_session``, ``gm.py:95-113``),
 so ``gm.py``, ``proof.py`` and every adapter are untouched. Each call becomes
 one code-written ``verdict`` row through an injected ``write(row) -> dict``
 (the host hands in ``onescript.table.verdict`` bound to its box; this module
@@ -65,7 +65,7 @@ def _seed_id(seed: Any) -> str | None:
 
 
 class OneScriptSink:
-    """``LedgerSink`` duck type over one-script ``verdict`` rows."""
+    """The three-method sink surface over one-script ``verdict`` rows."""
 
     def __init__(self, write: Writer, *, check: Checker | None = None,
                  forecast: str | None = None, game: Any = None,
@@ -298,7 +298,7 @@ def suggested_policy() -> Callable:
 
 
 class Tee:
-    """Two (or more) sinks at once: ``Tee(LedgerSink(...), OneScriptSink(...))``."""
+    """Two (or more) sinks at once: ``Tee(OneScriptSink(...), another_sink)``."""
 
     def __init__(self, *sinks: Any) -> None:
         self.sinks = sinks

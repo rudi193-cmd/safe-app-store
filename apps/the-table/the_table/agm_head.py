@@ -26,7 +26,12 @@ import importlib.util
 import os
 import sqlite3
 
-from .ledger_sink import AGM_VERIFY_PY, GENESIS
+#: ai-game-master's own verifier, loaded by path (never edited, never
+#: imported as a package): the-table -> apps -> ai-game-master.
+AGM_VERIFY_PY = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "ai-game-master", "bootstrap", "verify_ledger.py")
+GENESIS = "genesis"  # ai-game-master's empty-chain sentinel (schema/01_ledger.sql)
 
 _VERIFY = None
 

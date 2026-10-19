@@ -150,12 +150,12 @@ class TestTheCampaign(unittest.TestCase):
     def test_it_plays_to_terminal_and_its_ledger_verifies(self):
         import shutil
 
-        from the_table.ledger_sink import LedgerSink
+        from ._record import RecordedSink
 
         box = tempfile.mkdtemp(prefix="the-table-door-")
         self.addCleanup(shutil.rmtree, box, True)
         game = StorySession(DOOR_WORLD, door_bank=BANK, door_words=WORDS)
-        sink = LedgerSink(box_dir=box)
+        sink = RecordedSink(box_dir=box)
         try:
             game.reset(0)
             sink.open_session("locked-door", {"seed": 0, "seats": game.seats})

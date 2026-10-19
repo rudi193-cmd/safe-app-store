@@ -1,13 +1,15 @@
 # The Table — a thin AI Game Master spine
 
 **This is a walking skeleton.** It defines the game protocol, a game-agnostic
-GM driver loop, a ledger sink, a registry that names every game, and an
+GM driver loop, a record sink, a registry that names every game, and an
 end-to-end proof that EVERY registered game, driven through the loop, ends up
-remembered in a tamper-evident ai-game-master ledger — now proven with THREE
-adapters behind the same protocol: bureau (single-seat exploration),
-crazy_eights (4-seat, hidden info), and scene (single-seat narrative dice
-scene), all driven by the identical `run_session`/`LedgerSink`, unmodified,
-via `the_table/registry.py`.
+remembered as `verdict` rows in the one-script record — the one chain
+(willows-grove `docs/design/one-script/flatten-2026-10-19.md`, F-1) — all
+driven by the identical `run_session`/`OneScriptSink`, unmodified, via
+`the_table/registry.py`. Until the pieces move into willow-bot (flatten F4),
+the scripts that run a session find the one-script beside the-table
+(`the_table/host.py`: `../willow-bot/one-script`, or `ONESCRIPT_HOME`); with
+none, they say why and exit 2.
 
 > The architecture map — the three-layer spine, the adapter tiers, and how the
 > other game apps plug in — is [`docs/the-table-map.html`](docs/the-table-map.html).
@@ -66,8 +68,8 @@ the-table does not reproduce game-lab's baseline numbers by design — see the
 module docstring for why. `observe(seat)` is the real showcase bureau
 (single-player) couldn't offer: each seat's view carries its own hand in
 full but opponents only as hand-size counts, never as card lists — hidden
-information the ledger itself preserves, since `ledger_sink.py` snapshots
-exactly what `run_session` passes it.
+information the record itself preserves, since the sink writes exactly what
+`run_session` passes it.
 
 `tests/test_crazy_eights_adapter.py` drives full games to terminal across six
 seeds with a seeded random policy, asserts every `Observation.view` and every
@@ -75,8 +77,8 @@ chosen `Move` round-trips through JSON, asserts `legal_moves()` is
 side-effect-free (called twice, same result, no state change) both at reset
 and mid-game, asserts `observe(0)` never exposes another seat's actual cards,
 asserts `current_seat()` visits more than one seat over a game, and drives
-`CrazyEightsSession` through the real `run_session` + a real `LedgerSink`
-(temp dir), asserting `sink.verify()` is `True` — the second game, through
+`CrazyEightsSession` through the real `run_session` into a one-script box
+beside the-table (`tests/_record.py`), asserting `sink.verify()` is `True` — the second game, through
 the identical driver and sink, unchanged.
 
 `the_table/game_engine_adapter.py` is the THIRD real implementation:
@@ -112,8 +114,8 @@ state), and — the two guarantees named in the adapter's own module docstring
 — snapshots `apps/game/engine_state.json`'s existence/mtime/bytes before and
 after a scene (including one that hits `CHAOS_BURST`) and asserts
 byte-identity or continued absence. It also drives `SceneSession` through the
-real `run_session` + a real `LedgerSink`, asserting `sink.verify()` is
-`True` — the third game, through the identical driver and sink, unchanged.
+real `run_session` into a one-script box (`tests/_record.py`), asserting
+`sink.verify()` is `True` — the third game, through the identical driver and sink, unchanged.
 
 `the_table/registry.py` is the piece that makes "the GM runs them all"
 literal: a small `name -> zero-arg GameSession factory` registry —
@@ -126,11 +128,16 @@ registered lambda, so the registry surface itself stays argument-free);
 silently overwriting. This is deliberately small — a dict and four functions,
 no plugin discovery, no config files.
 
-`the_table/ledger_sink.py` (`LedgerSink`) writes turns into an
-`ai-game-master` campaign box and verifies the resulting hash chain with
-`ai-game-master`'s own `bootstrap/verify_ledger.py` — it never touches the
-`canon` table and never seals. `tests/test_ledger_sink.py` proves a clean
-chain verifies and that a tampered row is refused.
+`the_table/onescript_sink.py` (`OneScriptSink`) writes each call as one
+`verdict` row through a writer handed in (it never imports onescript), and
+`the_table/host.py` is where a script gets that writer: a one-script box,
+checked in on willows-grove's law, its `desk` and `table` keys made fresh
+beside the box (never inside, never a human key), verified with the
+one-script's own `verify_chain` and `verify_anchor`. A decision beat is a
+proposal the human seals with their own key; code never seals.
+`the_table/ledger_sink.py` is a tombstone (flatten F2): it wrote the second
+chain, an `ai-game-master` campaign box; it stays only because frozen
+experiment records import it.
 
 `the_table/gm.py` is the driver that ties the two together: `run_session(game,
 policy, seed=..., sink=None, max_turns=1000)` drives any `GameSession` from
@@ -147,11 +154,12 @@ run is never mistaken for a finished one.
 
 `the_table/proof.py` is the end-to-end demonstration, now REGISTRY-DRIVEN
 over ALL registered games: it loops over `registry.games()` (today: bureau,
-crazy_eights, scene), `make()`s a fresh session per name, wires it to its own
-fresh temp `LedgerSink` box, runs it through `run_session` with a seeded
-`random_policy`, and asserts per game that it reached a real terminal state
-and that `sink.verify()` — `ai-game-master`'s own verifier — accepts the
-chain the GM wrote. Each game is driven fully to completion, one at a time,
+crazy_eights, scene), `make()`s a fresh session per name, writes it into one
+fresh throwaway one-script box through a `OneScriptSink`, runs it through
+`run_session` with a seeded `random_policy`, and asserts per game that it
+reached a real terminal state and that its rows are all on the record; then
+that the one-script's own `verify_chain` and `verify_anchor` find no break,
+and that a copy of the record with one row edited is refused. Each game is driven fully to completion, one at a time,
 before the next is even `make()`'d — never constructed up front and
 interleaved, because `scene` reseeds the *global* `random` module in its own
 `reset()` (a documented coupling of `apps/game/engine_v1_7.py` itself; see
@@ -159,20 +167,21 @@ interleaved, because `scene` reseeds the *global* `random` module in its own
 reseed land between two draws of another game's `random_policy`. Run it with
 `python3 -m the_table.proof` or `python3 the_table/proof.py` (both from
 `apps/the-table/`); it prints a short section per game (transcript, `Result`,
-turn count, chain head, verify result), then a combined line, and exits 0
-only if EVERY registered game verifies clean. Adding a fourth game to the
+turn count, rows written), then the chain's check, the tamper check and a
+combined line, and exits 0 only if all of it holds (2 when the one-script is
+not beside). Adding a fourth game to the
 proof is one `registry.register()` call — `proof.py` itself does not change.
 
 `tests/test_gm.py` covers the driver two ways: a tiny in-file stub
 `GameSession` (a 2-seat counter) unit-tests the loop's own mechanics — turn
 order via `current_seat()`, the terminal stop, the `max_turns` cap path, and
 sink call counts — in isolation from bureau; a second test drives the real
-`BureauSession` + a real `LedgerSink` through `run_session` and asserts
+`BureauSession` into a one-script box through `run_session` and asserts
 `sink.verify()` is `True`. The equivalent crazy_eights and scene integration
 tests live in `tests/test_crazy_eights_adapter.py` and
 `tests/test_game_engine_adapter.py`; `tests/test_registry.py` adds the
 registry-level version of the same guarantee — for EVERY name `games()`
-returns, `make()` + the real `run_session` + a real `LedgerSink` reaches
+returns, `make()` + the real `run_session` into a one-script box reaches
 terminal and verifies — plus coverage of `games()`'s stable ordering,
 `make()`'s freshness (a distinct object every call), and `register()`'s
 duplicate-name / non-callable-factory rejection.

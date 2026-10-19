@@ -1,5 +1,5 @@
 # the-table's runtime dependencies. The spine (game_session, gm, registry,
-# ledger_sink, the adapters) is stdlib; these two are what the games it
+# onescript_sink, host, the adapters) is stdlib; these two are what the games it
 # reuses need:
 #
 # - chess: python-chess, imported by apps/game-lab/sims/baseline_core.py,

@@ -10,10 +10,7 @@ from __future__ import annotations
 import os
 import random
 import shutil
-import sqlite3
-import subprocess
 import sys
-import tempfile
 import unittest
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -23,7 +20,7 @@ import combat  # noqa: E402
 import dice5e  # noqa: E402
 import statblocks  # noqa: E402
 import dice as _dicelib  # noqa: E402
-from the_table.ledger_sink import LedgerSink  # noqa: E402
+from the_table import host  # noqa: E402
 
 
 def _lib_total(expr, rng):
@@ -180,34 +177,34 @@ class TestFightDeterminismAndResolution(unittest.TestCase):
         self.assertTrue(0 <= s["tpk"] <= 40)
 
 
-class TestLedgerIntegration(unittest.TestCase):
+@unittest.skipIf(host.reach()["state"] != "reachable",
+                 f"the one-script is not beside the-table: {host.reach().get('why')}")
+class TestRecordIntegration(unittest.TestCase):
     def test_logged_fight_verifies_and_tamper_refuses(self):
-        box = tempfile.mkdtemp(prefix="aetheris-combat-test-")
-        try:
-            sink = LedgerSink(box)
+        with host.Box() as box:
+            sink = host.StateSink(box, "aetheris5e-combat")
             sink.open_session("combat-test", {"encounter": "warden"})
             cs = statblocks.build_encounter("warden")
             res = combat.Combat(cs, random.Random(3), sink=sink).run()
             sink.close_session(res)
-            self.assertTrue(sink.verify(), sink._last_verify_output)
-            sink.close()
+            self.assertEqual(box.verify(), [])
+            self.assertEqual([r["what"] for r in sink.rows][0], "open")
+            self.assertEqual(sink.rows[-1]["what"], "result")
+            self.assertTrue(all(r["who"] == "table" for r in sink.rows))
 
             # forbidden act: rewrite a logged row -> the chain must refuse.
-            con = sqlite3.connect(os.path.join(box, "campaign.db"))
-            # SELECT the id, then UPDATE by id: `UPDATE ... LIMIT` needs SQLite built
-            # with SQLITE_ENABLE_UPDATE_DELETE_LIMIT, which stock CPython often lacks.
-            rid = con.execute("SELECT id FROM ledger WHERE kind='turn' "
-                              "ORDER BY id DESC LIMIT 1").fetchone()[0]
-            con.execute("UPDATE ledger SET note = note || ' (edited)' WHERE id=?", (rid,))
-            con.commit(); con.close()
-            verify_py = combat.AGM_VERIFY
-            r = subprocess.run([sys.executable, verify_py,
-                                os.path.join(box, "campaign.db"), "--canon"],
-                               capture_output=True, text=True)
-            self.assertNotEqual(r.returncode, 0, "a tampered combat log must NOT verify")
-            self.assertIn("does not match", (r.stdout + r.stderr))
-        finally:
-            shutil.rmtree(box, ignore_errors=True)
+            def edit(rows):
+                last = max(i for i, r in enumerate(rows) if r.get("what") == "step")
+                rows[last] = {**rows[last], "reason": rows[last]["reason"] + " (edited)"}
+                return rows
+
+            copy = box.tampered_copy(edit)
+            try:
+                breaks = box.verify(copy)
+                self.assertTrue(breaks, "a tampered combat log must NOT verify")
+                self.assertIn("chain broken", breaks[0])
+            finally:
+                shutil.rmtree(os.path.dirname(copy), ignore_errors=True)
 
 
 if __name__ == "__main__":

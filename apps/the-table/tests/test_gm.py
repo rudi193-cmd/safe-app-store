@@ -175,12 +175,12 @@ class TestDriverMechanics(unittest.TestCase):
 class TestBureauIntegration(unittest.TestCase):
     def test_bureau_driven_by_gm_loop_reaches_terminal_and_ledger_verifies(self):
         from the_table.bureau_adapter import BureauSession
-        from the_table.ledger_sink import LedgerSink
+        from ._record import RecordedSink
 
         box_dir = tempfile.mkdtemp(prefix="the-table-test-gm-")
         try:
             game = BureauSession()
-            sink = LedgerSink(box_dir=box_dir)
+            sink = RecordedSink(box_dir=box_dir)
             try:
                 policy = random_policy(random.Random(7))
                 result = run_session(

@@ -27,36 +27,33 @@ self-hazard, the Rogue's once-per-turn Sneak Attack, and the Fighter's
 Action Surge + one superiority die. Drop at 0 HP (no death saves in this
 skeleton). Round cap 50 -> declared a stalemate.
 
-Ledger boxes are DATA (rolls, outcomes) -- written under aetheris5e/_boxes/,
-gitignored, never committed.
+A fight is recorded as one-script ``verdict`` rows (the one chain, flatten
+F-6), in a box under aetheris5e/_boxes/ -- DATA, gitignored, never committed.
+The one-script is found beside the-table (``the_table/host.py``); with none,
+``fight`` says why and exits 2. ``sim`` records nothing and needs no box.
 """
 from __future__ import annotations
 
 import os
 import random
 import shutil
-import sqlite3
-import subprocess
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _TABLE = os.path.dirname(_HERE)
 sys.path.insert(0, _TABLE)
 sys.path.insert(0, _HERE)
-from the_table.ledger_sink import LedgerSink  # noqa: E402
+from the_table import host  # noqa: E402
 import statblocks  # noqa: E402
 # dice notation + RNG are delegated to the MIT `dice` library via dice5e --
 # ai-game-master's reuse-vs-build wall (reuse the roller; build only the seam).
 from dice5e import total as roll, crit_expr as _double_dice, d20  # noqa: E402
 
-AGM_VERIFY = os.path.join(os.path.dirname(os.path.dirname(_TABLE)),
-                          "apps", "ai-game-master", "bootstrap", "verify_ledger.py")
-
 
 # ── engine ───────────────────────────────────────────────────────────────────
 
 class Combat:
-    def __init__(self, combatants, rng: random.Random, sink: LedgerSink = None, log=None):
+    def __init__(self, combatants, rng: random.Random, sink=None, log=None):
         self.cs = combatants
         self.rng = rng
         self.sink = sink
@@ -278,11 +275,22 @@ def _fmt_sim(s):
     return "\n".join(L)
 
 
+def _edit_first_hit(rows: list) -> list:
+    """The record with the first hit's note edited, its hash left as it was."""
+    out, done = [], False
+    for r in rows:
+        if not done and r.get("what") == "step" and "hits" in str(r.get("reason", "")):
+            r, done = {**r, "reason": r["reason"] + " (edited)"}, True
+        out.append(r)
+    return out
+
+
 def fight(encounter: str, seed: int | None, human_readable=True):
     lines = []
-    box = os.path.join(_HERE, "_boxes", f"fight-{encounter}")
-    shutil.rmtree(box, ignore_errors=True)
-    sink = LedgerSink(box)
+    where = os.path.join(_HERE, "_boxes", f"fight-{encounter}")
+    shutil.rmtree(where, ignore_errors=True)
+    box = host.box_or_exit(where)
+    sink = host.StateSink(box, "aetheris5e-combat")
     sink.open_session(f"combat-{encounter}", {"encounter": encounter, "engine": "D&D 5e"})
     rng = random.Random(seed) if seed is not None else random.Random(int.from_bytes(os.urandom(8), "big"))
     cs = statblocks.build_encounter(encounter)
@@ -298,29 +306,15 @@ def fight(encounter: str, seed: int | None, human_readable=True):
     print("-" * 70)
     print(f"OUTCOME: {res['outcome'].upper()} in {res['rounds']} rounds")
     print(f"  standing: {', '.join(res['party_survivors'] + res['foe_survivors']) or '(none)'}")
-    ok = sink.verify()
-    head = sink.head()
-    sink.close()
-    print(f"  ledger verify(): {ok}   head: {head[:16]}…")
-    # tamper a copy: bump a damage number and re-verify
-    copy = os.path.join(_HERE, "_boxes", f"fight-{encounter}-tampered")
-    shutil.rmtree(copy, ignore_errors=True)
-    shutil.copytree(box, copy)
-    con = sqlite3.connect(os.path.join(copy, "campaign.db"))
-    # SELECT the row id first, then UPDATE by id: `UPDATE ... LIMIT` needs SQLite
-    # built with SQLITE_ENABLE_UPDATE_DELETE_LIMIT, which stock CPython often lacks.
-    row = con.execute("SELECT id FROM ledger WHERE kind='turn' "
-                      "AND note LIKE '%hits%' ORDER BY id LIMIT 1").fetchone()
-    if row is not None:
-        con.execute("UPDATE ledger SET note = note || ' (edited)' WHERE id=?", (row[0],))
-    con.commit(); con.close()
-    r = subprocess.run([sys.executable, AGM_VERIFY, os.path.join(copy, "campaign.db"), "--canon"],
-                       capture_output=True, text=True)
-    tail = (r.stdout + r.stderr).strip().splitlines()
-    print(f"  tampered copy (one hit edited): verify exit {r.returncode} "
-          f"({'REFUSES' if r.returncode else 'passed?!'})")
-    if tail:
-        print("    " + tail[-2] if len(tail) > 1 else "    " + tail[-1])
+    breaks = box.verify()
+    print(f"  record verify: {'holds' if not breaks else 'BROKEN: ' + breaks[0]}   "
+          f"head: {box.head()[:16]}…")
+    # tamper a copy: edit the first hit and re-verify
+    copy = box.tampered_copy(_edit_first_hit)
+    tampered = box.verify(copy)
+    print(f"  tampered copy (one hit edited): "
+          f"{'REFUSED (' + tampered[0] + ')' if tampered else 'passed?!'}")
+    shutil.rmtree(os.path.dirname(copy), ignore_errors=True)
     return res
 
 

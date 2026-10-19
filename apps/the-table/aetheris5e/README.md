@@ -8,13 +8,17 @@ success, the setting's aether-wild zone rule) instead of the-table's native 2d6
 **The world is shared; only the resolution math differs.** Scenes, beats, the
 cast, and — above all — Maunder's personhood *decision beat* all come from the
 one authored world file. This directory never touches the-table's own engine,
-registry, or tests; it imports only the tamper-evident `LedgerSink` as a
-consumer.
+registry, or tests; it imports only the-table's host shim (`the_table/host.py`),
+which writes every roll as a `verdict` row in the one-script record, the one
+chain (willows-grove `docs/design/one-script/flatten-2026-10-19.md` F-6). The
+one-script must be beside the-table (`../willow-bot/one-script`, or
+`ONESCRIPT_HOME`); with none, `gm5e`, `sealed_run` and `combat fight` say why
+and exit 2.
 
 The one covenant is identical to the-table's and to `apps/ai-game-master`'s:
 
-> **The machine proposes, rolls, and remembers. It never seals. A named human
-> at the head of the table seals canon.**
+> **The machine proposes, rolls, and remembers. It never seals. A person at
+> the head of the table seals canon, with their own key.**
 
 ## What's here
 
@@ -22,10 +26,10 @@ The one covenant is identical to the-table's and to `apps/ai-game-master`'s:
 |------|--------------|
 | `dice5e.py` | The dice seam. Dice-notation **authority** is the MIT-licensed [`dice`](https://pypi.org/project/dice/) library (borntyping/python-dice) — the reuse-vs-build wall from `apps/ai-game-master/docs/DECISION.md`. Two speedups sit on top without owning the grammar: a **cache** (each expression compiles once) and a **fast path** (simple `NdM±K` / advantage forms compute directly with the injected RNG, ~3000× faster than re-parsing pyparsing every call). The library still validates every expression and remains the fallback; a test asserts the fast path never diverges from it. Injects the engine's own `random.Random`, so seeded fights stay reproducible and the global `random` is never touched. |
 | `monte_carlo.py` | Runs the whole adventure at volume (default 500 seeded rounds) for three level-3 pregens side by side, and reports where the average rolls out — per-beat success rates, successes-per-run distribution, the "night held together" verdict, and the one beat no policy can resolve. |
-| `gm5e.py` | A live 5e roller CLI (checks, saves, attacks, damage) that appends every roll to a hash-chained ai-game-master ledger the moment it happens. Refuses to record a seal under any machine-flavored name. |
-| `sealed_run.py` | One live playthrough to Maunder's question, then the full seal loop: the machine's seal attempt **refused**, a named human's seal **recorded**, the chain **verified**, and a tampered copy **rejected**. |
+| `gm5e.py` | A live 5e roller CLI (checks, saves, attacks, damage) that appends every roll to the one-script record the moment it happens. `propose` puts a fact before the human as a proposal; `seal` refuses (a seal is the human's, made with their key through the one-script). |
+| `sealed_run.py` | One live playthrough to Maunder's question, then the decision: the machine's seal attempt **refused**, the beat **proposed** for the human's seal (`onescript seal proposal:<hash> --proof ...`), the chain **verified**, and a tampered copy **rejected**. Until flatten F3 the seal itself is the one-script's, not this script's. |
 | `statblocks.py` | The campaign's six stat blocks (Aether Construct, Mind-Forge Warden, Tide-Touched Scout, Engine-Blooded Bruiser, Scorched Belt Raider, Concord Enforcer) plus the three level-3 pregens as combat sheets, and four named encounters. Each is a fresh-object factory. |
-| `combat.py` | A real 5e combat engine over those stat blocks: initiative, multiattack, attack-vs-AC with crits, typed **damage resistance** (the Bruiser halves force, the Warden halves nonmagical weapons), recharge/AoE specials (Override Pulse stun, Aether Discharge, Salt Spray blind), Overheat, Sneak Attack, Action Surge + a superiority die. Every swing is ledger-logged; `sim` runs the encounter at volume for balance. |
+| `combat.py` | A real 5e combat engine over those stat blocks: initiative, multiattack, attack-vs-AC with crits, typed **damage resistance** (the Bruiser halves force, the Warden halves nonmagical weapons), recharge/AoE specials (Override Pulse stun, Aether Discharge, Salt Spray blind), Overheat, Sneak Attack, Action Surge + a superiority die. Every swing is a `verdict` row; `sim` runs the encounter at volume for balance. |
 | `test_combat.py` | Locks the engine (14 tests) — resistances, stun-skips-turn, dead-don't-act, seeded reproducibility, and the forbidden act: a **tampered combat log refuses to verify**. |
 
 ## Run it
@@ -36,7 +40,7 @@ pip install -r requirements.txt     # the MIT `dice` library (the only dep)
 python3 monte_carlo.py 500          # the skill-check baseline
 python3 gm5e.py open "Aetheris"     # provision a live campaign box
 python3 gm5e.py check Aether 5 13 --adv "attune to the broadcast"
-python3 sealed_run.py "Ada Vane" SEALED   # a full playthrough + seal + tamper test
+python3 sealed_run.py                     # a full playthrough + proposal + tamper test
 
 python3 combat.py list                    # the four encounters
 python3 combat.py fight warden --seed 3   # one logged fight, round by round + tamper test
@@ -44,7 +48,7 @@ python3 combat.py sim enforcers 500       # where a fight rolls out, at volume
 python3 -m unittest test_combat           # the engine's own tests
 ```
 
-### Combat, ledger-logged
+### Combat, on the record
 
 `combat.py` extends the harness from skill checks to full initiative combat.
 The machine rolls initiative, attacks, saves, and damage, and **remembers**
@@ -58,7 +62,7 @@ healerless level-3 party with no death saves, not a tuned one.
 
 ## Data stays home
 
-Ledger boxes hold played rolls, human seals, and real names — that is **data**,
+Record boxes hold played rolls, proposals, and their keys files — that is **data**,
 not blueprint. Every box is written under `_boxes/` and is `.gitignore`d, the
 same wall `apps/ai-game-master` draws between the repo (how to build the vault)
 and the box (the campaign that stays home). Nothing in this directory commits a

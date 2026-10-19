@@ -3,13 +3,13 @@
 This is the piece that ties the walking skeleton together: given any
 ``GameSession`` (bureau today, anything else later) and a ``Policy`` (a
 function that picks a legal move), ``run_session`` drives the game from
-``reset`` to ``result()``, optionally recording every turn into a
-``LedgerSink``.
+``reset`` to ``result()``, optionally recording every turn into a sink
+(``OneScriptSink``: ``verdict`` rows in the one-script record).
 
 The loop knows nothing about bureau, or about any particular game's move
 vocabulary — it only calls the pinned ``GameSession`` surface
-(``game_session.py``) and, when a sink is given, the pinned ``LedgerSink``
-surface (``ledger_sink.py``). It is deliberately seat-agnostic: the seat to
+(``game_session.py``) and, when a sink is given, the three-method sink
+surface (``open_session`` / ``snapshot`` / ``close_session``). It is deliberately seat-agnostic: the seat to
 move is always read from ``game.current_seat()``, never assumed to be 0, so
 the same loop drives a multi-seat game exactly the way it drives bureau's
 single seat.
@@ -82,7 +82,7 @@ def run_session(
     Game-agnostic: reads ``game.current_seat()`` every turn rather than
     assuming seat 0, so this same loop drives multi-seat games too.
 
-    ``sink`` is optional (``LedgerSink`` or ``None``); when given, records
+    ``sink`` is optional (``OneScriptSink``, or ``None``); when given, records
     ``open_session`` before the loop, one ``snapshot`` per turn, and
     ``close_session`` once the game reaches ``is_terminal()``.
 

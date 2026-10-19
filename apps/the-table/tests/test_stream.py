@@ -25,7 +25,7 @@ from the_table.crazy_eights_adapter import CrazyEightsSession
 from the_table.dice_source import engine_hash, replay_roll, rolled_with
 from the_table.game_engine_adapter import SceneSession
 from the_table.gm import first_legal_policy, run_session
-from the_table.ledger_sink import LedgerSink
+from ._record import RecordedSink
 from the_table.story_session import StorySession
 from the_table.stream import (
     GENERATOR_ID,
@@ -247,11 +247,11 @@ class TestDefaultIsTheStream(unittest.TestCase):
 
     def test_ledger_rows_carry_the_roll_record(self):
         with tempfile.TemporaryDirectory() as box:
-            sink = LedgerSink(box_dir=box)
+            sink = RecordedSink(box_dir=box)
             run_session(SceneSession(beats=3), first_legal_policy(), seed=4, sink=sink)
-            rows = sink._con.execute("SELECT state FROM ledger WHERE kind='turn'").fetchall()
+            rows = [r for r in sink.rows if r["what"] in ("roll", "step")]
             sink.close()
-        recs = [json.loads(r[0])["roll"] for r in rows]
+        recs = [r["roll"] for r in rows]
         self.assertEqual(len(recs), 3)
         self.assertTrue(all(r["generator_id"] == GENERATOR_ID and "seed_id" in r for r in recs))
         self.assertEqual([r["counter_before"] for r in recs[1:]], [r["counter"] for r in recs[:-1]])
@@ -457,26 +457,24 @@ class TestSwapSafety(unittest.TestCase):
 class TestLedgerRollRows(unittest.TestCase):  # X3
     def test_crazy_eights_deal_is_recorded_once_not_per_turn(self):
         with tempfile.TemporaryDirectory() as box:
-            sink = LedgerSink(box_dir=box)
+            sink = RecordedSink(box_dir=box)
             run_session(CrazyEightsSession(rng_factory=factory), first_legal_policy(),
                         seed=2, sink=sink)
             ok = sink.verify()
-            rows = [(k, json.loads(s)) for k, s in
-                    sink._con.execute("SELECT kind, state FROM ledger ORDER BY id")]
+            rows = list(sink.rows)
             sink.close()
         self.assertTrue(ok)
-        self.assertEqual(rows[0][0], "session_open")
-        self.assertEqual(rows[0][1]["roll"]["generator_id"], GENERATOR_ID)
-        self.assertTrue(all("roll" not in s for k, s in rows if k == "turn"))
+        self.assertEqual(rows[0]["what"], "open")
+        self.assertEqual(rows[0]["roll"]["generator_id"], GENERATOR_ID)
+        self.assertTrue(all("roll" not in r for r in rows[1:-1]))
 
     def test_scene_rows_carry_a_roll_every_turn_even_when_values_repeat(self):
         with tempfile.TemporaryDirectory() as box:
-            sink = LedgerSink(box_dir=box)
+            sink = RecordedSink(box_dir=box)
             run_session(SceneSession(beats=6, rng_factory=LEGACY), first_legal_policy(),
                         seed=0, sink=sink)
             ok = sink.verify()
-            turns = [json.loads(s) for (s,) in
-                     sink._con.execute("SELECT state FROM ledger WHERE kind='turn'")]
+            turns = [r for r in sink.rows if r["what"] in ("roll", "step")]
             sink.close()
         self.assertTrue(ok)
         self.assertTrue(all(t["roll"]["generator_id"] == "random/global" for t in turns))

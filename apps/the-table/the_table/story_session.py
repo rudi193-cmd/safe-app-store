@@ -2,8 +2,8 @@
 
 ``StorySession`` plays an authored world (``worlds.py``) through the SAME
 ``GameSession`` spine ``SceneSession``/``BureauSession``/``CrazyEightsSession``
-already implement -- the-table's driver (``gm.py``) and ledger
-(``ledger_sink.py``) run it unchanged, no new plumbing. It is the FOURTH
+already implement -- the-table's driver (``gm.py``) and record sink
+(``onescript_sink.py``) run it unchanged, no new plumbing. It is the FOURTH
 adapter, and the first one that isn't a fixed-length freeform scene or a
 board/card game: a world is a script -- an ordered list of scenes, each an
 ordered list of beats -- and playing it means walking that script.

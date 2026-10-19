@@ -23,7 +23,7 @@ import unittest
 from the_table import registry
 from the_table.game_session import GameSession
 from the_table.gm import random_policy, run_session
-from the_table.ledger_sink import LedgerSink
+from ._record import RecordedSink
 
 SEED = 7
 MAX_TURNS = 2000  # generous slack over every adapter's own defensive cap
@@ -113,7 +113,7 @@ class TestEveryRegisteredGameRunsThroughTheSameLoop(unittest.TestCase):
             game = registry.make(name)
             box_dir = tempfile.mkdtemp(prefix=f"the-table-test-registry-{name}-")
             try:
-                sink = LedgerSink(box_dir=box_dir)
+                sink = RecordedSink(box_dir=box_dir)
                 try:
                     policy = random_policy(random.Random(SEED))
                     result = run_session(

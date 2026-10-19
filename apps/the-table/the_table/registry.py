@@ -6,7 +6,7 @@ This is the piece that makes "the GM runs them all" literal: ``proof.py``
 ``CrazyEightsSession``, and ``SceneSession`` by name and wire each one up
 individually -- it asks the registry for ``games()`` and ``make()``s a fresh
 session per name, then drives every one of them through the identical
-``run_session``/``LedgerSink``. Adding a fourth game later is one
+``run_session`` and the same sink. Adding a fourth game later is one
 ``register()`` call, not a new branch in every driver.
 
 A "factory" here is a zero-arg callable that returns a FRESH ``GameSession``

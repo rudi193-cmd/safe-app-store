@@ -1,16 +1,23 @@
-"""gm5e.py -- a real 5e dice roller for the Aetheris table, wired to the-table's
-tamper-evident ai-game-master ledger.
+"""gm5e.py -- a real 5e dice roller for the Aetheris table, wired to the
+one-script record (the one chain, flatten F-6).
 
 The AI GM (the machine) rolls and REMEMBERS; it never seals canon. Every roll
-is appended to a hash-chained ledger the moment it happens, so no past roll can
-be quietly rewritten -- ai-game-master's own verifier walks the chain.
+is appended as a ``verdict`` row the moment it happens, so no past roll can be
+quietly rewritten -- the one-script's own verifier walks the chain. The
+one-script is found beside the-table (``the_table/host.py``); with none, every
+command says why and exits 2.
 
 Live dice: seeded from os.urandom per roll (real randomness), never re-rolled.
 The ledger is the honesty guarantee, not reproducibility.
 
-Ledger boxes are DATA (they hold played rolls and human seals) and are written
-under ``aetheris5e/_boxes/`` -- gitignored, never committed. Point elsewhere
-with the ``AETHERIS_BOX`` env var.
+The box is DATA (it holds played rolls and proposals) and is written under
+``aetheris5e/_boxes/`` -- gitignored, never committed; its keys file sits
+beside it, never inside. Point elsewhere with the ``AETHERIS_BOX`` env var.
+
+A fact is PROPOSED here, never sealed: ``propose`` writes it as a proposal
+the human seals with their own key through the one-script
+(``onescript seal proposal:<hash> --proof ...``). No name typed here is a
+seal; ``seal`` only says so.
 
 Usage:
   python gm5e.py open  "Aetheris - The Waking Tide"      # start/refresh the campaign box
@@ -18,7 +25,7 @@ Usage:
   python gm5e.py check "Aether"  5  15  --adv  "attune to the broadcast"
   python gm5e.py save  "DEX"     2  13  "Aether Discharge"
   python gm5e.py atk   6  16  "1d10+3"  "Aether Blade vs Kesh AC 16"
-  python gm5e.py seal  "maunder-is-a-person" "SEALED" "Ada Vane"  "recognized as a person"
+  python gm5e.py propose "maunder-is-a-person" "Maunder is recognized as a person."
   python gm5e.py verify
   python gm5e.py head
 """
@@ -29,29 +36,29 @@ import random
 import re
 import sys
 
-# import the-table's LedgerSink (a CONSUMER of ai-game-master, unmodified).
+# the-table's host shim to the one-script (flatten F-7).
 # aetheris5e/gm5e.py -> the-table root is one directory up.
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _TABLE = os.path.dirname(_HERE)
 sys.path.insert(0, _TABLE)
 sys.path.insert(0, _HERE)
-from the_table.ledger_sink import LedgerSink  # noqa: E402
+from the_table import host  # noqa: E402
 import dice5e  # noqa: E402  (MIT `dice` library, wrapped)
 
 BOX = os.environ.get("AETHERIS_BOX", os.path.join(_HERE, "_boxes", "box"))
 
-# machine ids that may NOT seal canon -- mirrors story_session.NOT_A_PERSON
-NOT_A_PERSON = {"", "system", "machine", "ai", "gm", "dm-bot", "assistant",
-                "claude", "model", "auto", "none", "null", "maunder", "kesh"}
 
 
 def _rng() -> random.Random:
     return random.Random(int.from_bytes(os.urandom(8), "big"))
 
 
-def _sink() -> LedgerSink:
-    s = LedgerSink(BOX)
-    s._session_num = 1  # keep every row in campaign session 1 across processes
+SESSION = "aetheris campaign"  # every row in one campaign session, across processes
+
+
+def _sink(box) -> host.StateSink:
+    s = host.StateSink(box, "aetheris5e")
+    s.resume(SESSION)
     return s
 
 
@@ -71,6 +78,9 @@ def _d20(mod: int, rng: random.Random, adv: str = ""):
     return total, nat, f"d20{'('+kind+')' if kind else ''} nat{nat}{'+' if mod >= 0 else ''}{mod} = {total}{crit}"
 
 
+COMMANDS = ("open", "roll", "check", "save", "atk", "propose", "seal", "verify", "head")
+
+
 def main() -> int:
     if len(sys.argv) < 2:
         print(__doc__)
@@ -78,17 +88,22 @@ def main() -> int:
     cmd = sys.argv[1]
     rng = _rng()
 
+    if cmd not in COMMANDS:
+        print(__doc__)
+        return 2
+    box = host.box_or_exit(BOX)
+
     if cmd == "open":
         title = sys.argv[2] if len(sys.argv) > 2 else "Aetheris"
-        s = LedgerSink(BOX)
-        s.open_session(title, {"campaign": title, "engine": "D&D 5e",
-                               "covenant": "machine proposes+remembers; a named human seals"})
-        print(f"campaign box provisioned at {BOX}")
+        s = host.StateSink(box, "aetheris5e")
+        s.open_session(SESSION, {"campaign": title, "engine": "D&D 5e",
+                                 "covenant": "machine proposes+remembers; a person seals with their key"})
+        print(f"campaign box at {BOX}")
         print(f"session opened: {title}")
-        print(f"chain head: {s.head()}")
+        print(f"chain head: {box.head()}")
         return 0
 
-    s = _sink()
+    s = _sink(box)
 
     if cmd == "roll":
         expr, note = sys.argv[2], (sys.argv[3] if len(sys.argv) > 3 else "")
@@ -148,34 +163,31 @@ def main() -> int:
         s.snapshot(line, note=note or "attack")
         return 0
 
-    if cmd == "seal":
-        # a HUMAN seal, recorded append-only (the sink never writes the canon table).
-        fact_id, verdict, by = sys.argv[2], sys.argv[3].upper(), sys.argv[4]
-        reason = sys.argv[5] if len(sys.argv) > 5 else ""
-        who = by.strip().lower()
-        tokens = [t for t in re.split(r"[^a-z0-9]+", who) if t]
-        if who in NOT_A_PERSON or any(t in NOT_A_PERSON for t in tokens):
-            print(f"REFUSED: {by!r} is not a named human -- only a person may seal canon.")
-            return 1
-        if verdict not in ("SEALED", "REJECTED"):
-            print(f"REFUSED: verdict must be SEALED or REJECTED, got {verdict!r}")
-            return 1
-        s.snapshot({"kind": "human_seal", "fact_id": fact_id, "verdict": verdict,
-                    "by": by, "reason": reason},
-                   note=f"SEAL {fact_id} {verdict} by {by}")
-        print(f"recorded at the table: {fact_id} {verdict} by {by}"
-              f"{' -- '+reason if reason else ''}")
-        print("(append-only record that a human decided; the canon seal itself stays human-only)")
+    if cmd == "propose":
+        # a fact the machine PROPOSES; the human seals it, with their own key.
+        fact_id, fact = sys.argv[2], sys.argv[3]
+        subject = s.decision({"fact_id": fact_id, "fact": fact, "world": "aetheris",
+                              "proposed_by": "the GM"})
+        print(f"proposed for the human's seal: {subject}")
+        print(f"  the human seals it: onescript seal {subject} --proof <their proof>")
         return 0
 
+    if cmd == "seal":
+        print("REFUSED: a seal is the human's, made with their own key through the one-script "
+              "(onescript seal proposal:<hash> --proof ...); no name typed here is a seal. "
+              "Use `propose` to put a fact before them.")
+        return 1
+
     if cmd == "verify":
-        ok = s.verify()
-        print(f"ledger verify(): {ok}")
-        print(f"chain head: {s.head()}")
-        return 0 if ok else 1
+        breaks = box.verify()
+        print(f"record verify: {'holds' if not breaks else 'BROKEN'}")
+        for b in breaks[:5]:
+            print(f"  {b}")
+        print(f"chain head: {box.head()}")
+        return 0 if not breaks else 1
 
     if cmd == "head":
-        print(s.head())
+        print(box.head())
         return 0
 
     print(__doc__)

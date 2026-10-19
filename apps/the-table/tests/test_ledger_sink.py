@@ -1,5 +1,10 @@
 """the-table — test_ledger_sink.py
 
+``ledger_sink.py`` is a TOMBSTONE (flatten F2): kept working only for the
+frozen box-build records that import it. These tests keep it working for
+them, and ``test_no_live_module_writes_the_retired_chain`` fails if a live
+module starts writing the second chain again.
+
 Proves LedgerSink writes rows that ai-game-master's OWN verify_ledger.py
 accepts, and — the property that actually matters — that verify() can FAIL:
 a verifier that can't fail is not a verifier.
@@ -127,3 +132,23 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+def test_no_live_module_writes_the_retired_chain():
+    """Forbidden act: a live the-table module or aetheris5e script importing
+    the retired ledger sink (one chain, flatten F-1). The tombstone itself and
+    this file are the only places it may be named in code."""
+    import re as _re
+
+    app = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    pat = _re.compile(r"^\s*(from\s+\S*ledger_sink\s+import|import\s+\S*ledger_sink)", _re.M)
+    hits = []
+    for sub in ("the_table", "aetheris5e", "tests"):
+        for name in sorted(os.listdir(os.path.join(app, sub))):
+            if not name.endswith(".py") or name in ("ledger_sink.py", "test_ledger_sink.py"):
+                continue
+            with open(os.path.join(app, sub, name), encoding="utf-8") as f:
+                if pat.search(f.read()):
+                    hits.append(f"{sub}/{name}")
+    assert hits == [], f"live modules import the retired ledger sink: {hits}"
+
