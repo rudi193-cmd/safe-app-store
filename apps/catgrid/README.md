@@ -154,5 +154,20 @@ into the same tamper-evident ledger.
 | Easter eggs | Gerald's napkins, `apps/UTETY-Reddit-Bots/gerald-bot` |
 | The lane | `libs/storage-backend`, willow-mcp's `store_scope` gate |
 
-The browser port (a JS engine, a differential test against this one, one HTML
-page) is the next bite, on bureau's pattern; the APK wraps that page.
+## In the browser (one generator for every port)
+
+`catgrid/web/engine.js` is the same generator and rules in JavaScript: xorshift32,
+the solver with its exact node budget, region growth and repair, the game,
+trivia's draw, the napkin's hiding and the daily round. `tests/test_differential.py`
+holds the two to one: 308 boards (every 1-cat size, the 2- and 3-cat levels, the
+sizes that refuse) compared cell for cell, 150 move scripts compared state and
+narration after each of 9,000 moves, and the daily round and seed; a
+perturbation of either side must make it fail (12 JS mutations: 11 caught, 1
+equivalent: a 3x3 is refused either way).
+
+`catgrid/web/build.py` inlines the engine and the napkin words into one page,
+`catgrid/web/catgrid.html`, committed as built (`tests/test_web.py` fails on a
+stale one). The page has no trivia: Jeles's corpus stays with Jeles, and the
+page says so. Its Daily button reads drand from the browser (BLS not checked;
+no board when the beacon can't be read). An APK is that page in a WebView;
+the wrapper is not built here.
