@@ -7,7 +7,7 @@ Run with:
     python3 -m the_table.proof        (from apps/the-table/)
     python3 the_table/proof.py        (from apps/the-table/)
 
-Loops over ``registry.games()`` (today: bureau, catgrid, crazy_eights, scene). For
+Loops over ``registry.games()`` (today: bureau, catgrid and its 2- and 3-cat levels, crazy_eights, scene). For
 each name it ``make()``s a fresh session, wires it to a fresh temp
 ``LedgerSink`` box, runs ``run_session`` with a seeded (deterministic)
 ``random_policy``, and asserts:

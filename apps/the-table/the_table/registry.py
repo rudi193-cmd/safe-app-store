@@ -18,7 +18,7 @@ factory is a small lambda that binds it -- the registry itself stays
 argument-free.
 
 Deliberately small: a dict and four functions, nothing more. No plugin
-discovery, no config files, no lazy-import machinery -- the four built-in
+discovery, no config files, no lazy-import machinery -- the six built-in
 games are registered at import time, right here, and that is the entire
 "catalog."
 """
@@ -86,6 +86,16 @@ register(
     "catgrid",
     lambda: CatgridSession(n=6),
     description="single-seat seeded logic grid, 6x6: one cat per row, column and region (apps/catgrid)",
+)
+register(
+    "catgrid_2cat",
+    lambda: CatgridSession(n=8, k=2),
+    description="catgrid's intermediate level, 8x8: two cats per row, column and region",
+)
+register(
+    "catgrid_3cat",
+    lambda: CatgridSession(n=12, k=3),
+    description="catgrid's harder intermediate level, 12x12: three cats per row, column and region",
 )
 register(
     "crazy_eights",

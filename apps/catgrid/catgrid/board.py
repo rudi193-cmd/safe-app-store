@@ -25,6 +25,7 @@ two columns apart, and there is no room), so they are refused, never searched.
 """
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
 from dataclasses import dataclass
@@ -38,6 +39,12 @@ TRIES = 400
 REPAIRS = 200
 #: Sizes with no placement at all (see the module docstring).
 IMPOSSIBLE = frozenset({2, 3})
+#: For k cats per row, column and region, the smallest board with any placement,
+#: found by exhaustive search (no 2-cat board below 8x8, no 3-cat below 12x12).
+#: 3 cats on 14x14 took 78 s to place once in plain Python, so 3-cat boards
+#: stop at 13; more than 3 cats a row isn't built.
+SMALLEST = {2: 8, 3: 12}
+LARGEST = {1: 9, 2: 10, 3: 13}
 
 
 class NoBoard(ValueError):
@@ -62,7 +69,14 @@ def address(r: int, c: int) -> str:
 class Board:
     n: int
     regions: tuple  # row-major, region ids 1..n, numbered by first appearance
-    solution: tuple  # the cat's column in each row
+    solution: tuple  # k == 1: the cat's column in each row; else each row's k columns
+    k: int = 1  # cats per row, column and region
+
+    def cats(self) -> set:
+        """Every answer cell's row-major index."""
+        if self.k == 1:
+            return {r * self.n + c for r, c in enumerate(self.solution)}
+        return {r * self.n + c for r, cs in enumerate(self.solution) for c in cs}
 
     def addresses(self) -> list:
         return [address(r, c) for r in range(self.n) for c in range(self.n)]
@@ -77,10 +91,10 @@ class Board:
 
     def canon(self) -> bytes:
         """The board as bytes: the same board is always the same bytes."""
-        return json.dumps(
-            {"n": self.n, "regions": list(self.regions), "solution": list(self.solution)},
-            sort_keys=True, separators=(",", ":"),
-        ).encode()
+        body = {"n": self.n, "regions": list(self.regions), "solution": list(self.solution)}
+        if self.k != 1:  # a 1-cat board's bytes are what they always were
+            body = {**body, "k": self.k, "solution": [list(cs) for cs in self.solution]}
+        return json.dumps(body, sort_keys=True, separators=(",", ":")).encode()
 
     def digest(self) -> str:
         return hashlib.sha256(self.canon()).hexdigest()
@@ -156,10 +170,114 @@ def _repair(n: int, cols: list, region: list, rng: Rng) -> bool:
     return solve.other(n, tuple(region), tuple(cols)) is None
 
 
-def generate(seed: int, n: int, tries: int = TRIES) -> Board:
-    """The board for (seed, n): the same arguments, the same board, every time."""
+def _grow_k(n: int, k: int, cats: set, rng: Rng) -> list | None:
+    """Regions for a k-cat placement: n of the cats, drawn from the seed, each
+    start a region. A region still short of k cats grows toward the nearest cat
+    nobody holds; once every cat is held, regions take the empty cells left.
+    A region takes a cat only while it holds fewer than k. None when a draw
+    strands a cat."""
+    region = [0] * (n * n)
+    held = {}
+    for g, i in enumerate(rng.shuffled(sorted(cats))[:n], 1):
+        region[i] = g
+        held[g] = 1
+    left = n * n - n
+    while left:
+        free_cats = [j for j in cats if not region[j]]
+        frontier: dict = {}
+        for i, owner in enumerate(region):
+            if not owner:
+                continue
+            r, c = divmod(i, n)
+            for rr, cc in ((r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)):
+                j = rr * n + cc
+                if (0 <= rr < n and 0 <= cc < n and not region[j]
+                        and (j not in cats or held[owner] < k)):
+                    frontier.setdefault(owner, set()).add(j)
+        needy = [g for g in sorted(frontier) if held[g] < k] if free_cats else []
+        if needy:
+            def dist(j):
+                r, c = divmod(j, n)
+                return min(abs(r - fr) + abs(c - fc) for fr, fc in (divmod(f, n) for f in free_cats))
+            owner = rng.pick(needy)
+            near = sorted(frontier[owner], key=lambda j: (dist(j), j))
+            best = dist(near[0])
+            cell = rng.pick([j for j in near if dist(j) == best])
+        elif frontier:
+            owner = rng.pick(sorted(frontier))
+            cell = rng.pick(sorted(frontier[owner]))
+        else:
+            return None
+        region[cell] = owner
+        held[owner] += cell in cats
+        left -= 1
+    return region if all(h == k for h in held.values()) else None
+
+
+def _repair_k(n: int, k: int, answer: tuple, cats: set, region: list, rng: Rng) -> bool:
+    for _ in range(REPAIRS):
+        alt = solve.other_k(n, k, tuple(region), answer)
+        if alt is None:
+            return True
+        moves = []
+        for r, cs in enumerate(alt):
+            for c in cs:
+                i = r * n + c
+                if i in cats:
+                    continue
+                for rr, cc in ((r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)):
+                    if 0 <= rr < n and 0 <= cc < n and region[rr * n + cc] != region[i]:
+                        moves.append((i, region[rr * n + cc]))
+        for i, to in rng.shuffled(sorted(set(moves))):
+            was = region[i]
+            region[i] = to
+            if _connected(region, n, was):
+                break
+            region[i] = was
+        else:
+            return False
+    return solve.other_k(n, k, tuple(region), answer) is None
+
+
+def _generate_k(seed: int, n: int, k: int, tries: int) -> Board:
+    rng = Rng(seed)
+    for _ in range(tries):
+        answer = solve.placements_k(n, k, lambda row, sets: rng.shuffled(sets))
+        if answer is None:  # unreachable at SMALLEST and above; said, not assumed
+            raise NoBoard(f"no {n}x{n} placement of {k} cats a row exists")
+        cats = {r * n + c for r, cs in enumerate(answer) for c in cs}
+        region = _grow_k(n, k, cats, rng)
+        if region is None or not _repair_k(n, k, answer, cats, region, rng):
+            continue
+        regions = _canonical(region)
+        if solve.count_k(n, k, regions, limit=2) == 1:  # checked again, as handed out
+            return Board(n=n, regions=regions, solution=answer, k=k)
+    raise NoBoard(f"no {n}x{n} {k}-cat board with one answer in {tries} draws for seed {seed}")
+
+
+def generate(seed: int, n: int, tries: int = TRIES, k: int = 1) -> Board:
+    """The board for (seed, n, k): the same arguments, the same board, every time.
+    A pure function of its arguments with a frozen result, so it is memoised:
+    a 12x12 three-cat board costs about a second to make, and only once. The
+    arguments are checked first, so what can't be a board is refused, never cached."""
+    for name, v in (("seed", seed), ("size", n), ("tries", tries), ("cats a row", k)):
+        if isinstance(v, bool) or not isinstance(v, int):
+            raise NoBoard(f"the {name} is a whole number, not {v!r}")
+    return _generate(seed, n, tries, k)
+
+
+@functools.lru_cache(maxsize=256)
+def _generate(seed, n, tries, k) -> Board:
     if isinstance(n, bool) or not isinstance(n, int) or n < 1:
         raise NoBoard(f"a board is a positive whole size, not {n!r}")
+    if isinstance(k, bool) or not isinstance(k, int) or k < 1 or k > max(SMALLEST):
+        raise NoBoard(f"1 to {max(SMALLEST)} cats a row are built, not {k!r}")
+    if k > 1:
+        if n < SMALLEST[k]:
+            raise NoBoard(f"no {n}x{n} board holds {k} cats a row: they can't avoid touching")
+        if n > LARGEST[k]:
+            raise NoBoard(f"{k}-cat boards are built up to {LARGEST[k]}x{LARGEST[k]}")
+        return _generate_k(seed, n, k, tries)
     if n in IMPOSSIBLE:
         raise NoBoard(f"no {n}x{n} board exists: its cats can't avoid touching")
     rng = Rng(seed)

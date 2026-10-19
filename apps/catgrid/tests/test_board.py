@@ -101,6 +101,9 @@ class TestImpossibleSizesRefuse(unittest.TestCase):
             self.assertEqual(solve.count(n, tuple([1] * n * n), limit=1), 0)
 
     def test_not_a_size(self):
-        for n in (0, -1, True, 2.5, "6"):
+        for n in (0, -1, True, 2.5, "6", [6], None):
             with self.assertRaises(NoBoard):
                 generate(1, n)
+        for bad in ("1", None, [1]):
+            with self.assertRaises(NoBoard):
+                generate(bad, 6)

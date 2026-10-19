@@ -118,7 +118,7 @@ real `run_session` + a real `LedgerSink`, asserting `sink.verify()` is
 `the_table/registry.py` is the piece that makes "the GM runs them all"
 literal: a small `name -> zero-arg GameSession factory` registry —
 `register(name, factory, *, description="")`, `make(name)`, `games()`,
-`describe(name)` — with the four built-ins (`"bureau"`, `"catgrid"`, `"crazy_eights"`,
+`describe(name)` — with the six built-ins (`"bureau"`, `"catgrid"`, `"catgrid_2cat"`, `"catgrid_3cat"`, `"crazy_eights"`,
 `"scene"`) registered at import time. A factory always returns a FRESH
 session (`SceneSession`'s `beats=6` constructor arg is bound in its
 registered lambda, so the registry surface itself stays argument-free);

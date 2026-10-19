@@ -78,7 +78,7 @@ class TestReplay(unittest.TestCase):
 
     def test_a_record_holds_inputs_not_the_answer(self):
         (rec,) = [r for c, _, r in soil.records(played()) if c == soil.GAMES]
-        self.assertEqual(set(rec), {"seed", "n", "board", "bank", "words", "moves",
+        self.assertEqual(set(rec), {"seed", "n", "k", "board", "bank", "words", "moves",
                                     "status", "hearts"})
 
     def test_a_different_bank_or_board_is_refused(self):

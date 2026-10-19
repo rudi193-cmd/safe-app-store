@@ -14,7 +14,7 @@ R4    ``x <cell>`` marks an empty cell "no cat here". Free: it costs nothing and
       claims nothing. ``clear <cell>`` takes an x back off.
 R5    Nothing goes on a cell that holds a cat; an x can't be cleared where none is.
 R6    Three hearts. At none the game is lost.
-R7    All n cats placed: the game is won.
+R7    All n x k cats placed: the game is won.
 R8    Once won or lost, every move is refused.
 R9    ``hint`` places one sure cat (the first row still without one) and never
       costs a heart. Each board gives one free hint; trivia earns more. With
@@ -74,14 +74,18 @@ class Game:
         self.moves: list = []  # every move the game accepted, in order
 
     @classmethod
-    def new(cls, seed: int, n: int, **kw) -> "Game":
-        return cls(generate(seed, n), seed, **kw)
+    def new(cls, seed: int, n: int, k: int = 1, **kw) -> "Game":
+        return cls(generate(seed, n, k=k), seed, **kw)
 
     # -- the rules -----------------------------------------------------------
     def _answer(self, addr: str) -> bool:
-        i = self.board.index(addr)
-        r, c = divmod(i, self.board.n)
-        return self.board.solution[r] == c
+        return self.board.index(addr) in self._cats
+
+    @property
+    def _cats(self) -> set:
+        if not hasattr(self, "_cat_cells"):
+            self._cat_cells = self.board.cats()
+        return self._cat_cells
 
     def legal_moves(self) -> list:
         if self.status != "playing":
@@ -101,12 +105,12 @@ class Game:
         return out
 
     def _sure(self) -> str:
-        """The first row still without its cat: that row's answer cell."""
-        for r, c in enumerate(self.board.solution):
-            a = address(r, c)
+        """The first answer cell, row by row, still without its cat."""
+        for i in sorted(self._cats):
+            a = address(*divmod(i, self.board.n))
             if self.cells[a] != CAT:
                 return a
-        raise AssertionError("no row without a cat while playing")  # R7 ends it first
+        raise AssertionError("no answer cell without a cat while playing")  # R7 ends it first
 
     def step(self, move) -> list:
         """Play one move; returns what happened, as lines. Refused leaves the
@@ -188,7 +192,7 @@ class Game:
 
     def _place(self, addr: str) -> list:
         self.cells[addr] = CAT
-        if sum(v == CAT for v in self.cells.values()) == self.board.n:  # R7
+        if sum(v == CAT for v in self.cells.values()) == self.board.n * self.board.k:  # R7
             self.status = "won"
             return [f"{addr}: a cat. Every row, column and region has one: solved"]
         return [f"{addr}: a cat"]
@@ -199,6 +203,7 @@ class Game:
         q = self.question
         return {
             "n": self.board.n,
+            "k": self.board.k,
             "regions": list(self.board.regions),
             "cells": dict(self.cells),
             "hearts": self.hearts,
@@ -237,12 +242,13 @@ def main(argv=None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     seed = int(args[0]) if args else 1
     n = int(args[1]) if len(args) > 1 else 6
+    k = int(args[2]) if len(args) > 2 else 1
     bank, bank_why = trivia.load_jeles()
     words, words_why = eggs.load_napkins()
-    game = Game.new(seed, n, bank=bank, words=words, bank_why=bank_why, words_why=words_why)
-    print(f"catgrid {n}x{n}, seed {seed}. Moves: cat A1 | x A1 | clear A1 | hint | "
+    game = Game.new(seed, n, k, bank=bank, words=words, bank_why=bank_why, words_why=words_why)
+    print(f"catgrid {n}x{n}, {k} cat(s) a row, seed {seed}. Moves: cat A1 | x A1 | clear A1 | hint | "
           "trivia | answer A | quit")
-    print("Numbers are regions; one cat per row, column and region; no two touch.")
+    print(f"Numbers are regions; {k} cat(s) per row, column and region; no two touch.")
     while game.status == "playing":
         print(game.render())
         try:

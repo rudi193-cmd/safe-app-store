@@ -99,7 +99,7 @@ class TestWhatThePlayerSees(Base):
     def test_the_answer_is_never_in_the_view(self):
         view = json.dumps(self.g.state())
         self.assertNotIn("solution", view)
-        self.assertEqual(set(self.g.state()), {"n", "regions", "cells", "hearts", "status",
+        self.assertEqual(set(self.g.state()), {"n", "k", "regions", "cells", "hearts", "status",
                                                "hints", "trivia", "napkins"})
 
     def test_legal_moves_change_nothing(self):

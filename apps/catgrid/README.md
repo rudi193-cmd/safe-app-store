@@ -25,17 +25,39 @@ bureau's specified xorshift32, so a browser port can make the same board.
 | One answer | while a second answer exists, one of its cells moves to a neighbouring region (old region kept connected); a board still with two is never handed out |
 | Sizes | 2x2 and 3x3 refuse: their cats can't avoid touching |
 
+## Levels
+
+The same rules with k cats in every row, column and region (the operator: "2
+and 3 cats per color ... intermediate levels"):
+
+| Level | Cats a row | Sizes | Why those sizes |
+|---|---|---|---|
+| 1 | 1 | 1, 4–9 | 2x2 and 3x3 have no placement |
+| 2 | 2 | 8–10 | no 2-cat placement below 8x8 (exhaustive search) |
+| 3 | 3 | 12–13 | none below 12x12; 14x14 took 78 s to place once in plain Python |
+
+```sh
+python3 -m catgrid.play 7 8 2     # seed 7, 8x8, two cats a row
+python3 -m catgrid.play 7 12 3    # seed 7, 12x12, three
+```
+
+A k-cat board grows its regions from n of its cats: a region still short of k
+grows toward the nearest cat nobody holds, then takes the cells left. A 1-cat
+board's bytes are what they always were, so older records replay unchanged.
+Boards are memoised: `generate` is a pure function with a frozen result.
+On the table: `catgrid` (6x6), `catgrid_2cat` (8x8), `catgrid_3cat` (12x12).
+
 ## The rules
 
 | # | Rule |
 |---|---|
 | R1 | A move names a cell on the board (`A1`, `B3`: cross-table addresses) |
-| R2 | `cat <cell>` where the answer has a cat: it stays |
+| R2 | `cat <cell>` where the answer has a cat: it stays (k per row, column and region) |
 | R3 | A wrong cat costs a heart and is not placed (every rule-breaking cat is wrong, because the one answer breaks none) |
 | R4 | `x <cell>` marks "no cat here", free; `clear <cell>` takes it back |
 | R5 | Nothing goes on a cat; no clearing what isn't marked |
 | R6 | Three hearts; at none the game is lost |
-| R7 | All n cats placed: won |
+| R7 | All n x k cats placed: won |
 | R8 | Nothing moves after the end |
 | R9 | `hint` places one sure cat, never costs a heart; one free per board, more from trivia |
 | R10 | `trivia` asks a Jeles question drawn from the seed, one at a time |

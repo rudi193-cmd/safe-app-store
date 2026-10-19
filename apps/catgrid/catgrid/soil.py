@@ -35,20 +35,22 @@ def _sha(obj) -> str:
 def records(game: Game) -> list[tuple[str, str, dict]]:
     """(collection, record_id, record) for everything this game leaves."""
     n, seed = game.board.n, game.seed
-    out = [(GAMES, f"{seed}-{n}-{_sha(game.moves)[:16]}", {
-        "seed": seed, "n": n, "board": game.board.digest(),
+    k = game.board.k
+    tag = f"{seed}-{n}" if k == 1 else f"{seed}-{n}x{k}"
+    out = [(GAMES, f"{tag}-{_sha(game.moves)[:16]}", {
+        "seed": seed, "n": n, "k": game.board.k, "board": game.board.digest(),
         "bank": trivia.digest(game.bank) if game.bank else None,
         "words": _sha(game.words) if game.words else None,
         "moves": [list(m) for m in game.moves],
         "status": game.status, "hearts": game.hearts,
     })]
     for f in game.found:
-        out.append((NAPKINS, f"{seed}-{n}-{f['cell']}",
+        out.append((NAPKINS, f"{tag}-{f['cell']}",
                     {"word": f["word"], "seed": seed, "n": n, "cell": f["cell"]}))
-    for k, a in enumerate(game.asked):
-        out.append((TRIVIA, f"{seed}-{n}-{k}",
+    for i, a in enumerate(game.asked):
+        out.append((TRIVIA, f"{tag}-{i}",
                     {"id": a["id"], "said": a["said"], "right": a["right"],
-                     "seed": seed, "n": n, "k": k}))
+                     "seed": seed, "n": n, "cats": k, "asked": i}))
     return out
 
 
@@ -76,7 +78,7 @@ def write(game: Game, backend=None) -> dict:
 def replay(record: dict, *, bank: list | None = None, words: list | None = None) -> Game:
     """The game a ``catgrid_games`` record holds, played again from its inputs.
     Refuses a record whose board, or bank, isn't the one it names."""
-    board = generate(record["seed"], record["n"])
+    board = generate(record["seed"], record["n"], k=record.get("k", 1))  # older records: 1 cat
     if board.digest() != record["board"]:
         raise ValueError("this board isn't the one the record names")
     if record.get("bank") and (not bank or trivia.digest(bank) != record["bank"]):

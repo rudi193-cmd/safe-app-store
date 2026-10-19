@@ -15,7 +15,7 @@ from the_table.catgrid_adapter import CatgridSession
 from the_table.game_session import GameSession
 
 SEEDS = (0, 1, 2, 7, 42)
-STEP_CAP = 400  # 36 cells x (cat|x|clear) plus hints and trivia; a lost game ends at 3 wrong cats
+STEP_CAP = 2000  # up to 144 cells x (cat|x|clear) on 12x12, plus hints and trivia  # 36 cells x (cat|x|clear) plus hints and trivia; a lost game ends at 3 wrong cats
 BANK = [{"id": f"t:{i}", "question": f"Q{i}?", "answer": f"A{i}."} for i in range(6)]
 WORDS = ["Filed.", "Sieve"]
 
@@ -40,8 +40,17 @@ class TestCatgridIsAGameSession(unittest.TestCase):
         self.assertIsInstance(CatgridSession(), GameSession)
 
     def test_registered(self):
-        self.assertIn("catgrid", registry.games())
-        self.assertIsInstance(registry.make("catgrid"), CatgridSession)
+        for name, (n, k) in (("catgrid", (6, 1)), ("catgrid_2cat", (8, 2)), ("catgrid_3cat", (12, 3))):
+            s = registry.make(name)
+            self.assertIsInstance(s, CatgridSession)
+            self.assertEqual((s.n, s.k), (n, k))
+
+    def test_the_levels_play_to_terminal(self):
+        for n, k in ((8, 2), (12, 3)):
+            s = CatgridSession(n=n, k=k, bank=BANK, words=WORDS)
+            trace = play(1, s)
+            self.assertEqual(trace[0]["k"], k)
+            self.assertTrue(s.is_terminal())
 
 
 class TestCatgridFullGame(unittest.TestCase):

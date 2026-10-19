@@ -47,9 +47,9 @@ class CatgridSession:
 
     seats = 1
 
-    def __init__(self, n: int = DEFAULT_N, *, bank: list | None = None,
+    def __init__(self, n: int = DEFAULT_N, k: int = 1, *, bank: list | None = None,
                  words: list | None = None) -> None:
-        self.n = n
+        self.n, self.k = n, k
         self._bank, self._words = bank, words
         self._game: Game | None = None
 
@@ -58,14 +58,14 @@ class CatgridSession:
     def reset(self, seed: int) -> Observation:
         bank, bank_why = (self._bank, "") if self._bank is not None else trivia.load_jeles()
         words, words_why = (self._words, "") if self._words is not None else eggs.load_napkins()
-        self._game = Game.new(seed, self.n, bank=bank, words=words,
+        self._game = Game.new(seed, self.n, self.k, bank=bank, words=words,
                               bank_why=bank_why or "no trivia bank given",
                               words_why=words_why or "no napkin words given")
         g = self._game
         return Observation(
             seat=0,
             view=g.state(),
-            narration=[f"catgrid {self.n}x{self.n}: one cat in every row, column and "
+            narration=[f"catgrid {self.n}x{self.n}: {self.k} cat(s) in every row, column and "
                        "region; no two touch. Three hearts; one free hint."],
             terminal=g.status != "playing",
         )
