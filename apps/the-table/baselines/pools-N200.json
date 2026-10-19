@@ -1,0 +1,1560 @@
+{
+ "rounds": 200,
+ "middle_floor": 0.05,
+ "cap": 5000,
+ "games": {
+  "backgammon": {
+   "description": "2-seat race with dice, one die a step (game-lab's backgammon rules)",
+   "seats": 2,
+   "policies": {
+    "random": {
+     "rounds": 200,
+     "pools": [
+      {
+       "ending": "seat 0, gammon",
+       "n": 56,
+       "p": 0.28,
+       "band": "likely"
+      },
+      {
+       "ending": "seat 1, single game",
+       "n": 49,
+       "p": 0.245,
+       "band": "middle"
+      },
+      {
+       "ending": "seat 1, gammon",
+       "n": 48,
+       "p": 0.24,
+       "band": "middle"
+      },
+      {
+       "ending": "seat 0, single game",
+       "n": 47,
+       "p": 0.235,
+       "band": "middle"
+      }
+     ],
+     "lengths": {
+      "min": 95,
+      "median": 183.0,
+      "max": 459,
+      "hist": [
+       {
+        "from": 95,
+        "to": 125,
+        "n": 18
+       },
+       {
+        "from": 126,
+        "to": 156,
+        "n": 50
+       },
+       {
+        "from": 157,
+        "to": 187,
+        "n": 36
+       },
+       {
+        "from": 188,
+        "to": 218,
+        "n": 33
+       },
+       {
+        "from": 219,
+        "to": 249,
+        "n": 28
+       },
+       {
+        "from": 250,
+        "to": 280,
+        "n": 15
+       },
+       {
+        "from": 281,
+        "to": 311,
+        "n": 8
+       },
+       {
+        "from": 312,
+        "to": 342,
+        "n": 4
+       },
+       {
+        "from": 343,
+        "to": 373,
+        "n": 4
+       },
+       {
+        "from": 374,
+        "to": 404,
+        "n": 3
+       },
+       {
+        "from": 405,
+        "to": 435,
+        "n": 0
+       },
+       {
+        "from": 436,
+        "to": 466,
+        "n": 1
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": {
+      "read": 198,
+      "midpoint_leader_wins": 0.7929,
+      "chance": 0.5
+     }
+    }
+   },
+   "no_competent_policy": "measured under random only; none is shipped for it"
+  },
+  "bureau": {
+   "description": "single-seat exploration (bureau)",
+   "seats": 1,
+   "policies": {
+    "random": {
+     "rounds": 200,
+     "pools": [
+      {
+       "ending": "enrolled",
+       "n": 111,
+       "p": 0.555,
+       "band": "likely"
+      },
+      {
+       "ending": "voided",
+       "n": 89,
+       "p": 0.445,
+       "band": "middle"
+      }
+     ],
+     "lengths": {
+      "min": 12,
+      "median": 24.0,
+      "max": 67,
+      "hist": [
+       {
+        "from": 12,
+        "to": 16,
+        "n": 14
+       },
+       {
+        "from": 17,
+        "to": 21,
+        "n": 51
+       },
+       {
+        "from": 22,
+        "to": 26,
+        "n": 56
+       },
+       {
+        "from": 27,
+        "to": 31,
+        "n": 33
+       },
+       {
+        "from": 32,
+        "to": 36,
+        "n": 28
+       },
+       {
+        "from": 37,
+        "to": 41,
+        "n": 7
+       },
+       {
+        "from": 42,
+        "to": 46,
+        "n": 4
+       },
+       {
+        "from": 47,
+        "to": 51,
+        "n": 4
+       },
+       {
+        "from": 52,
+        "to": 56,
+        "n": 0
+       },
+       {
+        "from": 57,
+        "to": 61,
+        "n": 2
+       },
+       {
+        "from": 62,
+        "to": 66,
+        "n": 0
+       },
+       {
+        "from": 67,
+        "to": 71,
+        "n": 1
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": null
+    }
+   },
+   "no_competent_policy": "measured under random only; none is shipped for it"
+  },
+  "catgrid": {
+   "description": "single-seat seeded logic grid, 6x6: one cat per row, column and region (apps/catgrid)",
+   "seats": 1,
+   "policies": {
+    "random": {
+     "rounds": 200,
+     "pools": [
+      {
+       "ending": "out of hearts",
+       "n": 200,
+       "p": 1.0,
+       "band": "likely"
+      }
+     ],
+     "lengths": {
+      "min": 3,
+      "median": 7.0,
+      "max": 19,
+      "hist": [
+       {
+        "from": 3,
+        "to": 4,
+        "n": 39
+       },
+       {
+        "from": 5,
+        "to": 6,
+        "n": 49
+       },
+       {
+        "from": 7,
+        "to": 8,
+        "n": 48
+       },
+       {
+        "from": 9,
+        "to": 10,
+        "n": 31
+       },
+       {
+        "from": 11,
+        "to": 12,
+        "n": 12
+       },
+       {
+        "from": 13,
+        "to": 14,
+        "n": 12
+       },
+       {
+        "from": 15,
+        "to": 16,
+        "n": 3
+       },
+       {
+        "from": 17,
+        "to": 18,
+        "n": 2
+       },
+       {
+        "from": 19,
+        "to": 20,
+        "n": 4
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": null
+    },
+    "john": {
+     "rounds": 200,
+     "pools": [
+      {
+       "ending": "solved with 3 heart(s) left",
+       "n": 200,
+       "p": 1.0,
+       "band": "likely"
+      }
+     ],
+     "lengths": {
+      "min": 6,
+      "median": 6.0,
+      "max": 6,
+      "hist": [
+       {
+        "from": 6,
+        "to": 6,
+        "n": 200
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": null
+    }
+   }
+  },
+  "catgrid_2cat": {
+   "description": "catgrid's intermediate level, 9x9: two cats per row, column and region",
+   "seats": 1,
+   "policies": {
+    "random": {
+     "rounds": 200,
+     "pools": [
+      {
+       "ending": "out of hearts",
+       "n": 200,
+       "p": 1.0,
+       "band": "likely"
+      }
+     ],
+     "lengths": {
+      "min": 3,
+      "median": 7.0,
+      "max": 20,
+      "hist": [
+       {
+        "from": 3,
+        "to": 4,
+        "n": 36
+       },
+       {
+        "from": 5,
+        "to": 6,
+        "n": 61
+       },
+       {
+        "from": 7,
+        "to": 8,
+        "n": 35
+       },
+       {
+        "from": 9,
+        "to": 10,
+        "n": 35
+       },
+       {
+        "from": 11,
+        "to": 12,
+        "n": 16
+       },
+       {
+        "from": 13,
+        "to": 14,
+        "n": 7
+       },
+       {
+        "from": 15,
+        "to": 16,
+        "n": 5
+       },
+       {
+        "from": 17,
+        "to": 18,
+        "n": 2
+       },
+       {
+        "from": 19,
+        "to": 20,
+        "n": 3
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": null
+    },
+    "john": {
+     "rounds": 200,
+     "pools": [
+      {
+       "ending": "solved with 3 heart(s) left",
+       "n": 158,
+       "p": 0.79,
+       "band": "likely"
+      },
+      {
+       "ending": "out of hearts",
+       "n": 27,
+       "p": 0.135,
+       "band": "middle"
+      },
+      {
+       "ending": "solved with 2 heart(s) left",
+       "n": 11,
+       "p": 0.055,
+       "band": "middle"
+      },
+      {
+       "ending": "solved with 1 heart(s) left",
+       "n": 4,
+       "p": 0.02,
+       "band": "outlier"
+      }
+     ],
+     "lengths": {
+      "min": 10,
+      "median": 18.0,
+      "max": 58,
+      "hist": [
+       {
+        "from": 10,
+        "to": 14,
+        "n": 9
+       },
+       {
+        "from": 15,
+        "to": 19,
+        "n": 109
+       },
+       {
+        "from": 20,
+        "to": 24,
+        "n": 21
+       },
+       {
+        "from": 25,
+        "to": 29,
+        "n": 17
+       },
+       {
+        "from": 30,
+        "to": 34,
+        "n": 17
+       },
+       {
+        "from": 35,
+        "to": 39,
+        "n": 17
+       },
+       {
+        "from": 40,
+        "to": 44,
+        "n": 2
+       },
+       {
+        "from": 45,
+        "to": 49,
+        "n": 2
+       },
+       {
+        "from": 50,
+        "to": 54,
+        "n": 4
+       },
+       {
+        "from": 55,
+        "to": 59,
+        "n": 2
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": null
+    }
+   }
+  },
+  "catgrid_3cat": {
+   "description": "catgrid's harder intermediate level, 13x13: three cats per row, column and region",
+   "seats": 1,
+   "policies": {
+    "random": {
+     "rounds": 40,
+     "pools": [
+      {
+       "ending": "out of hearts",
+       "n": 40,
+       "p": 1.0,
+       "band": "likely"
+      }
+     ],
+     "lengths": {
+      "min": 3,
+      "median": 8.0,
+      "max": 13,
+      "hist": [
+       {
+        "from": 3,
+        "to": 3,
+        "n": 3
+       },
+       {
+        "from": 4,
+        "to": 4,
+        "n": 3
+       },
+       {
+        "from": 5,
+        "to": 5,
+        "n": 5
+       },
+       {
+        "from": 6,
+        "to": 6,
+        "n": 3
+       },
+       {
+        "from": 7,
+        "to": 7,
+        "n": 3
+       },
+       {
+        "from": 8,
+        "to": 8,
+        "n": 8
+       },
+       {
+        "from": 9,
+        "to": 9,
+        "n": 7
+       },
+       {
+        "from": 10,
+        "to": 10,
+        "n": 4
+       },
+       {
+        "from": 11,
+        "to": 11,
+        "n": 1
+       },
+       {
+        "from": 12,
+        "to": 12,
+        "n": 2
+       },
+       {
+        "from": 13,
+        "to": 13,
+        "n": 1
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": null
+    },
+    "john": {
+     "rounds": 40,
+     "pools": [
+      {
+       "ending": "out of hearts",
+       "n": 22,
+       "p": 0.55,
+       "band": "likely"
+      },
+      {
+       "ending": "solved with 3 heart(s) left",
+       "n": 15,
+       "p": 0.375,
+       "band": "middle"
+      },
+      {
+       "ending": "solved with 2 heart(s) left",
+       "n": 2,
+       "p": 0.05,
+       "band": "middle"
+      },
+      {
+       "ending": "solved with 1 heart(s) left",
+       "n": 1,
+       "p": 0.025,
+       "band": "outlier"
+      }
+     ],
+     "lengths": {
+      "min": 9,
+      "median": 49.0,
+      "max": 134,
+      "hist": [
+       {
+        "from": 9,
+        "to": 19,
+        "n": 2
+       },
+       {
+        "from": 20,
+        "to": 30,
+        "n": 7
+       },
+       {
+        "from": 31,
+        "to": 41,
+        "n": 8
+       },
+       {
+        "from": 42,
+        "to": 52,
+        "n": 3
+       },
+       {
+        "from": 53,
+        "to": 63,
+        "n": 4
+       },
+       {
+        "from": 64,
+        "to": 74,
+        "n": 4
+       },
+       {
+        "from": 75,
+        "to": 85,
+        "n": 0
+       },
+       {
+        "from": 86,
+        "to": 96,
+        "n": 2
+       },
+       {
+        "from": 97,
+        "to": 107,
+        "n": 5
+       },
+       {
+        "from": 108,
+        "to": 118,
+        "n": 3
+       },
+       {
+        "from": 119,
+        "to": 129,
+        "n": 1
+       },
+       {
+        "from": 130,
+        "to": 140,
+        "n": 1
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": null
+    }
+   }
+  },
+  "catgrid_duel": {
+   "description": "catgrid for two, 6x6: one board, shared cats, private marks, turns in order",
+   "seats": 2,
+   "policies": {
+    "random": {
+     "rounds": 200,
+     "pools": [
+      {
+       "ending": "no one scored",
+       "n": 61,
+       "p": 0.305,
+       "band": "likely"
+      },
+      {
+       "ending": "seat 0 wins",
+       "n": 59,
+       "p": 0.295,
+       "band": "middle"
+      },
+      {
+       "ending": "seat 1 wins",
+       "n": 55,
+       "p": 0.275,
+       "band": "middle"
+      },
+      {
+       "ending": "a tie",
+       "n": 25,
+       "p": 0.125,
+       "band": "middle"
+      }
+     ],
+     "lengths": {
+      "min": 7,
+      "median": 14.5,
+      "max": 36,
+      "hist": [
+       {
+        "from": 7,
+        "to": 9,
+        "n": 22
+       },
+       {
+        "from": 10,
+        "to": 12,
+        "n": 42
+       },
+       {
+        "from": 13,
+        "to": 15,
+        "n": 47
+       },
+       {
+        "from": 16,
+        "to": 18,
+        "n": 46
+       },
+       {
+        "from": 19,
+        "to": 21,
+        "n": 18
+       },
+       {
+        "from": 22,
+        "to": 24,
+        "n": 18
+       },
+       {
+        "from": 25,
+        "to": 27,
+        "n": 2
+       },
+       {
+        "from": 28,
+        "to": 30,
+        "n": 2
+       },
+       {
+        "from": 31,
+        "to": 33,
+        "n": 2
+       },
+       {
+        "from": 34,
+        "to": 36,
+        "n": 1
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": {
+      "read": 87,
+      "midpoint_leader_wins": 0.9655,
+      "chance": 0.5
+     }
+    }
+   },
+   "no_competent_policy": "measured under random only; none is shipped for it"
+  },
+  "checkers": {
+   "description": "2-seat English draughts, captures mandatory (game-lab's checkers rules)",
+   "seats": 2,
+   "policies": {
+    "random": {
+     "rounds": 200,
+     "pools": [
+      {
+       "ending": "seat 0: took every piece",
+       "n": 92,
+       "p": 0.46,
+       "band": "likely"
+      },
+      {
+       "ending": "seat 1: took every piece",
+       "n": 91,
+       "p": 0.455,
+       "band": "middle"
+      },
+      {
+       "ending": "seat 1: adjudicated on material",
+       "n": 6,
+       "p": 0.03,
+       "band": "outlier"
+      },
+      {
+       "ending": "seat 0: adjudicated on material",
+       "n": 3,
+       "p": 0.015,
+       "band": "outlier"
+      },
+      {
+       "ending": "seat 0: the other side had no move",
+       "n": 3,
+       "p": 0.015,
+       "band": "outlier"
+      },
+      {
+       "ending": "seat 1: the other side had no move",
+       "n": 3,
+       "p": 0.015,
+       "band": "outlier"
+      },
+      {
+       "ending": "draw: adjudicated on material",
+       "n": 2,
+       "p": 0.01,
+       "band": "outlier"
+      }
+     ],
+     "lengths": {
+      "min": 30,
+      "median": 58.5,
+      "max": 174,
+      "hist": [
+       {
+        "from": 30,
+        "to": 42,
+        "n": 32
+       },
+       {
+        "from": 43,
+        "to": 55,
+        "n": 63
+       },
+       {
+        "from": 56,
+        "to": 68,
+        "n": 18
+       },
+       {
+        "from": 69,
+        "to": 81,
+        "n": 18
+       },
+       {
+        "from": 82,
+        "to": 94,
+        "n": 20
+       },
+       {
+        "from": 95,
+        "to": 107,
+        "n": 12
+       },
+       {
+        "from": 108,
+        "to": 120,
+        "n": 21
+       },
+       {
+        "from": 121,
+        "to": 133,
+        "n": 8
+       },
+       {
+        "from": 134,
+        "to": 146,
+        "n": 5
+       },
+       {
+        "from": 147,
+        "to": 159,
+        "n": 1
+       },
+       {
+        "from": 160,
+        "to": 172,
+        "n": 1
+       },
+       {
+        "from": 173,
+        "to": 185,
+        "n": 1
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": {
+      "read": 175,
+      "midpoint_leader_wins": 0.8343,
+      "chance": 0.5
+     }
+    },
+    "john": {
+     "rounds": 200,
+     "pools": [
+      {
+       "ending": "seat 1: took every piece",
+       "n": 95,
+       "p": 0.475,
+       "band": "likely"
+      },
+      {
+       "ending": "seat 0: took every piece",
+       "n": 88,
+       "p": 0.44,
+       "band": "middle"
+      },
+      {
+       "ending": "seat 1: adjudicated on material",
+       "n": 6,
+       "p": 0.03,
+       "band": "outlier"
+      },
+      {
+       "ending": "seat 0: adjudicated on material",
+       "n": 5,
+       "p": 0.025,
+       "band": "outlier"
+      },
+      {
+       "ending": "seat 0: the other side had no move",
+       "n": 3,
+       "p": 0.015,
+       "band": "outlier"
+      },
+      {
+       "ending": "seat 1: the other side had no move",
+       "n": 2,
+       "p": 0.01,
+       "band": "outlier"
+      },
+      {
+       "ending": "draw: adjudicated on material",
+       "n": 1,
+       "p": 0.005,
+       "band": "outlier"
+      }
+     ],
+     "lengths": {
+      "min": 30,
+      "median": 56.5,
+      "max": 174,
+      "hist": [
+       {
+        "from": 30,
+        "to": 42,
+        "n": 36
+       },
+       {
+        "from": 43,
+        "to": 55,
+        "n": 63
+       },
+       {
+        "from": 56,
+        "to": 68,
+        "n": 13
+       },
+       {
+        "from": 69,
+        "to": 81,
+        "n": 15
+       },
+       {
+        "from": 82,
+        "to": 94,
+        "n": 19
+       },
+       {
+        "from": 95,
+        "to": 107,
+        "n": 16
+       },
+       {
+        "from": 108,
+        "to": 120,
+        "n": 18
+       },
+       {
+        "from": 121,
+        "to": 133,
+        "n": 9
+       },
+       {
+        "from": 134,
+        "to": 146,
+        "n": 7
+       },
+       {
+        "from": 147,
+        "to": 159,
+        "n": 2
+       },
+       {
+        "from": 160,
+        "to": 172,
+        "n": 1
+       },
+       {
+        "from": 173,
+        "to": 185,
+        "n": 1
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": {
+      "read": 174,
+      "midpoint_leader_wins": 0.8506,
+      "chance": 0.5
+     }
+    }
+   }
+  },
+  "crazy_eights": {
+   "description": "4-seat card game with hidden info (game-lab's Crazy Eights rules)",
+   "seats": 4,
+   "policies": {
+    "random": {
+     "rounds": 200,
+     "pools": [
+      {
+       "ending": "seat 1 wins",
+       "n": 56,
+       "p": 0.28,
+       "band": "likely"
+      },
+      {
+       "ending": "seat 0 wins",
+       "n": 47,
+       "p": 0.235,
+       "band": "middle"
+      },
+      {
+       "ending": "seat 3 wins",
+       "n": 47,
+       "p": 0.235,
+       "band": "middle"
+      },
+      {
+       "ending": "seat 2 wins",
+       "n": 41,
+       "p": 0.205,
+       "band": "middle"
+      },
+      {
+       "ending": "stalled",
+       "n": 9,
+       "p": 0.045,
+       "band": "outlier"
+      }
+     ],
+     "lengths": {
+      "min": 17,
+      "median": 52.5,
+      "max": 100,
+      "hist": [
+       {
+        "from": 17,
+        "to": 23,
+        "n": 11
+       },
+       {
+        "from": 24,
+        "to": 30,
+        "n": 23
+       },
+       {
+        "from": 31,
+        "to": 37,
+        "n": 27
+       },
+       {
+        "from": 38,
+        "to": 44,
+        "n": 21
+       },
+       {
+        "from": 45,
+        "to": 51,
+        "n": 16
+       },
+       {
+        "from": 52,
+        "to": 58,
+        "n": 14
+       },
+       {
+        "from": 59,
+        "to": 65,
+        "n": 17
+       },
+       {
+        "from": 66,
+        "to": 72,
+        "n": 18
+       },
+       {
+        "from": 73,
+        "to": 79,
+        "n": 26
+       },
+       {
+        "from": 80,
+        "to": 86,
+        "n": 18
+       },
+       {
+        "from": 87,
+        "to": 93,
+        "n": 7
+       },
+       {
+        "from": 94,
+        "to": 100,
+        "n": 2
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": {
+      "read": 113,
+      "midpoint_leader_wins": 0.5133,
+      "chance": 0.25
+     }
+    },
+    "john": {
+     "rounds": 200,
+     "pools": [
+      {
+       "ending": "seat 2 wins",
+       "n": 57,
+       "p": 0.285,
+       "band": "likely"
+      },
+      {
+       "ending": "seat 0 wins",
+       "n": 50,
+       "p": 0.25,
+       "band": "middle"
+      },
+      {
+       "ending": "seat 3 wins",
+       "n": 48,
+       "p": 0.24,
+       "band": "middle"
+      },
+      {
+       "ending": "seat 1 wins",
+       "n": 40,
+       "p": 0.2,
+       "band": "middle"
+      },
+      {
+       "ending": "stalled",
+       "n": 5,
+       "p": 0.025,
+       "band": "outlier"
+      }
+     ],
+     "lengths": {
+      "min": 18,
+      "median": 40.5,
+      "max": 99,
+      "hist": [
+       {
+        "from": 18,
+        "to": 24,
+        "n": 20
+       },
+       {
+        "from": 25,
+        "to": 31,
+        "n": 44
+       },
+       {
+        "from": 32,
+        "to": 38,
+        "n": 31
+       },
+       {
+        "from": 39,
+        "to": 45,
+        "n": 15
+       },
+       {
+        "from": 46,
+        "to": 52,
+        "n": 9
+       },
+       {
+        "from": 53,
+        "to": 59,
+        "n": 8
+       },
+       {
+        "from": 60,
+        "to": 66,
+        "n": 8
+       },
+       {
+        "from": 67,
+        "to": 73,
+        "n": 15
+       },
+       {
+        "from": 74,
+        "to": 80,
+        "n": 20
+       },
+       {
+        "from": 81,
+        "to": 87,
+        "n": 21
+       },
+       {
+        "from": 88,
+        "to": 94,
+        "n": 8
+       },
+       {
+        "from": 95,
+        "to": 101,
+        "n": 1
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": {
+      "read": 111,
+      "midpoint_leader_wins": 0.5315,
+      "chance": 0.25
+     }
+    }
+   }
+  },
+  "hearts": {
+   "description": "4-seat trick-taking, one hand with a pass left (game-lab's Hearts rules)",
+   "seats": 4,
+   "policies": {
+    "random": {
+     "rounds": 200,
+     "pools": [
+      {
+       "ending": "lowest alone",
+       "n": 147,
+       "p": 0.735,
+       "band": "likely"
+      },
+      {
+       "ending": "2 share the lowest",
+       "n": 52,
+       "p": 0.26,
+       "band": "middle"
+      },
+      {
+       "ending": "shot the moon",
+       "n": 1,
+       "p": 0.005,
+       "band": "outlier"
+      }
+     ],
+     "lengths": {
+      "min": 56,
+      "median": 56.0,
+      "max": 56,
+      "hist": [
+       {
+        "from": 56,
+        "to": 56,
+        "n": 200
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": {
+      "read": 8,
+      "midpoint_leader_wins": 0.5,
+      "chance": 0.25
+     }
+    },
+    "john": {
+     "rounds": 200,
+     "pools": [
+      {
+       "ending": "lowest alone",
+       "n": 136,
+       "p": 0.68,
+       "band": "likely"
+      },
+      {
+       "ending": "2 share the lowest",
+       "n": 60,
+       "p": 0.3,
+       "band": "middle"
+      },
+      {
+       "ending": "shot the moon",
+       "n": 3,
+       "p": 0.015,
+       "band": "outlier"
+      },
+      {
+       "ending": "3 share the lowest",
+       "n": 1,
+       "p": 0.005,
+       "band": "outlier"
+      }
+     ],
+     "lengths": {
+      "min": 56,
+      "median": 56.0,
+      "max": 56,
+      "hist": [
+       {
+        "from": 56,
+        "to": 56,
+        "n": 200
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": {
+      "read": 17,
+      "midpoint_leader_wins": 0.8235,
+      "chance": 0.25
+     }
+    }
+   }
+  },
+  "liars_dice": {
+   "description": "4-seat dice bluffing, hidden cups, ones wild (game-lab's Liar's Dice rules)",
+   "seats": 4,
+   "policies": {
+    "random": {
+     "rounds": 200,
+     "pools": [
+      {
+       "ending": "seat 1 wins",
+       "n": 64,
+       "p": 0.32,
+       "band": "likely"
+      },
+      {
+       "ending": "seat 3 wins",
+       "n": 52,
+       "p": 0.26,
+       "band": "middle"
+      },
+      {
+       "ending": "seat 0 wins",
+       "n": 44,
+       "p": 0.22,
+       "band": "middle"
+      },
+      {
+       "ending": "seat 2 wins",
+       "n": 40,
+       "p": 0.2,
+       "band": "middle"
+      }
+     ],
+     "lengths": {
+      "min": 66,
+      "median": 86.0,
+      "max": 104,
+      "hist": [
+       {
+        "from": 66,
+        "to": 69,
+        "n": 3
+       },
+       {
+        "from": 70,
+        "to": 73,
+        "n": 11
+       },
+       {
+        "from": 74,
+        "to": 77,
+        "n": 13
+       },
+       {
+        "from": 78,
+        "to": 81,
+        "n": 29
+       },
+       {
+        "from": 82,
+        "to": 85,
+        "n": 33
+       },
+       {
+        "from": 86,
+        "to": 89,
+        "n": 51
+       },
+       {
+        "from": 90,
+        "to": 93,
+        "n": 27
+       },
+       {
+        "from": 94,
+        "to": 97,
+        "n": 21
+       },
+       {
+        "from": 98,
+        "to": 101,
+        "n": 9
+       },
+       {
+        "from": 102,
+        "to": 105,
+        "n": 3
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": {
+      "read": 132,
+      "midpoint_leader_wins": 0.5606,
+      "chance": 0.25
+     }
+    },
+    "john": {
+     "rounds": 200,
+     "pools": [
+      {
+       "ending": "seat 0 wins",
+       "n": 60,
+       "p": 0.3,
+       "band": "likely"
+      },
+      {
+       "ending": "seat 3 wins",
+       "n": 48,
+       "p": 0.24,
+       "band": "middle"
+      },
+      {
+       "ending": "seat 1 wins",
+       "n": 47,
+       "p": 0.235,
+       "band": "middle"
+      },
+      {
+       "ending": "seat 2 wins",
+       "n": 45,
+       "p": 0.225,
+       "band": "middle"
+      }
+     ],
+     "lengths": {
+      "min": 192,
+      "median": 253.0,
+      "max": 306,
+      "hist": [
+       {
+        "from": 192,
+        "to": 201,
+        "n": 1
+       },
+       {
+        "from": 202,
+        "to": 211,
+        "n": 2
+       },
+       {
+        "from": 212,
+        "to": 221,
+        "n": 3
+       },
+       {
+        "from": 222,
+        "to": 231,
+        "n": 20
+       },
+       {
+        "from": 232,
+        "to": 241,
+        "n": 23
+       },
+       {
+        "from": 242,
+        "to": 251,
+        "n": 46
+       },
+       {
+        "from": 252,
+        "to": 261,
+        "n": 37
+       },
+       {
+        "from": 262,
+        "to": 271,
+        "n": 31
+       },
+       {
+        "from": 272,
+        "to": 281,
+        "n": 21
+       },
+       {
+        "from": 282,
+        "to": 291,
+        "n": 12
+       },
+       {
+        "from": 292,
+        "to": 301,
+        "n": 2
+       },
+       {
+        "from": 302,
+        "to": 311,
+        "n": 2
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": {
+      "read": 107,
+      "midpoint_leader_wins": 0.4486,
+      "chance": 0.25
+     }
+    }
+   }
+  },
+  "scene": {
+   "description": "single-seat narrative dice scene, 6 beats (apps/game's Engine.roll)",
+   "seats": 1,
+   "policies": {
+    "random": {
+     "rounds": 200,
+     "pools": [
+      {
+       "ending": "went well: 5 successes",
+       "n": 78,
+       "p": 0.39,
+       "band": "likely"
+      },
+      {
+       "ending": "went well: 4 successes",
+       "n": 53,
+       "p": 0.265,
+       "band": "middle"
+      },
+      {
+       "ending": "went well: 6 successes",
+       "n": 48,
+       "p": 0.24,
+       "band": "middle"
+      },
+      {
+       "ending": "went well: 3 successes",
+       "n": 13,
+       "p": 0.065,
+       "band": "middle"
+      },
+      {
+       "ending": "went sideways: 2 successes",
+       "n": 8,
+       "p": 0.04,
+       "band": "outlier"
+      }
+     ],
+     "lengths": {
+      "min": 6,
+      "median": 6.0,
+      "max": 6,
+      "hist": [
+       {
+        "from": 6,
+        "to": 6,
+        "n": 200
+       }
+      ]
+     },
+     "cap_hits": 0,
+     "funnel": null
+    }
+   },
+   "no_competent_policy": "measured under random only; none is shipped for it"
+  }
+ }
+}

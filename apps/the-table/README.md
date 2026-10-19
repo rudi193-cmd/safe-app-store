@@ -200,6 +200,18 @@ stream's shim tests use. With both installed every test here runs; the dice
 library warns about a pyparsing name it still calls (`enablePackrat`), its own
 deprecation, not this app's.
 
+## Pools: where every game ends up
+
+`the_table/pools.py` plays every registered game N seeded times under a random
+player and, where one ships, a competent one ("john": game-lab's own policy,
+capture-most for checkers, catgrid's reasoner), from seat views only. It keeps
+the endings, banded with `peaks.band_of` (likely / middle / outlier, the
+outlier band under 5% being the outer layer), the round lengths, the rounds the
+cap cut off, and how often the seat leading at halfway wins. The N=200 run is
+committed as `baselines/pools-N200.json`:
+
+    python3 -m the_table.pools 200 baselines/pools-N200.json
+
 ## The locked door (a puzzle beat)
 
 A story beat of kind `puzzle` is a catgrid board the current seat must solve
