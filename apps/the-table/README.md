@@ -177,6 +177,22 @@ terminal and verifies — plus coverage of `games()`'s stable ordering,
 `make()`'s freshness (a distinct object every call), and `register()`'s
 duplicate-name / non-callable-factory rejection.
 
+## The locked door (a puzzle beat)
+
+A story beat of kind `puzzle` is a catgrid board the current seat must solve
+before the story goes on (`the_table/story_session.py`, "THE LOCKED DOOR"). The
+board comes from the session seed and the beat's fact id; the seat plays it
+with `("grid", <a catgrid move>...)` and keeps the turn until the door ends.
+Solved with no heart lost is `strong`, solved at a cost `weak`, out of hearts
+`miss` (the door holds; the story goes on). Hearts and earned hints carry door
+to door as the party's; a lost door leaves one heart; the free hint is each
+board's own.
+
+The campaign `campaigns/locked-door.json` has two doors with a sealed decision
+between them. It sits beside `worlds/`, not in it: the worlds index is pinned
+by a frozen, dated record (`tests/fixtures/foreshadow-2026-10-16-exact.json`),
+and a new world there would change what that record says it covers.
+
 ## Why a protocol first
 
 A GM that talks to `GameSession` doesn't need to know whether it's running

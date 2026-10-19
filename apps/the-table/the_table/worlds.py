@@ -103,8 +103,22 @@ def _validate_beat(path: Any, beat: dict, scene_index: int, beat_index: int, sta
         _require_keys(path, beat["proposes"], ("fact", "proposed_by"), f"{where}.proposes")
         _require_type(path, beat["proposes"]["fact"], str, f"{where}.proposes.fact")
         _require_type(path, beat["proposes"]["proposed_by"], str, f"{where}.proposes.proposed_by")
+    elif kind == "puzzle":
+        # a locked door: a catgrid board (apps/catgrid) the seat must solve;
+        # how it ends picks the outcome (story_session.py, "THE LOCKED DOOR")
+        _require_keys(path, beat, ("puzzle", "outcomes"), where)
+        _require_type(path, beat["puzzle"], dict, f"{where}.puzzle")
+        _require_keys(path, beat["puzzle"], ("n",), f"{where}.puzzle")
+        for key in ("n", "k"):
+            v = beat["puzzle"].get(key, 1)
+            if isinstance(v, bool) or not isinstance(v, int) or v < 1:
+                _fail(path, f"{where}.puzzle.{key} must be a positive int, got {v!r}")
+        _require_type(path, beat["outcomes"], dict, f"{where}.outcomes")
+        _require_keys(path, beat["outcomes"], ("strong", "weak", "miss"), f"{where}.outcomes")
+        for bucket in ("strong", "weak", "miss"):
+            _require_type(path, beat["outcomes"][bucket], str, f"{where}.outcomes.{bucket}")
     else:
-        _fail(path, f"{where}.kind must be 'action' or 'decision', got {kind!r}")
+        _fail(path, f"{where}.kind must be 'action', 'decision' or 'puzzle', got {kind!r}")
 
 
 def _validate_scene(path: Any, scene: dict, index: int, stat_names: set, place_ids: set) -> None:

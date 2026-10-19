@@ -112,6 +112,23 @@ Turn model, mechanically:
 
 Move vocabulary (JSON-serializable tuples, per the pinned contract):
   ("act", <any of world["stats"]>)
+  ("grid", <a catgrid move>...)  -- on a puzzle beat: ("grid", "cat", "B3"),
+                                  ("grid", "hint"), ("grid", "answer", "A") ...
+
+THE LOCKED DOOR (a puzzle beat): a beat of kind ``puzzle`` is a catgrid board
+(``apps/catgrid``, through ``catgrid_adapter``'s path shim) the current seat
+must solve before the story goes on. Its board is drawn from the session seed
+and the beat's fact id (``door_seed``), so the same story and seed meet the
+same door. The seat plays it move by move with ``("grid", ...)``; the turn
+does not pass until the door ends. How it ends picks the outcome: solved with
+no heart lost is ``strong``, solved at a cost is ``weak``, out of hearts is
+``miss`` (the door holds; the story goes on around it).
+
+Hearts and hints carry, door to door, as the party's: a door starts with the
+hearts the last one left (three at the first), and a lost door leaves one, so
+a later door is never lost before it opens. A hint earned at one door's
+trivia carries to the next; the free hint is each board's own. The view
+shows the door (``Game.state()``, never its answer) and the carry.
 
 Hidden information: none by design at this size -- ``observe(seat)`` returns
 only ``seat``'s own character/stats plus the shared, public scene/beat state
@@ -121,6 +138,7 @@ seat's stats or identity appear in a given seat's view.
 """
 from __future__ import annotations
 
+import hashlib
 import random
 import re
 from collections.abc import Callable
@@ -160,6 +178,13 @@ NOT_A_PERSON = {
 }
 
 _BUCKETS = ("strong", "weak", "miss")
+DOOR_HEARTS = 3  # catgrid.play.HEARTS: a campaign's first door starts full
+
+
+def door_seed(seed: int, fact_id: str) -> int:
+    """A door's board seed: SHA-256 over the session seed and the beat's fact
+    id, first four bytes (catgrid's seeds are u32)."""
+    return int.from_bytes(hashlib.sha256(f"{seed}:{fact_id}".encode()).digest()[:4], "big")
 
 
 def _is_not_a_person(by: str) -> bool:
@@ -184,7 +209,8 @@ def _is_not_a_person(by: str) -> bool:
 class StorySession:
     """``GameSession`` over an authored world, plus the propose/seal seam."""
 
-    def __init__(self, world_path, rng_factory: Callable | None = None) -> None:
+    def __init__(self, world_path, rng_factory: Callable | None = None, *,
+                 door_bank: list | None = None, door_words: list | None = None) -> None:
         # J2/R6/R7 (C9): the DEFAULT is the SHA-256 stream, one per session,
         # swapped in for exactly one Engine.roll at a time. ``rng_factory=LEGACY``
         # keeps the old global ``random`` (to reproduce a recorded legacy run).
@@ -205,6 +231,10 @@ class StorySession:
         self._seals: dict = {}
         self._seal_order: list = []
         self._terminal = False
+        self._seed = 0
+        self._door = None  # the catgrid Game of the puzzle beat being played
+        self._door_bank, self._door_words = door_bank, door_words
+        self._carry = {"hearts": DOOR_HEARTS, "earned": 0}
 
     # -- GameSession -------------------------------------------------------
 
@@ -233,6 +263,10 @@ class StorySession:
         self._seals = {}
         self._seal_order = []
         self._terminal = False
+        self._seed = seed
+        self._door = None
+        self._carry = {"hearts": DOOR_HEARTS, "earned": 0}
+        self._open_door()
 
         scene = self._current_scene()
         narration = [f"{self.world['title']} begins ({seed_label(self._rng, seed)}).", self.world["setting"]]
@@ -262,6 +296,8 @@ class StorySession:
             return []
         if self._current_beat()["kind"] == "decision":
             return []
+        if self._door is not None:
+            return [("grid", *m) for m in self._door.legal_moves()]
         return [("act", stat) for stat in self.world["stats"]]
 
     def step(self, seat: int, move: Any) -> Observation:
@@ -278,6 +314,9 @@ class StorySession:
                 f"step() called on a decision beat ({beat['id']!r}) -- nothing to "
                 f"step; only seal(fact_id, by=<a named human>) can advance past it"
             )
+
+        if self._door is not None:
+            return self._step_door(move)
 
         if not (isinstance(move, (tuple, list)) and len(move) == 2 and move[0] == "act"
                 and move[1] in self.world["stats"]):
@@ -312,6 +351,7 @@ class StorySession:
 
         narration = [beat["outcomes"][bucket]]
         self._advance(narration)
+        self._open_door()
 
         new_seat = self.current_seat()
         return Observation(seat=new_seat, view=self._view(new_seat), narration=narration,
@@ -346,6 +386,48 @@ class StorySession:
             f"[{sealed_summary}]. {verdict}"
         )
         return Result(winners=[], scores=scores, summary=summary)
+
+    # -- the locked door: a puzzle beat ------------------------------------
+
+    def _open_door(self) -> None:
+        """When the current beat is a puzzle, deal its board, with the carry."""
+        if self._terminal or self._current_beat()["kind"] != "puzzle":
+            return
+        from . import catgrid_adapter  # noqa: F401  (its path shim puts catgrid in reach)
+        from catgrid import eggs, trivia
+        from catgrid.play import Game
+
+        if self._door_bank is None:
+            self._door_bank = trivia.load_jeles()[0]
+        if self._door_words is None:
+            self._door_words = eggs.load_napkins()[0]
+        beat, scene = self._current_beat(), self._current_scene()
+        p = beat["puzzle"]
+        g = Game.new(door_seed(self._seed, self._fact_id(scene, beat)), p["n"], p.get("k", 1),
+                     bank=self._door_bank, words=self._door_words,
+                     bank_why="no trivia at this door", words_why="no napkins at this door")
+        g.hearts = self._carry["hearts"]
+        g.hints["earned"] = self._carry["earned"]
+        self._door = g
+
+    def _step_door(self, move) -> Observation:
+        if not (isinstance(move, (tuple, list)) and len(move) >= 2 and move[0] == "grid"):
+            raise ValueError(f"unknown move {move!r}; a door takes ('grid', <a catgrid move>...)")
+        g = self._door
+        narration = list(g.step(tuple(move[1:])))  # a refused move raises, door unchanged
+        if g.status != "playing":
+            started = self._carry["hearts"]
+            bucket = ("strong" if g.hearts == started else "weak") if g.status == "won" else "miss"
+            self._tally[bucket] += 1
+            self._carry = {"hearts": g.hearts if g.status == "won" else 1,
+                           "earned": g.hints["earned"]}
+            narration.append(self._current_beat()["outcomes"][bucket])
+            self._door = None
+            self._advance(narration)
+            self._open_door()
+        seat = self.current_seat()
+        return Observation(seat=seat, view=self._view(seat), narration=narration,
+                           terminal=self._terminal)
 
     # -- the one new mechanic: propose -> seal ------------------------------
 
@@ -413,6 +495,7 @@ class StorySession:
         self._seals[fact_id] = {"fact_id": fact_id, "by": who, "verdict": verdict, "reason": reason}
         self._seal_order.append(fact_id)
         self._advance([])
+        self._open_door()
 
     # -- internal ------------------------------------------------------------
 
@@ -473,6 +556,9 @@ class StorySession:
             "suggests": beat.get("suggests"),
             "set_piece": bool(beat.get("set_piece", False)),  # C15
         })
+        if self._door is not None:
+            view["door"] = self._door.state()
+            view["carry"] = dict(self._carry)
         return view
 
     def _require_reset(self) -> None:
