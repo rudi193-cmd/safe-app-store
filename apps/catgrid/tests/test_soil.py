@@ -50,7 +50,7 @@ class TestTheLane(unittest.TestCase):
         b = Backend()
         g = played()
         real = soil.records
-        soil.records = lambda game: real(game) + [("fleet_store", "x", {})]
+        soil.records = lambda game, daily=None: real(game, daily) + [("fleet_store", "x", {})]
         try:
             with self.assertRaises(ValueError):
                 soil.write(g, b)
