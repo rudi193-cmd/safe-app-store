@@ -118,7 +118,7 @@ real `run_session` + a real `LedgerSink`, asserting `sink.verify()` is
 `the_table/registry.py` is the piece that makes "the GM runs them all"
 literal: a small `name -> zero-arg GameSession factory` registry —
 `register(name, factory, *, description="")`, `make(name)`, `games()`,
-`describe(name)` — with the nine built-ins (`"bureau"`, `"catgrid"`, `"catgrid_2cat"`, `"catgrid_3cat"`, `"catgrid_duel"`, `"crazy_eights"`, `"hearts"`, `"liars_dice"`,
+`describe(name)` — with the eleven built-ins (`"backgammon"`, `"bureau"`, `"catgrid"`, `"catgrid_2cat"`, `"catgrid_3cat"`, `"catgrid_duel"`, `"checkers"`, `"crazy_eights"`, `"hearts"`, `"liars_dice"`,
 `"scene"`) registered at import time. A factory always returns a FRESH
 session (`SceneSession`'s `beats=6` constructor arg is bound in its
 registered lambda, so the registry surface itself stays argument-free);
@@ -177,7 +177,7 @@ terminal and verifies — plus coverage of `games()`'s stable ordering,
 `make()`'s freshness (a distinct object every call), and `register()`'s
 duplicate-name / non-callable-factory rejection.
 
-## Hearts and Liar's Dice (from game-lab)
+## Hearts, Liar's Dice, Checkers and Backgammon (from game-lab)
 
 Two kinds of game the table didn't have, on game-lab's own rules through the
 same one-directory shim as Crazy Eights:
@@ -187,9 +187,18 @@ same one-directory shim as Crazy Eights:
 | `hearts` | trick-taking, 4 seats, one hand with a pass left | `legal_plays`, `card_points`, `make_deck`, `pass_direction`, `target_seat` | the trick winner and shooting the moon: 40 deals played by game-lab's "john" policy score the same here as in its `play_hand` |
 | `liars_dice` | dice bluffing, 4 seats, hidden cups, ones wild | `count_face`, `bids_above`, `NUM_PLAYERS`, `DICE_PER_PLAYER`, `ROUND_CAP` | the round loop (who loses a die, who opens next); cups rolled from the session's own seeded rng |
 
+| `checkers` | abstract board, 2 seats, nothing hidden or random | `ck_start`, `ck_legal`, `ck_apply` (`baseline_core.py`) | the ending (no move loses, last piece wins, 300 moves or 60 quiet adjudicated on material): 40 games from the same seeded stream end with the same winner and move count as game-lab's `checkers_once` |
+| `backgammon` | board race with dice, 2 seats, one die a step | `bg_new`, `bg_leg`, `bg_apply` (`baseline_core.py`) | the opening roll, doubles as four dice, bearing off fifteen (a gammon said), 600 turns adjudicated on pips; game-lab's simplification kept: "use as many dice as possible" is not enforced move by move |
+
 Each seat sees its own hand or cup only; a Liar's Dice challenge lifts every
-cup for everyone. Both are in the registry, so the proof and the baseline play
-them like every other game.
+cup for everyone. All four are in the registry, so the proof and the baseline
+play them like every other game.
+
+`requirements.txt`: `chess` (python-chess), because `baseline_core.py` imports
+it at its top, and `dice`, the notation library `aetheris5e/dice5e.py` and the
+stream's shim tests use. With both installed every test here runs; the dice
+library warns about a pyparsing name it still calls (`enablePackrat`), its own
+deprecation, not this app's.
 
 ## The locked door (a puzzle beat)
 

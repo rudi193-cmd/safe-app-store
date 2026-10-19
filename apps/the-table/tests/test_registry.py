@@ -1,7 +1,7 @@
 """tests/test_registry.py — unit tests for the_table/registry.py.
 
 Four things pinned:
-  * games() returns the nine built-in names, in stable (sorted) order.
+  * games() returns the eleven built-in names, in stable (sorted) order.
   * make(name) returns a distinct, fresh GameSession object every call --
     never a shared instance -- and each is a structurally valid GameSession.
   * register() rejects a duplicate name and a non-callable factory.
@@ -31,7 +31,7 @@ MAX_TURNS = 2000  # generous slack over every adapter's own defensive cap
 
 class TestGamesListing(unittest.TestCase):
     def test_games_returns_the_three_built_ins_in_sorted_order(self):
-        self.assertEqual(registry.games(), ["bureau", "catgrid", "catgrid_2cat", "catgrid_3cat", "catgrid_duel", "crazy_eights", "hearts", "liars_dice", "scene"])
+        self.assertEqual(registry.games(), ["backgammon", "bureau", "catgrid", "catgrid_2cat", "catgrid_3cat", "catgrid_duel", "checkers", "crazy_eights", "hearts", "liars_dice", "scene"])
 
     def test_games_order_is_stable_across_calls(self):
         self.assertEqual(registry.games(), registry.games())

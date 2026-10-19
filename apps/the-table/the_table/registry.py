@@ -26,8 +26,10 @@ from __future__ import annotations
 
 from typing import Callable, Dict
 
+from .backgammon_adapter import BackgammonSession
 from .bureau_adapter import BureauSession
 from .catgrid_adapter import CatgridDuelSession, CatgridSession
+from .checkers_adapter import CheckersSession
 from .crazy_eights_adapter import CrazyEightsSession
 from .game_engine_adapter import SceneSession
 from .game_session import GameSession
@@ -83,6 +85,11 @@ def describe(name: str) -> str:
 # Each factory is zero-arg. SceneSession's constructor arg (beats) is bound
 # here, in the lambda -- the registry surface itself never takes per-game
 # arguments.
+register(
+    "backgammon",
+    BackgammonSession,
+    description="2-seat race with dice, one die a step (game-lab's backgammon rules)",
+)
 register("bureau", BureauSession, description="single-seat exploration (bureau)")
 register(
     "catgrid",
@@ -106,6 +113,11 @@ register(
     "catgrid_duel",
     lambda: CatgridDuelSession(n=6),
     description="catgrid for two, 6x6: one board, shared cats, private marks, turns in order",
+)
+register(
+    "checkers",
+    CheckersSession,
+    description="2-seat English draughts, captures mandatory (game-lab's checkers rules)",
 )
 register(
     "crazy_eights",
