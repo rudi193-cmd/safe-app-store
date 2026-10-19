@@ -12,6 +12,7 @@ import os
 import tempfile
 import unittest
 
+from the_table import catgrid_adapter  # noqa: F401  (its path shim puts catgrid in reach)
 from the_table.story_session import DOOR_HEARTS, StorySession, door_seed
 from the_table.worlds import WorldError, available_worlds, load_world
 
@@ -21,13 +22,15 @@ from the_table.worlds import WorldError, available_worlds, load_world
 DOOR_WORLD = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                           "campaigns", "locked-door.json")
 
+from catgrid.board import address as at  # noqa: E402  (after the shim, on purpose)
+
 BANK = [{"id": f"t:{i}", "question": f"Q{i}?", "answer": f"A{i}."} for i in range(6)]
 WORDS = ["Filed."]
 
 
 def address(i, n):
-    r, c = divmod(i, n)
-    return f"{chr(65 + c)}{r + 1}"
+    """catgrid's own address: the row is the letter, the column the number."""
+    return at(*divmod(i, n))
 
 
 class Door(unittest.TestCase):
