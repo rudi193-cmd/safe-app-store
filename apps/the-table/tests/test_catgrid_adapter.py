@@ -15,7 +15,7 @@ from the_table.catgrid_adapter import CatgridSession
 from the_table.game_session import GameSession
 
 SEEDS = (0, 1, 2, 7, 42)
-STEP_CAP = 2000  # up to 144 cells x (cat|x|clear) on 12x12, plus hints and trivia  # 36 cells x (cat|x|clear) plus hints and trivia; a lost game ends at 3 wrong cats
+STEP_CAP = 2000  # up to 169 cells x (cat|x|clear) on 13x13, plus hints and trivia; a lost game ends at 3 wrong cats
 BANK = [{"id": f"t:{i}", "question": f"Q{i}?", "answer": f"A{i}."} for i in range(6)]
 WORDS = ["Filed.", "Sieve"]
 

@@ -71,6 +71,26 @@ A random player wins none of the 300. The table's baseline
 (`the_table/baseline.py`) counts each catgrid round solved, out of hearts, or
 at the cap.
 
+## The daily board
+
+`catgrid/daily.py`: one board a day, seeded by the drand round current at that
+day's 00:00 UTC. Nobody knows that randomness before the round fires, so no
+one can pick an easy day or hand the board out early; anyone can check a day's
+board from the round alone. The seed is SHA-256's first four bytes over the
+randomness. A `catgrid_games` record of a daily game carries its stamp
+(round, randomness, seed), and `soil.replay` refuses one whose seed isn't its
+round's. Said, not hidden: the beacon's BLS signature is not checked, and a
+beacon that can't be read gives no board (there is no fallback seed). On the
+table a daily board is a seed like any other: `reset(stamp["seed"])`.
+
+```sh
+python3 -m catgrid.daily 2026-10-19
+```
+
+The chain, genesis and period are restated from willow-bot's
+`onescript/beacon.py`; `tests/test_daily.py` compares them when willow-bot is
+beside this repo.
+
 ## The rules
 
 | # | Rule |

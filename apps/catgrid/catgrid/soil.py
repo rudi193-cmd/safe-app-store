@@ -32,8 +32,9 @@ def _sha(obj) -> str:
     ).hexdigest()
 
 
-def records(game: Game) -> list[tuple[str, str, dict]]:
-    """(collection, record_id, record) for everything this game leaves."""
+def records(game: Game, daily: dict | None = None) -> list[tuple[str, str, dict]]:
+    """(collection, record_id, record) for everything this game leaves. A daily
+    board's record carries its beacon stamp (``daily.stamp``) as well."""
     n, seed = game.board.n, game.seed
     k = game.board.k
     tag = f"{seed}-{n}" if k == 1 else f"{seed}-{n}x{k}"
@@ -43,6 +44,7 @@ def records(game: Game) -> list[tuple[str, str, dict]]:
         "words": _sha(game.words) if game.words else None,
         "moves": [list(m) for m in game.moves],
         "status": game.status, "hearts": game.hearts,
+        **({"daily": dict(daily)} if daily else {}),
     })]
     for f in game.found:
         out.append((NAPKINS, f"{tag}-{f['cell']}",
@@ -54,7 +56,7 @@ def records(game: Game) -> list[tuple[str, str, dict]]:
     return out
 
 
-def write(game: Game, backend=None) -> dict:
+def write(game: Game, backend=None, daily: dict | None = None) -> dict:
     """Put the game's records through the seam: ``backend`` if given, else the
     storage-backend module's configured one. ``{"state", "why", "written"}``."""
     if backend is None:
@@ -67,7 +69,7 @@ def write(game: Game, backend=None) -> dict:
             return {"state": "unavailable", "why": "no SOIL backend configured",
                     "written": 0}
     written = 0
-    for collection, rid, rec in records(game):
+    for collection, rid, rec in records(game, daily):
         if collection not in COLLECTIONS:  # the lane wall, said here as well as at the gate
             raise ValueError(f"{collection!r} is outside catgrid's lane")
         backend.put(collection, rec, record_id=rid)
@@ -77,7 +79,14 @@ def write(game: Game, backend=None) -> dict:
 
 def replay(record: dict, *, bank: list | None = None, words: list | None = None) -> Game:
     """The game a ``catgrid_games`` record holds, played again from its inputs.
-    Refuses a record whose board, or bank, isn't the one it names."""
+    Refuses a record whose board, or bank, isn't the one it names, and a daily
+    record whose seed isn't its beacon round's."""
+    if "daily" in record:
+        from . import daily
+
+        why = daily.check(record["daily"])
+        if why or record["daily"]["seed"] != record["seed"]:
+            raise ValueError(f"this daily record isn't its beacon round's: {why or 'the seed differs'}")
     board = generate(record["seed"], record["n"], k=record.get("k", 1))  # older records: 1 cat
     if board.digest() != record["board"]:
         raise ValueError("this board isn't the one the record names")
