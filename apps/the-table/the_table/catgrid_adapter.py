@@ -108,3 +108,70 @@ class CatgridSession:
             raise RuntimeError("reset(seed) must be called before use")
         if seat != 0:
             raise ValueError(f"catgrid is single-player; seat must be 0, got {seat!r}")
+
+
+class CatgridDuelSession:
+    """``GameSession`` over ``catgrid.duel.Duel``: two seats, one seeded board.
+
+    Cats are public; each seat's x marks are its own, so ``observe(seat)`` is
+    per seat the way a card game's is (the duel's own D5). Every move passes the
+    turn; a seat out of hearts is skipped. ``legal_moves`` is empty for the seat
+    not on turn. A refused move raises ``catgrid.play.Refused`` and changes nothing.
+    """
+
+    seats = 2
+
+    def __init__(self, n: int = DEFAULT_N, k: int = 1) -> None:
+        self.n, self.k = n, k
+        self._duel = None
+
+    def reset(self, seed: int) -> Observation:
+        from catgrid.duel import Duel
+
+        self._duel = Duel(seed, self.n, self.k)
+        return Observation(
+            seat=0, view=self._duel.observe(0),
+            narration=[f"catgrid for two, {self.n}x{self.n}: cats are shared, marks are "
+                       "your own. A right cat scores; a wrong one costs a heart."],
+            terminal=False,
+        )
+
+    def current_seat(self) -> int:
+        self._require(0)
+        return self._duel.current()
+
+    def observe(self, seat: int) -> Observation:
+        self._require(seat)
+        return Observation(seat=seat, view=self._duel.observe(seat), narration=[],
+                           terminal=self._duel.over)
+
+    def legal_moves(self, seat: int) -> list:
+        self._require(seat)
+        return self._duel.legal_moves(seat)
+
+    def step(self, seat: int, move) -> Observation:
+        self._require(seat)
+        said = self._duel.step(seat, tuple(move))
+        nxt = seat if self._duel.over else self._duel.current()
+        return Observation(seat=nxt, view=self._duel.observe(nxt), narration=list(said),
+                           terminal=self._duel.over)
+
+    def is_terminal(self) -> bool:
+        return self._duel is not None and self._duel.over
+
+    def result(self) -> Result:
+        d = self._duel
+        scores = {s: float(d.score[s]) for s in range(self.seats)}
+        if not d.over:
+            return Result(winners=[], scores=scores, summary="unfinished")
+        w = d.winners()
+        summary = ("no one scored" if not w else
+                   f"a tie at {d.score[0]}" if len(w) == 2 else
+                   f"seat {w[0]} wins {d.score[w[0]]}-{d.score[1 - w[0]]}")
+        return Result(winners=w, scores=scores, summary=summary)
+
+    def _require(self, seat: int) -> None:
+        if self._duel is None:
+            raise RuntimeError("reset(seed) must be called before use")
+        if isinstance(seat, bool) or seat not in (0, 1):
+            raise ValueError(f"a duel has seats 0 and 1, got {seat!r}")

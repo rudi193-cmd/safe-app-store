@@ -15,13 +15,21 @@ class TestBaseline(unittest.TestCase):
         self.assertEqual(set(data), set(registry.games()))
 
     def test_each_round_has_exactly_one_outcome(self):
-        # every round is either won by exactly one seat or a no-winner; the two
-        # must partition the rounds with none double-counted or dropped.
+        # every round is either won (by one seat, or shared in a tie) or a
+        # no-winner; the two must partition the rounds with none double-counted
+        # or dropped, and a seat's win is credited once per round it won.
         data = run_baseline(rounds=20)
         for name, rec in data.items():
-            won = sum(rec["wins_by_seat"].values())
-            self.assertEqual(won + rec["no_winner"], rec["rounds"],
-                             f"{name}: wins+no_winner != rounds")
+            self.assertEqual(rec["won"] + rec["no_winner"], rec["rounds"],
+                             f"{name}: won+no_winner != rounds")
+            credited = sum(rec["wins_by_seat"].values())
+            if rec["shared"] == 0:
+                self.assertEqual(credited, rec["won"], f"{name}: a win credited twice")
+            else:
+                self.assertGreater(credited, rec["won"], name)
+                # a shared round credits at most every seat that won anything
+                extra = len(rec["wins_by_seat"]) - 1
+                self.assertLessEqual(credited, rec["won"] + rec["shared"] * extra, name)
 
     def test_turn_stats_are_ordered(self):
         data = run_baseline(rounds=20)

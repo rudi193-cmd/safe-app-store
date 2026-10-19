@@ -91,6 +91,16 @@ The chain, genesis and period are restated from willow-bot's
 `onescript/beacon.py`; `tests/test_daily.py` compares them when willow-bot is
 beside this repo.
 
+## For two
+
+`catgrid/duel.py`: two seats, one seeded board, turns in order. Cats are
+public; each seat's x marks are its own notes, never shown to the other seat
+(the card games' hidden hand). Every move passes the turn, a mark included; a
+right cat scores 1, a wrong one costs the mover a heart, and a seat out of
+hearts is skipped. Each seat has one hint, which places a cat for nobody. The
+top score wins, a tie is both, no score is no winner. Rules D1–D9 are in the
+module and each has a test; on the table it is `catgrid_duel` (6x6).
+
 ## The rules
 
 | # | Rule |

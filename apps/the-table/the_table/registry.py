@@ -27,7 +27,7 @@ from __future__ import annotations
 from typing import Callable, Dict
 
 from .bureau_adapter import BureauSession
-from .catgrid_adapter import CatgridSession
+from .catgrid_adapter import CatgridDuelSession, CatgridSession
 from .crazy_eights_adapter import CrazyEightsSession
 from .game_engine_adapter import SceneSession
 from .game_session import GameSession
@@ -99,6 +99,11 @@ register(
     "catgrid_3cat",
     lambda: CatgridSession(n=13, k=3),
     description="catgrid's harder intermediate level, 13x13: three cats per row, column and region",
+)
+register(
+    "catgrid_duel",
+    lambda: CatgridDuelSession(n=6),
+    description="catgrid for two, 6x6: one board, shared cats, private marks, turns in order",
 )
 register(
     "crazy_eights",
