@@ -106,8 +106,15 @@ def _row_tables(n: int, k: int):
     return out
 
 
-def solutions_k(n: int, k: int, regions: tuple):
-    """Every placement of k cats per row, column and region, lazily, in order."""
+class Budget(Exception):
+    """A search ran past the nodes it was given. Node counts are exact, so the
+    same search always runs out at the same place: still deterministic."""
+
+
+def solutions_k(n: int, k: int, regions: tuple, budget: list | None = None):
+    """Every placement of k cats per row, column and region, lazily, in order.
+    With ``budget`` ([nodes left], shared by every search it is handed to),
+    raises ``Budget`` once those nodes are spent."""
     rows = _row_tables(n, k)
     owners = sorted(set(regions))
     # cap[g][r]: the most cats region g can still take in rows r.. : per row, no
@@ -125,6 +132,10 @@ def solutions_k(n: int, k: int, regions: tuple):
 
     def go(r: int, banned: int):
         nonlocal full
+        if budget is not None:
+            budget[0] -= 1
+            if budget[0] < 0:
+                raise Budget("search budget spent")
         if r == n:
             yield tuple(picked)
             return
@@ -166,8 +177,9 @@ def count_k(n: int, k: int, regions: tuple, limit: int = 2) -> int:
     return found
 
 
-def other_k(n: int, k: int, regions: tuple, answer: tuple) -> tuple | None:
-    return next((s for s in solutions_k(n, k, regions) if s != tuple(answer)), None)
+def other_k(n: int, k: int, regions: tuple, answer: tuple,
+            budget: list | None = None) -> tuple | None:
+    return next((s for s in solutions_k(n, k, regions, budget) if s != tuple(answer)), None)
 
 
 def placements_k(n: int, k: int, order) -> tuple | None:

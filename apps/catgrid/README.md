@@ -45,7 +45,10 @@ A k-cat board grows its regions from n of its cats: a region still short of k
 grows toward the nearest cat nobody holds, then takes the cells left. A 1-cat
 board's bytes are what they always were, so older records replay unchanged.
 Boards are memoised: `generate` is a pure function with a frozen result.
-On the table: `catgrid` (6x6), `catgrid_2cat` (8x8), `catgrid_3cat` (12x12).
+On the table: `catgrid` (6x6), `catgrid_2cat` (9x9), `catgrid_3cat` (13x13).
+Not the smallest sizes: 8x8 with 2 cats and 12x12 with 3 each have only 2
+rule-keeping arrangements (mirror images), so every board there shares one of
+two answers; 9x9 has 664 and 13x13 42,732.
 
 ## The rules
 

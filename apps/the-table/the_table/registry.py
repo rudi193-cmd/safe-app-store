@@ -87,15 +87,18 @@ register(
     lambda: CatgridSession(n=6),
     description="single-seat seeded logic grid, 6x6: one cat per row, column and region (apps/catgrid)",
 )
+# 9x9 and 13x13, not the smallest sizes: 8x8 (2 cats) and 12x12 (3 cats) each
+# have only 2 rule-keeping arrangements, mirror images, so every board there
+# has one of the same two answers (the operator: "move them to 9x9 and 13x13").
 register(
     "catgrid_2cat",
-    lambda: CatgridSession(n=8, k=2),
-    description="catgrid's intermediate level, 8x8: two cats per row, column and region",
+    lambda: CatgridSession(n=9, k=2),
+    description="catgrid's intermediate level, 9x9: two cats per row, column and region",
 )
 register(
     "catgrid_3cat",
-    lambda: CatgridSession(n=12, k=3),
-    description="catgrid's harder intermediate level, 12x12: three cats per row, column and region",
+    lambda: CatgridSession(n=13, k=3),
+    description="catgrid's harder intermediate level, 13x13: three cats per row, column and region",
 )
 register(
     "crazy_eights",

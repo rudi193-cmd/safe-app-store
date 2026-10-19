@@ -10,9 +10,9 @@ from catgrid.board import LARGEST, SMALLEST, NoBoard, address, generate
 from catgrid.play import HEARTS, Game, Refused
 
 PINNED = {  # mirrored, not recomputed
-    (7, 8, 2): "c12004bd9300a32f84c2e4e33edf7aa6011435b95db329680e30860c61147578",
-    (3, 10, 2): "bb033d378285078e414b061b0449b78c49e8c2b49bccac1b7ad63caccd45723b",
-    (7, 12, 3): "300557be5525b855ec8ca257d4860ff186e63f42bddee6c5eaa285951f22089c",
+    (7, 8, 2): "d8714d13b1e2b4e7d10c03cc9967142e42c46d71357721a7e6f1d7db55f2596d",
+    (3, 10, 2): "9b8d0c2eea6348492c5be02f870f0a8041315b45d93a881c68e8999490a9e02c",
+    (7, 12, 3): "f33e38f22f8cb61e8915738c955fc272fcd6aa19ab1947254fe5c18ed1c13562",
 }
 LEVELS = ((8, 2), (9, 2), (12, 3))
 

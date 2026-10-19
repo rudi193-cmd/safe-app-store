@@ -44,6 +44,13 @@ IMPOSSIBLE = frozenset({2, 3})
 #: 3 cats on 14x14 took 78 s to place once in plain Python, so 3-cat boards
 #: stop at 13; more than 3 cats a row isn't built.
 SMALLEST = {2: 8, 3: 12}
+#: Search nodes one k-cat draw's repair may spend, over all its second-answer
+#: searches. A draw that needs more is dropped and the seed's next draw is taken:
+#: the same seed still gives the same board (node counts are exact), and a
+#: rare hard draw no longer costs half a minute.
+REPAIR_BUDGET = 40_000
+#: Region growths one k-cat placement gets before the seed draws another.
+GROWTHS = 8
 LARGEST = {1: 9, 2: 10, 3: 13}
 
 
@@ -172,8 +179,9 @@ def _repair(n: int, cols: list, region: list, rng: Rng) -> bool:
 
 def _grow_k(n: int, k: int, cats: set, rng: Rng) -> list | None:
     """Regions for a k-cat placement: n of the cats, drawn from the seed, each
-    start a region. A region still short of k cats grows toward the nearest cat
-    nobody holds; once every cat is held, regions take the empty cells left.
+    start a region. While a cat is unheld, the regions still short of k take
+    the step, over all of them, that ends nearest such a cat (ties drawn from
+    the seed); once every cat is held, regions take the empty cells left.
     A region takes a cat only while it holds fewer than k. None when a draw
     strands a cat."""
     region = [0] * (n * n)
@@ -196,13 +204,16 @@ def _grow_k(n: int, k: int, cats: set, rng: Rng) -> list | None:
                     frontier.setdefault(owner, set()).add(j)
         needy = [g for g in sorted(frontier) if held[g] < k] if free_cats else []
         if needy:
+            spots = [divmod(f, n) for f in free_cats]
+
             def dist(j):
                 r, c = divmod(j, n)
-                return min(abs(r - fr) + abs(c - fc) for fr, fc in (divmod(f, n) for f in free_cats))
-            owner = rng.pick(needy)
-            near = sorted(frontier[owner], key=lambda j: (dist(j), j))
-            best = dist(near[0])
-            cell = rng.pick([j for j in near if dist(j) == best])
+                return min(abs(r - fr) + abs(c - fc) for fr, fc in spots)
+
+            # the move, over every needy region, that ends nearest a cat nobody holds
+            moves = sorted((dist(j), g, j) for g in needy for j in frontier[g])
+            best = moves[0][0]
+            _, owner, cell = rng.pick([m for m in moves if m[0] == best])
         elif frontier:
             owner = rng.pick(sorted(frontier))
             cell = rng.pick(sorted(frontier[owner]))
@@ -215,8 +226,9 @@ def _grow_k(n: int, k: int, cats: set, rng: Rng) -> list | None:
 
 
 def _repair_k(n: int, k: int, answer: tuple, cats: set, region: list, rng: Rng) -> bool:
+    budget = [REPAIR_BUDGET]
     for _ in range(REPAIRS):
-        alt = solve.other_k(n, k, tuple(region), answer)
+        alt = solve.other_k(n, k, tuple(region), answer, budget)
         if alt is None:
             return True
         moves = []
@@ -246,8 +258,13 @@ def _generate_k(seed: int, n: int, k: int, tries: int) -> Board:
         if answer is None:  # unreachable at SMALLEST and above; said, not assumed
             raise NoBoard(f"no {n}x{n} placement of {k} cats a row exists")
         cats = {r * n + c for r, cs in enumerate(answer) for c in cs}
-        region = _grow_k(n, k, cats, rng)
-        if region is None or not _repair_k(n, k, answer, cats, region, rng):
+        # growth is cheap and a placement is not, so a stranded growth tries
+        # again on the same placement before the seed draws a new one
+        region = next((g for g in (_grow_k(n, k, cats, rng) for _ in range(GROWTHS)) if g), None)
+        try:
+            if region is None or not _repair_k(n, k, answer, cats, region, rng):
+                continue
+        except solve.Budget:
             continue
         regions = _canonical(region)
         if solve.count_k(n, k, regions, limit=2) == 1:  # checked again, as handed out

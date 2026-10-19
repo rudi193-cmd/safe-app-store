@@ -40,13 +40,13 @@ class TestCatgridIsAGameSession(unittest.TestCase):
         self.assertIsInstance(CatgridSession(), GameSession)
 
     def test_registered(self):
-        for name, (n, k) in (("catgrid", (6, 1)), ("catgrid_2cat", (8, 2)), ("catgrid_3cat", (12, 3))):
+        for name, (n, k) in (("catgrid", (6, 1)), ("catgrid_2cat", (9, 2)), ("catgrid_3cat", (13, 3))):
             s = registry.make(name)
             self.assertIsInstance(s, CatgridSession)
             self.assertEqual((s.n, s.k), (n, k))
 
     def test_the_levels_play_to_terminal(self):
-        for n, k in ((8, 2), (12, 3)):
+        for n, k in ((9, 2), (13, 3)):
             s = CatgridSession(n=n, k=k, bank=BANK, words=WORDS)
             trace = play(1, s)
             self.assertEqual(trace[0]["k"], k)
