@@ -28,7 +28,9 @@ from catgrid.play import Game, Refused
 ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / "tools" / "diff_runner.js"
 NODE = shutil.which("node") or ("/opt/node22/bin/node" if os.path.exists("/opt/node22/bin/node") else None)
-BANK = [{"id": f"t:{i}", "question": f"Q{i}?", "answer": f"A{i}."} for i in range(7)]
+BANK = [{"id": f"t:{i}", "question": f"Q{i}?", "answer": f"A{i}.",
+         **({"source": f"Jeles, verified: public record: P{i}"} if i % 2 else {})}
+        for i in range(7)]  # labelled and unlabelled rows, so both engines' labels are compared
 WORDS = ["Filed.", "Sieve", "Gerald"]
 JUNK = [("cat", "Z99"), ("cat",), ("x", 5), ("stroke", "A1"), ("answer", "E"), ("answer", "A"),
         ("trivia",), ("hint",)]

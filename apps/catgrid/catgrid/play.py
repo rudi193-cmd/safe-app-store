@@ -212,7 +212,7 @@ class Game:
             "trivia": (
                 {"state": "unavailable", "why": self.bank_why} if not self.bank
                 else {"state": "waiting", "question": q["question"],
-                      "options": dict(q["options"]), "source": trivia.SOURCE} if q
+                      "options": dict(q["options"]), "source": q["source"]} if q
                 else {"state": "available", "source": trivia.SOURCE}
             ),
             "napkins": (

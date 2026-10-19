@@ -417,7 +417,8 @@ function addresses(n) {
 
 /* ── trivia.ask and eggs.hide ───────────────────────────────────────────────── */
 var LABELS = ["A", "B", "C", "D"];
-var SOURCE = "Jeles, sourced, not yet human-checked";
+var SOURCE = "Jeles, verified entries only";
+var UNLABELLED = "Jeles, no verification label";
 function ask(bank, seed, k) {
   var rng = new Rng((Math.imul(seed, 1000003) + 7919 * (k + 1)) >>> 0);
   var pick = bank[rng.below(bank.length)];
@@ -430,7 +431,8 @@ function ask(bank, seed, k) {
   var options = rng.shuffled([pick.answer].concat(wrong));
   var opts = {};
   LABELS.forEach(function (l, i) { opts[l] = options[i]; });
-  return { id: pick.id, question: pick.question, options: opts, right: LABELS[options.indexOf(pick.answer)] };
+  return { id: pick.id, question: pick.question, options: opts, right: LABELS[options.indexOf(pick.answer)],
+    source: pick.source === undefined ? UNLABELLED : pick.source };
 }
 var ODDS = 3;
 function hide(seed, words, empties) {
@@ -586,7 +588,7 @@ Game.prototype.state = function () {
     cells: Object.assign({}, this.cells), hearts: this.hearts, status: this.status,
     hints: { free: this.hints.free, earned: this.hints.earned },
     trivia: !this.bank.length ? { state: "unavailable", why: this.bankWhy }
-      : q ? { state: "waiting", question: q.question, options: Object.assign({}, q.options), source: SOURCE }
+      : q ? { state: "waiting", question: q.question, options: Object.assign({}, q.options), source: q.source }
         : { state: "available", source: SOURCE },
     napkins: this.wordsWhy ? { state: "unavailable", why: this.wordsWhy }
       : this.found.length ? { state: "found", found: this.found.map(function (f) { return { cell: f.cell, word: f.word }; }) }

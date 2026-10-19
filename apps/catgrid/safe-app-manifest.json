@@ -27,10 +27,18 @@
     }
   ],
   "permissions": [],
-  "store_scope": ["catgrid_games", "catgrid_napkins", "catgrid_trivia"],
+  "store_scope": [
+    "catgrid_games",
+    "catgrid_napkins",
+    "catgrid_trivia",
+    "ask_jeles_corpus"
+  ],
   "privacy_tier": "client_only",
   "local_processing": 1.0,
-  "network": "none. Stdlib only, no sockets; trivia and napkin words are read from files beside it.",
+  "network": "none. Stdlib only, no sockets; trivia is read from Jeles's SOIL collection through the injected seam, napkin words from a file beside it.",
   "entry_point": "catgrid/play.py",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "notes": {
+    "ask_jeles_corpus": "Read only (no store_write): Jeles's served rows, through storage_backend.list_records. catgrid writes only its own three collections (catgrid/soil.py's lane wall)."
+  }
 }

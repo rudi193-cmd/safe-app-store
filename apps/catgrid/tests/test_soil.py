@@ -41,7 +41,10 @@ def played():
 class TestTheLane(unittest.TestCase):
     def test_every_collection_is_inside_the_manifests_store_scope(self):
         scope = json.loads(MANIFEST.read_text())["store_scope"]
-        self.assertEqual(sorted(scope), sorted(soil.COLLECTIONS))
+        # the three it writes, and Jeles's, which it only reads (trivia.COLLECTION)
+        from catgrid import trivia
+
+        self.assertEqual(sorted(scope), sorted([*soil.COLLECTIONS, trivia.COLLECTION]))
         b = Backend()
         soil.write(played(), b)
         self.assertTrue({c for c, _ in b.rows} <= set(scope))

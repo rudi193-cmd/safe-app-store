@@ -72,7 +72,8 @@ class TestTrivia(Base):
         q = self.g.state()["trivia"]
         self.assertEqual((q["state"], len(q["options"])), ("waiting", 4))
         self.assertIn(q["question"], {b["question"] for b in BANK})
-        self.assertEqual(q["source"], trivia.SOURCE)
+        row = next(b for b in BANK if b["question"] == q["question"])
+        self.assertEqual(q["source"], row.get("source", trivia.UNLABELLED))
 
     def test_R10_one_question_at_a_time(self):
         self.g.step(("trivia",))
@@ -160,15 +161,6 @@ class TestNapkins(unittest.TestCase):
 
 
 class TestTheRealSources(unittest.TestCase):
-    def test_jeles_corpus(self):
-        bank, why = trivia.load_jeles()
-        if not bank:
-            self.skipTest(why)
-        self.assertGreater(len(bank), 100)
-        self.assertTrue(all(b["question"].endswith("?") for b in bank))
-        q = trivia.ask(bank, 1, 0)
-        self.assertEqual(len(set(q["options"].values())), 4)
-
     def test_geralds_napkins(self):
         words, why = eggs.load_napkins()
         if not words:

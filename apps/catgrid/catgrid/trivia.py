@@ -1,13 +1,25 @@
 """Trivia from Jeles: a fixed bank, and a question drawn from the seed.
 
-The bank is Jeles's research corpus (``Jeles/corpus/seed/*.json``), read as it
-stands: every pair whose question ends in "?" and cites at least one source URL.
-Those pairs are Jeles's *asserted* nuggets: machine-proposed and sourced, not
-yet checked by a named human (``Jeles/corpus/README.md``). The view says so.
+The bank is what Jeles serves in the shared SOIL store, read through the
+injected seam (``libs/storage-backend``): ``storage_backend.list_records``
+on ``ask_jeles_corpus``, a collection this app reads and never writes
+(``safe-app-manifest.json``: in ``store_scope``, no ``store_write``).
 
-Nothing here touches the corpus beyond reading it. The bank is sorted and
-hashed, so a game's record names the exact bank it was played against, and a
-replay against a different bank is a different game, said rather than hidden.
+A row joins the bank only when Jeles would let it answer: ``visibility`` is
+``serve`` or ``public``, ``verification_kind`` is ``human`` or ``machine``
+(never ``asserted``, never missing), its question ends in "?", and it cites a
+source. Each question carries its own label from its row: its ``status`` and
+who ``verified_by`` credits (``"public record: NASA, Encyclopaedia
+Britannica"``), so the view says what Jeles says about that one question, not
+one line for the whole bank. (Before Jeles 40456f1 every row was
+``internal``; a store seeded before it is re-tiered by ``jeles-seed``.)
+
+With no seam installed, no backend configured, or too few rows that can
+answer, there is no bank, the game says why, and the board plays the same.
+
+Nothing here writes to Jeles. The bank is sorted and hashed, so a game's
+record names the exact bank it was played against, and a replay against a
+different bank is a different game, said rather than hidden.
 
 A question is ``ask(bank, seed, k)``: the k-th question of a board, drawn from
 the seed, with the right answer and three others from the bank shuffled into
@@ -17,22 +29,22 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
-from pathlib import Path
 
 from .rng import Rng
 
 LABELS = ("A", "B", "C", "D")
-SOURCE = "Jeles, sourced, not yet human-checked"
+#: Jeles's collection in the shared SOIL store; read, never written.
+COLLECTION = "ask_jeles_corpus"
+#: Rows that can answer (willow-mcp's serve tier and below) and the kinds that
+#: are verified. ``asserted`` research is never a trivia answer.
+VISIBLE = ("serve", "public")
+ANSWERING = ("human", "machine")
+#: Said for the bank as a whole while no question is waiting.
+SOURCE = "Jeles, verified entries only"
+#: A row with no verification label of its own (hand-built banks in tests).
+UNLABELLED = "Jeles, no verification label"
 #: Option text is the answer's first sentence, cut at this many characters.
 OPTION_CHARS = 160
-
-
-def default_root() -> Path:
-    """``$CATGRID_JELES``, else the Jeles checkout beside safe-app-store."""
-    if os.environ.get("CATGRID_JELES"):
-        return Path(os.environ["CATGRID_JELES"]).expanduser()
-    return Path(__file__).resolve().parents[4] / "Jeles"
 
 
 def _first_sentence(text: str) -> str:
@@ -44,31 +56,52 @@ def _first_sentence(text: str) -> str:
     return text if len(text) <= OPTION_CHARS else text[: OPTION_CHARS - 1].rstrip() + "…"
 
 
-def load_jeles(root: Path | None = None) -> tuple[list, str]:
-    """(bank, why): the bank, or [] and why when Jeles can't be read."""
-    seed_dir = (root or default_root()) / "corpus" / "seed"
-    if not seed_dir.is_dir():
-        return [], f"no Jeles corpus at {seed_dir.name}/ (set CATGRID_JELES)"
-    bank = []
-    for f in sorted(seed_dir.glob("*.json")):
+def answers(row: dict) -> bool:
+    """Whether a Jeles row may be a trivia answer."""
+    q, a, src = row.get("question"), row.get("answer"), row.get("sources")
+    return (row.get("visibility") in VISIBLE
+            and row.get("verification_kind") in ANSWERING
+            and isinstance(q, str) and q.strip().endswith("?")
+            and isinstance(a, str) and bool(a.strip())
+            and isinstance(src, list) and any(str(x).strip() for x in src))
+
+
+def label(row: dict) -> str:
+    """What Jeles says about this one row: ``Jeles, verified: public record: NASA``."""
+    status = str(row.get("status") or row.get("verification_kind"))
+    by = str(row.get("verified_by") or "").strip()
+    return f"Jeles, {status}: {by}" if by else f"Jeles, {status}"
+
+
+def _row_id(row: dict) -> str:
+    for key in ("id", "_id", "record_id", "nugget_id"):
+        if isinstance(row.get(key), str) and row[key]:
+            return row[key]
+    return "q" + hashlib.sha256(row["question"].strip().encode()).hexdigest()[:10]
+
+
+def load_jeles(backend=None) -> tuple[list, str]:
+    """(bank, why): the answering rows of ``ask_jeles_corpus``, or [] and why.
+    ``backend`` is anything with ``list(collection)``; else the seam's own."""
+    if backend is None:
         try:
-            data = json.loads(f.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            continue
-        if not isinstance(data, dict):
-            continue
-        cited = {
-            ev.get("pair_source")
-            for ev in data.get("evidence", [])
-            if isinstance(ev, dict) and str(ev.get("locator", "")).startswith(("http://", "https://"))
-        }
-        for i, p in enumerate(data.get("pairs", [])):
-            q, a = p.get("source_text", ""), p.get("target_text", "")
-            if isinstance(q, str) and q.strip().endswith("?") and a and q in cited:
-                bank.append({"id": f"{f.stem}:{i}", "question": q.strip(),
-                             "answer": _first_sentence(a)})
-    if len(bank) < len(LABELS):
-        return [], "the Jeles corpus has too few sourced questions"
+            import storage_backend as seam  # type: ignore[import-not-found]
+        except ImportError:
+            return [], "the storage seam isn't installed, so Jeles can't be read"
+        if not seam.available():
+            return [], "no SOIL backend configured, so Jeles can't be read"
+        read = seam.list_records
+    else:
+        read = backend.list
+    try:
+        rows = read(COLLECTION)
+    except Exception as e:  # a store that fails is said, never guessed past
+        return [], f"Jeles could not be read: {type(e).__name__}: {e}"
+    bank = [{"id": _row_id(r), "question": r["question"].strip(),
+             "answer": _first_sentence(r["answer"]), "source": label(r)}
+            for r in rows if isinstance(r, dict) and answers(r)]
+    if len({b["answer"] for b in bank}) < len(LABELS):
+        return [], f"Jeles serves too few verified questions ({len(bank)})"
     return sorted(bank, key=lambda b: b["id"]), ""
 
 
@@ -94,4 +127,5 @@ def ask(bank: list, seed: int, k: int) -> dict:
         "question": pick["question"],
         "options": dict(zip(LABELS, options)),
         "right": LABELS[options.index(pick["answer"])],
+        "source": pick.get("source", UNLABELLED),
     }

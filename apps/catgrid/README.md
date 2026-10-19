@@ -120,9 +120,14 @@ module and each has a test; on the table it is `catgrid_duel` (6x6).
 
 ## Trivia and napkins
 
-- **Trivia** is Jeles's research corpus (`Jeles/corpus/seed`, or `$CATGRID_JELES`):
-  every question that cites a source URL. These are Jeles's *asserted* nuggets,
-  sourced but not yet checked by a named human, and the view says so.
+- **Trivia** is what Jeles serves in the shared SOIL store: `ask_jeles_corpus`,
+  read through the storage seam (in `store_scope`, never written). A row joins
+  the bank only when Jeles lets it answer: `visibility` `serve` or `public`,
+  `verification_kind` `human` or `machine` (never `asserted`), a question, and
+  a source. Each question shows its own label, e.g. "Jeles, verified: public
+  record: NASA". Rows are served at that tier from Jeles PR #98 on; a store
+  seeded before it is re-tiered by `jeles-seed`. No seam, no backend, or too
+  few rows: no trivia, and the view says why.
 - **Napkins** are Gerald's napkin words (`apps/UTETY-Reddit-Bots/gerald-bot/src/data/napkins.json`,
   or `$CATGRID_NAPKINS`). About one board in three hides one under a cell with no cat.
 - Either missing is `unavailable`, with why, in the view; the board plays the same.
@@ -150,7 +155,7 @@ into the same tamper-evident ledger.
 | xorshift32 and why it is specified | `apps/bureau/bureau/rng.py` (ported; `tests/test_rng.py` compares every draw) |
 | Cell addresses | willows-grove `templates/cross-table/README.md` |
 | The game shape and its guard tests | `apps/the-table` |
-| Trivia | Jeles `corpus/seed` |
+| Trivia | Jeles, `ask_jeles_corpus` in SOIL |
 | Easter eggs | Gerald's napkins, `apps/UTETY-Reddit-Bots/gerald-bot` |
 | The lane | `libs/storage-backend`, willow-mcp's `store_scope` gate |
 
