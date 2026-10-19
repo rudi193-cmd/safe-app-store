@@ -286,6 +286,38 @@ jobs:
             exit 1
           fi
 
+  # catgrid's browser port, on bureau-differential's pattern and for its
+  # reason: the matrix leg skips the differential without node and exits 0, so
+  # this job runs it with node and fails if anything skipped.
+  catgrid-differential:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      - name: Differential against the Python core
+        working-directory: apps/catgrid
+        run: |
+          set -eo pipefail
+          node --version
+          python -m pip install --upgrade pip >/dev/null
+          pip install pytest
+          python -m pytest tests/test_differential.py tests/test_web.py -q -rs | tee "$RUNNER_TEMP/catgrid-diff.txt"
+          if grep -qi "skipped" "$RUNNER_TEMP/catgrid-diff.txt"; then
+            echo "::error::the differential skipped in the job that exists to run it"
+            exit 1
+          fi
+
   # game-lab ships reference simulators, not a pytest suite, so it is not in
   # the app-tests matrix (that matrix runs `pytest tests/` and game-lab has no
   # tests/ dir — adding it there would be a leg that errors on a missing

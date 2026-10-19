@@ -629,7 +629,8 @@
       "path": "apps/catgrid",
       "tier": "playground",
       "majors": [
-        "python"
+        "python",
+        "node"
       ],
       "tags": [
         "game",
