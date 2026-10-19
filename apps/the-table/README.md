@@ -118,7 +118,7 @@ real `run_session` + a real `LedgerSink`, asserting `sink.verify()` is
 `the_table/registry.py` is the piece that makes "the GM runs them all"
 literal: a small `name -> zero-arg GameSession factory` registry —
 `register(name, factory, *, description="")`, `make(name)`, `games()`,
-`describe(name)` — with the seven built-ins (`"bureau"`, `"catgrid"`, `"catgrid_2cat"`, `"catgrid_3cat"`, `"catgrid_duel"`, `"crazy_eights"`,
+`describe(name)` — with the nine built-ins (`"bureau"`, `"catgrid"`, `"catgrid_2cat"`, `"catgrid_3cat"`, `"catgrid_duel"`, `"crazy_eights"`, `"hearts"`, `"liars_dice"`,
 `"scene"`) registered at import time. A factory always returns a FRESH
 session (`SceneSession`'s `beats=6` constructor arg is bound in its
 registered lambda, so the registry surface itself stays argument-free);
@@ -176,6 +176,20 @@ returns, `make()` + the real `run_session` + a real `LedgerSink` reaches
 terminal and verifies — plus coverage of `games()`'s stable ordering,
 `make()`'s freshness (a distinct object every call), and `register()`'s
 duplicate-name / non-callable-factory rejection.
+
+## Hearts and Liar's Dice (from game-lab)
+
+Two kinds of game the table didn't have, on game-lab's own rules through the
+same one-directory shim as Crazy Eights:
+
+| Game | Kind | Reused from `apps/game-lab/sims` | Restated here, and its check |
+|---|---|---|---|
+| `hearts` | trick-taking, 4 seats, one hand with a pass left | `legal_plays`, `card_points`, `make_deck`, `pass_direction`, `target_seat` | the trick winner and shooting the moon: 40 deals played by game-lab's "john" policy score the same here as in its `play_hand` |
+| `liars_dice` | dice bluffing, 4 seats, hidden cups, ones wild | `count_face`, `bids_above`, `NUM_PLAYERS`, `DICE_PER_PLAYER`, `ROUND_CAP` | the round loop (who loses a die, who opens next); cups rolled from the session's own seeded rng |
+
+Each seat sees its own hand or cup only; a Liar's Dice challenge lifts every
+cup for everyone. Both are in the registry, so the proof and the baseline play
+them like every other game.
 
 ## The locked door (a puzzle beat)
 

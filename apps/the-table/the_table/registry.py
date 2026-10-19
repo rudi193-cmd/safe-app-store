@@ -31,6 +31,8 @@ from .catgrid_adapter import CatgridDuelSession, CatgridSession
 from .crazy_eights_adapter import CrazyEightsSession
 from .game_engine_adapter import SceneSession
 from .game_session import GameSession
+from .hearts_adapter import HeartsSession
+from .liars_dice_adapter import LiarsDiceSession
 
 Factory = Callable[[], GameSession]
 
@@ -109,6 +111,16 @@ register(
     "crazy_eights",
     CrazyEightsSession,
     description="4-seat card game with hidden info (game-lab's Crazy Eights rules)",
+)
+register(
+    "hearts",
+    HeartsSession,
+    description="4-seat trick-taking, one hand with a pass left (game-lab's Hearts rules)",
+)
+register(
+    "liars_dice",
+    LiarsDiceSession,
+    description="4-seat dice bluffing, hidden cups, ones wild (game-lab's Liar's Dice rules)",
 )
 register(
     "scene",
