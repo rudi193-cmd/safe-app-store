@@ -16,6 +16,8 @@ from the_table import catgrid_adapter  # noqa: F401  (its path shim puts catgrid
 from the_table.story_session import DOOR_HEARTS, StorySession, door_seed
 from the_table.worlds import WorldError, available_worlds, load_world
 
+from ._seal import human_seal
+
 # Not in worlds/: the worlds index is pinned by a frozen, dated record
 # (tests/fixtures/foreshadow-2026-10-16-exact.json, test_peaks), so a campaign
 # with a door lives beside it, in campaigns/, and is played by path.
@@ -114,7 +116,7 @@ class TestHowTheDoorEnds(Door):
         self.s.step(0, ("grid", "cat", self.wrong()))
         obs = self.solve()
         self.assertIn("grudgingly", " ".join(obs.narration))
-        self.s.seal(self.s.pending_seal()["fact_id"], "Some Human")
+        human_seal(self.s)
         self.assertEqual(self.door().hearts, DOOR_HEARTS - 1)
         self.assertEqual(self.s.observe(0).view["carry"]["hearts"], DOOR_HEARTS - 1)
 
@@ -122,7 +124,7 @@ class TestHowTheDoorEnds(Door):
         obs = self.lose()
         self.assertIn("tiles go dark", " ".join(obs.narration))
         self.assertEqual(obs.view["scene_id"], "s2")
-        self.s.seal(self.s.pending_seal()["fact_id"], "Some Human")
+        human_seal(self.s)
         self.assertEqual(self.door().hearts, 1)
 
     def test_an_earned_hint_carries_and_the_free_one_is_each_boards(self):
@@ -132,14 +134,14 @@ class TestHowTheDoorEnds(Door):
         self.s.step(0, ("grid", "answer", right))
         self.assertEqual(self.door().hints, {"free": 0, "earned": 1})
         self.solve()
-        self.s.seal(self.s.pending_seal()["fact_id"], "Some Human")
+        human_seal(self.s)
         self.assertEqual(self.door().hints, {"free": 1, "earned": 1})
 
     def test_the_decision_between_doors_still_blocks(self):
         self.solve()
         self.assertEqual(self.s.legal_moves(0), [])
         self.assertIsNone(self.door())
-        self.s.seal(self.s.pending_seal()["fact_id"], "Some Human")
+        human_seal(self.s)
         self.assertIsNotNone(self.door())
 
 
@@ -164,7 +166,7 @@ class TestTheCampaign(unittest.TestCase):
                     break
                 pending = game.pending_seal()
                 if pending is not None:
-                    game.seal(pending["fact_id"], "Some Human")
+                    human_seal(game)
                     sink.snapshot({"seal": pending["fact_id"], "by": "Some Human"})
                     continue
                 move = game.legal_moves(0)[0]

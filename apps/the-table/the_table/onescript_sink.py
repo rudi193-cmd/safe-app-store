@@ -20,15 +20,15 @@ verdict row is code's record of what happened. It is never a seal (R10, the A5 c
 
 A decision beat is NOT stepped and NOT sealed here. ``decision`` writes a
 ``decision`` verdict row and hands the beat, with its world id, to
-``propose`` (one-script's ``table.propose_beat``): a proposal the human seals
-with their proof. ``apply_beat_seal`` calls ``StorySession.seal`` only after
+``propose`` (one-script's ``table.propose_beat``): a proposal the human seals,
+or rejects, with their proof. ``apply_beat_seal`` hands ``StorySession.seal``
 the ``check`` the sink was built with (one-script's ``table.beat_seal``, fixed
-at construction, beside ``write``) says a seal row over that proposal
-re-checks AND that the sealed proposal is this beat: its path is this world's
-fact path and its data this beat's fact (B2), so a seal over another beat or
-another world's ``s1::b3`` moves nothing. The name check in
-``StorySession.seal`` is a second gate behind that one, never the first
-(SPEC-rival §3 row 7).
+at construction, beside ``write``); the session moves only when it says a
+seal (or the human's rejection) over that proposal re-checks AND that the
+sealed proposal is this beat: its path is this world's fact path and its data
+this beat's fact (B2), so a seal over another beat or another world's
+``s1::b3`` moves nothing. That is the only gate; the name list behind it
+retired with flatten F3 (SPEC-rival §3 row 7).
 
 The ``open`` row names the world and a hash of its stat sheets
 (``peaks.world_key``), and the forecast it plays for, so one-script can
@@ -40,6 +40,7 @@ from collections.abc import Callable
 from typing import Any
 
 from .peaks import bucket, world_inputs, world_key
+from .seal import BeatNotSealed, beat_path  # noqa: F401  (re-exported: the sink's callers catch it here)
 from .stream import StreamRandom
 
 Writer = Callable[[dict], dict]
@@ -48,10 +49,6 @@ Checker = Callable[[str], dict]
 
 class SinkRefused(RuntimeError):
     """one-script refused a row; the sink never carries on past a refusal."""
-
-
-class BeatNotSealed(RuntimeError):
-    """The human's seal over a decision beat's proposal does not re-check."""
 
 
 def _seed_id(seed: Any) -> str | None:
@@ -226,36 +223,18 @@ class OneScriptSink:
         return dict(pending)
 
     def apply_beat_seal(self, session: Any, pending: dict, subject: str) -> dict:
-        """Advance past a decision beat only on a seal one-script re-checks,
-        over THIS beat. The checker is the one the sink was built with; it is
-        asked about ``subject`` here. Refused (``BeatNotSealed``, and
-        ``pending_seal()`` stays set) unless it answers ``sealed`` and the
-        sealed proposal's path is this world's path for ``pending['fact_id']``
-        and its data is this beat's fact (B2). ``by`` is the verifier's name
-        for a Nestor pair, else "human"; ``StorySession.seal``'s own name
-        check still runs behind it."""
+        """Advance past a decision beat only on the human's answer one-script
+        re-checks, over THIS beat: ``session.seal`` with the checker this sink
+        was built with (one-script's ``table.beat_seal``, fixed at
+        construction, beside ``write``). Refused (``BeatNotSealed``, and
+        ``pending_seal()`` stays set) unless it answers ``sealed`` or
+        ``rejected`` and the sealed proposal's path is this world's path for
+        ``pending['fact_id']`` and its data this beat's fact (B2). The check is
+        ``seal.verdict_of``, the one the session runs; there is no second,
+        name-based gate behind it (flatten F3)."""
         if self._check is None:
             raise BeatNotSealed("this sink was built with no seal checker")
-        sealed = self._check(subject)
-        state = sealed.get("state") if isinstance(sealed, dict) else None
-        if state != "sealed":
-            why = sealed.get("why", "") if isinstance(sealed, dict) else repr(sealed)
-            raise BeatNotSealed(
-                f"the beat {pending.get('fact_id')!r} is not sealed by a proof that "
-                f"re-checks: {state!r} {why}".strip())
-        want = beat_path(self._with_world(pending))
-        if sealed.get("path") != want or sealed.get("data") != pending.get("fact"):
-            raise BeatNotSealed(
-                f"the seal is over {sealed.get('path')!r}, not this beat ({want!r})")
-        session.seal(pending["fact_id"], by=sealed.get("by") or "human")
-        return sealed
-
-
-def beat_path(pending: dict) -> str:
-    """Where one-script writes a sealed beat: ``world/<world id>/<fact id>.md``
-    (one-script's ``table.beat_path``, restated here: the-table never imports
-    onescript)."""
-    return f"world/{pending.get('world')}/{pending['fact_id']}.md"
+        return session.seal(pending["fact_id"], subject, check=self._check)
 
 
 def play_to_decision(session: Any, policy: Callable, sink: Any, *, seed: Any,

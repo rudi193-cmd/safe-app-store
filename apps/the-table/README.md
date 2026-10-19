@@ -134,7 +134,11 @@ no plugin discovery, no config files.
 checked in on willows-grove's law, its `desk` and `table` keys made fresh
 beside the box (never inside, never a human key), verified with the
 one-script's own `verify_chain` and `verify_anchor`. A decision beat is a
-proposal the human seals with their own key; code never seals.
+proposal the human seals, or rejects, with their own key (flatten F3:
+`onescript seal proposal:<hash> --proof …`, or `reject:proposal:<hash>`);
+`StorySession.seal(fact_id, subject)` moves only when the one-script's
+`table.beat_seal` re-checks that answer over this beat (`the_table/seal.py`),
+and there is no name list behind it. Code never seals.
 `the_table/ledger_sink.py` is a tombstone (flatten F2): it wrote the second
 chain, an `ai-game-master` campaign box; it stays only because frozen
 experiment records import it.

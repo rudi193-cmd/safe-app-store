@@ -1,7 +1,7 @@
 """Drives StorySession as a GameSession, end to end -- the FOURTH adapter,
 and the first that adds a new mechanic to the protocol rather than a new
 engine underneath it: a decision beat proposes a fact and HALTS until a
-named human seals it. Uses the real ``worlds/hasbeen.json`` (authored by a
+human seals it. Uses the real ``worlds/hasbeen.json`` (authored by a
 concurrent agent to the pinned schema) when present, and falls back to a
 tiny fixture world of the identical shape in ``setUp`` otherwise, so this
 suite is never blocked on load order between the two build tasks.
@@ -18,10 +18,13 @@ import unittest
 
 from the_table.game_session import GameSession, Observation, Result
 from the_table.gm import first_legal_policy, random_policy, run_session
-from the_table.story_session import NOT_A_PERSON, StorySession
+from the_table.seal import BeatNotSealed
+from the_table.story_session import StorySession
 from the_table.worlds import (
     WorldError, available_worlds, load_named_world, load_world,
 )
+
+from ._seal import SUBJECT, answer_for, human_seal
 
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 _REAL_WORLD_PATH = os.path.join(_REPO_ROOT, "apps", "the-table", "worlds", "hasbeen.json")
@@ -166,11 +169,11 @@ class TestStorySessionIsAGameSession(_WorldFixtureMixin, unittest.TestCase):
 
 class TestStorySessionFullPlaythrough(_WorldFixtureMixin, unittest.TestCase):
     """Drives a full story with a seeded first-legal-move policy for the
-    action beats, sealing every decision beat with a named human as soon as
+    action beats, sealing every decision beat with the human's answer (a stand-in) as soon as
     it blocks, until the story reaches terminal. Asserts a well-formed
     Result at the end."""
 
-    def _play_full(self, seed: int, sealer: str = "Some Human"):
+    def _play_full(self, seed: int):
         session = StorySession(self.world_path)
         obs = session.reset(seed)
         _assert_observation_serializable(self, obs)
@@ -182,7 +185,7 @@ class TestStorySessionFullPlaythrough(_WorldFixtureMixin, unittest.TestCase):
             self.assertLess(steps + seals, cap, f"seed {seed}: story did not terminate")
             pending = session.pending_seal()
             if pending is not None:
-                session.seal(pending["fact_id"], sealer)
+                human_seal(session)
                 seals += 1
                 continue
             seat = session.current_seat()
@@ -215,13 +218,13 @@ class TestStorySessionFullPlaythrough(_WorldFixtureMixin, unittest.TestCase):
         """No attendance/per-person log anywhere in the session's own
         state -- only the sealed-fact record (about the WORLD, not the
         player) and the scored-beat tally."""
-        session, steps, seals = self._play_full(seed=5, sealer="Some Human")
+        session, steps, seals = self._play_full(seed=5)
         for attr in ("_players", "_attendance", "_player_log", "_seat_log"):
             self.assertFalse(hasattr(session, attr), attr)
-        # The only per-seal record kept is (fact_id, by, verdict, reason) --
-        # never a roster of who sat in which seat across the run.
+        # The only per-seal record kept is the fact, the verifier, the verdict
+        # and which seal answered -- never a roster of who sat where.
         for fact_id, record in session._seals.items():
-            self.assertEqual(set(record.keys()), {"fact_id", "by", "verdict", "reason"})
+            self.assertEqual(set(record.keys()), {"fact_id", "by", "verdict", "subject", "seal"})
 
 
 class TestStorySessionDecisionBeatBlocks(_WorldFixtureMixin, unittest.TestCase):
@@ -270,113 +273,103 @@ class TestStorySessionDecisionBeatBlocks(_WorldFixtureMixin, unittest.TestCase):
 
 
 class TestStorySessionSealOnlyAHuman(_WorldFixtureMixin, unittest.TestCase):
-    """Proves the hard constraint: only a named human can seal, and no
-    machine-looking signer name is ever accepted -- REFUSE is the only
-    behavior for those inputs, never a silent auto-seal."""
+    """Proves the hard constraint: a decision beat moves only on the human's
+    answer, read through the one-script's check (flatten F3). A name is not a
+    seal: there is no name list, and no answer but ``sealed`` or ``rejected``
+    over THIS beat moves it. REFUSE is the only behavior otherwise, never a
+    silent auto-seal."""
 
-    def test_seal_by_named_human_unblocks_and_advances(self):
+    def _pending(self, seed=0):
         session = StorySession(self.world_path)
-        _play_to_first_pending_seal(session, seed=0)
+        _play_to_first_pending_seal(session, seed=seed)
         pending = session.pending_seal()
         self.assertIsNotNone(pending)
+        return session, pending
 
-        self.assertFalse(session.is_terminal(), "sanity: story was blocked, not terminal, before sealing")
-        session.seal(pending["fact_id"], "Some Human")
-
-        self.assertIsNone(session.pending_seal(), "sealing must clear the pending decision")
-        # Either the story advanced to a new (non-pending) beat, or it
-        # reached terminal -- either way, it is no longer blocked.
-        self.assertTrue(session.is_terminal() or session.pending_seal() is None)
-        self.assertIn(pending["fact_id"], session._seals)
-        self.assertEqual(session._seals[pending["fact_id"]]["by"], "Some Human")
-        self.assertEqual(session._seals[pending["fact_id"]]["verdict"], "SEALED")
-
-    def test_seal_by_the_machine_is_refused(self):
-        session = StorySession(self.world_path)
-        _play_to_first_pending_seal(session, seed=0)
-        pending = session.pending_seal()
-        self.assertIsNotNone(pending)
-
-        with self.assertRaises(ValueError):
-            session.seal(pending["fact_id"], "the-machine")
+    def _refused(self, session, pending, check, exc=BeatNotSealed):
+        with self.assertRaises(exc):
+            session.seal(pending["fact_id"], SUBJECT, check=check)
         # Refusal must not have advanced or recorded anything.
         self.assertEqual(session.pending_seal(), pending)
         self.assertNotIn(pending["fact_id"], session._seals)
 
-    def test_seal_by_empty_string_is_refused(self):
-        session = StorySession(self.world_path)
+    def test_the_humans_seal_unblocks_and_advances(self):
+        session, pending = self._pending()
+        self.assertFalse(session.is_terminal(), "sanity: story was blocked, not terminal, before sealing")
+        human_seal(session)
+
+        self.assertIsNone(session.pending_seal(), "sealing must clear the pending decision")
+        self.assertTrue(session.is_terminal() or session.pending_seal() is None)
+        rec = session._seals[pending["fact_id"]]
+        self.assertEqual((rec["by"], rec["verdict"], rec["subject"]), ("human", "SEALED", SUBJECT))
+
+    def test_a_name_is_not_a_seal(self):
+        """Forbidden act: the old path, a typed name with no checker."""
+        for name in ("Some Human", "Sean", "the-machine", "claude", ""):
+            with self.subTest(name=name):
+                session, pending = self._pending()
+                with self.assertRaises(BeatNotSealed):
+                    session.seal(pending["fact_id"], name)
+                self.assertEqual(session.pending_seal(), pending)
+
+    def test_an_unsealed_or_unreachable_answer_is_refused(self):
+        for state in ("unsealed", "unreachable", "escalate", None):
+            with self.subTest(state=state):
+                session, pending = self._pending()
+                got = {**answer_for(session), "state": state, "why": "no proof re-checks"}
+                self._refused(session, pending, lambda _s, got=got: got)
+
+    def test_a_label_that_is_not_an_answer_is_refused(self):
+        session, pending = self._pending()
+        self._refused(session, pending, lambda _s: "sealed")
+        self._refused(session, pending, lambda _s: {"who": "human"})
+
+    def test_a_seal_over_another_beat_is_refused(self):
+        session, pending = self._pending()
+        got = {**answer_for(session), "path": "world/x/s9::b9.md"}
+        self._refused(session, pending, lambda _s: got)
+
+    def test_a_seal_over_another_worlds_beat_is_refused(self):
+        session, pending = self._pending()
+        got = answer_for(session)
+        got = {**got, "path": got["path"].replace(f"world/{session.world['id']}/", "world/elsewhere/")}
+        self._refused(session, pending, lambda _s: got)
+
+    def test_a_seal_over_another_fact_is_refused(self):
+        session, pending = self._pending()
+        got = {**answer_for(session), "data": "Something else entirely."}
+        self._refused(session, pending, lambda _s: got)
+
+    def test_the_session_asks_its_own_checker_about_the_subject(self):
+        asked = []
+        session = StorySession(self.world_path, check=lambda s: asked.append(s) or answer_for(session))
         _play_to_first_pending_seal(session, seed=0)
-        pending = session.pending_seal()
-        self.assertIsNotNone(pending)
-
-        with self.assertRaises(ValueError):
-            session.seal(pending["fact_id"], "")
-        self.assertEqual(session.pending_seal(), pending)
-        self.assertNotIn(pending["fact_id"], session._seals)
-
-    def test_every_not_a_person_name_is_refused(self):
-        """Every literal entry in the mirrored NOT_A_PERSON set is refused,
-        one decision beat per name (a fresh session each time, since a
-        refused seal must not have advanced the previous one)."""
-        for bad_name in sorted(NOT_A_PERSON):
-            with self.subTest(bad_name=bad_name):
-                session = StorySession(self.world_path)
-                _play_to_first_pending_seal(session, seed=0)
-                pending = session.pending_seal()
-                self.assertIsNotNone(pending)
-                with self.assertRaises(ValueError):
-                    session.seal(pending["fact_id"], bad_name)
-
-    def test_compound_machine_names_are_also_refused(self):
-        """Not just an exact NOT_A_PERSON entry -- a compound signer id
-        built from one (e.g. 'the-machine', matching the pinned test
-        requirement) is refused too."""
-        for bad_name in ("the-machine", "claude-agent", "AI", "  Machine  ", "Auto-GM"):
-            with self.subTest(bad_name=bad_name):
-                session = StorySession(self.world_path)
-                _play_to_first_pending_seal(session, seed=0)
-                pending = session.pending_seal()
-                self.assertIsNotNone(pending)
-                with self.assertRaises(ValueError):
-                    session.seal(pending["fact_id"], bad_name)
+        session.seal(session.pending_seal()["fact_id"], SUBJECT)
+        self.assertEqual(asked, [SUBJECT])
 
     def test_no_auto_seal_path_exists(self):
         """There is no code path -- not step(), not legal_moves(), not
         reset() -- that seals a decision beat without an explicit seal()
-        call naming a real human. Driving the story purely through
+        call the human's answer backs. Driving the story purely through
         step()/legal_moves() (as any policy, human or machine, would) can
         never clear a pending decision."""
-        session = StorySession(self.world_path)
-        _play_to_first_pending_seal(session, seed=0)
-        pending_before = session.pending_seal()
-        self.assertIsNotNone(pending_before)
-
-        # Exhaust every observable, side-effect-free surface the loop uses.
+        session, pending_before = self._pending()
         seat = session.current_seat()
         session.observe(seat)
         session.legal_moves(seat)
         session.is_terminal()
-        # None of the above may have touched the pending decision.
         self.assertEqual(session.pending_seal(), pending_before)
 
-    def test_rejected_verdict_also_unblocks(self):
-        session = StorySession(self.world_path)
-        _play_to_first_pending_seal(session, seed=0)
-        pending = session.pending_seal()
-        self.assertIsNotNone(pending)
-
-        session.seal(pending["fact_id"], "Some Human", verdict="REJECTED", reason="not credible")
+    def test_the_humans_rejection_also_unblocks(self):
+        session, pending = self._pending()
+        human_seal(session, state="rejected")
         self.assertIsNone(session.pending_seal())
         self.assertEqual(session._seals[pending["fact_id"]]["verdict"], "REJECTED")
-        self.assertEqual(session._seals[pending["fact_id"]]["reason"], "not credible")
 
     def test_seal_wrong_fact_id_is_rejected(self):
-        session = StorySession(self.world_path)
-        _play_to_first_pending_seal(session, seed=0)
-        pending = session.pending_seal()
-        self.assertIsNotNone(pending)
+        session, pending = self._pending()
         with self.assertRaises(ValueError):
-            session.seal("not-the-real-fact-id", "Some Human")
+            session.seal("not-the-real-fact-id", SUBJECT, check=lambda _s: answer_for(session))
 
     def test_seal_with_no_pending_decision_raises(self):
         session = StorySession(self.world_path)
@@ -385,15 +378,7 @@ class TestStorySessionSealOnlyAHuman(_WorldFixtureMixin, unittest.TestCase):
         # hasbeen.json) -- no decision pending yet.
         self.assertIsNone(session.pending_seal())
         with self.assertRaises(RuntimeError):
-            session.seal("whatever", "Some Human")
-
-    def test_seal_invalid_verdict_raises(self):
-        session = StorySession(self.world_path)
-        _play_to_first_pending_seal(session, seed=0)
-        pending = session.pending_seal()
-        self.assertIsNotNone(pending)
-        with self.assertRaises(ValueError):
-            session.seal(pending["fact_id"], "Some Human", verdict="MAYBE")
+            session.seal("whatever", SUBJECT, check=lambda _s: {"state": "sealed"})
 
 
 class TestStorySessionObservationAndMoveJSON(_WorldFixtureMixin, unittest.TestCase):
@@ -406,7 +391,7 @@ class TestStorySessionObservationAndMoveJSON(_WorldFixtureMixin, unittest.TestCa
             pending = session.pending_seal()
             if pending is not None:
                 _assert_json_roundtrip(self, pending, "pending_seal()")
-                session.seal(pending["fact_id"], "Some Human")
+                human_seal(session)
                 continue
             seat = session.current_seat()
             for move in session.legal_moves(seat):
@@ -444,7 +429,7 @@ class TestStorySessionUseBeforeReset(_WorldFixtureMixin, unittest.TestCase):
         with self.assertRaises(RuntimeError):
             session.pending_seal()
         with self.assertRaises(RuntimeError):
-            session.seal("whatever", "Some Human")
+            session.seal("whatever", SUBJECT)
 
 
 class TestStorySessionWrongSeat(_WorldFixtureMixin, unittest.TestCase):
@@ -475,7 +460,7 @@ class TestStorySessionDeterminism(_WorldFixtureMixin, unittest.TestCase):
             while not session.is_terminal():
                 pending = session.pending_seal()
                 if pending is not None:
-                    session.seal(pending["fact_id"], "Some Human")
+                    human_seal(session)
                     continue
                 seat = session.current_seat()
                 move = _first_action_move(session, seat)
@@ -514,9 +499,9 @@ class TestStorySessionLedgerIntegration(_WorldFixtureMixin, unittest.TestCase):
                 while not game.is_terminal():
                     pending = game.pending_seal()
                     if pending is not None:
-                        game.seal(pending["fact_id"], "Some Human")
+                        human_seal(game)
                         sink.snapshot(
-                            {"turn": turns, "seal": pending["fact_id"], "by": "Some Human"},
+                            {"turn": turns, "seal": pending["fact_id"], "by": "human"},
                             note=f"sealed {pending['fact_id']}",
                         )
                         turns += 1
@@ -663,7 +648,7 @@ class TestShippedWorlds(unittest.TestCase):
     story worlds. This suite covers EVERY shipped world under worlds/ -- so a
     newly-registered world (a validated JSON file dropped into worlds/) is
     proven, the moment it lands, to (1) load and validate, (2) play to terminal
-    through StorySession when its decision beats are sealed by a named human,
+    through StorySession when its decision beats are sealed by the human,
     and (3) leave a hash chain that ai-game-master's own verifier accepts.
     Mirrors what test_registry.py guarantees for the game registry, for the
     parallel worlds index.
@@ -685,7 +670,7 @@ class TestShippedWorlds(unittest.TestCase):
 
     def test_every_shipped_world_plays_to_terminal_and_ledger_verifies(self):
         """For every shipped world, drive it through StorySession sealing each
-        decision beat with a named human, and assert it reaches terminal AND
+        decision beat with the human's answer, and assert it reaches terminal AND
         that the ledger the run wrote verifies under ai-game-master's own
         verifier -- the same end-to-end guarantee test_registry.py makes for
         each registered game."""
@@ -705,7 +690,7 @@ class TestShippedWorlds(unittest.TestCase):
                             self.assertLess(turns, cap, f"{name}: did not terminate")
                             pending = game.pending_seal()
                             if pending is not None:
-                                game.seal(pending["fact_id"], "Some Human")
+                                human_seal(game)
                                 sink.snapshot({"seal": pending["fact_id"], "by": "Some Human"},
                                               note=f"sealed {pending['fact_id']}")
                                 turns += 1
@@ -750,3 +735,71 @@ class TestShippedWorlds(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipIf(__import__("the_table.host", fromlist=["reach"]).reach()["state"] != "reachable",
+                 "the one-script is not beside the-table")
+class TestStorySessionSealOnTheRecord(unittest.TestCase):
+    """The real thing (flatten F3): a decision beat proposed into a one-script
+    box, the human's proof made with a throwaway key MADE IN THIS TEST (never
+    a real one), and the one-script's own check -- a seal moves the story
+    SEALED, the human's rejection moves it REJECTED, a name moves nothing."""
+
+    HUMAN_KEY = b"a-throwaway-human-key-for-the-table-f3"
+
+    def setUp(self):
+        import json as _json
+        import shutil
+
+        from the_table import host
+        from the_table.onescript_sink import play_to_decision, suggested_policy
+
+        self.dir = tempfile.mkdtemp(prefix="the-table-f3-")
+        self.addCleanup(shutil.rmtree, self.dir, True)
+        keys = os.path.join(self.dir, "keys")
+        os.mkdir(keys, 0o700)
+        path = os.path.join(keys, "keys.json")
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, "w") as f:
+            _json.dump({"desk": os.urandom(32).hex(), "table": os.urandom(32).hex(),
+                        "human": self.HUMAN_KEY.hex()}, f)
+        self.box = host.Box(self.dir)
+        self.api, self.gate = self.box.os.api, __import__("onescript.gate", fromlist=["sign"])
+        self.session = StorySession(_REAL_WORLD_PATH)
+        self.sink = self.box.sink(game=self.session, game_name="story")
+        self.pending = play_to_decision(self.session, suggested_policy(), self.sink,
+                                        seed=3, session_id="story-f3")
+        self.assertIsNotNone(self.pending, "the real world has a decision beat")
+        self.subject = self.sink.decision(self.pending, self.box.propose)
+
+    def _proof(self, subject):
+        return self.gate.sign(self.HUMAN_KEY, "seal", subject)
+
+    def test_the_humans_seal_on_the_record_moves_the_story_sealed(self):
+        got = self.api.seal_proposal(self.box.cfg, self.subject, proof=self._proof(self.subject))
+        self.assertTrue(got["sealed"], got)
+        self.sink.apply_beat_seal(self.session, self.pending, self.subject)
+        rec = self.session._seals[self.pending["fact_id"]]
+        self.assertEqual((rec["verdict"], rec["by"]), ("SEALED", "human"))
+        self.assertIsNone(self.session.pending_seal())
+
+    def test_the_humans_rejection_on_the_record_moves_the_story_rejected(self):
+        rej = self.api.REJECT + self.subject
+        got = self.api.reject_proposal(self.box.cfg, self.subject, proof=self._proof(rej))
+        self.assertTrue(got["rejected"], got)
+        self.sink.apply_beat_seal(self.session, self.pending, self.subject)
+        self.assertEqual(self.session._seals[self.pending["fact_id"]]["verdict"], "REJECTED")
+
+    def test_a_name_for_a_proof_moves_nothing(self):
+        """Forbidden act: the human's name typed where their proof goes."""
+        got = self.api.seal_proposal(self.box.cfg, self.subject, proof="Sean")
+        self.assertFalse(got["sealed"])
+        with self.assertRaises(BeatNotSealed):
+            self.sink.apply_beat_seal(self.session, self.pending, self.subject)
+        self.assertEqual(self.session.pending_seal(), self.pending)
+
+    def test_a_seal_proof_offered_as_a_rejection_moves_nothing(self):
+        got = self.api.reject_proposal(self.box.cfg, self.subject, proof=self._proof(self.subject))
+        self.assertFalse(got["rejected"])
+        with self.assertRaises(BeatNotSealed):
+            self.sink.apply_beat_seal(self.session, self.pending, self.subject)

@@ -21,6 +21,7 @@ import unittest
 from pathlib import Path
 
 from the_table import game_engine_adapter as gea
+from ._seal import human_seal  # noqa: E402
 from the_table.crazy_eights_adapter import CrazyEightsSession
 from the_table.dice_source import engine_hash, replay_roll, rolled_with
 from the_table.game_engine_adapter import SceneSession
@@ -73,7 +74,7 @@ def _drive_story(s):
     while not s.is_terminal():
         p = s.pending_seal()
         if p is not None:
-            s.seal(p["fact_id"], by="Rudi")
+            human_seal(s, by="Rudi")  # the recorded run's verifier, so its summary reproduces
             continue
         seat = s.current_seat()
         o = s.step(seat, s.legal_moves(seat)[0])

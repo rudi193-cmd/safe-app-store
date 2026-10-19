@@ -11,9 +11,12 @@ ordered list of beats -- and playing it means walking that script.
 THE ONE NEW MECHANIC, and the whole point of this module: a beat can be a
 **decision** -- the machine PROPOSES a fact (``beat["proposes"]``) -- and a
 decision beat is not resolved by rolling dice or picking an approach. It is
-resolved only by ``seal(fact_id, by, ...)``, and ``seal()`` REFUSES unless
-``by`` is a real, named human (checked against ``NOT_A_PERSON`` below). There
-is no other path through a decision beat:
+resolved only by ``seal(fact_id, subject)``, and ``seal()`` REFUSES unless the
+human's answer over the beat's proposal re-checks: ``check(subject)`` -- the
+one-script's ``table.beat_seal``, bound to a box, handed in at construction
+or by the sink -- says ``sealed`` or ``rejected``, over THIS beat
+(``seal.verdict_of``). A name is not a seal; there is no name list here
+(flatten F3). There is no other path through a decision beat:
 
   * ``legal_moves(seat)`` on a decision beat is ``[]`` -- no move exists for
     a policy (random, greedy, or an LLM) to pick that would advance it.
@@ -22,7 +25,7 @@ is no other path through a decision beat:
   * The ONLY code path that advances a decision beat is ``seal()``, and
     ``seal()`` is the ONLY method in this module that mutates past one.
 
-So "the machine may PROPOSE, but it HALTS until a named human SEALS it" is
+So "the machine may PROPOSE, but it HALTS until the human SEALS it" is
 not a policy this module *asks* callers to respect -- it is structural: there
 is no move in the vocabulary that does it, the same way ``registry.py``'s own
 philosophy makes "run every game the same way" structural rather than a
@@ -140,13 +143,13 @@ from __future__ import annotations
 
 import hashlib
 import random
-import re
 from collections.abc import Callable
 from typing import Any, Optional
 
 from .dice_source import roll
 from .game_engine_adapter import _ensure_game_engine_on_path
 from .game_session import Observation, Result
+from .seal import BeatNotSealed, verdict_of
 from .stream import resolve_factory, seed_label
 from .worlds import load_world
 
@@ -160,23 +163,6 @@ from engine_v1_7 import Engine  # noqa: E402  (import after path shim, on purpos
 # identical four pairs for the identical reason).
 _ENGINE_STAT_MAP = {"Grit": "Integrity", "Weird": "Synthesis", "Cute": "Trust", "Cool": "Efficiency"}
 
-# Mirrors apps/ai-game-master/bootstrap/verify_ledger.py's NOT_A_PERSON
-# constant EXACTLY (that file's own header notes it is itself pattern-ported
-# from terpsi-music's records/sealing.py _NOT_A_PERSON -- this is one more
-# link in the same chain, duplicated rather than imported because
-# apps/ai-game-master is off-limits to import from here per this module's
-# scope: the-table is not wired to the vault yet, only mirroring its
-# covenant). ``_is_not_a_person()`` below compares this set
-# case-insensitively and whitespace-stripped, the same way verify_canon() in
-# that file compares ``sealed_by`` -- and additionally tokenizes ``by`` on
-# non-alphanumeric runs so a compound machine-looking id (``the-machine``,
-# ``claude-agent``) is caught too, not just an exact match against one of
-# these bare words.
-NOT_A_PERSON = {
-    "", "system", "machine", "ai", "gm", "dm-bot", "assistant",
-    "claude", "model", "auto", "none", "null",
-}
-
 _BUCKETS = ("strong", "weak", "miss")
 DOOR_HEARTS = 3  # catgrid.play.HEARTS: a campaign's first door starts full
 
@@ -187,30 +173,15 @@ def door_seed(seed: int, fact_id: str) -> int:
     return int.from_bytes(hashlib.sha256(f"{seed}:{fact_id}".encode()).digest()[:4], "big")
 
 
-def _is_not_a_person(by: str) -> bool:
-    """True if ``by`` is empty, or IS (or contains, as a whole token) a
-    ``NOT_A_PERSON`` name -- refusing not just an exact machine id but the
-    compounds a machine-generated signer name tends to take (``the-machine``,
-    ``ai-bot``, ``claude-agent``). Case-insensitive, whitespace-stripped,
-    tokenized on runs of non-alphanumeric characters (``-``, ``_``, spaces)
-    the same way a signer id would naturally be word-split. A real person's
-    name is vanishingly unlikely to collide with one of these short,
-    deliberately machine-flavored tokens; a person named exactly one of them
-    is refused here too and must sign under a fuller name -- the fleet
-    covenant this mirrors treats that as the correct, conservative default,
-    not a false positive worth relaxing the check for."""
-    who = (by or "").strip().lower()
-    if who in NOT_A_PERSON:
-        return True
-    tokens = [t for t in re.split(r"[^a-z0-9]+", who) if t]
-    return any(t in NOT_A_PERSON for t in tokens)
-
-
 class StorySession:
     """``GameSession`` over an authored world, plus the propose/seal seam."""
 
     def __init__(self, world_path, rng_factory: Callable | None = None, *,
-                 door_bank: list | None = None, door_words: list | None = None) -> None:
+                 door_bank: list | None = None, door_words: list | None = None,
+                 check: Callable[[str], dict] | None = None) -> None:
+        # F3: the human's answer over a beat's proposal -- one-script's
+        # table.beat_seal bound to a box. None: nothing can seal here.
+        self._check = check
         # J2/R6/R7 (C9): the DEFAULT is the SHA-256 stream, one per session,
         # swapped in for exactly one Engine.roll at a time. ``rng_factory=LEGACY``
         # keeps the old global ``random`` (to reproduce a recorded legacy run).
@@ -312,7 +283,7 @@ class StorySession:
         if beat["kind"] == "decision":
             raise RuntimeError(
                 f"step() called on a decision beat ({beat['id']!r}) -- nothing to "
-                f"step; only seal(fact_id, by=<a named human>) can advance past it"
+                f"step; only seal(fact_id, subject), on the human's answer through the one-script, can advance past it"
             )
 
         if self._door is not None:
@@ -455,33 +426,30 @@ class StorySession:
             "prompt": beat["prompt"],
         }
 
-    def seal(self, fact_id: str, by: str, verdict: str = "SEALED", reason: str = "") -> None:
-        """The ONLY way past a decision beat. Refuses unless ``by`` is a
-        real, named human -- no code path in this module may auto-seal.
+    def seal(self, fact_id: str, subject: str, *,
+             check: Callable[[str], dict] | None = None) -> dict:
+        """The ONLY way past a decision beat: the human's answer over the
+        beat's proposal ``subject``, read through ``check`` (the one handed
+        in here, else the one this session was built with). Returns the
+        answer.
 
-        Raises ``ValueError`` if ``verdict`` is not ``SEALED``/``REJECTED``,
-        or if ``by`` is empty or matches ``NOT_A_PERSON`` (case-insensitive,
-        stripped) -- checked BEFORE looking at story state, so an invalid
-        human is refused unconditionally, not only when a fact happens to be
-        pending. Raises ``RuntimeError`` if no decision is currently
-        pending, and ``ValueError`` if ``fact_id`` does not match the one
-        currently pending (this module tracks exactly one pending fact at a
-        time -- the current beat's). On a valid seal (accept OR reject),
-        records it and advances past the decision beat -- a human decided,
-        either way, and that is what unblocks play.
+        Raises ``BeatNotSealed`` with no checker, or unless the answer is
+        ``sealed`` or ``rejected`` over THIS beat (``seal.verdict_of``): a
+        name, an ``unsealed`` or ``unreachable`` answer, or a seal over
+        another beat or another world's, moves nothing. Raises
+        ``RuntimeError`` if no decision is currently pending, and
+        ``ValueError`` if ``fact_id`` does not match the one currently
+        pending (this module tracks exactly one pending fact at a time --
+        the current beat's). On a seal or a rejection, records it and
+        advances past the decision beat -- the human decided, either way,
+        and that is what unblocks play.
         """
         self._require_reset()
-
-        if verdict not in ("SEALED", "REJECTED"):
-            raise ValueError(f"verdict must be 'SEALED' or 'REJECTED', got {verdict!r}")
-
-        who = (by or "").strip()
-        if _is_not_a_person(who):
-            raise ValueError(
-                f"seal() refused: {by!r} is not a named human (matches, or is a "
-                f"compound of, the not-a-person set {sorted(NOT_A_PERSON)!r}) -- "
-                f"only a person may seal a fact"
-            )
+        check = check or self._check
+        if check is None:
+            raise BeatNotSealed(
+                "no seal checker: a beat moves on the human's proof, read through "
+                "the one-script (table.beat_seal), never on a name")
 
         pending = self.pending_seal()
         if pending is None:
@@ -492,10 +460,14 @@ class StorySession:
                 f"{pending['fact_id']!r}"
             )
 
-        self._seals[fact_id] = {"fact_id": fact_id, "by": who, "verdict": verdict, "reason": reason}
+        answer = check(subject)
+        verdict, by = verdict_of(answer, {**pending, "world": str(self.world.get("id"))})
+        self._seals[fact_id] = {"fact_id": fact_id, "by": by, "verdict": verdict,
+                                "subject": subject, "seal": answer.get("seal")}
         self._seal_order.append(fact_id)
         self._advance([])
         self._open_door()
+        return answer
 
     # -- internal ------------------------------------------------------------
 

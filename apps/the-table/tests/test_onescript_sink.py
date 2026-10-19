@@ -200,12 +200,14 @@ def test_B2_a_seal_over_another_beat_or_world_moves_nothing(over):
     assert s.pending_seal() == pending
 
 
-def test_a_machine_name_on_a_verified_seal_is_still_refused_by_the_story():
-    """The story's name check stays as a second gate behind the proof."""
-    s, sink, _, pending = play(check=lambda sub: sealed_answer(pending, by="claude"))
-    with pytest.raises(ValueError):
-        sink.apply_beat_seal(s, pending, SUB)
-    assert s.pending_seal() == pending
+def test_the_proof_is_the_only_gate_and_the_verifier_rides_as_given():
+    """Flatten F3: the name list behind the proof retired. Who verified is the
+    keyring's business (a Nestor pair's verifier), recorded as the one-script
+    answered it; no name, on its own, moves or stops a beat."""
+    s, sink, _, pending = play(check=lambda sub: sealed_answer(pending, by="Nomi Reyes"))
+    sink.apply_beat_seal(s, pending, SUB)
+    assert s._seals[pending["fact_id"]]["by"] == "Nomi Reyes"
+    assert s.pending_seal() is None
 
 
 def test_S2_the_open_row_names_the_world_and_its_sheets():

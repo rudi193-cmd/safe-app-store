@@ -20,7 +20,6 @@ from __future__ import annotations
 import json
 import os
 import random
-import re
 import shutil
 import sys
 
@@ -35,8 +34,6 @@ import dice5e  # noqa: E402  (MIT `dice` library, wrapped)
 WORLD = json.load(open(os.path.join(TABLE, "worlds", "aetheris.json")))
 BEATS = {b["id"]: b for sc in WORLD["scenes"] for b in sc["beats"]}
 
-NOT_A_PERSON = {"", "system", "machine", "ai", "gm", "dm-bot", "assistant",
-                "claude", "model", "auto", "none", "null", "maunder", "kesh"}
 
 # Sena Koll, engine-blooded envoy L3 — the seated PC for this run.
 PC = {"Aether": 5, "Iron": 2, "Tide": 2, "Voice": 5}
@@ -96,23 +93,21 @@ print(f"\n   PROPOSED FACT (by '{b5['proposes']['proposed_by']}'):")
 print(f"   \"{b5['proposes']['fact']}\"")
 
 
-def try_seal(by):
-    who = by.strip().lower()
-    toks = [t for t in re.split(r"[^a-z0-9]+", who) if t]
-    return not (who in NOT_A_PERSON or any(t in NOT_A_PERSON for t in toks))
-
-
-print("\n   — the machine reaches for the pen —")
-for bad in ("Claude", "the-GM", "ai-dungeon-master"):
-    ok = try_seal(bad)
-    print(f"     seal attempt by {bad!r:22s} -> {'ALLOWED' if ok else 'REFUSED (not a named human)'}")
-
-print("\n   — the pen goes to the human at the head of the table —")
+print("\n   — the beat goes on the record as a proposal —")
 subject = sink.decision({"fact_id": "s2::b5", "fact": b5["proposes"]["fact"], "world": "aetheris",
                          "proposed_by": b5["proposes"]["proposed_by"]})
 print(f"     proposed for the human's seal: {subject}")
-print("     the human seals it with their own key, through the one-script:")
+
+print("\n   — the machine reaches for the pen —")
+for bad in ("Claude", "the-GM", "ai-dungeon-master"):
+    got = box.os.api.seal_proposal(box.cfg, subject, proof=bad)  # a name where a proof goes
+    print(f"     seal attempt by {bad!r:22s} -> "
+          f"{'ALLOWED' if got.get('sealed') else 'REFUSED (no proof that re-checks)'}")
+
+print("\n   — the pen goes to the human at the head of the table —")
+print("     they seal it, or reject it, with their own key, through the one-script:")
 print(f"       onescript seal {subject} --proof <their proof>")
+print(f"       onescript seal reject:{subject} --proof <their proof>")
 state = box.beat_seal(subject).get("state")
 print(f"     sealed now? {state}  (code never seals it)")
 
