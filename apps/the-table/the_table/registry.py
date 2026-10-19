@@ -18,7 +18,7 @@ factory is a small lambda that binds it -- the registry itself stays
 argument-free.
 
 Deliberately small: a dict and four functions, nothing more. No plugin
-discovery, no config files, no lazy-import machinery -- the three built-in
+discovery, no config files, no lazy-import machinery -- the four built-in
 games are registered at import time, right here, and that is the entire
 "catalog."
 """
@@ -27,6 +27,7 @@ from __future__ import annotations
 from typing import Callable, Dict
 
 from .bureau_adapter import BureauSession
+from .catgrid_adapter import CatgridSession
 from .crazy_eights_adapter import CrazyEightsSession
 from .game_engine_adapter import SceneSession
 from .game_session import GameSession
@@ -81,6 +82,11 @@ def describe(name: str) -> str:
 # here, in the lambda -- the registry surface itself never takes per-game
 # arguments.
 register("bureau", BureauSession, description="single-seat exploration (bureau)")
+register(
+    "catgrid",
+    lambda: CatgridSession(n=6),
+    description="single-seat seeded logic grid, 6x6: one cat per row, column and region (apps/catgrid)",
+)
 register(
     "crazy_eights",
     CrazyEightsSession,

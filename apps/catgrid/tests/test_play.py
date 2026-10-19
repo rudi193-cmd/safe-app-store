@@ -36,7 +36,8 @@ class TestRules(Base):
             self.refused(move)
 
     def test_a_move_that_isnt_one(self):
-        for move in (("eat", "A1"), ("cat",), "cat A1", None, ("cat", "A1", "B2")):
+        for move in (("eat", "A1"), ("cat",), "cat A1", None, ("cat", "A1", "B2"),
+                     ("cat", ["A1"]), ("hint", "A1"), ("answer",)):
             self.refused(move)
 
     def test_R2_a_right_cat_stays(self):
@@ -98,7 +99,8 @@ class TestWhatThePlayerSees(Base):
     def test_the_answer_is_never_in_the_view(self):
         view = json.dumps(self.g.state())
         self.assertNotIn("solution", view)
-        self.assertEqual(set(self.g.state()), {"n", "regions", "cells", "hearts", "status"})
+        self.assertEqual(set(self.g.state()), {"n", "regions", "cells", "hearts", "status",
+                                               "hints", "trivia", "napkins"})
 
     def test_legal_moves_change_nothing(self):
         before = copy.deepcopy(self.g.state())

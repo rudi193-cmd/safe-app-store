@@ -1,0 +1,3 @@
+# Stdlib only. Python 3.11+.
+# The SOIL seam (libs/storage-backend) is optional and injected; store-ci installs
+# it for every app leg, and with no backend catgrid writes nothing.
