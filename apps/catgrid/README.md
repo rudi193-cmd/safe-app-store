@@ -50,6 +50,27 @@ Not the smallest sizes: 8x8 with 2 cats and 12x12 with 3 each have only 2
 rule-keeping arrangements (mirror images), so every board there shares one of
 two answers; 9x9 has 664 and 13x13 42,732.
 
+## Difficulty, measured
+
+`catgrid/rating.py` reasons over a board the way a player does, without the
+answer: two plain rules (a cat rules out its neighbours and its full lines; a
+line with exactly as many open cells as cats it needs fills them), then a
+look-ahead rule (a cell is out when a cat there, followed through, breaks a
+rule). `tier(board)` names a board `plain`, `ahead` or `beyond` by the least
+reasoning that solves it. `measure(n, k)` also plays each board with a random
+player and a careful one. Over 50 boards a level (`baselines/difficulty-N50.md`):
+
+| Level | Look-ahead solves | Careful player wins | Hearts left |
+|---|---|---|---|
+| 5x5, 6x6, 8x8, 1 cat | 100% | 100% | 3 |
+| 9x9, 2 cats | 50% | 92% | 2.58 |
+| 10x10, 2 cats | 36% | 76% | 2.08 |
+| 13x13, 3 cats | 16% | 60% | 1.44 |
+
+A random player wins none of the 300. The table's baseline
+(`the_table/baseline.py`) counts each catgrid round solved, out of hearts, or
+at the cap.
+
 ## The rules
 
 | # | Rule |

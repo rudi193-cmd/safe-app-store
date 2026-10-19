@@ -89,6 +89,10 @@ def run_baseline(rounds: int = DEFAULT_ROUNDS, cap: int = CAP) -> dict:
                 summaries["enrolled"] = summaries.get("enrolled", 0) + 1
             elif "voided" in res.summary:
                 summaries["voided"] = summaries.get("voided", 0) + 1
+            elif "out of hearts" in res.summary:  # catgrid
+                summaries["out of hearts"] = summaries.get("out of hearts", 0) + 1
+            elif res.summary.startswith("solved"):  # catgrid
+                summaries["solved"] = summaries.get("solved", 0) + 1
             if isinstance(view, dict) and "tally" in view:  # scene exposes a status tally
                 for st, c in view["tally"].items():
                     beat_status[st] = beat_status.get(st, 0) + c

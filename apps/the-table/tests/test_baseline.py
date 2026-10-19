@@ -40,6 +40,15 @@ class TestBaseline(unittest.TestCase):
         self.assertEqual(set(scene["beat_status"]),
                          {"ARCHITECT_ROLL", "SUCCESS_STANDARD", "CHAOS_BURST"})
 
+    def test_catgrid_endings_account_for_every_round(self):
+        # each catgrid round ends solved, out of hearts, or at the cap; none twice
+        data = run_baseline(rounds=20)
+        for name in ("catgrid", "catgrid_2cat", "catgrid_3cat"):
+            rec = data[name]
+            ends = rec.get("endings", {})
+            self.assertLessEqual(set(ends), {"solved", "out of hearts"}, name)
+            self.assertEqual(sum(ends.values()) + rec["unresolved"], rec["rounds"], name)
+
     def test_reproducible(self):
         self.assertEqual(run_baseline(rounds=15), run_baseline(rounds=15))
 
