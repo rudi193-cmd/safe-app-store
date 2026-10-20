@@ -215,12 +215,25 @@ jobs:
 
       # catgrid's daily board takes its seed from the one script's beacon
       # (flatten F-14, F-16): the one script is checked out beside the store.
-      # It reads willow-bot master, so a change that needs both lands there first.
+      # A change that spans repos rides one branch name in each: take
+      # willow-memory/willow-bot's branch of this PR's name when it has one, else main.
+      - name: Which willow-bot
+        id: bot_ref
+        if: matrix.app == 'catgrid'
+        shell: bash
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          if git ls-remote --exit-code --heads https://github.com/willow-memory/willow-bot "$BRANCH" >/dev/null; then
+            echo "ref=$BRANCH" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v7
         if: matrix.app == 'catgrid'
         with:
           repository: willow-memory/willow-bot
-          ref: main
+          ref: ${{ steps.bot_ref.outputs.ref }}
           path: willow-bot
 
       - name: Set up Python
@@ -316,10 +329,23 @@ jobs:
         with:
           node-version: "22"
 
+      # A change that spans repos rides one branch name in each: take
+      # willow-memory/willow-bot's branch of this PR's name when it has one, else main.
+      - name: Which willow-bot
+        id: bot_ref
+        shell: bash
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          if git ls-remote --exit-code --heads https://github.com/willow-memory/willow-bot "$BRANCH" >/dev/null; then
+            echo "ref=$BRANCH" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v7
         with:
           repository: willow-memory/willow-bot
-          ref: main
+          ref: ${{ steps.bot_ref.outputs.ref }}
           path: willow-bot
 
       - name: Differential against the Python core
