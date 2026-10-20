@@ -42,16 +42,23 @@ import random
 import sys
 
 try:
-    from . import host, registry
-    from .gm import GMError, random_policy, run_session
+    from . import host
 except ImportError:
     # Support `python3 the_table/proof.py` (run as a plain script, no
     # enclosing package) in addition to `python3 -m the_table.proof`.
     import os
 
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from the_table import host, registry
+    from the_table import host
+
+# The games' randomness is the one script's (flatten F-14, F-16): with no one
+# script beside, importing them stops here, and main() says why and exits 2.
+try:
+    from the_table import registry
     from the_table.gm import GMError, random_policy, run_session
+    _UNREACHABLE = None
+except host.Unreachable as _e:
+    _UNREACHABLE = _e
 
 SEED = 7  # deterministic: same seed the throwaway smoke / earlier proof used
 MAX_TURNS = 2000  # generous slack over every adapter's own defensive cap
@@ -141,6 +148,9 @@ def _tamper(rows: list) -> list:
 
 
 def main(argv=None) -> int:
+    if _UNREACHABLE is not None:
+        print(f"the one-script is unreachable: {_UNREACHABLE}", file=sys.stderr)
+        return host.UNREACHABLE
     names = registry.games()
     box = host.box_or_exit()
     try:

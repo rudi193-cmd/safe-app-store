@@ -34,16 +34,15 @@ from __future__ import annotations
 import json
 import random
 import re
-import statistics
 import sys
-from collections import Counter
-from fractions import Fraction
 
 from . import registry
-from .peaks import MIDDLE_FLOOR, band_of
+from .host import onescript_module
+from .peaks import MIDDLE_FLOOR
+
+_pools = onescript_module("pools")  # the run's shape, game-free (flatten F-14)
 
 CAP = 5000
-BINS = 12
 #: Fewer rounds where one round is slow: a 13x13 three-cat board takes seconds
 #: to deal and the reasoner's look-ahead seconds a move. Said in the output.
 ROUNDS = {"catgrid_3cat": 40}
@@ -181,37 +180,16 @@ def _round(name, seed, policy):
     return steps, game.is_terminal(), game.result(), leads
 
 
-def _hist(xs):
-    lo, hi = min(xs), max(xs)
-    width = max(1, -(-(hi - lo + 1) // BINS))
-    counts = Counter((x - lo) // width for x in xs)
-    return [{"from": lo + i * width, "to": lo + (i + 1) * width - 1, "n": counts.get(i, 0)}
-            for i in range((hi - lo) // width + 1)]
-
-
 def measure(name, policy, rounds):
-    pools, lengths, cap, agree, read = Counter(), [], 0, 0, 0
+    """Play ``rounds`` seeded rounds of ``name`` under ``policy`` and hand what
+    a seat could see of each to the one script's ``pools.measure``."""
+    rows = []
     for seed in range(rounds):
         steps, terminal, res, leads = _round(name, seed, policy)
-        lengths.append(steps)
-        cap += not terminal
-        pools[ending(name, res, terminal)] += 1
-        mid = leads[len(leads) // 2] if leads else None
-        if mid is not None and res.winners:
-            read += 1
-            agree += mid in res.winners
-    top = max(pools.values())
-    rows = sorted(pools.items(), key=lambda kv: (-kv[1], kv[0]))
-    return {
-        "rounds": rounds,
-        "pools": [{"ending": k, "n": n, "p": round(n / rounds, 4),
-                   "band": band_of(Fraction(n, rounds), Fraction(top, rounds))} for k, n in rows],
-        "lengths": {"min": min(lengths), "median": statistics.median(lengths),
-                    "max": max(lengths), "hist": _hist(lengths)},
-        "cap_hits": cap,
-        "funnel": ({"read": read, "midpoint_leader_wins": round(agree / read, 4),
-                    "chance": round(1 / registry.make(name).seats, 4)} if read else None),
-    }
+        rows.append({"steps": steps, "terminal": terminal,
+                     "ending": ending(name, res, terminal), "winners": res.winners,
+                     "mid_leader": leads[len(leads) // 2] if leads else None})
+    return _pools.measure(rows, registry.make(name).seats)
 
 
 def run(rounds=200) -> dict:

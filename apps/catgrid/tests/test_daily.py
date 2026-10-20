@@ -31,14 +31,16 @@ class TestTheRound(unittest.TestCase):
     def test_before_the_beacon_refuses(self):
         self.assertIsNone(daily.stamp("2019-01-01", reader())[0])
 
-    @unittest.skipUnless(BESIDE.exists(), "willow-bot not beside this repo")
-    def test_the_restated_constants_are_willow_bots(self):
-        spec = importlib.util.spec_from_file_location("wb_beacon", BESIDE)
-        wb = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(wb)
+    def test_the_beacon_is_the_one_scripts(self):
+        """Flatten F-14/F-16: the day's round, seed and stamp are the one
+        script's beacon, not a restatement of it."""
+        wb = importlib.import_module("onescript.beacon")
+        self.assertEqual(Path(wb.__file__).resolve(), BESIDE.resolve())
+        self.assertIs(daily.stamp, wb.day_stamp)
+        self.assertIs(daily.round_for, wb.round_for)
+        self.assertIs(daily.seed_of, wb.seed_u32)
         self.assertEqual((daily.CHAIN, daily.GENESIS, daily.PERIOD), (wb.CHAIN, wb.GENESIS, wb.PERIOD))
         self.assertEqual(daily.round_for("2026-10-19"), wb.round_at("2026-10-19T00:00:00Z"))
-        self.assertEqual(daily.seed_id(R1), wb.seed_id(R1))
 
 
 class TestTheStamp(unittest.TestCase):
