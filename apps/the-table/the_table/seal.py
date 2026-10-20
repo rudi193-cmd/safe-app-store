@@ -17,6 +17,8 @@ name is a label, and a label was never a seal (SPEC-rival §3 row 7, A5).
 """
 from __future__ import annotations
 
+from .host import onescript_module
+
 #: The two answers that move a beat, and the verdict each records.
 VERDICTS = {"sealed": "SEALED", "rejected": "REJECTED"}
 
@@ -27,10 +29,11 @@ class BeatNotSealed(RuntimeError):
 
 
 def beat_path(pending: dict) -> str:
-    """Where one-script writes a sealed beat: ``world/<world id>/<fact id>.md``
-    (one-script's ``table.beat_path``, restated here: the-table never imports
-    onescript)."""
-    return f"world/{pending.get('world')}/{pending['fact_id']}.md"
+    """Where one-script writes a sealed beat: ``world/<world id>/<fact id>.md``.
+    One copy, the one script's ``table.beat_path`` (flatten F5; it was
+    restated here while the-table imported no onescript). A beat names its
+    world; one with none is a ``KeyError``, never ``world/None/``."""
+    return onescript_module("table").beat_path(pending)
 
 
 def verdict_of(answer: object, pending: dict) -> tuple[str, str]:

@@ -267,3 +267,19 @@ def test_the_tables_stream_is_the_one_scripts():
 
     one = host.onescript_module("stream")
     assert stream.StreamRandom is one.StreamRandom and stream.replay is one.replay
+
+
+@needs_onescript
+def test_each_restated_rule_is_one_copy():
+    """Flatten F5: the alias map, the bucket and the beat path, one object each."""
+    import pytest as _pytest
+
+    from the_table import game_engine_adapter, peaks, seal, story_session
+
+    assert game_engine_adapter._STAT_MAP is story_session._ENGINE_STAT_MAP is peaks._ENGINE_STAT_MAP
+    table = host.onescript_module("table")
+    assert table.bucket is peaks.bucket
+    p = {"fact_id": "s1::b3", "world": "w"}
+    assert seal.beat_path(p) == table.beat_path(p) == "world/w/s1::b3.md"
+    with _pytest.raises(KeyError):
+        seal.beat_path({"fact_id": "s1::b3"})  # a beat names its world

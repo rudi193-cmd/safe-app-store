@@ -146,6 +146,7 @@ import random
 from collections.abc import Callable
 from typing import Any, Optional
 
+from . import peaks as _peaks
 from .dice_source import roll
 from .game_engine_adapter import _ensure_game_engine_on_path
 from .game_session import Observation, Result
@@ -157,11 +158,10 @@ _ensure_game_engine_on_path()
 
 from engine_v1_7 import Engine  # noqa: E402  (import after path shim, on purpose)
 
-# Duplicates engine_v1_7.py's own private stat_map (see the STAT NAMING
-# section of the module docstring above for why this is a deliberate
-# duplication, not an oversight -- game_engine_adapter.py duplicates the
-# identical four pairs for the identical reason).
-_ENGINE_STAT_MAP = {"Grit": "Integrity", "Weird": "Synthesis", "Cute": "Trust", "Cool": "Efficiency"}
+# Mirrors engine_v1_7.py's own private stat_map (not importable; see the STAT
+# NAMING section of the module docstring above). The table holds it once, the
+# one script's odds' copy (flatten F5); game_engine_adapter.py reads the same.
+_ENGINE_STAT_MAP = _peaks._ENGINE_STAT_MAP
 
 _BUCKETS = ("strong", "weak", "miss")
 DOOR_HEARTS = 3  # catgrid.play.HEARTS: a campaign's first door starts full
