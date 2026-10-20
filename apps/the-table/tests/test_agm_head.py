@@ -6,11 +6,13 @@ or unreachable ledger is never anchored.
 """
 from __future__ import annotations
 
+import importlib.util
 import os
 import shutil
 import sqlite3
 import sys
 import tempfile
+from types import SimpleNamespace
 
 import pytest
 
@@ -18,23 +20,51 @@ _APP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, _APP_ROOT)
 
 from the_table import agm_head
-from the_table.ledger_sink import LedgerSink, _row_hash
+
+_AGM = os.path.join(os.path.dirname(_APP_ROOT), "ai-game-master")
+
+
+def _load(path, name):
+    spec = importlib.util.spec_from_file_location(name, path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _row_hash(*args):
+    return agm_head._verify_ledger().row_hash(*args)
 
 
 @pytest.fixture
 def ledger():
+    """A campaign.db written by ai-game-master's OWN code: its schema files,
+    and its writer (``docs/poc_vander_room.py`` ``append_turn``), loaded by
+    path. agm_head anchors ai-game-master's box; the-table no longer writes one
+    (flatten F-1, F-6)."""
     box = tempfile.mkdtemp(prefix="the-table-agm-")
-    sink = LedgerSink(box_dir=box)
-    sink.open_session("s1", {"seed": 1})
-    sink.snapshot({"turn": 0}, note="one")
-    sink.snapshot({"turn": 1}, note="two")
-    sink.close_session({"summary": "done"})
-    yield sink
-    sink.close()
+    db = os.path.join(box, "campaign.db")
+    con = sqlite3.connect(db)
+    for ddl in ("01_ledger.sql", "02_canon.sql", "03_entities.sql", "04_rulings.sql"):
+        with open(os.path.join(_AGM, "schema", ddl)) as f:
+            con.executescript(f.read())
+    poc = _load(os.path.join(_AGM, "docs", "poc_vander_room.py"), "_agm_poc")
+    poc.append_turn(con, 1, "session_open", "s1", {"seed": 1})
+    poc.append_turn(con, 1, "turn", "one", {"turn": 0})
+    poc.append_turn(con, 1, "turn", "two", {"turn": 1})
+    poc.append_turn(con, 1, "session_close", "", {"summary": "done"})
+
+    def head():
+        return con.execute("SELECT hash FROM ledger ORDER BY id DESC LIMIT 1").fetchone()[0]
+
+    def snapshot(state, note=""):
+        poc.append_turn(con, 1, "turn", note, state)
+
+    yield SimpleNamespace(db_path=db, _con=con, head=head, snapshot=snapshot)
+    con.close()
     shutil.rmtree(box, ignore_errors=True)
 
 
-def test_the_head_is_the_ledger_sinks_head(ledger):
+def test_the_head_is_the_ledgers_own_head(ledger):
     got = agm_head.read(ledger.db_path)
     assert got == {"state": "read", "n": 4, "head": ledger.head(),
                    "db_sha": agm_head.db_sha(ledger.db_path)}

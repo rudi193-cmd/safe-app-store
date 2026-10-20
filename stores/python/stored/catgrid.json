@@ -1,0 +1,14 @@
+{
+  "app_id": "catgrid",
+  "majors": [
+    "python",
+    "node"
+  ],
+  "relation": "differential-paired",
+  "anchor": "python",
+  "location": "apps/catgrid",
+  "maker": "USER / Claude",
+  "lane": "catgrid_games, catgrid_napkins, catgrid_trivia (writes); ask_jeles_corpus (reads)",
+  "state": "building",
+  "notes": "Stdlib-only core: a seeded logic grid (one cat, or 2 or 3, per row, column and region; no two touching) whose every board has one answer. Writes only its own three SOIL collections, through libs/storage-backend, inputs-only so a record replays. catgrid/web/engine.js is a port held to the Python by tests/test_differential.py (308 boards cell for cell, 9,000 moves, the daily round); Python is the anchor, and the catgrid-differential CI job asserts the comparison ran rather than skipped. Trivia reads Jeles's served, verified rows from ask_jeles_corpus through the storage seam (read only) and never ships them in the page; napkin words are Gerald's, in this repo. The daily board's drand BLS signature is not checked. Plays on the-table as catgrid, catgrid_2cat, catgrid_3cat and catgrid_duel, and as a puzzle beat in a story."
+}

@@ -218,12 +218,12 @@ class TestCrazyEightsLedgerIntegration(unittest.TestCase):
     def test_crazy_eights_driven_by_gm_loop_reaches_terminal_and_ledger_verifies(self):
         """The second game, through the IDENTICAL run_session + LedgerSink
         bureau uses, unchanged -- this is the proof the protocol generalizes."""
-        from the_table.ledger_sink import LedgerSink
+        from ._record import RecordedSink
 
         box_dir = tempfile.mkdtemp(prefix="the-table-test-crazy8-")
         try:
             game = CrazyEightsSession()
-            sink = LedgerSink(box_dir=box_dir)
+            sink = RecordedSink(box_dir=box_dir)
             try:
                 policy = random_policy(random.Random(7))
                 result = run_session(

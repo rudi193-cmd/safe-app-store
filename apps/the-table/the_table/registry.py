@@ -6,7 +6,7 @@ This is the piece that makes "the GM runs them all" literal: ``proof.py``
 ``CrazyEightsSession``, and ``SceneSession`` by name and wire each one up
 individually -- it asks the registry for ``games()`` and ``make()``s a fresh
 session per name, then drives every one of them through the identical
-``run_session``/``LedgerSink``. Adding a fourth game later is one
+``run_session`` and the same sink. Adding a fourth game later is one
 ``register()`` call, not a new branch in every driver.
 
 A "factory" here is a zero-arg callable that returns a FRESH ``GameSession``
@@ -18,7 +18,7 @@ factory is a small lambda that binds it -- the registry itself stays
 argument-free.
 
 Deliberately small: a dict and four functions, nothing more. No plugin
-discovery, no config files, no lazy-import machinery -- the three built-in
+discovery, no config files, no lazy-import machinery -- the six built-in
 games are registered at import time, right here, and that is the entire
 "catalog."
 """
@@ -26,10 +26,15 @@ from __future__ import annotations
 
 from typing import Callable, Dict
 
+from .backgammon_adapter import BackgammonSession
 from .bureau_adapter import BureauSession
+from .catgrid_adapter import CatgridDuelSession, CatgridSession
+from .checkers_adapter import CheckersSession
 from .crazy_eights_adapter import CrazyEightsSession
 from .game_engine_adapter import SceneSession
 from .game_session import GameSession
+from .hearts_adapter import HeartsSession
+from .liars_dice_adapter import LiarsDiceSession
 
 Factory = Callable[[], GameSession]
 
@@ -80,11 +85,54 @@ def describe(name: str) -> str:
 # Each factory is zero-arg. SceneSession's constructor arg (beats) is bound
 # here, in the lambda -- the registry surface itself never takes per-game
 # arguments.
+register(
+    "backgammon",
+    BackgammonSession,
+    description="2-seat race with dice, one die a step (game-lab's backgammon rules)",
+)
 register("bureau", BureauSession, description="single-seat exploration (bureau)")
+register(
+    "catgrid",
+    lambda: CatgridSession(n=6),
+    description="single-seat seeded logic grid, 6x6: one cat per row, column and region (apps/catgrid)",
+)
+# 9x9 and 13x13, not the smallest sizes: 8x8 (2 cats) and 12x12 (3 cats) each
+# have only 2 rule-keeping arrangements, mirror images, so every board there
+# has one of the same two answers (the operator: "move them to 9x9 and 13x13").
+register(
+    "catgrid_2cat",
+    lambda: CatgridSession(n=9, k=2),
+    description="catgrid's intermediate level, 9x9: two cats per row, column and region",
+)
+register(
+    "catgrid_3cat",
+    lambda: CatgridSession(n=13, k=3),
+    description="catgrid's harder intermediate level, 13x13: three cats per row, column and region",
+)
+register(
+    "catgrid_duel",
+    lambda: CatgridDuelSession(n=6),
+    description="catgrid for two, 6x6: one board, shared cats, private marks, turns in order",
+)
+register(
+    "checkers",
+    CheckersSession,
+    description="2-seat English draughts, captures mandatory (game-lab's checkers rules)",
+)
 register(
     "crazy_eights",
     CrazyEightsSession,
     description="4-seat card game with hidden info (game-lab's Crazy Eights rules)",
+)
+register(
+    "hearts",
+    HeartsSession,
+    description="4-seat trick-taking, one hand with a pass left (game-lab's Hearts rules)",
+)
+register(
+    "liars_dice",
+    LiarsDiceSession,
+    description="4-seat dice bluffing, hidden cups, ones wild (game-lab's Liar's Dice rules)",
 )
 register(
     "scene",

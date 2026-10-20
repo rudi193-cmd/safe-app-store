@@ -21,6 +21,9 @@ from the_table.gm import first_legal_policy, run_session
 from the_table.logreader import load_log, story_from_log, world_from_log
 from the_table.story_session import StorySession
 from the_table.worlds import load_world
+from the_table.seal import BeatNotSealed
+
+from ._seal import human_seal
 
 SEEDS = (0, 1, 42, 100)
 
@@ -247,7 +250,7 @@ class TestStoryFromLog(unittest.TestCase):
 
 class TestLogreaderIntegration(unittest.TestCase):
     """End-to-end: log -> derived world -> StorySession -> play, including
-    the decision beat that HALTS until a named human seals it."""
+    the decision beat that HALTS until the human seals it."""
 
     def test_log_through_story_session_action_only(self):
         for seed in SEEDS:
@@ -291,7 +294,7 @@ class TestLogreaderIntegration(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 session.step(0, ("act", "Grit"))
 
-            session.seal(pending["fact_id"], by="Nomi Reyes", verdict="SEALED")
+            human_seal(session, by="Nomi Reyes")  # a Nestor pair's verifier
             self.assertTrue(session.is_terminal())
             result = session.result()
             self.assertIn("SEALED", result.summary)
@@ -310,13 +313,12 @@ class TestLogreaderIntegration(unittest.TestCase):
 
             pending = session.pending_seal()
             self.assertIsNotNone(pending)
-            session.seal(pending["fact_id"], by="Jules Okafor",
-                         verdict="REJECTED", reason="unverified")
+            human_seal(session, state="rejected")
             self.assertTrue(session.is_terminal())
             result = session.result()
             self.assertIn("REJECTED", result.summary)
 
-    def test_log_decision_refuses_machine_sealer(self):
+    def test_log_decision_refuses_a_name(self):
         with tempfile.TemporaryDirectory() as box:
             log_path = _write_log(_FIXTURE_LOG, box)
             world_path = story_from_log(log_path, box_dir=box)
@@ -329,8 +331,9 @@ class TestLogreaderIntegration(unittest.TestCase):
 
             pending = session.pending_seal()
             self.assertIsNotNone(pending)
-            with self.assertRaises(ValueError):
-                session.seal(pending["fact_id"], by="claude")
+            with self.assertRaises(BeatNotSealed):
+                session.seal(pending["fact_id"], "claude")  # a name, no proof
+            self.assertEqual(session.pending_seal(), pending)
 
     def test_determinism_across_seeds(self):
         results = {}

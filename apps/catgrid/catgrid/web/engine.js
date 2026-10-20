@@ -1,0 +1,606 @@
+/* catgrid — browser engine. Logic only, no DOM.
+ *
+ * Mirrored from catgrid/{rng,solve,board,play,trivia,eggs}.py and held to them
+ * by tests/test_differential.py: the same seed makes the same board, cell for
+ * cell, and the same moves make the same game, state for state. The napkin
+ * words are GENERATED from the Python's own reader by catgrid/web/build.py and
+ * injected as CATGRID_DATA; nothing here is a hand copy of data.
+ *
+ * Search order, draw order and the k-cat repair's node budget are the
+ * Python's exactly: a board is only the same board if every draw is. Loaded as
+ * a plain script in the page and as CJS under node.
+ */
+"use strict";
+
+var DATA = typeof CATGRID_DATA !== "undefined" ? CATGRID_DATA : null;
+
+/* ── rng: xorshift32, mirroring catgrid/rng.py ──────────────────────────────── */
+function Rng(seed) {
+  var s = (Math.imul(seed, 2654435761) + 1) >>> 0;
+  this.s = s === 0 ? 0x9e3779b9 : s;
+}
+Rng.prototype.u32 = function () {
+  var x = this.s;
+  x = (x ^ (x << 13)) >>> 0;
+  x = (x ^ (x >>> 17)) >>> 0;
+  x = (x ^ (x << 5)) >>> 0;
+  this.s = x;
+  return x;
+};
+Rng.prototype.below = function (n) { return this.u32() % n; };
+Rng.prototype.pick = function (seq) { return seq[this.below(seq.length)]; };
+Rng.prototype.shuffled = function (seq) {
+  var out = seq.slice();
+  for (var i = out.length - 1; i > 0; i--) {
+    var j = this.below(i + 1);
+    var t = out[i]; out[i] = out[j]; out[j] = t;
+  }
+  return out;
+};
+
+/* ── small helpers ──────────────────────────────────────────────────────────── */
+function range(n) { var o = []; for (var i = 0; i < n; i++) o.push(i); return o; }
+function numSort(xs) { return xs.slice().sort(function (a, b) { return a - b; }); }
+function tupleCmp(a, b) {
+  for (var i = 0; i < Math.min(a.length, b.length); i++) if (a[i] !== b[i]) return a[i] - b[i];
+  return a.length - b.length;
+}
+function same(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+function NEIGH(r, c) { return [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]]; }
+
+function rowName(r) {
+  var out = "";
+  r += 1;
+  while (r) { var rem = (r - 1) % 26; r = Math.floor((r - 1) / 26); out = String.fromCharCode(65 + rem) + out; }
+  return out;
+}
+function address(r, c) { return rowName(r) + (c + 1); }
+
+/* ── solve.py: one cat a row ────────────────────────────────────────────────── */
+function solutions1(n, regions, visit) {
+  // visit(cols) -> true to stop. Same DFS order as solve.solutions.
+  var cols = [], usedCols = {}, usedRegions = {};
+  function go(row) {
+    if (row === n) return visit(cols.slice());
+    for (var col = 0; col < n; col++) {
+      if (usedCols[col] || usedRegions[regions[row * n + col]]) continue;
+      if (row !== 0 && Math.abs(col - cols[row - 1]) < 2) continue;
+      cols.push(col); usedCols[col] = 1; usedRegions[regions[row * n + col]] = 1;
+      if (go(row + 1)) return true;
+      delete usedRegions[regions[row * n + col]]; delete usedCols[col]; cols.pop();
+    }
+    return false;
+  }
+  go(0);
+}
+function count1(n, regions, limit) {
+  var found = 0;
+  solutions1(n, regions, function () { found += 1; return found >= limit; });
+  return found;
+}
+function other1(n, regions, answer) {
+  var alt = null;
+  solutions1(n, regions, function (s) { if (!same(s, answer)) { alt = s; return true; } return false; });
+  return alt;
+}
+function placements1(n, order) {
+  var cols = [];
+  function go(row) {
+    if (row === n) return true;
+    var cs = order(row);
+    for (var t = 0; t < cs.length; t++) {
+      var col = cs[t];
+      if (cols.indexOf(col) < 0 && (row === 0 || Math.abs(col - cols[cols.length - 1]) >= 2)) {
+        cols.push(col);
+        if (go(row + 1)) return true;
+        cols.pop();
+      }
+    }
+    return false;
+  }
+  return go(0) ? cols : null;
+}
+
+/* ── solve.py: k cats a row ─────────────────────────────────────────────────── */
+function rowsets(n, k) {
+  var out = [];
+  function go(start, cur) {
+    if (cur.length === k) { out.push(cur.slice()); return; }
+    for (var x = start; x < n; x++) {
+      if (cur.length && x - cur[cur.length - 1] < 2) continue;
+      cur.push(x); go(x + 1, cur); cur.pop();
+    }
+  }
+  go(0, []);
+  return out; // combinations order, filtered: the Python's order
+}
+function rowTables(n, k) {
+  return rowsets(n, k).map(function (c) {
+    var mask = 0, near = 0;
+    c.forEach(function (x) {
+      mask |= 1 << x;
+      [x - 1, x, x + 1].forEach(function (y) { if (y >= 0 && y < n) near |= 1 << y; });
+    });
+    return [c, mask, near];
+  });
+}
+function Budget(msg) { this.message = msg; }
+
+function solutionsK(n, k, regions, budget, visit) {
+  var rows = rowTables(n, k);
+  var owners = numSort(Object.keys(regions.reduce(function (o, g) { o[g] = 1; return o; }, {})).map(Number));
+  var cap = {};
+  owners.forEach(function (g) { cap[g] = new Array(n + 1).fill(0); });
+  for (var r = n - 1; r >= 0; r--) {
+    owners.forEach(function (g) {
+      var cells = 0;
+      for (var c = 0; c < n; c++) if (regions[r * n + c] === g) cells++;
+      cap[g][r] = cap[g][r + 1] + Math.min(k, Math.floor((cells + 1) / 2));
+    });
+  }
+  var byRow = range(n).map(function (r) {
+    return rows.map(function (t) { return t[0].map(function (x) { return regions[r * n + x]; }); });
+  });
+  var col = new Array(n).fill(0), full = 0, reg = {}, picked = [];
+  owners.forEach(function (g) { reg[g] = 0; });
+
+  function go(r, banned) {
+    if (budget !== null) {
+      budget[0] -= 1;
+      if (budget[0] < 0) throw new Budget("search budget spent");
+    }
+    if (r === n) return visit(picked.map(function (c) { return c.slice(); }));
+    var rest = n - r - 1;
+    for (var i = 0; i < rows.length; i++) {
+      var c = rows[i][0], mask = rows[i][1], near = rows[i][2];
+      if (mask & (banned | full)) continue;
+      var gs = byRow[r][i];
+      var over = false;
+      for (var a = 0; a < gs.length; a++) {
+        var cnt = 0;
+        for (var b = 0; b < gs.length; b++) if (gs[b] === gs[a]) cnt++;
+        if (reg[gs[a]] + cnt > k) { over = true; break; }
+      }
+      if (over) continue;
+      c.forEach(function (x) { col[x] += 1; if (col[x] === k) full |= 1 << x; });
+      gs.forEach(function (g) { reg[g] += 1; });
+      var ok = true;
+      for (var x = 0; x < n && ok; x++) if (k - col[x] > rest) ok = false;
+      for (var o = 0; o < owners.length && ok; o++) if (k - reg[owners[o]] > cap[owners[o]][r + 1]) ok = false;
+      if (ok) {
+        picked.push(c);
+        if (go(r + 1, near)) return true;
+        picked.pop();
+      }
+      c.forEach(function (x) { if (col[x] === k) full &= ~(1 << x); col[x] -= 1; });
+      gs.forEach(function (g) { reg[g] -= 1; });
+    }
+    return false;
+  }
+  go(0, 0);
+}
+function countK(n, k, regions, limit) {
+  var found = 0;
+  solutionsK(n, k, regions, null, function () { found += 1; return found >= limit; });
+  return found;
+}
+function otherK(n, k, regions, answer, budget) {
+  var alt = null;
+  solutionsK(n, k, regions, budget === undefined ? null : budget, function (s) {
+    if (!same(s, answer)) { alt = s; return true; }
+    return false;
+  });
+  return alt;
+}
+function placementsK(n, k, order) {
+  var rows = rowTables(n, k), col = new Array(n).fill(0), picked = [];
+  function go(r, banned, full) {
+    if (r === n) return col.every(function (x) { return x === k; });
+    var rest = n - r - 1;
+    var sets = order(r, rows);
+    for (var t = 0; t < sets.length; t++) {
+      var c = sets[t][0], mask = sets[t][1], near = sets[t][2];
+      if (mask & (banned | full)) continue;
+      c.forEach(function (x) { col[x] += 1; });
+      if (col.every(function (x) { return k - x <= rest; })) {
+        picked.push(c);
+        var now = full;
+        c.forEach(function (x) { if (col[x] === k) now |= 1 << x; });
+        if (go(r + 1, near, now)) return true;
+        picked.pop();
+      }
+      c.forEach(function (x) { col[x] -= 1; });
+    }
+    return false;
+  }
+  return go(0, 0, 0) ? picked : null;
+}
+
+/* ── board.py ───────────────────────────────────────────────────────────────── */
+var TRIES = 400, REPAIRS = 200, REPAIR_BUDGET = 40000, GROWTHS = 8;
+var SMALLEST = { 2: 8, 3: 12 }, LARGEST = { 1: 9, 2: 10, 3: 13 };
+
+function NoBoard(msg) { this.message = msg; }
+
+function canonical(region) {
+  var seen = {}, next = 1;
+  return region.map(function (r) { if (!(r in seen)) seen[r] = next++; return seen[r]; });
+}
+function frontierOf(region, n, allow) {
+  var frontier = {};
+  for (var i = 0; i < region.length; i++) {
+    var owner = region[i];
+    if (!owner) continue;
+    var r = Math.floor(i / n), c = i % n;
+    NEIGH(r, c).forEach(function (p) {
+      var j = p[0] * n + p[1];
+      if (p[0] >= 0 && p[0] < n && p[1] >= 0 && p[1] < n && !region[j] && allow(j, owner)) {
+        (frontier[owner] = frontier[owner] || {})[j] = 1;
+      }
+    });
+  }
+  return frontier;
+}
+function keysNum(o) { return numSort(Object.keys(o).map(Number)); }
+
+function grow(n, cols, rng) {
+  var region = new Array(n * n).fill(0);
+  cols.forEach(function (c, r) { region[r * n + c] = r + 1; });
+  var left = n * n - n;
+  while (left) {
+    var frontier = frontierOf(region, n, function () { return true; });
+    var owner = rng.pick(keysNum(frontier));
+    var cell = rng.pick(keysNum(frontier[owner]));
+    region[cell] = owner;
+    left -= 1;
+  }
+  return region;
+}
+function connected(region, n, owner) {
+  var cells = [];
+  region.forEach(function (o, i) { if (o === owner) cells.push(i); });
+  if (!cells.length) return false;
+  var seen = {}, todo = [cells[0]], count = 1;
+  seen[cells[0]] = 1;
+  while (todo.length) {
+    var t = todo.pop(), r = Math.floor(t / n), c = t % n;
+    NEIGH(r, c).forEach(function (p) {
+      var j = p[0] * n + p[1];
+      if (p[0] >= 0 && p[0] < n && p[1] >= 0 && p[1] < n && region[j] === owner && !seen[j]) {
+        seen[j] = 1; count++; todo.push(j);
+      }
+    });
+  }
+  return count === cells.length;
+}
+function moveCells(n, region, cells, cats) {
+  // (i, to) pairs for alt cells not in cats, deduplicated, sorted
+  var moves = {}, out = [];
+  cells.forEach(function (rc) {
+    var r = rc[0], c = rc[1], i = r * n + c;
+    if (cats[i]) return;
+    NEIGH(r, c).forEach(function (p) {
+      if (p[0] >= 0 && p[0] < n && p[1] >= 0 && p[1] < n && region[p[0] * n + p[1]] !== region[i]) {
+        var to = region[p[0] * n + p[1]];
+        if (!moves[i + "," + to]) { moves[i + "," + to] = 1; out.push([i, to]); }
+      }
+    });
+  });
+  return out.sort(tupleCmp);
+}
+function tryMoves(n, region, moves) {
+  for (var t = 0; t < moves.length; t++) {
+    var i = moves[t][0], to = moves[t][1], was = region[i];
+    region[i] = to;
+    if (connected(region, n, was)) return true;
+    region[i] = was;
+  }
+  return false;
+}
+function repair1(n, cols, region, rng) {
+  var cats = {};
+  cols.forEach(function (c, r) { cats[r * n + c] = 1; });
+  for (var t = 0; t < REPAIRS; t++) {
+    var alt = other1(n, region, cols);
+    if (alt === null) return true;
+    var cells = alt.map(function (c, r) { return [r, c]; });
+    if (!tryMoves(n, region, rng.shuffled(moveCells(n, region, cells, cats)))) return false;
+  }
+  return other1(n, region, cols) === null;
+}
+
+function growK(n, k, cats, catList, rng) {
+  var region = new Array(n * n).fill(0), held = {};
+  rng.shuffled(numSort(catList)).slice(0, n).forEach(function (i, idx) {
+    region[i] = idx + 1; held[idx + 1] = 1;
+  });
+  var left = n * n - n;
+  while (left) {
+    var freeCats = catList.filter(function (j) { return !region[j]; });
+    var frontier = frontierOf(region, n, function (j, owner) { return !cats[j] || held[owner] < k; });
+    var owners = keysNum(frontier);
+    var needy = freeCats.length ? owners.filter(function (g) { return held[g] < k; }) : [];
+    var owner, cell;
+    if (needy.length) {
+      var spots = freeCats.map(function (f) { return [Math.floor(f / n), f % n]; });
+      var dist = function (j) {
+        var r = Math.floor(j / n), c = j % n, best = Infinity;
+        spots.forEach(function (s) { best = Math.min(best, Math.abs(r - s[0]) + Math.abs(c - s[1])); });
+        return best;
+      };
+      var moves = [];
+      needy.forEach(function (g) { keysNum(frontier[g]).forEach(function (j) { moves.push([dist(j), g, j]); }); });
+      moves.sort(tupleCmp);
+      var best = moves[0][0];
+      var m = rng.pick(moves.filter(function (x) { return x[0] === best; }));
+      owner = m[1]; cell = m[2];
+    } else if (owners.length) {
+      owner = rng.pick(owners);
+      cell = rng.pick(keysNum(frontier[owner]));
+    } else {
+      return null;
+    }
+    region[cell] = owner;
+    held[owner] += cats[cell] ? 1 : 0;
+    left -= 1;
+  }
+  return Object.keys(held).every(function (g) { return held[g] === k; }) ? region : null;
+}
+function repairK(n, k, answer, cats, region, rng) {
+  var budget = [REPAIR_BUDGET];
+  for (var t = 0; t < REPAIRS; t++) {
+    var alt = otherK(n, k, region, answer, budget);
+    if (alt === null) return true;
+    var cells = [];
+    alt.forEach(function (cs, r) { cs.forEach(function (c) { cells.push([r, c]); }); });
+    if (!tryMoves(n, region, rng.shuffled(moveCells(n, region, cells, cats)))) return false;
+  }
+  return otherK(n, k, region, answer) === null;
+}
+function generateK(seed, n, k, tries) {
+  var rng = new Rng(seed);
+  for (var t = 0; t < tries; t++) {
+    var answer = placementsK(n, k, function (row, sets) { return rng.shuffled(sets); });
+    if (answer === null) throw new NoBoard("no " + n + "x" + n + " placement of " + k + " cats a row exists");
+    var cats = {}, catList = [];
+    answer.forEach(function (cs, r) { cs.forEach(function (c) { cats[r * n + c] = 1; catList.push(r * n + c); }); });
+    var region = null;
+    for (var g = 0; g < GROWTHS && region === null; g++) region = growK(n, k, cats, catList, rng);
+    try {
+      if (region === null || !repairK(n, k, answer, cats, region, rng)) continue;
+    } catch (e) {
+      if (e instanceof Budget) continue;
+      throw e;
+    }
+    var regions = canonical(region);
+    if (countK(n, k, regions, 2) === 1) return { n: n, k: k, regions: regions, solution: answer };
+  }
+  throw new NoBoard("no " + n + "x" + n + " " + k + "-cat board with one answer in " + tries + " draws for seed " + seed);
+}
+function generate(seed, n, k, tries) {
+  k = k === undefined ? 1 : k;
+  tries = tries === undefined ? TRIES : tries;
+  [seed, n, tries, k].forEach(function (v) {
+    if (typeof v !== "number" || !Number.isInteger(v)) throw new NoBoard("not a whole number: " + v);
+  });
+  if (n < 1) throw new NoBoard("a board is a positive whole size, not " + n);
+  if (k < 1 || k > 3) throw new NoBoard("1 to 3 cats a row are built, not " + k);
+  if (k > 1) {
+    if (n < SMALLEST[k]) throw new NoBoard("no " + n + "x" + n + " board holds " + k + " cats a row: they can't avoid touching");
+    if (n > LARGEST[k]) throw new NoBoard(k + "-cat boards are built up to " + LARGEST[k] + "x" + LARGEST[k]);
+    return generateK(seed, n, k, tries);
+  }
+  if (n === 2 || n === 3) throw new NoBoard("no " + n + "x" + n + " board exists: its cats can't avoid touching");
+  var rng = new Rng(seed);
+  for (var t = 0; t < tries; t++) {
+    var cols = placements1(n, function () { return rng.shuffled(range(n)); });
+    if (cols === null) throw new NoBoard("no " + n + "x" + n + " placement exists");
+    var region = grow(n, cols, rng);
+    if (repair1(n, cols, region, rng)) {
+      var regions = canonical(region);
+      if (count1(n, regions, 2) === 1) return { n: n, k: 1, regions: regions, solution: cols };
+    }
+  }
+  throw new NoBoard("no " + n + "x" + n + " board with one answer in " + tries + " draws for seed " + seed);
+}
+function boardCats(b) {
+  var out = {};
+  if (b.k === 1) b.solution.forEach(function (c, r) { out[r * b.n + c] = 1; });
+  else b.solution.forEach(function (cs, r) { cs.forEach(function (c) { out[r * b.n + c] = 1; }); });
+  return out;
+}
+function addresses(n) {
+  var out = [];
+  for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) out.push(address(r, c));
+  return out;
+}
+
+/* ── trivia.ask and eggs.hide ───────────────────────────────────────────────── */
+var LABELS = ["A", "B", "C", "D"];
+var SOURCE = "Jeles, verified entries only";
+var UNLABELLED = "Jeles, no verification label";
+function ask(bank, seed, k) {
+  var rng = new Rng((Math.imul(seed, 1000003) + 7919 * (k + 1)) >>> 0);
+  var pick = bank[rng.below(bank.length)];
+  var others = bank.map(function (b) { return b.answer; }).filter(function (a) { return a !== pick.answer; });
+  var wrong = [];
+  while (wrong.length < LABELS.length - 1) {
+    var cand = rng.pick(others);
+    if (wrong.indexOf(cand) < 0) wrong.push(cand);
+  }
+  var options = rng.shuffled([pick.answer].concat(wrong));
+  var opts = {};
+  LABELS.forEach(function (l, i) { opts[l] = options[i]; });
+  return { id: pick.id, question: pick.question, options: opts, right: LABELS[options.indexOf(pick.answer)],
+    source: pick.source === undefined ? UNLABELLED : pick.source };
+}
+var ODDS = 3;
+function hide(seed, words, empties) {
+  if (!words.length || !empties.length) return null;
+  var rng = new Rng((Math.imul(seed, 2246822519) + 0xe66) >>> 0);
+  if (rng.below(ODDS)) return null;
+  return [rng.pick(empties), rng.pick(words)];
+}
+
+/* ── daily.py: the round for a day, the seed from a digest ────────────────── */
+var GENESIS = 1595431050, PERIOD = 30;
+function roundFor(day) {
+  // day is YYYY-MM-DD; the round current at its 00:00 UTC
+  var t = Date.parse(day + "T00:00:00Z") / 1000;
+  if (!(t >= GENESIS)) throw new NoBoard(day + " is before the beacon's first round");
+  return Math.floor((t - GENESIS) / PERIOD) + 1;
+}
+function seedFromDigest(bytes) {
+  // the first four bytes of SHA-256 over the round's randomness, big-endian
+  return ((bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]) >>> 0;
+}
+
+/* ── play.py ────────────────────────────────────────────────────────────────── */
+var HEARTS = 3, FREE_HINTS = 1;
+function Refused(msg) { this.message = msg; }
+
+function Game(board, seed, opts) {
+  opts = opts || {};
+  this.board = board;
+  this.seed = seed;
+  this.addrs = addresses(board.n);
+  this.cats = boardCats(board);
+  this.cells = {};
+  var self = this;
+  this.addrs.forEach(function (a) { self.cells[a] = ""; });
+  this.hearts = HEARTS;
+  this.status = "playing";
+  this.hints = { free: FREE_HINTS, earned: 0 };
+  this.bank = (opts.bank || []).slice();
+  this.bankWhy = this.bank.length ? "" : (opts.bankWhy || "no trivia bank given");
+  this.question = null;
+  this.asked = [];
+  this.words = (opts.words || []).slice();
+  var empties = this.addrs.filter(function (a) { return !self.isAnswer(a); });
+  this.egg = hide(seed, this.words, empties);
+  this.wordsWhy = (opts.words && opts.words.length) ? "" : (opts.wordsWhy || "no napkin words given");
+  this.found = [];
+  this.moves = [];
+}
+Game.prototype.isAnswer = function (a) { return !!this.cats[this.addrs.indexOf(a)]; };
+Game.prototype.legalMoves = function () {
+  if (this.status !== "playing") return [];
+  var out = [], self = this;
+  this.addrs.forEach(function (a) {
+    var v = self.cells[a];
+    if (v === "") { out.push(["cat", a]); out.push(["x", a]); }
+    else if (v === "x") out.push(["clear", a]);
+  });
+  if (this.hints.free + this.hints.earned) out.push(["hint"]);
+  if (this.bank.length && this.question === null) out.push(["trivia"]);
+  if (this.question !== null) LABELS.forEach(function (l) { out.push(["answer", l]); });
+  return out;
+};
+Game.prototype.step = function (move) {
+  if (this.status !== "playing") throw new Refused("the game is " + this.status + "; no more moves");
+  var said;
+  if (Array.isArray(move) && move.length === 1 && (move[0] === "hint" || move[0] === "trivia")) {
+    said = move[0] === "hint" ? this.hint() : this.trivia();
+  } else if (Array.isArray(move) && move.length === 2 && move[0] === "answer") {
+    said = this.answer(move[1]);
+  } else if (Array.isArray(move) && move.length === 2 && ["cat", "x", "clear"].indexOf(move[0]) >= 0) {
+    said = this.cell(move[0], move[1]);
+  } else {
+    throw new Refused("a move is (cat|x|clear, cell), (hint), (trivia) or (answer, A-D)");
+  }
+  this.moves.push(move.slice());
+  return said;
+};
+Game.prototype.sure = function () {
+  var idx = numSort(Object.keys(this.cats).map(Number));
+  for (var t = 0; t < idx.length; t++) {
+    var a = address(Math.floor(idx[t] / this.board.n), idx[t] % this.board.n);
+    if (this.cells[a] !== "cat") return a;
+  }
+  throw new Error("no answer cell without a cat while playing");
+};
+Game.prototype.hint = function () {
+  if (!(this.hints.free + this.hints.earned)) throw new Refused("no hints left; answer trivia to earn one");
+  var kind = this.hints.free ? "free" : "earned";
+  this.hints[kind] -= 1;
+  var a = this.sure();
+  if (this.cells[a] === "x") this.cells[a] = "";
+  return ["hint (" + kind + "): " + a + " holds a cat"].concat(this.place(a));
+};
+Game.prototype.trivia = function () {
+  if (!this.bank.length) throw new Refused("no trivia: " + this.bankWhy);
+  if (this.question !== null) throw new Refused("a question is already waiting for its answer");
+  this.question = ask(this.bank, this.seed, this.asked.length);
+  var q = this.question;
+  return [q.question].concat(LABELS.map(function (l) { return "  " + l + ". " + q.options[l]; }));
+};
+Game.prototype.answer = function (label) {
+  if (this.question === null) throw new Refused("no question is waiting");
+  if (LABELS.indexOf(label) < 0) throw new Refused("answer with one of A, B, C, D");
+  var q = this.question;
+  this.question = null;
+  var right = label === q.right;
+  this.asked.push({ id: q.id, said: label, right: right });
+  if (right) { this.hints.earned += 1; return ["right: " + q.right + ". A hint earned"]; }
+  return ["not quite: it was " + q.right + ". No cost"];
+};
+Game.prototype.cell = function (verb, a) {
+  if (typeof a !== "string" || !(a in this.cells)) throw new Refused(JSON.stringify(a) + " is not a cell on this board");
+  var here = this.cells[a];
+  if (here === "cat") throw new Refused(a + " already holds a cat");
+  if (verb === "x") {
+    if (here === "x") throw new Refused(a + " is already marked");
+    this.cells[a] = "x";
+    var said = [a + ": marked, no cat here"];
+    if (this.egg && this.egg[0] === a && !this.found.length) {
+      this.found.push({ cell: a, word: this.egg[1] });
+      said.push("a napkin under " + a + ": " + this.egg[1]);
+    }
+    return said;
+  }
+  if (verb === "clear") {
+    if (here !== "x") throw new Refused(a + " has no mark to clear");
+    this.cells[a] = "";
+    return [a + ": cleared"];
+  }
+  if (here === "x") throw new Refused(a + " is marked; clear it first");
+  if (!this.isAnswer(a)) {
+    this.hearts -= 1;
+    if (this.hearts === 0) { this.status = "lost"; return [a + ": not here. No hearts left; the board wins"]; }
+    return [a + ": not here. " + this.hearts + " heart(s) left"];
+  }
+  return this.place(a);
+};
+Game.prototype.place = function (a) {
+  this.cells[a] = "cat";
+  var self = this, placed = 0;
+  this.addrs.forEach(function (x) { if (self.cells[x] === "cat") placed++; });
+  if (placed === this.board.n * this.board.k) {
+    this.status = "won";
+    return [a + ": a cat. Every row, column and region has one: solved"];
+  }
+  return [a + ": a cat"];
+};
+Game.prototype.state = function () {
+  var q = this.question;
+  return {
+    n: this.board.n, k: this.board.k, regions: this.board.regions.slice(),
+    cells: Object.assign({}, this.cells), hearts: this.hearts, status: this.status,
+    hints: { free: this.hints.free, earned: this.hints.earned },
+    trivia: !this.bank.length ? { state: "unavailable", why: this.bankWhy }
+      : q ? { state: "waiting", question: q.question, options: Object.assign({}, q.options), source: q.source }
+        : { state: "available", source: SOURCE },
+    napkins: this.wordsWhy ? { state: "unavailable", why: this.wordsWhy }
+      : this.found.length ? { state: "found", found: this.found.map(function (f) { return { cell: f.cell, word: f.word }; }) }
+        : { state: "none found" },
+  };
+};
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    Rng: Rng, generate: generate, Game: Game, Refused: Refused, NoBoard: NoBoard,
+    ask: ask, hide: hide, address: address, countK: countK, count1: count1,
+    roundFor: roundFor, seedFromDigest: seedFromDigest,
+    setData: function (d) { DATA = d; }, data: function () { return DATA; },
+  };
+}

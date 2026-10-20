@@ -1,0 +1,13 @@
+# the-table's runtime dependencies. The spine (game_session, gm, registry,
+# onescript_sink, host, the adapters) is stdlib; these two are what the games it
+# reuses need:
+#
+# - chess: python-chess, imported by apps/game-lab/sims/baseline_core.py,
+#   whose checkers and backgammon rules the checkers and backgammon
+#   adapters reuse (it imports chess at the top, so the module needs it
+#   even though neither game is chess).
+# - dice: the dice-notation library aetheris5e/dice5e.py takes as its
+#   authority (also in aetheris5e/requirements.txt), and that
+#   the_table/stream.py's shim tests drive under a stream.
+chess>=1.10
+dice>=4.0.0

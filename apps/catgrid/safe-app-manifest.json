@@ -1,0 +1,44 @@
+{
+  "app_id": "catgrid",
+  "name": "catgrid",
+  "version": "0.1.0",
+  "safe_version": ">=2.0.0",
+  "agent_type": "tool",
+  "description": "A seeded one-cat-per-row, column and region logic grid (the Queens / Star Battle family, after the operator's Meowdoku). Every board comes from a seed and has exactly one answer; every move is a pure function of the state it is played on. Hints are free once per board and earned by Jeles trivia; Gerald's napkin words hide under some boards. Plays on the-table as a GameSession.",
+  "author": "USER",
+  "data_streams": [
+    {
+      "id": "catgrid_games",
+      "purpose": "A game's inputs (seed, size, moves) and outcome, so it replays byte for byte",
+      "retention": "permanent",
+      "description": "Written only through the injected SOIL seam; with no backend nothing is written"
+    },
+    {
+      "id": "catgrid_napkins",
+      "purpose": "Napkin words found, so a found Easter egg stays found",
+      "retention": "permanent",
+      "description": "The word, and the seed and cell it was found on"
+    },
+    {
+      "id": "catgrid_trivia",
+      "purpose": "Which Jeles questions were asked and answered",
+      "retention": "permanent",
+      "description": "The Jeles pair id and the answer given; nothing about who answered"
+    }
+  ],
+  "permissions": [],
+  "store_scope": [
+    "catgrid_games",
+    "catgrid_napkins",
+    "catgrid_trivia",
+    "ask_jeles_corpus"
+  ],
+  "privacy_tier": "client_only",
+  "local_processing": 1.0,
+  "network": "none. Stdlib only, no sockets; trivia is read from Jeles's SOIL collection through the injected seam, napkin words from a file beside it.",
+  "entry_point": "catgrid/play.py",
+  "license": "Apache-2.0",
+  "notes": {
+    "ask_jeles_corpus": "Read only (no store_write): Jeles's served rows, through storage_backend.list_records. catgrid writes only its own three collections (catgrid/soil.py's lane wall)."
+  }
+}

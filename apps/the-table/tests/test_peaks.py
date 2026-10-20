@@ -545,7 +545,7 @@ def test_exact_memoises_text_reads(monkeypatch):
         calls.append(text)
         return real(world, text)
 
-    monkeypatch.setattr(peaks, "mentions", counting)
+    monkeypatch.setattr(peaks._odds, "mentions", counting)  # where exact() reads it (F-14)
     w = _world()
     ex = peaks.exact(w)
     beats = len(peaks.action_beats(w))

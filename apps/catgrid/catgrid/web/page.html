@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>catgrid</title>
+<style>
+:root {
+  --bg: #f7f4ee; --fg: #23201b; --muted: #6f675c; --line: #2b2722; --card: #fffdf8;
+  --accent: #9b4a1c; --bad: #a3271f; --good: #2f6b3a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1b1a18; --fg: #ece6db; --muted: #a59c8f; --line: #d8d0c3; --card: #25231f;
+    --accent: #e08a52; --bad: #ef6b5f; --good: #7fc28b;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1b1a18; --fg: #ece6db; --muted: #a59c8f; --line: #d8d0c3; --card: #25231f;
+  --accent: #e08a52; --bad: #ef6b5f; --good: #7fc28b;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 640px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 1.3rem; margin: 0 0 4px; }
+.sub { color: var(--muted); font-size: .9rem; margin: 0 0 12px; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+select, input, button { font: inherit; color: var(--fg); background: var(--card);
+  border: 1px solid var(--muted); border-radius: 8px; padding: 6px 10px; }
+input { width: 7.5em; }
+button { cursor: pointer; }
+button[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+button:disabled { opacity: .5; cursor: default; }
+#grid { display: grid; gap: 0; width: 100%; aspect-ratio: 1; border: 2px solid var(--line);
+  touch-action: manipulation; user-select: none; }
+.cell { position: relative; display: flex; align-items: center; justify-content: center;
+  font-size: clamp(10px, 4.2vw, 26px); border: 1px solid rgba(0,0,0,.12); cursor: pointer; }
+.cell.bt { border-top: 2px solid var(--line); } .cell.bb { border-bottom: 2px solid var(--line); }
+.cell.bl { border-left: 2px solid var(--line); } .cell.br { border-right: 2px solid var(--line); }
+.cell .r { position: absolute; top: 1px; left: 3px; font-size: 9px; opacity: .55; }
+.cell.x::after { content: "×"; opacity: .7; }
+.cell.cat::after { content: "🐈"; }
+.cell.flash { outline: 3px solid var(--bad); outline-offset: -3px; }
+.stats { display: flex; gap: 16px; margin: 10px 0; font-variant-numeric: tabular-nums; }
+#status.won { color: var(--good); } #status.lost { color: var(--bad); }
+#log { list-style: none; padding: 0; margin: 8px 0; color: var(--muted); font-size: .9rem;
+  max-height: 9em; overflow: auto; }
+.note { color: var(--muted); font-size: .8rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>catgrid</h1>
+  <p class="sub">One cat in every row, column and region (more at the higher levels); no two
+    touch, diagonals included. A wrong cat costs a heart. The same seed is always the same board.</p>
+
+  <div class="bar">
+    <label>Level
+      <select id="level">
+        <option value="5,1">5×5</option>
+        <option value="6,1" selected>6×6</option>
+        <option value="7,1">7×7</option>
+        <option value="8,1">8×8</option>
+        <option value="9,1">9×9</option>
+        <option value="9,2">9×9 · 2 cats</option>
+        <option value="10,2">10×10 · 2 cats</option>
+        <option value="13,3">13×13 · 3 cats</option>
+      </select>
+    </label>
+    <label>Seed <input id="seed" inputmode="numeric" value="1"></label>
+    <button id="deal">Deal</button>
+    <button id="daily" title="Seeded by today's drand beacon round">Daily</button>
+  </div>
+
+  <div class="bar" role="group" aria-label="What a tap does">
+    <button id="mode-cat" aria-pressed="true">Cat</button>
+    <button id="mode-x" aria-pressed="false">Mark ×</button>
+    <button id="hint">Hint</button>
+  </div>
+
+  <div id="grid" aria-label="the board"></div>
+
+  <div class="stats">
+    <span>Hearts: <b id="hearts"></b></span>
+    <span>Hints: <b id="hints"></b></span>
+    <span id="status"></span>
+  </div>
+  <ul id="log" aria-live="polite"></ul>
+  <p class="note" id="provenance"></p>
+</main>
+<script>
+/* ENGINE */
+</script>
+<script>
+(function () {
+  "use strict";
+  var COLORS = ["#e9c46a", "#8ecae6", "#f4a3a8", "#b5e48c", "#cdb4db", "#ffd6a5", "#7fd1c7",
+    "#d9a6f5", "#c9ada7", "#90be6d", "#f7f08a", "#9fb4ff", "#f7b267", "#d4a373"];
+  var $ = function (id) { return document.getElementById(id); };
+  var game = null, mode = "cat", label = "";
+
+  function say(lines) {
+    lines.forEach(function (l) {
+      var li = document.createElement("li");
+      li.textContent = l;
+      $("log").prepend(li);
+    });
+  }
+
+  function draw() {
+    var st = game.state(), n = st.n, grid = $("grid");
+    grid.style.gridTemplateColumns = "repeat(" + n + ", 1fr)";
+    grid.innerHTML = "";
+    Object.keys(st.cells).forEach(function (a, i) {
+      var d = document.createElement("div");
+      var reg = st.regions[i];
+      var row = Math.floor(i / n), col = i % n, edge = "";
+      // a thick line wherever the region changes, so no region is told by colour alone
+      if (row > 0 && st.regions[i - n] !== reg) edge += " bt";
+      if (row < n - 1 && st.regions[i + n] !== reg) edge += " bb";
+      if (col > 0 && st.regions[i - 1] !== reg) edge += " bl";
+      if (col < n - 1 && st.regions[i + 1] !== reg) edge += " br";
+      d.className = "cell" + edge + (st.cells[a] ? " " + st.cells[a] : "");
+      d.style.background = COLORS[(reg - 1) % COLORS.length];
+      d.style.color = "#23201b";
+      d.dataset.addr = a;
+      d.setAttribute("role", "button");
+      d.setAttribute("aria-label", a + ", region " + reg + (st.cells[a] ? ", " + st.cells[a] : ""));
+      var r = document.createElement("span");
+      r.className = "r";
+      r.textContent = reg;  // regions by number as well as colour
+      d.appendChild(r);
+      grid.appendChild(d);
+    });
+    $("hearts").textContent = "♥".repeat(st.hearts) || "0";
+    $("hints").textContent = st.hints.free + st.hints.earned;
+    $("status").textContent = st.status === "playing" ? label : st.status === "won" ? "Solved." : "Out of hearts.";
+    $("status").className = st.status;
+    $("hint").disabled = st.status !== "playing" || !(st.hints.free + st.hints.earned);
+    var nap = st.napkins.state === "found" ? " Napkin: " + st.napkins.found[0].word : "";
+    $("provenance").textContent = "Trivia: " + (st.trivia.why || st.trivia.state) + "." + nap;
+  }
+
+  function play(move, addr) {
+    try {
+      say(game.step(move));
+    } catch (e) {
+      if (!(e instanceof Refused)) throw e;
+      say(["refused: " + e.message]);
+    }
+    draw();
+    if (addr && game.cells[addr] === "" && move[0] === "cat") {
+      var el = document.querySelector('[data-addr="' + addr + '"]');
+      if (el) { el.classList.add("flash"); setTimeout(function () { el.classList.remove("flash"); }, 450); }
+    }
+  }
+
+  function deal(seed, why) {
+    var lv = $("level").value.split(",").map(Number);
+    $("status").textContent = "dealing…";
+    $("log").innerHTML = "";
+    setTimeout(function () {
+      try {
+        var b = generate(seed, lv[0], lv[1]);
+        game = new Game(b, seed, { bank: [], words: CATGRID_DATA.words,
+          bankWhy: CATGRID_DATA.bank_why, wordsWhy: CATGRID_DATA.words_why || "no napkin words given" });
+        label = why;
+        draw();
+      } catch (e) {
+        if (!(e instanceof NoBoard)) throw e;
+        $("status").textContent = "no board: " + e.message;
+      }
+    }, 20);
+  }
+
+  /* the daily board: catgrid/daily.py's formulas, in the page */
+  var DRAND = "https://api.drand.sh", CHAIN = "8990e7a9aaed2ffed73dbd7092123d6f289930540d7651336225dc172e51b2ce";
+  function daily() {
+    var now = new Date(), day = now.toISOString().slice(0, 10);
+    var rnd = roundFor(day);
+    $("status").textContent = "reading the beacon…";
+    fetch(DRAND + "/" + CHAIN + "/public/" + rnd).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (got) {
+      if (got.round !== rnd || !/^[0-9a-f]{64}$/.test(got.randomness || "")) throw new Error("not round " + rnd);
+      var bytes = new Uint8Array(got.randomness.match(/../g).map(function (h) { return parseInt(h, 16); }));
+      return crypto.subtle.digest("SHA-256", bytes);
+    }).then(function (digest) {
+      var seed = seedFromDigest(new Uint8Array(digest));
+      $("seed").value = seed;
+      deal(seed, day + " · drand round " + rnd + " (BLS not checked)");
+    }).catch(function (e) {
+      $("status").textContent = "no daily board: the beacon could not be read (" + e.message + ")";
+    });
+  }
+
+  $("grid").addEventListener("click", function (ev) {
+    var cell = ev.target.closest(".cell");
+    if (!cell || !game) return;
+    var a = cell.dataset.addr, v = game.cells[a];
+    if (mode === "cat") play(["cat", a], a);
+    else play([v === "x" ? "clear" : "x", a]);
+  });
+  $("mode-cat").onclick = function () { mode = "cat"; this.setAttribute("aria-pressed", "true"); $("mode-x").setAttribute("aria-pressed", "false"); };
+  $("mode-x").onclick = function () { mode = "x"; this.setAttribute("aria-pressed", "true"); $("mode-cat").setAttribute("aria-pressed", "false"); };
+  $("hint").onclick = function () { play(["hint"]); };
+  $("deal").onclick = function () {
+    var s = parseInt($("seed").value, 10);
+    deal(Number.isInteger(s) && s >= 0 ? s : 0, "seed " + s);
+  };
+  $("daily").onclick = daily;
+  deal(1, "seed 1");
+})();
+</script>
+</body>
+</html>

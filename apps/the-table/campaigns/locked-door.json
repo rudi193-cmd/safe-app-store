@@ -1,0 +1,97 @@
+{
+  "id": "locked-door",
+  "title": "The Locked Door",
+  "setting": "An archive under a library, shut for a century. Its doors are not locked with keys: each is a grid of coloured tiles, and it opens for whoever sets the cats right. One cat in every row, every column and every colour, and no two touching. The archive keeps count of hearts, not time.",
+  "stats": ["Grit", "Weird", "Cute", "Cool"],
+  "base_stat": 1,
+  "characters": [
+    {
+      "id": "wren",
+      "name": "Wren Hollis",
+      "role": "a night porter at the library above, who found the archive stair behind a shelf that should have been a wall, and went down with a lantern and a pocketful of patience",
+      "seat": true,
+      "stats": {"Grit": 2, "Weird": 3, "Cute": 1, "Cool": 2}
+    }
+  ],
+  "places": [
+    {"id": "stair", "name": "The Archive Stair", "desc": "Stone steps, worn in the middle, ending at a door of tiles."},
+    {"id": "reading-room", "name": "The Reading Room", "desc": "Long tables, dust in the lamplight, and a second door at the far end."}
+  ],
+  "scenes": [
+    {
+      "id": "s1",
+      "title": "The Archive Stair",
+      "place": "stair",
+      "opening": [
+        "The shelf swings in on a hinge nobody oiled. Behind it, the stair goes down further than the library is tall.",
+        "At the bottom, a door with no handle: thirty-six tiles in six colours, and a small brass cat in a dish beside it."
+      ],
+      "beats": [
+        {
+          "id": "b1",
+          "kind": "action",
+          "prompt": "Wren goes down the stair. Declare how.",
+          "suggests": "Cool",
+          "outcomes": {
+            "strong": "Wren takes the steps slowly, lantern low, and reads the door from the last stair before touching it.",
+            "weak": "A step gives under Wren's foot; the lantern swings and the door's tiles flash, then settle.",
+            "miss": "Wren slips the last three steps and lands in front of the door with a bruised hand and an audience of tiles."
+          }
+        },
+        {
+          "id": "door",
+          "kind": "puzzle",
+          "prompt": "The stair door: set one cat in every row, column and colour, no two touching.",
+          "puzzle": {"n": 6},
+          "outcomes": {
+            "strong": "The last cat clicks into place and the door swings open without a sound, as if it had been waiting for someone careful.",
+            "weak": "The door opens, grudgingly, and Wren goes through with fewer hearts than they came down with.",
+            "miss": "The tiles go dark. The door stays shut, but a draught under it shows a gap a porter could squeeze through, at a cost."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": "The Reading Room",
+      "place": "reading-room",
+      "opening": [
+        "The reading room is laid for readers who never came: open books, cold lamps, a chair pulled out.",
+        "At the far end, a second door, smaller, with twenty-five tiles in five colours."
+      ],
+      "beats": [
+        {
+          "id": "d1",
+          "kind": "decision",
+          "prompt": "One open book names the archive's keeper. Is it the person the library above remembers?",
+          "proposes": {
+            "fact": "The open book's keeper is the founder the library above is named for.",
+            "proposed_by": "the-archive"
+          }
+        },
+        {
+          "id": "door",
+          "kind": "puzzle",
+          "prompt": "The reading-room door: five colours, five cats.",
+          "puzzle": {"n": 5},
+          "outcomes": {
+            "strong": "The small door opens on a room of shelves, every book in it sealed with the same brass cat.",
+            "weak": "The door opens on the second try, and Wren steps through with their heart in their mouth.",
+            "miss": "The door holds. Through the keyhole, Wren can see the shelves, and that is all tonight gives."
+          }
+        },
+        {
+          "id": "b2",
+          "kind": "action",
+          "prompt": "Dawn is coming upstairs. Declare how Wren leaves the archive.",
+          "suggests": "Cute",
+          "outcomes": {
+            "strong": "Wren leaves every door as they found it and is behind the desk before the first reader arrives.",
+            "weak": "Wren gets the shelf shut, but a brass cat is still in their pocket.",
+            "miss": "The shelf won't close. The library will open on a stair that wasn't there yesterday."
+          }
+        }
+      ]
+    }
+  ]
+}

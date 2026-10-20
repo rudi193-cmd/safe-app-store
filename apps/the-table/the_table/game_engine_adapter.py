@@ -129,12 +129,14 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 
+from . import peaks as _peaks  # noqa: E402  (the one alias map, below)
+
 # Approach name (public, used in moves/views) -> engine's internal stat key
-# (the dict key ``engine.stats`` is actually keyed by). Deliberately
-# duplicates the private ``stat_map`` inside ``engine_v1_7.py``'s
-# ``Engine.roll``/``apply_debility``/``restore_debility`` -- see the STAT
-# NAMING section of the module docstring for why.
-_STAT_MAP = {"Grit": "Integrity", "Weird": "Synthesis", "Cute": "Trust", "Cool": "Efficiency"}
+# (the dict key ``engine.stats`` is actually keyed by). It mirrors the private
+# ``stat_map`` inside ``engine_v1_7.py``'s ``Engine.roll`` (not importable; see
+# the STAT NAMING section of the module docstring), and the table holds it
+# once: the one script's odds (``peaks._ENGINE_STAT_MAP``, flatten F5).
+_STAT_MAP = _peaks._ENGINE_STAT_MAP
 
 _DEBILITY_FLOOR = -5  # mirrors Engine.apply_debility's own floor, applied in-adapter (trap 1)
 

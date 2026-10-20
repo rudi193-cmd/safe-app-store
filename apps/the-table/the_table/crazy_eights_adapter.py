@@ -28,7 +28,7 @@ the-table will NOT reproduce game-lab's own baseline numbers (its
 `avg_plies`, its ply accounting) -- that is expected and correct, not a bug:
 the-table is not re-running game-lab's baseline, it is driving the *same
 rules* through the uniform protocol, and one card per step means every draw
-is its own auditable ledger row (``ledger_sink.py`` snapshots each ``step``).
+is its own auditable record row (the sink snapshots each ``step``).
 
 Reproducibility: this adapter owns its own ``random.Random(seed)`` instance
 in ``reset()`` and never touches the global ``random`` module (game-lab's

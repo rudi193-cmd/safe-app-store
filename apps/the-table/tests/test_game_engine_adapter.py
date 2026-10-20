@@ -360,13 +360,13 @@ class TestSceneSessionLedgerIntegration(unittest.TestCase):
         """The third game, through the IDENTICAL run_session + LedgerSink
         bureau and crazy_eights use, unchanged -- this is the proof the
         protocol generalizes to a freeform narrative scene too."""
-        from the_table.ledger_sink import LedgerSink
+        from ._record import RecordedSink
 
         snapshot = _EngineStateSnapshot(_ENGINE_STATE_PATH)
         box_dir = tempfile.mkdtemp(prefix="the-table-test-scene-")
         try:
             game = SceneSession(beats=DEFAULT_BEATS)
-            sink = LedgerSink(box_dir=box_dir)
+            sink = RecordedSink(box_dir=box_dir)
             try:
                 policy = random_policy(random.Random(4))
                 result = run_session(
@@ -384,12 +384,12 @@ class TestSceneSessionLedgerIntegration(unittest.TestCase):
         snapshot.assert_unchanged(self)
 
     def test_scene_driven_by_first_legal_policy_also_verifies(self):
-        from the_table.ledger_sink import LedgerSink
+        from ._record import RecordedSink
 
         box_dir = tempfile.mkdtemp(prefix="the-table-test-scene-firstlegal-")
         try:
             game = SceneSession(beats=DEFAULT_BEATS)
-            sink = LedgerSink(box_dir=box_dir)
+            sink = RecordedSink(box_dir=box_dir)
             try:
                 policy = first_legal_policy()
                 result = run_session(

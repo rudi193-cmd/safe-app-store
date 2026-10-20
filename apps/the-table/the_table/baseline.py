@@ -68,6 +68,7 @@ def run_baseline(rounds: int = DEFAULT_ROUNDS, cap: int = CAP) -> dict:
         turns_all, unresolved = [], 0
         wins_by_seat: dict = {}
         no_winner = 0
+        won, shared = 0, 0            # rounds with a winner; of those, with more than one
         summaries: dict = {}          # Result.summary keyword -> count
         beat_status: dict = {}        # scene: aggregated view["tally"]
         success_hist: dict = {}       # scene: successes-per-round histogram
@@ -79,6 +80,8 @@ def run_baseline(rounds: int = DEFAULT_ROUNDS, cap: int = CAP) -> dict:
             if not terminal:
                 unresolved += 1
             if res.winners:
+                won += 1
+                shared += len(res.winners) > 1  # a tie (catgrid_duel) credits every seat in it
                 for w in res.winners:
                     wins_by_seat[w] = wins_by_seat.get(w, 0) + 1
             else:
@@ -89,6 +92,10 @@ def run_baseline(rounds: int = DEFAULT_ROUNDS, cap: int = CAP) -> dict:
                 summaries["enrolled"] = summaries.get("enrolled", 0) + 1
             elif "voided" in res.summary:
                 summaries["voided"] = summaries.get("voided", 0) + 1
+            elif "out of hearts" in res.summary:  # catgrid
+                summaries["out of hearts"] = summaries.get("out of hearts", 0) + 1
+            elif res.summary.startswith("solved"):  # catgrid
+                summaries["solved"] = summaries.get("solved", 0) + 1
             if isinstance(view, dict) and "tally" in view:  # scene exposes a status tally
                 for st, c in view["tally"].items():
                     beat_status[st] = beat_status.get(st, 0) + c
@@ -103,6 +110,8 @@ def run_baseline(rounds: int = DEFAULT_ROUNDS, cap: int = CAP) -> dict:
             "unresolved": unresolved,
             "wins_by_seat": {k: wins_by_seat.get(k, 0) for k in sorted(wins_by_seat)},
             "no_winner": no_winner,
+            "won": won,
+            "shared": shared,
         }
         if summaries:
             rec["endings"] = summaries
@@ -132,6 +141,8 @@ def format_report(data: dict, rounds: int) -> str:
                 bar = "█" * round(40 * w / top)
                 lines.append(f"       seat {seat}: {w:4d}  {100 * w / rounds:5.1f}%  {bar}")
             lines.append(f"    no winner (stall): {rec['no_winner']}  ({100 * rec['no_winner'] / rounds:.1f}%)")
+            if rec["shared"]:
+                lines.append(f"    shared (a tie): {rec['shared']}  ({100 * rec['shared'] / rounds:.1f}%)")
         if "endings" in rec:
             for k, v in rec["endings"].items():
                 lines.append(f"       {k:11s}: {v:4d}  {100 * v / rounds:5.1f}%")

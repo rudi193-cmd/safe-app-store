@@ -18,7 +18,7 @@ Aether-wild gallery beats (b4, b6): roll d6 first -- 1 = disadvantage (aether
 turns on you), 6 = advantage (it surges with you).
 
 b5 (Maunder proposes its own personhood) is a DECISION, not a check. No die
-resolves it; only a named human seals it. Reported as the shared hole every
+resolves it; only the human seals it, with their own key. Reported as the shared hole every
 character's average has in exactly the same place.
 
 Run:  python3 monte_carlo.py [rounds]     # default 500
@@ -137,7 +137,7 @@ def main(rounds):
     L.append("▸ b5  Maunder proposes its own personhood  [DECISION — the shared hole]")
     L.append(f"     Across ALL {len(PARTY)} characters × {rounds} runs = {len(PARTY)*rounds} playthroughs:")
     L.append(f"       auto-sealed by any policy : 0")
-    L.append(f"       left for a named human    : {len(PARTY)*rounds}  (100.0%)")
+    L.append(f"       left for the human        : {len(PARTY)*rounds}  (100.0%)")
     L.append("     No sheet, no seed, no luck resolves it. Every character reaches the")
     L.append("     same question — and the machine hands the pen to a person, every time.")
     L.append("─" * 78)

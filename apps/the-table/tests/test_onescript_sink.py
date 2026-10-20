@@ -24,7 +24,7 @@ from the_table import onescript_sink as osk
 from the_table import peaks, registry
 from the_table.dice_source import replay_roll
 from the_table.gm import random_policy, run_session
-from the_table.ledger_sink import LedgerSink
+from ._record import RecordedSink
 from the_table.story_session import StorySession
 from the_table.worlds import load_world
 
@@ -200,12 +200,14 @@ def test_B2_a_seal_over_another_beat_or_world_moves_nothing(over):
     assert s.pending_seal() == pending
 
 
-def test_a_machine_name_on_a_verified_seal_is_still_refused_by_the_story():
-    """The story's name check stays as a second gate behind the proof."""
-    s, sink, _, pending = play(check=lambda sub: sealed_answer(pending, by="claude"))
-    with pytest.raises(ValueError):
-        sink.apply_beat_seal(s, pending, SUB)
-    assert s.pending_seal() == pending
+def test_the_proof_is_the_only_gate_and_the_verifier_rides_as_given():
+    """Flatten F3: the name list behind the proof retired. Who verified is the
+    keyring's business (a Nestor pair's verifier), recorded as the one-script
+    answered it; no name, on its own, moves or stops a beat."""
+    s, sink, _, pending = play(check=lambda sub: sealed_answer(pending, by="Nomi Reyes"))
+    sink.apply_beat_seal(s, pending, SUB)
+    assert s._seals[pending["fact_id"]]["by"] == "Nomi Reyes"
+    assert s.pending_seal() is None
 
 
 def test_S2_the_open_row_names_the_world_and_its_sheets():
@@ -237,17 +239,20 @@ def test_result_row_after_terminal_through_run_session():
     assert results[0]["scores"] == res.scores and rec.rows[0]["what"] == "open"
 
 
-def test_ledger_and_record_both_written_through_a_tee():
+def test_the_record_and_a_second_sink_both_written_through_a_tee():
+    """A Tee hands every call to each sink inside it: the real record (a
+    one-script box beside the-table) and the in-memory stand-in see the same
+    rows, and the real chain holds."""
     box = tempfile.mkdtemp(prefix="the-table-tee-")
     try:
-        ledger, rec = LedgerSink(box_dir=box), FakeRecord()
+        real, rec = RecordedSink(box_dir=box, game_name="scene"), FakeRecord()
         game = registry.make("scene")
         run_session(game, random_policy(__import__("random").Random(3)), seed=7,
-                    sink=osk.Tee(ledger, osk.OneScriptSink(rec.write, game_name="scene")))
-        assert ledger.verify() is True, ledger._last_verify_output
-        n = ledger._con.execute("SELECT COUNT(*) FROM ledger").fetchone()[0]
-        assert n == len(rec.rows)
-        ledger.close()
+                    sink=osk.Tee(real, osk.OneScriptSink(rec.write, game_name="scene")))
+        assert real.verify() is True, real._last_verify_output
+        assert len(real.rows) == len(rec.rows)
+        assert [r["what"] for r in real.rows] == [r["what"] for r in rec.rows]
+        real.close()
     finally:
         shutil.rmtree(box, ignore_errors=True)
 

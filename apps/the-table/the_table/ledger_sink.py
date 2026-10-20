@@ -1,4 +1,42 @@
-"""ledger_sink.py — the-table's write path into an ai-game-master campaign box.
+"""ledger_sink.py — TOMBSTONE (flatten F2, 2026-10-19). Not authoritative.
+
+STATUS: retired. Nothing in the-table writes through this any more; the
+table's games, the proof and aetheris5e write ``verdict`` rows to the
+one-script record, the one chain (willows-grove
+``docs/design/one-script/flatten-2026-10-19.md`` F-1, F-6).
+
+SUCCESSOR: ``the_table/onescript_sink.py`` (``OneScriptSink``, the same three
+sink methods) writing through ``the_table/host.py`` (``Box.write`` ->
+one-script ``table.verdict``); free-form states (aetheris5e's d20 checks)
+through ``host.StateSink``.
+
+REASON: two chains for one table. This file copied ai-game-master's hashing
+byte for byte to keep a second, ``campaign.db`` chain beside the record; the
+operator reopened forge-convergence §9 row 11 ("1 yes") and chose one chain.
+
+CONTENTS, MAPPED FORWARD (each below is kept as it was and is
+non-authoritative):
+
+  LedgerSink(box_dir)           -> host.Box(path) + Box.sink(...)
+  open_session/snapshot/close   -> OneScriptSink's, as verdict rows
+  verify()  (verify_ledger.py)  -> Box.verify() (one-script verify_chain + verify_anchor)
+  head()                        -> Box.head()
+  _canonical_row / _row_hash    -> ai-game-master's own bootstrap/verify_ledger.py
+  AGM_VERIFY_PY, GENESIS        -> the_table/agm_head.py (which still reads
+                                   ai-game-master's OWN campaign.db, its own app)
+
+WHY THE STUB STILL EXISTS: the frozen box-build experiment records
+(willows-grove ``seat/willow/experiments/box-build-2026-10-17/e2e/``
+``test_w2_rows.py``, ``test_w4_break.py``, ``test_w4_surface.py``) import
+``LedgerSink``, and a frozen record stays frozen (willows-grove CLAUDE.md
+rule 12). ``tests/test_ledger_sink.py`` keeps it working for them. It goes
+when those records are re-run beside, not edited, or at F4.
+
+What follows is the retired module, unchanged.
+
+---
+
+ledger_sink.py — the-table's write path into an ai-game-master campaign box.
 
 Walking skeleton. Writes append-only ledger rows (session_open / turn /
 session_close) into an ai-game-master `campaign.db` and asks
