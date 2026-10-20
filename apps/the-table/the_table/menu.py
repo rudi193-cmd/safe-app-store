@@ -52,9 +52,12 @@ from pathlib import Path
 from typing import Any
 
 from .gm import Policy
+from .host import onescript_module
 
+_states = onescript_module("states")  # the three, once (flatten F5, F-18)
 ESCALATE = "ESCALATE"  # ratatosk/onescript.py: the reserved propose path
-OFF_MENU, ESCALATED, UNREACHABLE = "off_menu", "escalate", "unreachable"
+OFF_MENU, ESCALATED = "off_menu", "escalate"
+UNREACHABLE = _states.UNREACHABLE
 TO_HUMAN = "human"
 PATH_CAP = 120
 
@@ -207,7 +210,7 @@ QUESTION = "Pick one move id from the menu table and propose it as the path."
 
 def menu_doc(menu: list[str]) -> dict:
     return {
-        "state": "populated",
+        "state": _states.POPULATED,
         "why": "",
         "return": MENU_RETURN,
         "tables": [
