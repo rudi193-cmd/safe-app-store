@@ -213,6 +213,16 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # catgrid's daily board takes its seed from the one script's beacon
+      # (flatten F-14, F-16): the one script is checked out beside the store.
+      # It reads willow-bot master, so a change that needs both lands there first.
+      - uses: actions/checkout@v7
+        if: matrix.app == 'catgrid'
+        with:
+          repository: willow-memory/willow-bot
+          ref: master
+          path: willow-bot
+
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
@@ -237,6 +247,7 @@ jobs:
       - name: Run tests
         working-directory: apps/${{ matrix.app }}
         env:
+          ONESCRIPT_HOME: ${{ github.workspace }}/willow-bot/one-script
           # Empty for every leg but playgate's, where it turns the chain
           # tests from "skip if Nestor is absent" into "fail if Nestor is
           # absent" — so this leg cannot go green having verified nothing.
@@ -305,8 +316,16 @@ jobs:
         with:
           node-version: "22"
 
+      - uses: actions/checkout@v7
+        with:
+          repository: willow-memory/willow-bot
+          ref: master
+          path: willow-bot
+
       - name: Differential against the Python core
         working-directory: apps/catgrid
+        env:
+          ONESCRIPT_HOME: ${{ github.workspace }}/willow-bot/one-script
         run: |
           set -eo pipefail
           node --version
