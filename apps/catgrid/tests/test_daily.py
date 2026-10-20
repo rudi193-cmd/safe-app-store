@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import os
 import unittest
 from pathlib import Path
 
@@ -11,7 +12,11 @@ from catgrid import daily, soil
 from catgrid.play import Game
 
 R1 = "a" * 64  # a stand-in randomness, not a real round's
-BESIDE = Path(__file__).resolve().parents[4] / "willow-bot" / "one-script" / "onescript" / "beacon.py"
+# where daily.py looks: $ONESCRIPT_HOME (CI checks the one script out inside
+# the store), else beside safe-app-store
+BESIDE = (Path(os.environ.get("ONESCRIPT_HOME")
+               or Path(__file__).resolve().parents[4] / "willow-bot" / "one-script")
+          / "onescript" / "beacon.py")
 
 
 def reader(randomness=R1, shift=0):
