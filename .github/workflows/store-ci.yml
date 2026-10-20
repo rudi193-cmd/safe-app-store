@@ -220,7 +220,7 @@ jobs:
         if: matrix.app == 'catgrid'
         with:
           repository: willow-memory/willow-bot
-          ref: master
+          ref: main
           path: willow-bot
 
       - name: Set up Python
@@ -319,7 +319,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: willow-memory/willow-bot
-          ref: master
+          ref: main
           path: willow-bot
 
       - name: Differential against the Python core
