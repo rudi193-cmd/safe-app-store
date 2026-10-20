@@ -75,6 +75,23 @@ def reach() -> dict:
     return {"state": "reachable", **w}
 
 
+def onescript_module(name: str):
+    """One of the one script's modules (``stream``, ``xorshift``, ...), for the
+    randomness the games import from it (flatten F-14, F-16). Needs the one
+    script beside, not the law. Raises ``Unreachable`` (with why) when it is
+    not there, so a game that needs its randomness says so and stops."""
+    home = where()["onescript"]
+    if not (home / "onescript" / "record.py").is_file():
+        raise Unreachable(f"no one-script at {home} (set ONESCRIPT_HOME): "
+                          "the table's randomness lives there (flatten F-14)")
+    if str(home) not in sys.path:
+        sys.path.insert(0, str(home))
+    try:
+        return importlib.import_module(f"onescript.{name}")
+    except ImportError as e:
+        raise Unreachable(f"the one-script at {home} would not import: {e}") from e
+
+
 def onescript() -> SimpleNamespace:
     """The one-script modules a host needs (api, record, table). Raises
     ``Unreachable`` (with why) when it is not beside."""

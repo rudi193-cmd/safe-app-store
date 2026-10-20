@@ -246,3 +246,24 @@ def test_the_proof_fails_when_an_edited_copy_verifies(monkeypatch, capsys):
                         lambda self, box=None: [] if box is not None else real(self))
     assert proof.main() == 1
     assert "tampered:     NOT REFUSED" in capsys.readouterr().out
+
+
+def test_the_tables_randomness_with_no_one_script_says_so_and_stops(tmp_path):
+    """F-16: the games import the one script's randomness; with none beside,
+    importing it fails, saying where it looked, never falling back."""
+    import subprocess
+
+    got = subprocess.run(
+        [sys.executable, "-c", "import the_table.stream"], cwd=_APP_ROOT,
+        env={**os.environ, "ONESCRIPT_HOME": str(tmp_path / "nowhere")},
+        capture_output=True, text=True)
+    assert got.returncode != 0
+    assert "Unreachable" in got.stderr and "nowhere" in got.stderr
+
+
+@needs_onescript
+def test_the_tables_stream_is_the_one_scripts():
+    from the_table import stream
+
+    one = host.onescript_module("stream")
+    assert stream.StreamRandom is one.StreamRandom and stream.replay is one.replay
