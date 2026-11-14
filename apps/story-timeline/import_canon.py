@@ -25,6 +25,7 @@ it on the timeline: the game master seals, the writer promotes.
 from __future__ import annotations
 
 import re
+
 import story_protocol as proto
 import timeline_db as db
 
