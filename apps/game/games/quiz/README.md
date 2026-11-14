@@ -2,7 +2,7 @@
 
 A quiz from your own files: a passage with a word missing, and you fill it in.
 
-A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its files' hashes ([../../willow.pin.json](../../willow.pin.json)). Its card, with everything it does and refuses: [quiz in willow](https://github.com/willow-memory/Willow/tree/9d7c45b0d1ab64e5c07519ec6bbb42489ebb19b1/adapters/stdlib/quiz).
+A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its files' hashes ([../../willow.pin.json](../../willow.pin.json)). Its card, with everything it does and refuses: [quiz in willow](https://github.com/willow-memory/Willow/tree/c2b5aa41fd31ab53979ea0d891607ded5f6f3f0a/adapters/stdlib/quiz).
 
 ## Playing it
 

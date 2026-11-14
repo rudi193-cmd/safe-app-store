@@ -1,7 +1,7 @@
 {
   "_what": "Die-Namic plays with willow's kernel and add-ons where they live, in willow. This pins them: the commit, and each file the box runs at that commit by its SHA-256. box/willow_pin.py finds a willow checkout and refuses one whose files differ.",
   "willow": "https://github.com/willow-memory/Willow",
-  "commit": "9d7c45b0d1ab64e5c07519ec6bbb42489ebb19b1",
+  "commit": "c2b5aa41fd31ab53979ea0d891607ded5f6f3f0a",
   "add_ons": [
     "all",
     "backgammon",
@@ -84,7 +84,7 @@
     "adapters/stdlib/horoscope/README.md": "232be5c30e5b00393dadbd50f29dc7e871933f639c468f5e44dd9786f3fff27f",
     "adapters/stdlib/horoscope/horoscope.py": "5f81801ab83329b9752cb8d8f609594729e3477c07f9ae241229148a10dfbcb9",
     "adapters/stdlib/liars-dice/README.md": "462ad35d5fda352e6352b99efe6ece71105fc471918f2a31be64dfe5b4ffcbdc",
-    "adapters/stdlib/liars-dice/liars_dice.py": "fc8ce2f7424f9f0dbbe6d2f85dc0140e7c22a0899fce492f1124d3ec7a5d9ee1",
+    "adapters/stdlib/liars-dice/liars_dice.py": "d36aba93668102039e77b4fdc4778148e9ce7582c682e589ad1072dae08171e9",
     "adapters/stdlib/life/README.md": "9c178bd65066da52215f4f7112d0a028aad0759b22b7c231f25ed4e4c8cf0912",
     "adapters/stdlib/life/life.py": "167dd7efe9b7eed25ed41ad9e3684dae5e8d090b81987a52cb47547ce2324ea9",
     "adapters/stdlib/odds/README.md": "d60eda48b63513b1e4eafc98713e23284aeaf9a468f947fe3220dcd1c2cc4d81",
