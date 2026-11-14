@@ -1,6 +1,26 @@
 {
   "_contract": "DRAFTS awaiting the operator's seal - Nestor's draft tier, applied to law. Each entry was queued by running the fleet's sealed record against the other sessions' new pieces (2026-08-05): standing law had no answer within reach, so these are proposals. author is the machine; verified_by is EMPTY and stays empty until a person seals the entry by moving it into fleet.json with their name on it. The machine proposes; it does not ratify its own proposals - which is, fittingly, proposal one.",
-  "proposed_decisions": [],
-  "proposed_rejections": [],
+  "proposed_decisions": [
+    {
+      "question": "When the game side of the store moves to Die-Namic, what is apps/game?",
+      "commitment": "the first engine, moved whole: Consus's AIGM (Engine Codex v1.5.0.0, engine_v1_7.py), kept as it is with its 2026-04-08 code review, not fixed into something it wasn't",
+      "reason": "apps/game is where Die-Namic's game master started, not one of its games: a Streamlit table run by Consus, 'your AIGM', the Die-Namic System's Generation Layer persona, on a 2d6 + stat roll read in three bands (ARCHITECT_ROLL, SUCCESS_STANDARD, CHAOS_BURST) over table stats that are AI-governance stats underneath (Grit, Weird, Cute, Cool as Integrity, Synthesis, Trust, Efficiency). Everything since descends from that roll: the-table's SceneSession rolls through Engine.roll today (avoiding the three methods that write engine_state.json, and swapping in a seeded stream for the global random), and willow's game-master rebuilt it on the record as strong / weak / miss, which the game box plays. 'stalled' in the catalog is true of the app (its review says it cannot run as-is) and false of the engine, which is load-bearing. Fixing it would rewrite the origin; keeping it whole keeps the lineage readable, and the-table's dependency intact.",
+      "author": "vishwakarma",
+      "verified_by": "",
+      "date": "2026-11-14",
+      "record": "apps/game/engine_v1_7.py, apps/game/streamlit_app.py:158-159, apps/game/CODE_REVIEW.md; apps/the-table/the_table/game_engine_adapter.py (its dependency and the traps it avoids); willow adapters/stdlib/game-master (the roll rebuilt on the record); willow demo/game-box; found by asking a willow box over the three repos, sort's 'board and card games' and 'dice and odds' categories, 2026-11-14"
+    }
+  ],
+  "proposed_rejections": [
+    {
+      "question": "May the one who runs the table win a roll without rolling?",
+      "option": "the creator's roll always succeeds: apps/game's Engine.roll(stat, is_creator=True) returns 12 + the stat as an ARCHITECT_ROLL, and no dice are thrown",
+      "reason": "it is the closed door every later piece answered. An authority that wins by fiat is the opposite of the covenant the game side kept from then on: the machine proposes and does not confirm (ai-game-master's CLAUDE.md), the dice are seeded by the record so nobody picks the faces, not even the one who rules the table (willow's dice, game-master), and the game master's power is a seal under a key, a ruling the table can see and check, never an outcome that skips the roll. The architect's always-win became the GM's seal.",
+      "reopen_when": "",
+      "author": "vishwakarma",
+      "verified_by": "",
+      "date": "2026-11-14"
+    }
+  ],
   "_last_resolution": "2026-08-05: all five proposals and their three riding rejections sealed into fleet.json by rudi193 - ratification arrived as inline annotations on the reading copy, including explicit pass on the three empty reopen_when entries. Operator notes on the purpose-checkability and testimony entries flag possible prior art in willow-gate, to be reconciled."
 }
