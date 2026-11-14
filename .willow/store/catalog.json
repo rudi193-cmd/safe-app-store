@@ -232,9 +232,9 @@
     },
     {
       "id": "game",
-      "name": "SAFE Game",
-      "description": "SAFE framework game app.",
-      "status": "stalled",
+      "name": "Die-Namic",
+      "description": "Where Die-Namic is built: the game box an AI game master keeps a table in. Its first engine, Jane GM, is archived whole inside.",
+      "status": "seeded",
       "path": "apps/game",
       "tier": "playground",
       "majors": [

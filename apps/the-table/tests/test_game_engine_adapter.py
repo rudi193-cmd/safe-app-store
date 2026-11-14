@@ -30,7 +30,7 @@ DEFAULT_BEATS = 6
 # resolves apps/game itself (repo root three parents up from this test file:
 # apps/the-table/tests/test_game_engine_adapter.py -> repo root).
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-_ENGINE_STATE_PATH = os.path.join(_REPO_ROOT, "apps", "game", "engine_state.json")
+_ENGINE_STATE_PATH = os.path.join(_REPO_ROOT, "apps", "game", "archive", "first-engine", "engine_state.json")
 
 
 def _assert_json_roundtrip(testcase: unittest.TestCase, value, label: str) -> None:

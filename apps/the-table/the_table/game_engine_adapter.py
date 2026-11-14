@@ -148,10 +148,12 @@ def _ensure_game_engine_on_path() -> None:
 
     Resolved relative to this file:
     apps/the-table/the_table/game_engine_adapter.py -> repo root is three
-    parents up -> apps/game is the sibling directory holding the module.
+    parents up -> apps/game/archive/first-engine holds the module: apps/game
+    is now where Die-Namic is built, and its first engine is archived there,
+    whole and unedited.
     """
     repo_root = Path(__file__).resolve().parents[3]
-    game_dir = repo_root / "apps" / "game"
+    game_dir = repo_root / "apps" / "game" / "archive" / "first-engine"  # archived 2026-11-14, kept whole
     game_str = str(game_dir)
     if game_str not in sys.path:
         sys.path.insert(0, game_str)
