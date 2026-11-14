@@ -2,7 +2,7 @@
 
 Crazy Eights on the record, hands open and the deck seeded by the record's tip: every card, draw and pass held to the rules.
 
-A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its files' hashes ([../../willow.pin.json](../../willow.pin.json)). Its card, with everything it does and refuses: [crazy-eights in willow](https://github.com/willow-memory/Willow/tree/c2b5aa41fd31ab53979ea0d891607ded5f6f3f0a/adapters/stdlib/crazy-eights).
+A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its files' hashes ([../../willow.pin.json](../../willow.pin.json)). Its card, with everything it does and refuses: [crazy-eights in willow](https://github.com/willow-memory/Willow/tree/109df5c0f8e89605836c6e74032be5f47a43e209/adapters/stdlib/crazy-eights).
 
 ## Playing it
 
