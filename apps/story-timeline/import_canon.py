@@ -25,8 +25,6 @@ it on the timeline: the game master seals, the writer promotes.
 from __future__ import annotations
 
 import re
-from typing import Optional
-
 import story_protocol as proto
 import timeline_db as db
 
@@ -62,7 +60,7 @@ def _title(fact: str, width: int = 80) -> str:
     return fact[:width].rsplit(" ", 1)[0].rstrip(",;:") + "..."
 
 
-def import_canon(text: str, timeline_id: str, *, uuid: Optional[str] = None, mirror: bool = True) -> dict:  # fmt: skip
+def import_canon(text: str, timeline_id: str, *, uuid: str | None = None, mirror: bool = True) -> dict:  # fmt: skip
     """Put each sealed fact not already there on the timeline: {added, skipped}."""
     if proto.get_timeline(timeline_id) is None:
         raise ValueError(f"timeline not found: {timeline_id}")
