@@ -2,7 +2,7 @@
 
 Readings written by a Tracery grammar, every branch picked by the seeded stream, so each one can be replayed.
 
-A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its files' hashes ([../../willow.pin.json](../../willow.pin.json)). Its card, with everything it does and refuses: [oracle-text in willow](https://github.com/willow-memory/Willow/tree/1ee630b12fe75cfeafb110aca681acd86cbf0179/adapters/stdlib/oracle-text).
+A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its files' hashes ([../../willow.pin.json](../../willow.pin.json)). Its card, with everything it does and refuses: [oracle-text in willow](https://github.com/willow-memory/Willow/tree/4b2064071393cef948689ac8fb2badb29faf0a7b/adapters/stdlib/oracle-text).
 
 ## Playing it
 

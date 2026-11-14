@@ -2,7 +2,7 @@
 
 A tabletop game's rolls and rulings as rows on the record, with the game master's calls sealed.
 
-A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its files' hashes ([../../willow.pin.json](../../willow.pin.json)). Its card, with everything it does and refuses: [game-master in willow](https://github.com/willow-memory/Willow/tree/1ee630b12fe75cfeafb110aca681acd86cbf0179/adapters/stdlib/game-master).
+A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its files' hashes ([../../willow.pin.json](../../willow.pin.json)). Its card, with everything it does and refuses: [game-master in willow](https://github.com/willow-memory/Willow/tree/4b2064071393cef948689ac8fb2badb29faf0a7b/adapters/stdlib/game-master).
 
 ## Playing it
 

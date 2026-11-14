@@ -28,9 +28,11 @@ proposed in `stores/decisions/proposed.json`.
   game master's binder that can be asked, the record, prep and
   end-of-night stacks, offers at the table, chapters that carry canon,
   and stories from story-timeline.
-- **[the games](games/)**, a folder each: catgrid, checkers, daily-word,
-  dice, dice5e, the story (game-master), horoscope, life, odds,
-  oracle-text, pile-poetry, quiz, tarot. Each is a willow add-on and stays
+- **[the games](games/)**, a folder each: backgammon, bureau, catgrid,
+  checkers, crazy-eights, daily-word, dice, dice5e, the story
+  (game-master), hearts, horoscope, liars-dice, life, odds, oracle-text,
+  pile-poetry, quiz, tarot. the-table's games came out of the table into
+  willow, one add-on each, and are pinned back here. Each is a willow add-on and stays
   in willow; its folder says what it is, how to play it, and where it came
   from, and [`games/play.py`](games/play.py) plays any of them on a box's
   record through the pin: `python apps/game/games/play.py checkers --table DIR move 11-15`.
@@ -42,7 +44,8 @@ proposed in `stores/decisions/proposed.json`.
 ## What comes here next
 
 Each a step of its own:
-- **the-table**: the game protocol, the driver, its games and worlds;
+- **the-table**: the game protocol and the driver (its games are in
+  willow and pinned here now, its worlds in the box);
 - **ai-game-master**: the blueprint, its decisions and its covenant;
 - **game-lab**: official rules, simulators and measured baselines.
 

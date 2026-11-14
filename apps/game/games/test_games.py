@@ -21,13 +21,18 @@ NOW = ["--now", "2026-11-21T19:00:00Z"]
 
 # one honest move of each game: on a box (True), or with no box (False)
 FIRST = {
+    "backgammon": (True, ["new"]),
+    "bureau": (True, ["new"]),
     "catgrid": (True, ["play"]),
     "checkers": (True, ["new"]),
+    "crazy-eights": (True, ["new"]),
     "daily-word": (True, ["today"]),
     "dice": (True, ["roll", "2d6+1"]),
     "dice5e": (True, ["roll", "4d6kh3"]),
     "game-master": (True, ["check"]),
+    "hearts": (True, ["new"]),
     "horoscope": (False, ["Ana"]),
+    "liars-dice": (True, ["new"]),
     "life": (True, ["play"]),
     "odds": (False, ["2d6", "--bands", "10,7"]),
     "oracle-text": (False, ["--seed", "between nights"]),

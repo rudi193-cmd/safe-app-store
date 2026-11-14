@@ -2,7 +2,7 @@
 
 Full tabletop dice notation (4d6kh3, advantage), rolled on the record and checkable like dice.
 
-A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its files' hashes ([../../willow.pin.json](../../willow.pin.json)). Its card, with everything it does and refuses: [dice5e in willow](https://github.com/willow-memory/Willow/tree/1ee630b12fe75cfeafb110aca681acd86cbf0179/adapters/stdlib/dice5e).
+A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its files' hashes ([../../willow.pin.json](../../willow.pin.json)). Its card, with everything it does and refuses: [dice5e in willow](https://github.com/willow-memory/Willow/tree/4b2064071393cef948689ac8fb2badb29faf0a7b/adapters/stdlib/dice5e).
 
 ## Playing it
 
