@@ -22,14 +22,20 @@ the record as strong, weak and miss. Its one closed door is
 succeeds, which everything since answered with a seal instead. Both are
 proposed in `stores/decisions/proposed.json`.
 
-## What comes here
+## What's here
 
-Each a step of its own, in the order the build needs them:
+- **[the game box](box/)**, brought over from willow's `demo/game-box`: a
+  game master's binder that can be asked, the record, prep and
+  end-of-night stacks, offers at the table, chapters that carry canon,
+  and stories from story-timeline.
+- **[willow.pin.json](willow.pin.json)**: the box plays with willow's
+  kernel and add-ons where they live, in willow, pinned by commit and by
+  each file's SHA-256. The box finds a willow checkout (`WILLOW_ROOT`, or
+  one beside safe-app-store) and refuses one whose files differ.
 
-- **the game box**, now a demo in willow (`demo/game-box` there): a game
-  master's binder that can be asked, the record, prep and end-of-night
-  stacks, offers at the table, chapters that carry canon, and stories from
-  story-timeline;
+## What comes here next
+
+Each a step of its own:
 - **the-table**: the game protocol, the driver, its games and worlds;
 - **ai-game-master**: the blueprint, its decisions and its covenant;
 - **game-lab**: official rules, simulators and measured baselines.
