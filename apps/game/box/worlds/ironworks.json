@@ -1,0 +1,133 @@
+{
+  "id": "ironworks-last-pour",
+  "title": "Ironworks — Last Pour",
+  "setting": "The Ironworks foundry has been condemned. In eight hours the city will tear it down. But somewhere in the cooling halls, behind the last furnace that still glows, is a mold that was cast sixty years ago and never broken open — and two people who have no business being here tonight have each come for it, for different reasons, and neither knows the other is already inside.",
+  "stats": ["Grit", "Weird", "Cute", "Cool"],
+  "base_stat": 2,
+  "characters": [
+    {
+      "id": "sable",
+      "name": "Sable Merin",
+      "role": "granddaughter of the last master founder; has the old man's journal and knows where the mold is, but not what is in it — came to find out before the wrecking ball makes it a question nobody can answer",
+      "seat": true,
+      "stats": {"Grit": 3, "Weird": 2, "Cute": 2, "Cool": 2}
+    },
+    {
+      "id": "tel",
+      "name": "Tel Vasik",
+      "role": "city archivist who found a sixty-year gap in the metallurgical records and followed it here; knows what the mold was supposed to contain but not where it is — came to close a file, not to steal anything",
+      "seat": true,
+      "stats": {"Grit": 2, "Weird": 2, "Cute": 2, "Cool": 3}
+    },
+    {
+      "id": "furnace",
+      "name": "the last furnace",
+      "role": "still glowing, past all reason; the only light source in the condemned wing, and it hums at a pitch that makes your fillings ache",
+      "seat": false,
+      "stats": {"Weird": 4}
+    }
+  ],
+  "places": [
+    {
+      "id": "gate",
+      "name": "the condemned gate",
+      "desc": "Chain-link and orange tape across a loading dock that hasn't seen a truck in a decade. The padlock is already cut — someone was here first."
+    },
+    {
+      "id": "hall",
+      "name": "the cooling hall",
+      "desc": "A cathedral of rust and old iron, the ceiling lost in shadow. Rails run along the floor where ladles used to travel. At the far end, behind a wall of stacked ingot molds, something glows."
+    }
+  ],
+  "scenes": [
+    {
+      "id": "s1",
+      "title": "Two Keys, One Lock",
+      "place": "gate",
+      "opening": [
+        "The Ironworks has been dark for eleven years, condemned for three, and scheduled for demolition at dawn. The last shift walked out, the power was cut, and the city put a chain on the gate and a date on the calendar.",
+        "Tonight the chain is cut and the gate is ajar, and two people who have never met are each inside for the same reason: a mold, cast sixty years ago in the deepest hall, that no record says was ever broken open.",
+        "Sable has her grandfather's journal — page after page of alloy ratios and pour temperatures, and one entry, circled, that says only: 'the last pour stays.' She knows where.",
+        "Tel has the city's metallurgical ledger — every pour logged, every mold accounted for, except one. A gap shaped exactly like a sixty-year secret. Tel knows what.",
+        "Neither knows the other is here."
+      ],
+      "beats": [
+        {
+          "id": "b1",
+          "kind": "action",
+          "prompt": "Sable reaches the condemned gate and sees the cut padlock. Someone is already inside. She can turn back or follow. Declare how she enters.",
+          "suggests": "Grit",
+          "outcomes": {
+            "strong": "She reads the cut — clean, recent, bolt cutters not an angle grinder — and knows it was careful, not violent. She slips through the gap without touching the chain, leaving it exactly as she found it. If someone else is in here, they won't know she followed.",
+            "weak": "She gets through, but the gate groans on a hinge she didn't expect, and the sound carries down the loading dock into the dark. If anyone is listening, they heard a door open. She freezes, counts to thirty, and moves on.",
+            "miss": "The gate catches her jacket and she yanks free hard enough to send the chain clattering to the concrete. The sound echoes through the whole ground floor like a starter pistol. Whoever cut that lock now knows someone else is here."
+          }
+        },
+        {
+          "id": "b2",
+          "kind": "action",
+          "prompt": "Tel is deeper in, following the rail tracks by phone-light, when a sound comes from behind — the gate, or something near it. Someone else is in the building. Declare how Tel reacts.",
+          "suggests": "Cool",
+          "outcomes": {
+            "strong": "Tel kills the light instantly, steps off the rail, and waits in the dark with a hand on the wall. Breathing even, pulse steady. After a full minute of silence Tel maps three possible explanations — another trespasser, a security patrol, wind — and picks the route that avoids all three. The phone stays off.",
+            "weak": "Tel ducks behind a column and waits, but the phone screen stays on a beat too long and its blue glow paints a rectangle on the ceiling before it dims. Nobody shouts. Nobody comes. But if the other person was looking up, they now know exactly which corridor Tel is in.",
+            "miss": "Tel startles, drops the phone, and it lands screen-up on the rail with the flashlight on — a beacon in a building that has had no light for a decade. Tel grabs it, kills it, but the afterimage hangs in the dark and so does the question of who else saw it."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": "The Cooling Hall",
+      "place": "hall",
+      "opening": [
+        "The cooling hall is the heart of the Ironworks — a long nave of overhead cranes and rusted ladle rails, the walls black with decades of radiant heat. Every sound echoes twice.",
+        "At the far end, behind a wall of stacked ingot molds, something glows. The last furnace, still lit past all reason, humming at a pitch you feel in your molars. The mold is somewhere near it — the journal says so, the ledger implies it."
+      ],
+      "beats": [
+        {
+          "id": "b3",
+          "kind": "action",
+          "prompt": "Sable finds the cooling hall and the glow at its far end. The journal says the mold is 'where the last pour stayed,' which means near that furnace. But the hall is open, and if anyone else is in here, they'll see her cross it. Declare how she approaches.",
+          "suggests": "Weird",
+          "outcomes": {
+            "strong": "She reads the hall the way her grandfather taught her to read a foundry floor — by heat, not by sight. The warm spots are where metal was poured; the cold lanes are where people walked. She follows a cold lane along the wall, invisible against the dark iron, and reaches the furnace end without crossing the open floor once.",
+            "weak": "She gets halfway across before the furnace's hum shifts pitch — not louder, different — and she freezes in the open, exposed, unsure if the sound means the furnace is venting or if it always does that. She makes the rest of the crossing at a jog, arriving at the furnace wall breathing hard and not quite sure she wasn't seen.",
+            "miss": "She misjudges a gap between mold stacks and her boot catches a rail tie she couldn't see. She goes down hard, one knee on iron, and the sound rings through the hall like a bell. She's up fast, but her knee is bleeding through her jeans and the echo has told the whole building exactly where she is."
+          }
+        },
+        {
+          "id": "b4",
+          "kind": "action",
+          "prompt": "Tel reaches the furnace from the other side and sees the mold — half-buried inite, right where the records said it shouldn't be. But there's a sound on the other side of the furnace wall. Someone else is here, and they're close. Declare how Tel handles the encounter.",
+          "suggests": "Cute",
+          "outcomes": {
+            "strong": "Tel steps into the glow with both hands visible and says, quietly, 'I'm from the city archive. I'm not here to take anything — I'm here because the records have a hole in them and I wanted to see what it was shaped like before the building comes down.' It's the truth, delivered like an offering rather than a claim, and the person on the other side of the furnace hears it land.",
+            "weak": "Tel rounds the corner and they see each other at the same time — two people in a condemned building at midnight, both clearly here for the same thing, both clearly surprised. Tel manages 'I'm not — I mean, I'm the archivist, I just —' and the sentence dies, but the fact of saying 'archivist' first, before 'what are you doing here,' buys enough goodwill that neither of them runs.",
+            "miss": "Tel sees the other person and panics — not a fight panic, an embarrassment panic, the kind where you've been caught doing exactly what you're doing and there's no story that makes it innocent. Tel backs into a mold stack, which shifts, which makes a sound, and now they're both standing in the glow of a furnace that should have gone out eleven years ago, staring at each other with no way to pretend this is normal."
+          }
+        },
+        {
+          "id": "b5",
+          "kind": "decision",
+          "prompt": "They've found it. The mold is intact — sixty years sealed, half-buried inite behind the last furnace. Sable has the journal that says where. Tel has the records that say what. Together, they know: the last master founder poured something into this mold on his final day and told no one. In eight hours this building is rubble. They can break the mold open now and see what he made — or leave it sealed and let the wrecking ball decide. The furnace hums. The mold is warm. Who decides?",
+          "proposes": {
+            "fact": "The last master founder's final pour — sealed sixty years in a mold behind the last lit furnace — is opened tonight by two strangers who each held half the map, and what is inside is not metal but a letter, cast in ceramic slip inside an iron shell, addressed to whoever cared enough to come looking before the building came down.",
+            "proposed_by": "furnace"
+          }
+        },
+        {
+          "id": "b6",
+          "kind": "action",
+          "prompt": "The mold is opened — or it isn't — and dawn is coming. In a few hours this building is gone. Whatever happened tonight, these two people walked in as strangers and are walking out as the only witnesses. Declare how they leave the Ironworks.",
+          "suggests": "Cool",
+          "outcomes": {
+            "strong": "They walk out together, through the cooling hall, past the cut chain, into a sky that's just starting to go grey. Neither of them says 'don't tell anyone' — neither of them needs to. What happened in the Ironworks belongs to the Ironworks, and after today the Ironworks belongs to no one. They exchange numbers at the gate, not because they owe each other anything, but because some things shouldn't be carried alone.",
+            "weak": "They leave separately — Sable first, Tel five minutes later — by unspoken agreement, because being seen leaving a condemned building together at 4 AM is a conversation neither of them wants to have. They don't exchange names. They'll wonder, later, if the other person remembers it the same way.",
+            "miss": "A security patrol catches them at the gate. Flashlights, a radio call, two trespassers in a condemned building with no good explanation. Whatever they found — or didn't find — is now evidence in a report neither of them will ever read, and the wrecking ball won't wait for the paperwork."
+          }
+        }
+      ]
+    }
+  ]
+}

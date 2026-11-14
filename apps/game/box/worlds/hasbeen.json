@@ -1,0 +1,97 @@
+{
+  "id": "hasbeen-late-shift",
+  "title": "Hasbeen — Late Shift",
+  "setting": "Hasbeen Toys, once the biggest name in the aisle, now a quarterly line on a spreadsheet — and past midnight, two of its youngest employees are still on the empty R&D floor, each building something they can't quite finish alone.",
+  "stats": ["Grit", "Weird", "Cute", "Cool"],
+  "base_stat": 2,
+  "characters": [
+    {
+      "id": "maker",
+      "name": "Nomi Reyes",
+      "role": "aspiring software engineer; has spent months building an AI game master — it compiles, it rolls dice, it talks back, but something is still missing",
+      "seat": true,
+      "stats": {"Grit": 2, "Weird": 3, "Cute": 2, "Cool": 2}
+    },
+    {
+      "id": "junior",
+      "name": "Jules Okafor",
+      "role": "works platform and records downstairs; up late on a logging system whose output reads less like a log and more like a cast of characters",
+      "seat": false,
+      "stats": {"Grit": 2, "Weird": 2, "Cute": 2, "Cool": 2}
+    },
+    {
+      "id": "librarian",
+      "name": "the Librarian",
+      "role": "won't tell you anything without a citation",
+      "seat": false,
+      "stats": {"Grit": 2, "Weird": 2, "Cute": 2, "Cool": 2}
+    },
+    {
+      "id": "witness",
+      "name": "Gerald",
+      "role": "headless rotisserie chicken; communicates by sliding napkins under a grille; a witness",
+      "seat": false,
+      "stats": {"Grit": 2, "Weird": 4, "Cute": 3, "Cool": 2}
+    },
+    {
+      "id": "architect",
+      "name": "the Architect",
+      "role": "signs off like he thinks he's a god",
+      "seat": false,
+      "stats": {"Grit": 3, "Weird": 3, "Cute": 1, "Cool": 3}
+    }
+  ],
+  "places": [
+    {
+      "id": "floor",
+      "name": "the empty floor",
+      "desc": "Hasbeen's R&D floor after hours: two lit desks in a hundred yards of dark shelving, last season's unsold mascots watching from their boxes with their factory-painted smiles."
+    }
+  ],
+  "scenes": [
+    {
+      "id": "s1",
+      "title": "Late Shift",
+      "place": "floor",
+      "opening": [
+        "The fluorescents are off except over two desks. Everyone else went home hours ago; Hasbeen doesn't pay overtime for hope.",
+        "At one desk, Nomi is staring at a build that compiles clean, rolls dice fair, and talks back on cue — and still isn't done, though she couldn't tell you what's left.",
+        "Three floors down in Records, Jules is squinting at a log file that keeps doing something logs aren't supposed to do: it's starting to sound like people.",
+        "A message lands on Nomi's screen. 'Run this through your thing,' Jules writes, and attaches the log. 'Tell me if I'm losing it.'"
+      ],
+      "beats": [
+        {
+          "id": "b1",
+          "kind": "action",
+          "prompt": "Nomi feeds Jules's log into the engine — not as data, but as a story, one line at a time, and waits to see if anything in there is willing to be a character.",
+          "suggests": "Weird",
+          "outcomes": {
+            "strong": "The parser doesn't fight it. Timestamps become entrances; error codes become tone of voice. Within ten lines the engine has names — a librarian, a witness, someone who signs everything 'approved' — and it's already asking Nomi who should speak first.",
+            "weak": "It takes coaxing. The engine keeps trying to read the log as a log, flattening the voices back into rows, and Nomi has to hand-tag three entries before it stops resisting — but once it clicks, the cast holds together, a little stiffer than it should be.",
+            "miss": "The engine chokes on its own cleverness, spits out a wall of malformed scene headers, and Nomi loses twenty minutes just getting it to stop treating a stack trace as a monologue. She salvages a working read, but half the warmth is gone from it."
+          }
+        },
+        {
+          "id": "b2",
+          "kind": "action",
+          "prompt": "The score is climbing green, green, green — until a claim buried in the log catches Nomi's eye, and she asks the librarian, in character, to back it up.",
+          "suggests": "Grit",
+          "outcomes": {
+            "strong": "The librarian doesn't budge on principle but respects the ask — she surfaces the exact record, timestamp and all, and the beat scores clean with a citation attached that Nomi didn't even know the system kept.",
+            "weak": "The librarian offers only 'circumstantial, but consistent' and marks the claim provisional rather than confirmed. Good enough to keep moving, but a small flag stays lit in the corner of the screen.",
+            "miss": "'Insufficient citation,' the librarian says, flat, and closes the request — no record, no budging. It's Gerald who breaks the silence, sliding a napkin under his grille with a page number scrawled on it in barbecue sauce, unasked. Nobody ordered him to check. He did anyway."
+          }
+        },
+        {
+          "id": "b3",
+          "kind": "decision",
+          "prompt": "The score has been green for three straight beats when the engine stops being smooth. It isn't reading an event anymore — it's repeating a claim, one the log never actually witnessed, just inherited. The scroll freezes, and the engine prints two words: who decides?",
+          "proposes": {
+            "fact": "Months ago the Architect declared, with a single sign-off and no diff, that the November migration had preserved every save file bit-for-bit — and no one has verified the tape since.",
+            "proposed_by": "architect"
+          }
+        }
+      ]
+    }
+  ]
+}

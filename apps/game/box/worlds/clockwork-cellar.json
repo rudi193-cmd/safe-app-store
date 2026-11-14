@@ -1,0 +1,216 @@
+{
+ "id": "clockwork-cellar",
+ "title": "The Clockwork Cellar",
+ "setting": "A made-up valley, and under its mill a cellar of gears. Every name here is a character, never a player.",
+ "stats": [
+  "Grit",
+  "Wit",
+  "Heart",
+  "Weird"
+ ],
+ "offers": [
+  "guest"
+ ],
+ "base_stat": 1,
+ "characters": [
+  {
+   "id": "pell",
+   "name": "Pell",
+   "role": "miller's apprentice",
+   "seat": true,
+   "stats": {
+    "Grit": 2,
+    "Heart": 1
+   }
+  },
+  {
+   "id": "juno",
+   "name": "Juno",
+   "role": "tinker",
+   "seat": true,
+   "stats": {
+    "Wit": 2,
+    "Weird": 1
+   }
+  },
+  {
+   "id": "brann",
+   "name": "Brann",
+   "role": "goat-herd",
+   "seat": true,
+   "stats": {
+    "Heart": 2
+   }
+  },
+  {
+   "id": "cogwen",
+   "name": "Cogwen",
+   "role": "the cellar's clockwork keeper",
+   "seat": false,
+   "stats": {}
+  },
+  {
+   "id": "aldric",
+   "name": "Prince Aldric",
+   "role": "the captive",
+   "seat": false,
+   "stats": {}
+  }
+ ],
+ "places": [
+  {
+   "id": "stair",
+   "name": "The mill stair"
+  },
+  {
+   "id": "cellar",
+   "name": "The gear cellar"
+  }
+ ],
+ "scenes": [
+  {
+   "id": "down",
+   "title": "Down the mill stair",
+   "place": "stair",
+   "opening": [
+    "The millwheel has stopped.",
+    "Below, something keeps ticking."
+   ],
+   "beats": [
+    {
+     "id": "stair",
+     "kind": "action",
+     "by": "pell",
+     "prompt": "Pell takes the rotten stair first.",
+     "suggests": "Grit",
+     "outcomes": {
+      "strong": "Every step holds, and Pell calls the others down.",
+      "weak": "A step gives; Pell hangs on, and the others hear it.",
+      "miss": "The stair goes; everyone arrives at once, in a heap."
+     }
+    },
+    {
+     "id": "gears",
+     "kind": "action",
+     "by": "juno",
+     "prompt": "Juno reads which gears still turn.",
+     "suggests": "Wit",
+     "outcomes": {
+      "strong": "One gear in the wall turns backwards. That is the way in.",
+      "weak": "Juno finds the way in, and trips a bell finding it.",
+      "miss": "Every gear starts at once."
+     }
+    }
+   ]
+  },
+  {
+   "id": "room",
+   "title": "The gear cellar",
+   "place": "cellar",
+   "opening": [
+    "Prince Aldric hangs in a cage of springs.",
+    "Under Cogwen's hand is one red button."
+   ],
+   "beats": [
+    {
+     "id": "button",
+     "kind": "decision",
+     "prompt": "Does anyone press the red button?",
+     "proposes": {
+      "fact": "The red button is bait: whoever leaves it alone wins the room.",
+      "proposed_by": "cogwen"
+     }
+    },
+    {
+     "id": "guest",
+     "kind": "decision",
+     "prompt": "Brann says a friend has come down after them.",
+     "proposes": {
+      "fact": "A guest walks into the cellar: the Lantern Man, who carries his own light and answers only in riddles.",
+      "proposed_by": "brann"
+     }
+    },
+    {
+     "id": "riddle",
+     "kind": "action",
+     "by": "brann",
+     "prompt": "Brann answers the keeper's riddle.",
+     "suggests": "Heart",
+     "outcomes": {
+      "strong": "Cogwen laughs, a sound like a dropped spanner, and opens the cage.",
+      "weak": "Cogwen opens the cage, and keeps one spring.",
+      "miss": "The cage holds, and Cogwen asks another riddle."
+     }
+    },
+    {
+     "id": "free",
+     "kind": "decision",
+     "prompt": "Is the prince free?",
+     "proposes": {
+      "fact": "Prince Aldric is free, and owes Brann's goats a favour.",
+      "proposed_by": "aldric"
+     },
+     "when": {
+      "beat": "room::riddle",
+      "is": [
+       "strong",
+       "weak"
+      ]
+     }
+    },
+    {
+     "id": "second",
+     "kind": "action",
+     "by": "juno",
+     "prompt": "Juno tries the riddle another way, upside down.",
+     "suggests": "Wit",
+     "when": {
+      "beat": "room::riddle",
+      "is": [
+       "miss"
+      ]
+     },
+     "outcomes": {
+      "strong": "Cogwen has never heard it asked upside down. The cage opens.",
+      "weak": "The cage opens a crack, enough for a prince who breathes in.",
+      "miss": "Cogwen winds the cage tighter, and the night ends with the prince still in it."
+     }
+    },
+    {
+     "id": "free-after",
+     "kind": "decision",
+     "prompt": "Is the prince free, the second time?",
+     "when": {
+      "beat": "room::second",
+      "is": [
+       "strong",
+       "weak"
+      ]
+     },
+     "proposes": {
+      "fact": "Prince Aldric is free, and owes Juno a riddle.",
+      "proposed_by": "aldric"
+     }
+    },
+    {
+     "id": "stranger",
+     "kind": "action",
+     "by": "brann",
+     "prompt": "Brann asks the guest the table brought what they came down here for.",
+     "suggests": "Heart",
+     "when": {
+      "offered": "guest",
+      "is": [
+       "sealed"
+      ]
+     },
+     "outcomes": {
+      "strong": "The guest tells them, and it's the start of the next story.",
+      "weak": "The guest tells them half of it, and keeps the rest.",
+      "miss": "The guest smiles, and says they'll know soon enough."
+     }
+    }
+   ]
+  }
+ ]
+}

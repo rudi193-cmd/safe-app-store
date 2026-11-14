@@ -1,0 +1,53 @@
+# game: where Die-Namic is built
+
+The store's playground home for **Die-Namic**: the game side of the house,
+the box an AI game master keeps a table in. It starts empty on purpose. The
+pieces come over one at a time, each as its own step, and when the build
+meets the store's promotion bar it is lifted out into its own repo in the
+Die-Namic-Systems org.
+
+## What was here: the first engine
+
+[`archive/first-engine/`](archive/first-engine/) is where Die-Namic's game
+master started, kept whole and unedited: Jane GM, a Streamlit table run by
+Consus, "your AIGM" (Engine Codex v1.5.0.0, `engine_v1_7.py`), with its
+2026-04-08 [code review](archive/first-engine/CODE_REVIEW.md), which found it
+could not run as it stood.
+
+Its roll is still load-bearing. The 2d6 + stat read in three bands is what
+the-table's `SceneSession` rolls through today (the-table's path to it now
+points into the archive), and what willow's game-master add-on rebuilt on
+the record as strong, weak and miss. Its one closed door is
+`Engine.roll(stat, is_creator=True)`: the creator's roll that always
+succeeds, which everything since answered with a seal instead. Both are
+proposed in `stores/decisions/proposed.json`.
+
+## What's here
+
+- **[the game box](box/)**, brought over from willow's `demo/game-box`: a
+  game master's binder that can be asked, the record, prep and
+  end-of-night stacks, offers at the table, chapters that carry canon,
+  and stories from story-timeline.
+- **[the games](games/)**, a folder each: backgammon, bureau, catgrid,
+  checkers, crazy-eights, daily-word, dice, dice5e, the story
+  (game-master), hearts, horoscope, liars-dice, life, odds, oracle-text,
+  pile-poetry, quiz, tarot. the-table's games came out of the table into
+  willow, one add-on each, and are pinned back here. Each is a willow add-on and stays
+  in willow; its folder says what it is, how to play it, and where it came
+  from, and [`games/play.py`](games/play.py) plays any of them on a box's
+  record through the pin: `python apps/game/games/play.py checkers --table DIR move 11-15`.
+- **[willow.pin.json](willow.pin.json)**: the box plays with willow's
+  kernel and add-ons where they live, in willow, pinned by commit and by
+  each file's SHA-256. The box finds a willow checkout (`WILLOW_ROOT`, or
+  one beside safe-app-store) and refuses one whose files differ.
+
+## What comes here next
+
+Each a step of its own:
+- **the-table**: the game protocol and the driver (its games are in
+  willow and pinned here now, its worlds in the box);
+- **ai-game-master**: the blueprint, its decisions and its covenant;
+- **game-lab**: official rules, simulators and measured baselines.
+
+The pieces willow keeps as add-ons (game-master, checkers, dice, odds and
+the rest) stay there, and Die-Namic pins them.

@@ -1,0 +1,126 @@
+{
+ "id": "lantern-fair",
+ "title": "The Lantern Fair",
+ "setting": "A night market in a made-up river town. Every name here is a character, never a player.",
+ "stats": [
+  "Grit",
+  "Wit",
+  "Heart"
+ ],
+ "base_stat": 1,
+ "characters": [
+  {
+   "id": "tamsin",
+   "name": "Tamsin",
+   "role": "lamp-lighter",
+   "seat": true,
+   "stats": {
+    "Grit": 2,
+    "Heart": 1
+   }
+  },
+  {
+   "id": "oro",
+   "name": "Oro",
+   "role": "juggler",
+   "seat": true,
+   "stats": {
+    "Wit": 2
+   }
+  },
+  {
+   "id": "vell",
+   "name": "Old Vell",
+   "role": "keeper of the fair",
+   "seat": false,
+   "stats": {}
+  }
+ ],
+ "places": [
+  {
+   "id": "stalls",
+   "name": "The stalls"
+  },
+  {
+   "id": "bridge",
+   "name": "The lantern bridge"
+  }
+ ],
+ "scenes": [
+  {
+   "id": "dusk",
+   "title": "Dusk at the stalls",
+   "place": "stalls",
+   "opening": [
+    "The first lanterns go up along the river.",
+    "Somewhere a stall is missing its light."
+   ],
+   "beats": [
+    {
+     "id": "lamp",
+     "kind": "action",
+     "by": "tamsin",
+     "prompt": "Tamsin climbs to the dark stall's hook.",
+     "suggests": "Grit",
+     "outcomes": {
+      "strong": "The lantern catches first time, and the whole row brightens.",
+      "weak": "It catches, but a pane cracks in the heat.",
+      "miss": "The hook gives; the lantern rolls under the stalls."
+     }
+    },
+    {
+     "id": "crowd",
+     "kind": "action",
+     "by": "oro",
+     "prompt": "Oro keeps the crowd from noticing.",
+     "suggests": "Wit",
+     "outcomes": {
+      "strong": "Five clubs and a borrowed hat: nobody looks anywhere else.",
+      "weak": "Most of them watch. One child watches the stall instead.",
+      "miss": "A club goes into the river, and every head turns."
+     }
+    },
+    {
+     "id": "why",
+     "kind": "decision",
+     "prompt": "Why was that stall dark?",
+     "proposes": {
+      "fact": "Old Vell left it dark on purpose, to see who would notice.",
+      "proposed_by": "vell"
+     }
+    }
+   ]
+  },
+  {
+   "id": "bridge",
+   "title": "The lantern bridge",
+   "place": "bridge",
+   "opening": [
+    "At midnight every lantern is carried onto the bridge."
+   ],
+   "beats": [
+    {
+     "id": "carry",
+     "kind": "action",
+     "by": "tamsin",
+     "prompt": "Tamsin carries the last lantern across.",
+     "suggests": "Heart",
+     "outcomes": {
+      "strong": "It is the brightest one there.",
+      "weak": "It flickers, and holds.",
+      "miss": "It goes out halfway, and the fair waits in the dark."
+     }
+    },
+    {
+     "id": "next",
+     "kind": "decision",
+     "prompt": "Will the fair come back next year?",
+     "proposes": {
+      "fact": "The fair comes back next year, one stall longer.",
+      "proposed_by": "tamsin"
+     }
+    }
+   ]
+  }
+ ]
+}

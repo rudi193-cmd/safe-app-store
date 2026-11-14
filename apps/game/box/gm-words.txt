@@ -1,0 +1,18 @@
+# The game master's words: how I ask, then the words my binder uses for it.
+# The kernel reads every question through this list.
+
+# a monster's sheet
+stats = grit, wit, heart, weird, hits, armour
+hp = hits
+damage = bite, sting
+attack = bite, sting
+stops = weakness
+weak = weakness
+beats = weakness
+
+# who's who at this table
+prince = aldric
+keeper = cogwen
+guest = lantern
+dog = hound
+monster = hound, wasps

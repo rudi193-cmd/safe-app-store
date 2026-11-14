@@ -84,13 +84,13 @@ the identical driver and sink, unchanged.
 `the_table/game_engine_adapter.py` is the THIRD real implementation:
 `SceneSession` (`seats = 1`) wraps a freeform narrative scene — no board, no
 hand of cards, just beats of declared approach → dice roll → narrated
-outcome — around `apps/game/engine_v1_7.py`'s `Engine.roll(stat_name)` (2d6 +
+outcome — around `apps/game/archive/first-engine/engine_v1_7.py`'s `Engine.roll(stat_name)` (2d6 +
 stat, bucketed into `ARCHITECT_ROLL` / `SUCCESS_STANDARD` / `CHAOS_BURST`),
 imported through the same one-directory `sys.path` shim pattern the other two
 adapters use, over `apps/game`. This module reuses only the roll arithmetic;
 the prose is its own. It carefully avoids every persistence trap in
 `engine_v1_7.py` — it never calls `apply_debility` / `restore_debility` /
-`_save_state`, all three of which would write `apps/game/engine_state.json`;
+`_save_state`, all three of which would write `apps/game/archive/first-engine/engine_state.json`;
 it applies the one-line debility-floor rule itself, in-adapter, against a
 fresh `engine.stats` dict it constructs in `reset()`. Determinism: `Engine.roll` draws from the
 *global* `random` module, so the adapter swaps in a per-session SHA-256 stream
@@ -111,7 +111,7 @@ eight seeds, asserts the SOFT winner heuristic, asserts every
 `legal_moves()` is side-effect-free, asserts same-seed-same-sequence
 determinism (and that a scene reseeds regardless of prior global `random`
 state), and — the two guarantees named in the adapter's own module docstring
-— snapshots `apps/game/engine_state.json`'s existence/mtime/bytes before and
+— snapshots `apps/game/archive/first-engine/engine_state.json`'s existence/mtime/bytes before and
 after a scene (including one that hits `CHAOS_BURST`) and asserts
 byte-identity or continued absence. It also drives `SceneSession` through the
 real `run_session` into a one-script box (`tests/_record.py`), asserting
@@ -166,7 +166,7 @@ that the one-script's own `verify_chain` and `verify_anchor` find no break,
 and that a copy of the record with one row edited is refused. Each game is driven fully to completion, one at a time,
 before the next is even `make()`'d — never constructed up front and
 interleaved, because `scene` reseeds the *global* `random` module in its own
-`reset()` (a documented coupling of `apps/game/engine_v1_7.py` itself; see
+`reset()` (a documented coupling of `apps/game/archive/first-engine/engine_v1_7.py` itself; see
 `game_engine_adapter.py`'s module docstring) and interleaving could let that
 reseed land between two draws of another game's `random_policy`. Run it with
 `python3 -m the_table.proof` or `python3 the_table/proof.py` (both from

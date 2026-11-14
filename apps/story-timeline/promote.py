@@ -13,6 +13,8 @@ Usage:
   python3 promote.py list-entries --timeline <id>
   python3 promote.py promote <source_id> --timeline <id> [--title "..."]
   python3 promote.py promote <source_id> --project <id> --timeline-name "Draft beats"
+  python3 promote.py export-story --timeline <id> [--to story.md]
+  python3 promote.py import-canon canon.md --timeline <id>
 """
 from __future__ import annotations
 
@@ -70,6 +72,48 @@ def cmd_list_timelines(args: argparse.Namespace) -> int:
 
 def cmd_list_entries(args: argparse.Namespace) -> int:
     _print_json(proto.list_timeline_entries(args.timeline))
+    return 0
+
+
+def cmd_export_story(args: argparse.Namespace) -> int:
+    from pathlib import Path
+
+    import export_story
+
+    try:
+        text = export_story.story_markdown(args.timeline)
+    except ValueError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+    if not args.to:
+        print(text, end="")
+        return 0
+    to = Path(args.to)
+    if to.exists():
+        print(f"error: {to} is there; a story is never written over", file=sys.stderr)
+        return 2
+    to.write_text(text, encoding="utf-8")
+    print(f"wrote {to}")
+    return 0
+
+
+def cmd_import_canon(args: argparse.Namespace) -> int:
+    import import_canon
+    from pathlib import Path
+
+    try:
+        text = Path(args.file).read_text(encoding="utf-8")
+        got = import_canon.import_canon(
+            text, args.timeline, uuid=safe_integration.get_user_uuid(), mirror=not args.no_mirror
+        )
+    except (OSError, ValueError) as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+    for f in got["added"]:
+        print(f"added  {f['fact']}  (sealed at row {f['row']}, {f['from']})")
+    for f in got["skipped"]:
+        print(f"there  {f['fact']}")
+    print(f"{len(got['added'])} added, {len(got['skipped'])} already on the timeline")
     return 0
 
 
@@ -149,6 +193,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_promote.add_argument("--entry-kind", default="scene", help="scene | beat | milestone | fact")
     p_promote.add_argument("--no-mirror", action="store_true", help="Skip SOIL mirrors")
     p_promote.set_defaults(func=cmd_promote)
+
+    p_import = sub.add_parser("import-canon", help="Put what a game table sealed on a timeline, as fact entries")
+    p_import.add_argument("file", help="A game box's canon, as session.py export-canon writes it")
+    p_import.add_argument("--timeline", required=True, help="Timeline node id")
+    p_import.add_argument("--no-mirror", action="store_true", help="Skip SOIL mirrors")
+    p_import.set_defaults(func=cmd_import_canon)
+
+    p_export = sub.add_parser("export-story", help="Export a timeline as story markdown for the game box")
+    p_export.add_argument("--timeline", required=True, help="Timeline node id")
+    p_export.add_argument("--to", help="Write to this file (never over one that is there)")
+    p_export.set_defaults(func=cmd_export_story)
 
     return parser
 
