@@ -28,6 +28,12 @@ proposed in `stores/decisions/proposed.json`.
   game master's binder that can be asked, the record, prep and
   end-of-night stacks, offers at the table, chapters that carry canon,
   and stories from story-timeline.
+- **[the games](games/)**, a folder each: catgrid, checkers, daily-word,
+  dice, dice5e, the story (game-master), horoscope, life, odds,
+  oracle-text, pile-poetry, quiz, tarot. Each is a willow add-on and stays
+  in willow; its folder says what it is, how to play it, and where it came
+  from, and [`games/play.py`](games/play.py) plays any of them on a box's
+  record through the pin: `python apps/game/games/play.py checkers --table DIR move 11-15`.
 - **[willow.pin.json](willow.pin.json)**: the box plays with willow's
   kernel and add-ons where they live, in willow, pinned by commit and by
   each file's SHA-256. The box finds a willow checkout (`WILLOW_ROOT`, or
