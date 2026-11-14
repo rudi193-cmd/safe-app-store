@@ -107,7 +107,6 @@ def test_canon_that_isnt_one_is_refused(modules, cellar, text, says):
 
 
 def test_the_command_line_imports_and_says_what_it_did(modules, cellar, tmp_path, capsys):
-    _, proto, _, _ = modules
     import importlib
 
     import promote
