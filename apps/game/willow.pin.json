@@ -1,7 +1,7 @@
 {
   "_what": "Die-Namic plays with willow's kernel and add-ons where they live, in willow. This pins them: the commit, and each file the box runs at that commit by its SHA-256. box/willow_pin.py finds a willow checkout and refuses one whose files differ.",
   "willow": "https://github.com/willow-memory/Willow",
-  "commit": "4b2064071393cef948689ac8fb2badb29faf0a7b",
+  "commit": "9d7c45b0d1ab64e5c07519ec6bbb42489ebb19b1",
   "add_ons": [
     "all",
     "backgammon",
@@ -46,7 +46,7 @@
     "adapters/stdlib/all/README.md": "2e037645173cac0b6c92b40a317909f6773a2493f96da4f9fb97017a64c1ee2d",
     "adapters/stdlib/all/all.py": "bd066d9a0b5cc1b4675ff412e6ae2eb65ba070cbf3c183d8997280e4883b725f",
     "adapters/stdlib/backgammon/README.md": "65e7b7986427cf762129fa5ef4ee5de901f1a3e8ab0a82db89e749364f666466",
-    "adapters/stdlib/backgammon/backgammon.py": "66fc656eceab667eaa02d2f4cb36c1e61084cae233ebb4aaf86817f0905ab1c7",
+    "adapters/stdlib/backgammon/backgammon.py": "97acfce33da17da385f4c03d21cab0111a2f00beae5be5265981e6a000188605",
     "adapters/stdlib/backup/README.md": "aa74f104b9e75bcef7fb40995df931a0cb1e745e98b0ee558fb01047e92c4f9b",
     "adapters/stdlib/backup/backup.py": "1bc58ce02e216e41f2e9fa955339eb4d6e7a4b523aa9ccff9c433992a6af9ed3",
     "adapters/stdlib/box-health/README.md": "873ab93ffa6fb4a380a54ff5aa5eb359703de02ad8f56dcd00dc42666bb737ee",
@@ -78,7 +78,7 @@
     "adapters/stdlib/gaps/README.md": "0dc6fa84bc7584620ad1251bb4affafabe3ebb4d56f9cf50216aa97519e162b6",
     "adapters/stdlib/gaps/gaps.py": "8aa5c414e3faaeb9a3510f04f1528fa0352554db82b5c4df517681c5c44d6843",
     "adapters/stdlib/hearts/README.md": "f8cd1fa2aae9a8d35eaf827c3f487558f86ca2b1682e08b17a96c4c7d7ca8932",
-    "adapters/stdlib/hearts/hearts.py": "0b770bb044ee379971ed5a5c4061c2aea6937e2a5cf1aa9b938150b76d9d0028",
+    "adapters/stdlib/hearts/hearts.py": "0532cd6365c59e837305aaf9e011e96ac28ac9b0ca35db46613b899e119a051d",
     "adapters/stdlib/history/README.md": "daed97031e6bfe96ee0aefe418b37a2e47c854ba6fa454c1a0f9abe396e95ec6",
     "adapters/stdlib/history/history.py": "0ba642f236737fee82bc0af172875104b40d9c7a81be5aed00e12393bef5bfee",
     "adapters/stdlib/horoscope/README.md": "232be5c30e5b00393dadbd50f29dc7e871933f639c468f5e44dd9786f3fff27f",
