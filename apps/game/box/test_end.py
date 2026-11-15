@@ -1,11 +1,19 @@
 """The end of the night: a photo of the GM's handwritten page read into the
-binder by the ocr add-on (tesseract), the night compiled and closed by
-gm-end.md, and what the table holds true printed last. Needs tesseract, as
-its CI row says. The page is made up: a fifth night's notes in a
-handwriting-like font, tilted and grainy like a phone photo."""
+binder by the ocr add-on, the night compiled and closed by gm-end.md, and
+what the table holds true printed last. The page is made up: a fifth
+night's notes in a handwriting-like font, tilted and grainy like a phone
+photo.
+
+ocr is a deps add-on: it reads only where tesseract is on PATH and its own
+requirements (Pillow, pypdf) import, as in the deps job's environment, not
+in every job that runs this. Where it can, the page is held to what it
+says; where it can't, the night is held to what a GM without it gets: the
+ocr step flagged, the other nine run, and no page that was never read in
+the threads or the recap. Both are asserted; neither is skipped."""
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import shutil
 import subprocess
@@ -26,6 +34,9 @@ import kernel
 
 NOW = ["--now", "2026-11-21T18:00:00Z"]
 PAGE = HERE / "sample-scans" / "2026-11-21.jpg"
+READS = bool(shutil.which("tesseract")) and all(
+    importlib.util.find_spec(m) for m in ("PIL", "pypdf")
+)  # ocr's programs line and its requirements.txt
 
 
 def py(*argv) -> subprocess.CompletedProcess:
@@ -54,17 +65,26 @@ def night(tmp_path):
 
 def test_the_handwritten_page_is_read_into_the_binder(night):
     table, end = night
-    read = (table / "pile" / "scanned" / "2026-11-21.jpg.txt").read_text()
+    scanned = table / "pile" / "scanned" / "2026-11-21.jpg.txt"
+    log = (table / "end" / "001" / "00-stack.txt").read_text()
+    assert end.returncode == 42, end.stderr  # the session seal waits on the GM
+    if not READS:
+        assert "01 ocr: exit 2, 1 line, flagged" in log and not scanned.exists()
+        return
+    assert "01 ocr: exit 0" in log
+    read = scanned.read_text()
     for line in ("Juno followed the springs.", "Old Vell found her lamp in the wasp nest!",
                  "Next time: what is Cogwen building"):  # fmt: skip
         assert line in read, read
-    assert end.returncode == 42, end.stderr  # the session seal waits on the GM
 
 
 def test_tonights_page_joins_the_threads_in_session_order(night):
     table, _ = night
     run = table / "end" / "001"
     springs = (run / "springs.txt").read_text()
+    if not READS:  # tonight's page was never read: only the typed nights
+        assert "2026-11-14" in springs and "2026-11-21" not in springs
+        return
     assert (
         "2026-11-21  scanned/2026-11-21.jpg.txt:3  Juno followed the springs."
         in springs
@@ -88,9 +108,8 @@ def test_the_night_is_sealed_as_one_backed_up_and_pinned(night):
     assert list(run.glob("willow-backup-*.zip")) and json.loads(
         (run / "pin.json").read_text()
     )
-    assert log.rstrip().endswith(
-        "done: 2 of 10 steps flagged"
-    )  # the rules and the session, both the GM's
+    flagged = 2 if READS else 3  # the rules and the session, both the GM's; and ocr
+    assert log.rstrip().endswith(f"done: {flagged} of 10 steps flagged")
     assert "## what the table holds true" in end.stdout
 
 
@@ -105,6 +124,9 @@ def test_the_recap_after_the_night_gives_the_gm_tonights_handwritten_page(night)
     table, _ = night
     got = py(HERE / "session.py", "--table", table, "recap").stdout
     gm_only = got.split("## For the GM's eyes")[1]
+    if not READS:  # the latest night the binder holds is the last typed one
+        assert "Your notes from 2026-11-14:" in gm_only and "scanned/" not in gm_only
+        return
     assert "Your notes from 2026-11-21:" in gm_only
     cited = {line.split()[0]: " ".join(line.split()[1:]) for line in gm_only.splitlines() if line.startswith("  ")}  # fmt: skip
     assert (
