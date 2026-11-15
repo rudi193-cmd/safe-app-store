@@ -13,6 +13,8 @@ name: store
 #                 is guarded with skipUnless(node), and a skipped test still
 #                 exits 0, so the Python-only app-tests leg passes it by
 #                 skipping. This job runs it under Node and fails if it skipped.
+#   game        — Die-Namic (apps/game) on the willow its pin names, checked
+#                 out at that commit, with tesseract for the end-of-night page
 #   browser-resolver
 #               — marching-arts ships a second implementation of its
 #                 authorization resolver, in TypeScript on SQLite-WASM. This job
@@ -360,6 +362,55 @@ jobs:
           python -m pytest tests/test_differential.py tests/test_web.py -q -rs | tee "$RUNNER_TEMP/catgrid-diff.txt"
           if grep -qi "skipped" "$RUNNER_TEMP/catgrid-diff.txt"; then
             echo "::error::the differential skipped in the job that exists to run it"
+            exit 1
+          fi
+
+  # Die-Namic (apps/game) plays willow's add-ons where they live: its tests
+  # need a willow checkout, and only the one apps/game/willow.pin.json names.
+  # So this job reads the pin's commit, checks willow out at it, and runs the
+  # box's and the games' tests on it (box/willow_pin.py refuses a checkout
+  # whose files differ). The end-of-night test reads a handwritten page with
+  # willow's ocr add-on, so tesseract and ocr's requirements are installed
+  # here, and the job fails if they don't import: the reading path runs in CI,
+  # not only the one without it. And, as the differentials do, it fails if
+  # anything skipped.
+  game:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Which willow
+        id: pin
+        shell: bash
+        run: |
+          echo "commit=$(python -c 'import json; print(json.load(open("apps/game/willow.pin.json"))["commit"])')" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: willow-memory/Willow
+          ref: ${{ steps.pin.outputs.commit }}
+          path: willow
+
+      - name: tesseract and ocr's requirements
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q tesseract-ocr
+          python -m pip install --upgrade pip >/dev/null
+          pip install pytest -r willow/adapters/deps/ocr/requirements.txt
+          python -c "import PIL, pypdf; print('ocr can read here')"
+
+      - name: The box and the games, on the pinned willow
+        env:
+          WILLOW_ROOT: ${{ github.workspace }}/willow
+        run: |
+          set -eo pipefail
+          python -m pytest apps/game/box apps/game/games -q -rs | tee "$RUNNER_TEMP/game.txt"
+          if grep -qi "skipped" "$RUNNER_TEMP/game.txt"; then
+            echo "::error::a test skipped in the job that exists to run it"
             exit 1
           fi
 

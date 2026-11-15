@@ -17,7 +17,7 @@ guesses: the binder cites the line tesseract read, not the page.
 
 Want 2: "What's new in my binder tonight?" Every file new, edited or gone
 since the last look, put on the record as fingerprints, never words.
-- changed -- --box {box}
+- what-changed -- --box {box}
 
 ## what tonight added
 
@@ -27,7 +27,7 @@ typed nights and scanned ones together, each line cited.
 
 Want 4: "What did I promise for next time?" Every passage that says next
 time, tonight's page with the rest.
-- all -- --box {box} "next time"
+- all-passages -- --box {box} "next time"
 
 Want 5: "What's still waiting on me?" Offers and rulings handed in tonight
 and not answered, before everyone goes home.
@@ -35,7 +35,7 @@ and not answered, before everyone goes home.
 
 Want 6: "Tonight, in plain sentences." What was asked, handed in and
 approved today, as places and counts, never the words.
-- history -- --box {box} --days 1
+- record-history -- --box {box} --days 1
 
 ## close the night
 

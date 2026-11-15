@@ -21,24 +21,24 @@ NOW = ["--now", "2026-11-21T19:00:00Z"]
 
 # one honest move of each game: on a box (True), or with no box (False)
 FIRST = {
-    "backgammon": (True, ["new"]),
-    "bureau": (True, ["new"]),
-    "catgrid": (True, ["play"]),
-    "checkers": (True, ["new"]),
-    "crazy-eights": (True, ["new"]),
     "daily-word": (True, ["today"]),
-    "dice": (True, ["roll", "2d6+1"]),
-    "dice5e": (True, ["roll", "4d6kh3"]),
     "game-master": (True, ["check"]),
-    "hearts": (True, ["new"]),
-    "horoscope": (False, ["Ana"]),
-    "liars-dice": (True, ["new"]),
-    "life": (True, ["play"]),
-    "odds": (False, ["2d6", "--bands", "10,7"]),
     "oracle-text": (False, ["--seed", "between nights"]),
-    "pile-poetry": (True, []),
-    "quiz": (True, ["ask"]),
-    "tarot": (True, ["draw"]),
+    "play-backgammon": (True, ["new"]),
+    "play-bureau": (True, ["new"]),
+    "play-catgrid": (True, ["play"]),
+    "play-checkers": (True, ["new"]),
+    "play-crazy-eights": (True, ["new"]),
+    "play-dice": (True, ["roll", "2d6+1"]),
+    "play-dice5e": (True, ["roll", "4d6kh3"]),
+    "play-hearts": (True, ["new"]),
+    "play-horoscope": (False, ["Ana"]),
+    "play-liars-dice": (True, ["new"]),
+    "play-life": (True, ["play"]),
+    "play-odds": (False, ["2d6", "--bands", "10,7"]),
+    "play-quiz": (True, ["ask"]),
+    "play-tarot": (True, ["draw"]),
+    "verse": (True, []),
 }
 
 
@@ -68,13 +68,13 @@ def test_every_game_has_a_folder_a_readme_and_a_pin():
 @pytest.mark.parametrize("game", sorted(FIRST))
 def test_each_game_plays_through_the_pin(table, game):
     on_box, args = FIRST[game]
-    got = play(game, *(["--table", table] if on_box else []), *args, *(NOW if on_box and game not in ("pile-poetry",) else []))  # fmt: skip
+    got = play(game, *(["--table", table] if on_box else []), *args, *(NOW if on_box and game not in ("verse",) else []))  # fmt: skip
     assert got.returncode in (0, 42), (game, got.stderr)
 
 
 def test_what_isnt_a_game_or_a_box_is_refused(tmp_path):
     got = play("chess")
     assert got.returncode == 2 and "isn't one of the games" in got.stderr
-    got = play("checkers", "--table", tmp_path, "new")
+    got = play("play-checkers", "--table", tmp_path, "new")
     assert got.returncode == 2 and "isn't a box" in got.stderr
     assert play().returncode == 2

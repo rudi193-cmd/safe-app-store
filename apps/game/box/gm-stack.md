@@ -30,7 +30,7 @@ a session that brings it back knows what the table has already seen.
 
 Want 5: "Every riddle so far." Not the top three: every passage, ranked,
 so I don't ask the table one it has already heard.
-- all -- --box {box} "riddle"
+- all-passages -- --box {box} "riddle"
 
 ## what I owe the table
 
@@ -38,7 +38,7 @@ Want 6: "What did I promise for next time?" Every passage that says next
 time. The todo card reads TODO, "need to", "remember to" and checkboxes;
 my notes say "Next time:", so it is asked as words. This also finds the
 friend Brann was told could come next time.
-- all -- --box {box} "next time"
+- all-passages -- --box {box} "next time"
 
 Want 7: "Did we miss a week?" Where the session notes stop: the weeks with
 none, said as gaps. The sessions are files named by their date.
@@ -56,10 +56,10 @@ Want 9: "What are the house rules, and which have I sealed?"
 Want 10: "What are the hound's chances?" Its bite is 2d6 plus its Grit of
 3: the exact chance of a strong hit (10 or more, when it holds on), a weak
 one, and a miss.
-- odds -- 2d6+3 --bands 10,7
+- play-odds -- 2d6+3 --bands 10,7
 
 Want 11: "And the wasps'?" Their sting is 1d6: the chance of each number.
-- odds -- 1d6
+- play-odds -- 1d6
 
 ## does the record hold
 

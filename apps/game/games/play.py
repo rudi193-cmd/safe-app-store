@@ -11,7 +11,7 @@ folder here, and the add-on of the same name.
 With --table, the game plays on that box's record, `DIR/record`, as if it
 were given `--box DIR/record`; the rest of the arguments are the game's own
 (`move 11-15`, `play --size 6`, `roll 2d6+1`), passed as they are. A game
-that reads no box (odds, horoscope, oracle-text) takes its arguments alone.
+that reads no box (play-odds, play-horoscope, oracle-text) takes its arguments alone.
 
 Exit codes are the game's own, the kernel's: 0 done; 42 waiting on the
 person's seal, or nothing found; 2 refused.

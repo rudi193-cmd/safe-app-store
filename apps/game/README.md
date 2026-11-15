@@ -28,14 +28,16 @@ proposed in `stores/decisions/proposed.json`.
   game master's binder that can be asked, the record, prep and
   end-of-night stacks, offers at the table, chapters that carry canon,
   and stories from story-timeline.
-- **[the games](games/)**, a folder each: backgammon, bureau, catgrid,
-  checkers, crazy-eights, daily-word, dice, dice5e, the story
-  (game-master), hearts, horoscope, liars-dice, life, odds, oracle-text,
-  pile-poetry, quiz, tarot. the-table's games came out of the table into
-  willow, one add-on each, and are pinned back here. Each is a willow add-on and stays
+- **[the games](games/)**, a folder each, named as willow names its
+  add-ons: daily-word, the story (game-master), oracle-text, verse, and the
+  play- family: play-backgammon, play-bureau, play-catgrid, play-checkers,
+  play-crazy-eights, play-dice, play-dice5e, play-hearts, play-horoscope,
+  play-liars-dice, play-life, play-odds, play-quiz, play-tarot. the-table's
+  games came out of the table into willow, one add-on each, and are pinned
+  back here. Each is a willow add-on and stays
   in willow; its folder says what it is, how to play it, and where it came
   from, and [`games/play.py`](games/play.py) plays any of them on a box's
-  record through the pin: `python apps/game/games/play.py checkers --table DIR move 11-15`.
+  record through the pin: `python apps/game/games/play.py play-checkers --table DIR move 11-15`.
 - **[willow.pin.json](willow.pin.json)**: the box plays with willow's
   kernel and add-ons where they live, in willow, pinned by commit and by
   each file's SHA-256. The box finds a willow checkout (`WILLOW_ROOT`, or
@@ -49,5 +51,5 @@ Each a step of its own:
 - **ai-game-master**: the blueprint, its decisions and its covenant;
 - **game-lab**: official rules, simulators and measured baselines.
 
-The pieces willow keeps as add-ons (game-master, checkers, dice, odds and
-the rest) stay there, and Die-Namic pins them.
+The pieces willow keeps as add-ons (game-master, play-checkers, play-dice,
+play-odds and the rest) stay there, and Die-Namic pins them.
