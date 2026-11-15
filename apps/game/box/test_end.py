@@ -91,7 +91,7 @@ def test_tonights_page_joins_the_threads_in_session_order(night):
     )
     assert springs.index("2026-11-14") < springs.index("2026-11-21")
     assert (
-        "scanned/2026-11-21.jpg.txt" in (run / "04-all.txt").read_text()
+        "scanned/2026-11-21.jpg.txt" in (run / "04-all-passages.txt").read_text()
     )  # next time: Cogwen
 
 

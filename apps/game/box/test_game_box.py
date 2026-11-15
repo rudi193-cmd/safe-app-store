@@ -60,7 +60,7 @@ class Table:
         )
 
     def checkers(self, *argv):
-        return self.addon("checkers", "--box", self.box, *argv, *NOW)
+        return self.addon("play-checkers", "--box", self.box, *argv, *NOW)
 
     def rows(self) -> list[dict]:
         return kernel.read(self.box / "record.jsonl")[0]
@@ -169,7 +169,7 @@ def test_a_night_at_the_table_through_every_piece(t):
     assert "a draw" in t.checkers("settle").stdout
 
     # a logic grid, seeded by the record's tip
-    assert t.addon("catgrid", "--box", t.box, "play", *NOW).returncode == 0
+    assert t.addon("play-catgrid", "--box", t.box, "play", *NOW).returncode == 0
 
     got = t.check()
     assert got.returncode == 0, got.stdout
@@ -190,7 +190,7 @@ def test_a_forged_move_is_caught_by_the_tables_own_check(t):
                   side="black", move="11-14", result="on")  # fmt: skip
     got = t.check()
     assert got.returncode == 42
-    assert "checkers -- --box {box} check`  (exit 2)" in got.stdout
+    assert "play-checkers -- --box {box} check`  (exit 2)" in got.stdout
     assert "isn't a move black may make" in got.stdout
 
 

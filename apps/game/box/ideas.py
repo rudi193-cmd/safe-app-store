@@ -16,7 +16,7 @@ Four parts, all from the box itself:
   whose name no session's notes, typed or scanned, has said yet.
 - **Still open.** Every promise made for next time.
 - **Something you wrote and forgot.** One passage of the binder drawn by the
-  surprise add-on, replayable from its seed (a `surprise` row on the record).
+  random-passage add-on, replayable from its seed (a `surprise` row on the record).
 
 Exit codes, the kernel's: 0 done; 2 refused.
 """
@@ -47,7 +47,7 @@ import kernel
 import session
 
 ORACLE = STDLIB / "oracle-text" / "oracle_text.py"
-SURPRISE = STDLIB / "surprise" / "surprise.py"
+SURPRISE = STDLIB / "random-passage" / "random_passage.py"
 NOTES = ("sessions", "scanned")
 
 

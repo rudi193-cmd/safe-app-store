@@ -49,19 +49,19 @@ def test_a_willow_with_a_changed_file_is_refused_by_name(alone, monkeypatch):
     w = copy_of_willow(alone / "w")
     monkeypatch.setenv("WILLOW_ROOT", str(w))
     assert willow_pin.root() == w
-    with open(w / "adapters" / "stdlib" / "dice" / "dice.py", "a") as f:
+    with open(w / "adapters" / "stdlib" / "play-dice" / "play_dice.py", "a") as f:
         f.write("# changed\n")
     with pytest.raises(
-        willow_pin.Unpinned, match="adapters/stdlib/dice/dice.py differs"
+        willow_pin.Unpinned, match="adapters/stdlib/play-dice/play_dice.py differs"
     ):
         willow_pin.root()
 
 
 def test_a_willow_missing_a_file_or_none_at_all_is_refused(alone, monkeypatch):
     w = copy_of_willow(alone / "w")
-    (w / "adapters" / "stdlib" / "odds" / "odds.py").unlink()
+    (w / "adapters" / "stdlib" / "play-odds" / "play_odds.py").unlink()
     monkeypatch.setenv("WILLOW_ROOT", str(w))
-    with pytest.raises(willow_pin.Unpinned, match="odds.py is missing"):
+    with pytest.raises(willow_pin.Unpinned, match="play_odds.py is missing"):
         willow_pin.root()
     monkeypatch.delenv("WILLOW_ROOT")
     with pytest.raises(willow_pin.Unpinned, match="no willow there"):
