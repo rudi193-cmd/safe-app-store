@@ -78,3 +78,6 @@ stores/.quotas/
 # ledger.jsonl are listed explicitly for the same reason .principals/
 # .sessions/.checkpoints/.quotas are.
 stores/decisions/.nestor/
+
+# Die-Namic card art: fetched by apps/game/decks/fetch_decks.py, never committed
+apps/game/ui/decks/

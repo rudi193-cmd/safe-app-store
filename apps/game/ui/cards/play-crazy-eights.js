@@ -74,7 +74,7 @@ function render() {
   const mustDraw = mineTurn && G.stock.length && !G.pick8 && (!frame.hints || !ok.length);
   const red = G.suit === "H" || G.suit === "D";
   frame.middle(`<div class="pile">
-      <div style="display:grid;gap:4px;justify-items:center">${G.stock.length ? (mustDraw ? `<button class="pc back big" data-do="draw" aria-label="Draw from the stock"></button>` : cardHTML(null, { back: true, size: "big" })) : `<div class="pc big" style="opacity:.15"></div>`}<span class="count">stock ${G.stock.length}</span></div>
+      <div style="display:grid;gap:4px;justify-items:center">${G.stock.length ? (mustDraw ? cardHTML(null, { back: true, size: "big" }).replace(/^<div/, '<button data-do="draw" aria-label="Draw from the stock"').replace(/<\/div>$/, "</button>") : cardHTML(null, { back: true, size: "big" })) : `<div class="pc big" style="opacity:.15"></div>`}<span class="count">stock ${G.stock.length}</span></div>
       <div style="display:grid;gap:4px;justify-items:center">${cardHTML(G.top, { size: "big" })}<span class="count">pile ${G.pile.length}</span></div>
     </div>
     <div class="count" style="font-size:.85rem">to follow: <b style="font-size:1.2rem;color:${red ? "#ff8f7a" : "var(--chalk)"}">${SUIT_GLYPH[G.suit]}</b> ${SUIT_NAME[G.suit]}</div>`);

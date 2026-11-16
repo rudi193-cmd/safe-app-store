@@ -28,6 +28,11 @@ function tarotCard(d, i, shown) {
   const c = d.card;
   const base = "width:112px;aspect-ratio:3/5;border-radius:9px;display:grid;place-items:center;align-content:center;gap:8px;text-align:center;padding:10px 8px;box-shadow:0 6px 14px -6px #000c;transition:transform .45s ease";
   if (!shown) return `<div style="${base};background:repeating-linear-gradient(45deg,var(--lid) 0 6px,color-mix(in srgb,var(--lid) 50%,#f1d9a0) 6px 9px);border:4px solid #f1d9a0" aria-label="card ${i + 1}, face down"></div>`;
+  const deck = frame.deckArt();
+  if (deck) { // the fetched scans, named as the fetch names them: major-18, cups-13
+    const key = c.major !== undefined ? `major-${String(c.major).padStart(2, "0")}` : `${c.suit.toLowerCase()}-${String(c.rank + 1).padStart(2, "0")}`;
+    return `<div class="pc img" style="--w:112px;width:112px;aspect-ratio:3/5;border-radius:6px;box-shadow:0 6px 14px -6px #000c;transition:transform .45s ease;${d.reversed ? "transform:rotate(180deg)" : ""}" role="img" aria-label="${esc(c.name)}${d.reversed ? ", reversed" : ""}">${artHTML(`decks/${deck.id}/${key}.${deck.ext}`, c.name)}</div>`;
+  }
   const tint = c.suit ? SUIT_TINT[c.suit] : "#3a2a10";
   return `<div style="${base};background:#f8efd8;color:${tint};border:2px solid #d9c48f;${d.reversed ? "transform:rotate(180deg)" : ""}" role="img" aria-label="${esc(c.name)}${d.reversed ? ", reversed" : ""}">${face(c)}</div>`;
 }

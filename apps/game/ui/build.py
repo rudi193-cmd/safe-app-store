@@ -73,10 +73,23 @@ def lay(src: str, out: str, data, whole: bool = False) -> None:
 # (cards/frame.src.html), each with its rules in cards/GAME.js. Their lids'
 # colours match the front page's.
 CARD_PAGES = {
-    "play-hearts": {"name": "Hearts", "lid": "#b8263f", "ink": "#fff0f2"},
-    "play-crazy-eights": {"name": "Crazy Eights", "lid": "#d9662a", "ink": "#fff4ea"},
-    "play-tarot": {"name": "Tarot", "lid": "#0f3d3a", "ink": "#f1d9a0"},
+    "play-hearts": {"name": "Hearts", "lid": "#b8263f", "ink": "#fff0f2", "deckKind": "standard"},
+    "play-crazy-eights": {"name": "Crazy Eights", "lid": "#d9662a", "ink": "#fff4ea", "deckKind": "standard"},
+    "play-tarot": {"name": "Tarot", "lid": "#0f3d3a", "ink": "#f1d9a0", "deckKind": "tarot"},
 }
+
+
+def decks() -> list[dict]:
+    """The card art fetched into ui/decks/ (decks/fetch_decks.py), as the
+    pages offer it: what each deck is, whose it is, and its backs. None
+    fetched, none offered, and the pages draw their own cards."""
+    out = []
+    for p in sorted((HERE / "decks").glob("*/deck.json")):
+        d = json.loads(p.read_text())
+        out.append({k: d[k] for k in ("id", "name", "kind", "credit", "license", "ext", "backs", "cards")})
+    # in the order fetch_decks.py lists them, the first offered first
+    order = re.findall(r'^    "([a-z0-9-]+)": \{$', (GAME / "decks" / "fetch_decks.py").read_text(), re.M)
+    return sorted(out, key=lambda d: order.index(d["id"]) if d["id"] in order else len(order))
 
 
 def card_page(g: dict, lid: dict) -> None:
@@ -85,7 +98,7 @@ def card_page(g: dict, lid: dict) -> None:
     for mark in ("/*__TITLE__*/", "/*__GAME_SCRIPT__*/"):
         assert frame.count(mark) == 1, f"frame: needs one {mark}"
     assert "</script" not in script, f"{g['id']}.js: no </script inside"
-    data = {**g, **lid}
+    data = {**g, **lid, "decks": [d for d in decks() if d["kind"] == lid["deckKind"]]}
     text = frame.replace("/*__TITLE__*/", f"{lid['name']} · Die-Namic").replace("/*__GAME_SCRIPT__*/", script)
     blob = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
     assert text.count(MARK) == 1

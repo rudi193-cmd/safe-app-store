@@ -103,6 +103,12 @@ h1 { font-family: var(--lid-font); font-weight: 400; font-size: clamp(2rem, 5vw,
 .pc .ix i { font-style: normal; font-size: 0.85em; }
 .pc .pip { position: absolute; inset: 0; display: grid; place-items: center; font-size: calc(var(--w) * 0.5); padding-top: 12%; }
 .pc .pip.face { font-family: var(--lid-font); font-weight: 400; font-size: calc(var(--w) * 0.42); }
+.pc.img { background: transparent; border: 0; padding: 0; overflow: hidden; }
+.pc.img img { display: block; width: 100%; height: 100%; object-fit: fill; border-radius: inherit; pointer-events: none; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.toggle.pick { display: inline-flex; gap: 6px; align-items: center; padding: 4px 6px 4px 12px; }
+.toggle.pick select { font: inherit; font-weight: 700; font-size: 0.8rem; color: inherit; background: transparent; border: 0; border-radius: 999px; padding: 2px 4px; max-width: 12rem; }
+.toggle.pick select option { color: #111; }
 .pc.back { background: repeating-linear-gradient(45deg, var(--lid) 0 5px, color-mix(in srgb, var(--lid) 55%, #fff) 5px 9px); border: 3px solid var(--card); }
 .pc.small { --w: 34px; border-radius: 5px; }
 .pc.small .ix { top: 2px; left: 3px; }
@@ -177,7 +183,7 @@ details.record summary { cursor: pointer; font-size: 0.72rem; letter-spacing: 0.
     <section class="panel" id="p-score" hidden><h2 id="score-title">Scoresheet</h2><div class="sheet-wrap" id="score"></div><p class="note" id="score-note"></p></section>
     <section class="panel" id="p-deck" hidden><h2>The deck</h2><div id="deck"></div></section>
     <section class="panel" id="p-log"><h2>The game so far</h2><ol class="log" id="log"></ol></section>
-    <section class="panel" id="p-record"><details class="record"><summary>Play it on the record</summary><div class="cmds" id="cmds"></div><p class="note" id="record-note" style="margin-top:8px"></p></details></section>
+    <section class="panel" id="p-record"><p class="note" id="credit" style="margin:0 0 8px"></p><details class="record"><summary>Play it on the record</summary><div class="cmds" id="cmds"></div><p class="note" id="record-note" style="margin-top:8px"></p></details></section>
   </aside>
 </div>
 
@@ -205,9 +211,23 @@ const sameCard = (a, b) => a.r === b.r && a.s === b.s;
 const deck52 = () => "CDHS".split("").flatMap((s) => Array.from({ length: 13 }, (_, i) => ({ r: i + 2, s })));
 const sortHand = (h) => h.sort((a, b) => "CDHS".indexOf(a.s) - "CDHS".indexOf(b.s) || a.r - b.r);
 
+/* card art: a fetched deck when one is chosen (decks/ID/QS.svg), else drawn here */
+const RANK_FILE = (r) => ({ 10: "T", 11: "J", 12: "Q", 13: "K", 14: "A" }[r] || String(r));
+function artHTML(src, label) { return `<img src="${esc(src)}" alt="" draggable="false" onerror="this.closest('.pc').classList.remove('img');this.remove()"><span class="sr">${esc(label)}</span>`; }
+
 function cardHTML(c, o = {}) {
   const cls = ["pc", o.size || "", o.extra || ""].join(" ");
-  if (!c || o.back) return `<div class="${cls} back" aria-label="a card, face down"></div>`;
+  if (!c || o.back) {
+    const b = frame.backArt();
+    return b ? `<div class="${cls} img" aria-label="a card, face down">${artHTML(b, "")}</div>` : `<div class="${cls} back" aria-label="a card, face down"></div>`;
+  }
+  const deck = frame.deckArt();
+  if (deck) {
+    const label = `${RANK_TEXT(c.r)} of ${SUIT_NAME[c.s]}`;
+    const art = artHTML(`decks/${deck.id}/${RANK_FILE(c.r)}${c.s}.${deck.ext}`, label);
+    if (o.button) return `<button class="${cls} img ${o.chosen ? "chosen" : ""}" data-card="${cardName(c)}" ${o.disabled ? "disabled" : ""} aria-label="${label}">${art}</button>`;
+    return `<div class="${cls} img" role="img" aria-label="${label}">${art}</div>`;
+  }
   const red = c.s === "H" || c.s === "D";
   const face = c.r > 10;
   const inner = `<span class="ix">${RANK_TEXT(c.r)}<i>${SUIT_GLYPH[c.s]}</i></span><span class="pip ${face ? "face" : ""}">${face ? RANK_TEXT(c.r) : SUIT_GLYPH[c.s]}</span>`;
@@ -222,9 +242,21 @@ function cardHTML(c, o = {}) {
 const remembered = (k) => { try { return localStorage.getItem(k) === "1"; } catch (e) { return false; } };
 const remember = (k, v) => { try { localStorage.setItem(k, v ? "1" : "0"); } catch (e) {} };
 
+const recall = (k, fallback) => { try { const v = localStorage.getItem(k); return v === null ? fallback : v; } catch (e) { return fallback; } };
+
 const frame = {
   open: remembered("dn-open"),
   hints: remembered("dn-hints"),
+  /* the art: a deck for the faces and a back, each by id, "" for drawn */
+  deckId: "",
+  backId: "",
+  deckArt() { return (GAME.decks || []).find((d) => d.id === this.deckId) || null; },
+  backArt() {
+    if (!this.backId) return null;
+    const [id, name] = this.backId.split("/");
+    const d = (GAME.decks || []).find((x) => x.id === id);
+    return d && d.backs.includes(name) ? `decks/${id}/back-${name}.svg` : null;
+  },
   setup(opts) {
     document.documentElement.style.setProperty("--lid", GAME.lid);
     document.documentElement.style.setProperty("--lid-ink", GAME.ink);
@@ -238,7 +270,23 @@ const frame = {
     const t = [];
     if (opts.hints !== false) t.push(`<button class="toggle" id="t-hints" aria-pressed="${this.hints}" title="Light the cards the rules allow">Hints</button>`);
     if (opts.seats) t.push(`<button class="toggle" id="t-open" aria-pressed="${this.open}" title="Show the other seats' cards">Hands open</button>`);
+    /* the art, when any was fetched: a deck for the faces, and (for a 52) a back from any deck */
+    const decks = GAME.decks || [], kind = GAME.deckKind;
+    if (decks.length) {
+      const blue = decks.find((d) => d.backs.includes("blue"));
+      this.deckId = recall(`dn-deck-${kind}`, decks[0].id);
+      if (this.deckId && !decks.some((d) => d.id === this.deckId)) this.deckId = decks[0].id;
+      const backs = decks.flatMap((d) => d.backs.map((b) => [`${d.id}/${b}`, `${d.name}: ${b.replace(/_/g, " ")}`]));
+      this.backId = recall("dn-back", blue ? `${blue.id}/blue` : backs.length ? backs[0][0] : "");
+      if (this.backId && !backs.some(([v]) => v === this.backId)) this.backId = "";
+      t.push(`<label class="toggle pick"><span>Deck</span><select id="t-deck">${[["", "Drawn"], ...decks.map((d) => [d.id, d.name])].map(([v, l]) => `<option value="${esc(v)}" ${v === this.deckId ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`);
+      if (backs.length) t.push(`<label class="toggle pick"><span>Back</span><select id="t-back">${[["", "Drawn"], ...backs].map(([v, l]) => `<option value="${esc(v)}" ${v === this.backId ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`);
+    }
     $("toggles").innerHTML = t.join("");
+    const credit = () => { const d = this.deckArt(); $("credit").textContent = d ? `Cards: ${d.name}, by ${d.credit}. ${d.license}.` : ""; };
+    const sel = (id, key, prop) => { const s = $(id); if (s) s.addEventListener("change", () => { this[prop] = s.value; try { localStorage.setItem(key, s.value); } catch (e) {} credit(); opts.redraw(); }); };
+    sel("t-deck", `dn-deck-${kind}`, "deckId"); sel("t-back", "dn-back", "backId");
+    credit();
     for (const [id, key, prop] of [["t-hints", "dn-hints", "hints"], ["t-open", "dn-open", "open"]]) {
       const b = $(id);
       if (b) b.addEventListener("click", () => { this[prop] = !this[prop]; remember(key, this[prop]); b.setAttribute("aria-pressed", this[prop]); opts.redraw(); });
