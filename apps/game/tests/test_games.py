@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-HERE = Path(__file__).resolve().parent
+HERE = Path(__file__).resolve().parents[1] / "games"  # the games these tests play
 BOX = HERE.parent / "box"
 sys.path.insert(0, str(BOX))
 import willow_pin

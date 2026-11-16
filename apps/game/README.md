@@ -62,6 +62,27 @@ catalog entries are archived and point here.
   simulator for each game, and measured N=500 baselines, every number
   traced to a run. Store CI's `game-lab-sims` job is its gate.
 
+## The core, the tests, and the gate
+
+- **[die_namic/](die_namic/)**: Die-Namic's core, import-pure: it imports
+  nothing from willow, the store or the network, and is handed what it
+  leans on. Its search seam is `die_namic.binder:Binder`: ask the GM's
+  binder in your own words, the way willow's UI searches (a page you named
+  first, then what your words usually mean, then the ranking), over
+  passages and a ranker handed in. It ships the reader; the corpus stays
+  with whoever grew it.
+- **[box/ask.py](box/ask.py)**: the host side of that seam: the box hands
+  the core willow's reading of the binder and willow's pile-rank ranker,
+  found through the pin. `python apps/game/box/ask.py "what are the dog's stats"`.
+- **[tests/](tests/)**: Die-Namic's own tests, the box's, the games' and
+  the core's, run from here with a bare `pytest` (`pytest.ini`), as store CI
+  and the promotion gate run them. The builds that came over keep their own
+  suites.
+- **[promotion.json](promotion.json)**: the attestation the store's gate
+  reads, its mechanical pointers filled in. What only a person can state is
+  left for them: who verifies it (never its author), its own repo, and that
+  the store consumes it.
+
 ## The pages
 
 - **[ui/](ui/)**: Die-Namic's front page, a shelf of the games, and a page

@@ -367,9 +367,10 @@ jobs:
 
   # Die-Namic (apps/game) plays willow's add-ons where they live: its tests
   # need a willow checkout, and only the one apps/game/willow.pin.json names.
-  # So this job reads the pin's commit, checks willow out at it, and runs the
-  # box's and the games' tests on it (box/willow_pin.py refuses a checkout
-  # whose files differ). The end-of-night test reads a handwritten page with
+  # So this job reads the pin's commit, checks willow out at it, and runs
+  # Die-Namic's own tests on it (apps/game/tests: the box, the games and the
+  # core), from apps/game with a bare pytest, exactly as stores/promote_check.py
+  # runs them (box/willow_pin.py refuses a checkout whose files differ). The end-of-night test reads a handwritten page with
   # willow's ocr add-on, so tesseract and ocr's requirements are installed
   # here, and the job fails if they don't import: the reading path runs in CI,
   # not only the one without it. And, as the differentials do, it fails if
@@ -403,12 +404,13 @@ jobs:
           pip install pytest -r willow/adapters/deps/ocr/requirements.txt
           python -c "import PIL, pypdf; print('ocr can read here')"
 
-      - name: The box and the games, on the pinned willow
+      - name: Die-Namic's tests (the box, the games, the core), on the pinned willow
         env:
           WILLOW_ROOT: ${{ github.workspace }}/willow
+        working-directory: apps/game
         run: |
           set -eo pipefail
-          python -m pytest apps/game/box apps/game/games -q -rs | tee "$RUNNER_TEMP/game.txt"
+          python -m pytest -q -rs | tee "$RUNNER_TEMP/game.txt"
           if grep -qi "skipped" "$RUNNER_TEMP/game.txt"; then
             echo "::error::a test skipped in the job that exists to run it"
             exit 1

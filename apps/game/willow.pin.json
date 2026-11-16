@@ -36,7 +36,12 @@
     "tip-pin",
     "verse",
     "what-changed",
-    "ocr"
+    "ocr",
+    "pile-rank",
+    "pile-store",
+    "index-cache",
+    "batch-ask",
+    "todo"
   ],
   "files": {
     "adapters/deps/ocr/README.md": "d82c1e8e212f18c39d7b98fe854ec029fa6e8d43dacccfbd10cecb1fa3e14a78",
@@ -121,6 +126,16 @@
     "adapters/stdlib/verse/verse.py": "0d62877a94328bab7028c1f834088a17c1d70ce5ccbf80ba4500ed09a16439a8",
     "adapters/stdlib/what-changed/README.md": "a3390ebca1ca4c829731b1accd75f52d1e368f66d6abfccf1b31b01406a74e5c",
     "adapters/stdlib/what-changed/what_changed.py": "2b0fdd8c7c386352a2b403ec818ca77f8973b021ecbd6a95b3e20f4c4375cb94",
-    "kernel.py": "b5cd7e931429a859035b02be8e70bd8c4c9356f90ccb23e9529f8186ce6da746"
+    "kernel.py": "b5cd7e931429a859035b02be8e70bd8c4c9356f90ccb23e9529f8186ce6da746",
+    "adapters/stdlib/batch-ask/README.md": "9de8e1949c875562b0cbc96a9c5efa8241afce5eae3f93efc94d23e1c247f291",
+    "adapters/stdlib/batch-ask/scan.py": "ff3717e7f280eb0a3dea479136bdab43360cd72cd6861d7827fbdf1504c2ce9d",
+    "adapters/stdlib/index-cache/README.md": "26d3a55cc7be2e18e419351defa0a0a0db0a0de50ec2d979c923c3b2a8130c3c",
+    "adapters/stdlib/index-cache/index_cache.py": "15a76ce4b978175840becb483825a5d1b3b89b7e663f16ab82efe3ce55071fb2",
+    "adapters/stdlib/pile-rank/README.md": "f2590e8b92e27d95d0ea28df7506ef0d111512280a6da7f2a686a49e10990add",
+    "adapters/stdlib/pile-rank/pile_rank.py": "3fe92c970b839fc5396a6f196433cf7793871354c748215d017abf02b82e34a4",
+    "adapters/stdlib/pile-store/README.md": "b0e09ddd989aecf8bf851e89a64439981f1bdc931a80f2e3ec79e021cfd43dfa",
+    "adapters/stdlib/pile-store/pile_store.py": "b349f7bf7e906529aa0e5eec34806b9822ef09bd11e7d68c0b67ec2965cf098f",
+    "adapters/stdlib/todo/README.md": "bd569ee8564325fff7fca1fcba6bda7684597923feea8a83f73c5e4fa35f6059",
+    "adapters/stdlib/todo/todo.py": "003c479acab83c60716cacea97c6b92bf783e7e9a2e38a2797f8844e0de8b193"
   }
 }

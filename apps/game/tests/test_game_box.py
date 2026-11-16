@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-HERE = Path(__file__).resolve().parent
+HERE = Path(__file__).resolve().parents[1] / "box"  # the box these tests test
 sys.path.insert(0, str(HERE))
 import willow_pin
 
