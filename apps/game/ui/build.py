@@ -136,7 +136,11 @@ def box() -> dict:
     alias, why = kernel.parse_words((GAME / "box" / "gm-words.txt").read_text(encoding="utf-8"))
     assert why is None, f"gm-words.txt: {why}"
     passages = [{k: c[k] for k in ("path", "line", "text", "id")} for c in kernel.chunks(GAME / "box" / "binder")]
-    return {"worlds": worlds, "binder": {"passages": passages, "function": sorted(kernel.FUNCTION), "alias": alias}}
+    # the binder's pages as written, for the GM's between-sessions side (ideas.py reads them so)
+    pile = GAME / "box" / "binder"
+    files = {p.relative_to(pile).as_posix(): p.read_text(encoding="utf-8", errors="replace")
+             for p in sorted(pile.rglob("*")) if p.is_file() and p.suffix in (".md", ".txt")}
+    return {"worlds": worlds, "binder": {"passages": passages, "function": sorted(kernel.FUNCTION), "alias": alias, "files": files}}
 
 
 def table_page(g: dict, lid: dict, also: list, extra: dict | None = None, out: str | None = None) -> None:

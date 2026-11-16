@@ -285,6 +285,37 @@ class Stream {
   pick(items) { return items[this.below(items.length)]; }
   shuffled(items) { const out = Array.from(items); for (let i = out.length - 1; i > 0; i--) { const j = this.below(i + 1); [out[i], out[j]] = [out[j], out[i]]; } return out; }
 }
+/* oracle-text: a Tracery grammar, every branch picked by the stream seeded
+   "SEED:oracle:N" (the raw text, not its hash), as the add-on reads it:
+   #symbol#, modifiers .a .s .ed .capitalize .capitalizeAll .allCaps chained,
+   [name:rule] to say the same thing again later in one reading. */
+const ORACLE_TOKEN = /#([^#]*)#|\[([^\[\]:]+):((?:[^\[\]]|\[[^\[\]]*\])*)\]/g;
+const ORACLE_MOD = {
+  a: (w) => ("aeiou".includes(w.slice(0, 1).toLowerCase()) && w ? "an " : "a ") + w,
+  s: (w) => (/[sxzh]$/.test(w) ? w + "es" : w.length > 1 && w.endsWith("y") && !"aeiou".includes(w[w.length - 2]) ? w.slice(0, -1) + "ies" : w + "s"),
+  ed: (w) => (w.endsWith("e") ? w + "d" : w.length > 1 && w.endsWith("y") && !"aeiou".includes(w[w.length - 2]) ? w.slice(0, -1) + "ied" : w + "ed"),
+  capitalize: (w) => w.slice(0, 1).toUpperCase() + w.slice(1),
+  capitalizeAll: (w) => w.split(" ").map((x) => x.slice(0, 1).toUpperCase() + x.slice(1)).join(" "),
+  allCaps: (w) => w.toUpperCase(),
+};
+function oracleExpand(text, grammar, rng, names, depth = 0) {
+  if (depth > 40) throw new Error("rules that expand without end");
+  return text.replace(ORACLE_TOKEN, (m, sym, name, rule) => {
+    if (name !== undefined) { names[name] = oracleExpand(rule, grammar, rng, names, depth + 1); return ""; }
+    const [symbol, ...mods] = sym.split(".");
+    let out;
+    if (symbol in names) out = names[symbol];
+    else if (symbol in grammar) { const rules = grammar[symbol]; const r = typeof rules === "string" ? rules : rules[rng.below(rules.length)]; out = oracleExpand(r, grammar, rng, names, depth + 1); }
+    else throw new Error(`no symbol “${symbol}” in the grammar`);
+    for (const mod of mods) { if (!ORACLE_MOD[mod]) throw new Error(`no modifier “${mod}”: ${Object.keys(ORACLE_MOD).join(", ")}`); out = ORACLE_MOD[mod](out); }
+    return out;
+  });
+}
+function oracleReading(grammar, seed, i, origin = "origin") {
+  if (!(origin in grammar)) throw new Error(`no symbol “${origin}” in the grammar`);
+  return oracleExpand(`#${origin}#`, grammar, new Stream(utf8(`${seed}:oracle:${i}`)), {});
+}
+
 const seedWords = () => { const w = ["lantern", "river", "gear", "goat", "bridge", "stall", "cellar", "kettle", "harbor", "willow", "fox", "comet"]; return `${w[rnd(w.length)]} ${100 + rnd(900)}`; };
 
 /* dice: d6 by pips; others (d4, d8, d10, d12, d20, d100) as a shape with the number */

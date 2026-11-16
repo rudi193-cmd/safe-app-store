@@ -179,14 +179,103 @@ function askBinder(question, top = 6) {
   });
 }
 
+/* ---------- between sessions: ideas.py's four parts, for the GM's eyes ----------
+   Nothing here is canon and nothing is handed in: an idea the GM likes, they
+   write in the binder or into a story. */
+const FILES = GAME.binder.files;
+const NOTES = ["sessions", "scanned"];
+const utcDay = () => new Date().toISOString().slice(0, 10);
+function titled(folder) { // each page's first heading, the name it was written under
+  return Object.keys(FILES).filter((p) => p.startsWith(folder + "/") && !p.slice(folder.length + 1).includes("/") && p.endsWith(".md")).sort()
+    .map((p) => { const ln = FILES[p].split(/\r?\n/).find((l) => l.startsWith("# ")); return ln ? ln.slice(2).trim() : ""; }).filter(Boolean);
+}
+function saidInNotes() { return Object.keys(FILES).filter((p) => NOTES.some((n) => p.startsWith(n + "/") && !p.slice(n.length + 1).includes("/"))).sort().map((p) => FILES[p].toLowerCase()).join("\n"); }
+function unplayed() {
+  const said = saidInNotes(), out = [];
+  for (const folder of ["monsters", "people"]) for (const name of titled(folder)) {
+    const ws = (name.toLowerCase().match(/[a-z']+/g) || []).filter((w) => !["the", "a", "an"].includes(w));
+    if (ws.length && !ws.every((w) => new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(said))) out.push({ name, folder });
+  }
+  return out;
+}
+function promised() { // every line of the GM's notes that says next time, oldest file first
+  const out = [];
+  for (const p of Object.keys(FILES).sort()) FILES[p].split(/\r?\n/).forEach((t, i) => { if (t.toLowerCase().includes("next time")) out.push({ path: p, line: i + 1, text: t.trim() }); });
+  return out;
+}
+const lowerFirst = (t) => (t.slice(0, 1) !== t.slice(0, 1).toLowerCase() && t.slice(1, 2) === t.slice(1, 2).toLowerCase() ? t.slice(0, 1).toLowerCase() + t.slice(1) : t);
+const uniqSorted = (xs) => [...new Set(xs)].sort();
+function ideaWorlds(only) {
+  if (only) return WORLDS.filter((w) => only.includes(w.id));
+  const last = C.nights.length ? C.nights[C.nights.length - 1].story : null;
+  const w = WORLDS.find((x) => x.id === last);
+  return w ? [w] : WORLDS;
+}
+function ideaGrammar(worlds, canonFacts) { // a Tracery grammar of the box's own words
+  const who = [], npc0 = [], places = [];
+  for (const w of worlds) { for (const c of w.characters) (c.seat ? who : npc0).push(c.name); places.push(...w.places.map((p) => p.name)); }
+  let npc = [...npc0, ...titled("people").filter((n) => !npc0.includes(n))].map((n) => (n.startsWith("The ") ? "the " + n.slice(4) : n));
+  const monster = titled("monsters").map((n) => `the ${n.toLowerCase()}`);
+  const thread = [];
+  for (const { text } of promised()) { const m = /next time:?\s*(.+)/i.exec(text); if (m && m[1].split(/\s+/).filter(Boolean).length > 2) thread.push(m[1].replace(/[.!?]+$/, "")); }
+  const canon = canonFacts.map((f) => lowerFirst(f.split("  [offered by")[0].split(":")[0].replace(/\.+$/, "")));
+  const g = {};
+  const put = (k, v) => { if (v.length) g[k] = v; };
+  put("who", uniqSorted(who)); put("npc", uniqSorted(npc)); put("place", uniqSorted(places.map((p) => p.toLowerCase())));
+  put("monster", monster); put("thread", thread); put("canon", canon);
+  const has = (...ks) => ks.every((k) => k in g), origin = [];
+  if (has("who", "thread")) origin.push("What if #who# finds out #thread#, and doesn't tell the others?");
+  if (has("monster", "place", "who")) origin.push("At #place#, #who# comes face to face with #monster#.");
+  if (has("npc", "who", "thread")) origin.push("#npc.capitalize# asks #who# for help with #thread#.");
+  if (has("canon", "npc")) origin.push("Because #canon#, #npc# owes someone at the table a favour.");
+  if (has("canon", "monster")) origin.push("Now that #canon#, #monster# has nowhere to go.");
+  if (has("who", "npc")) origin.push("#who.capitalize# and #npc# want the same thing, for different reasons.");
+  g.origin = origin;
+  return g;
+}
+const LABEL = utf8("willow surprise");
+const daySeed = (day) => hex(sha256(utf8("willow surprise " + day)));
+function surprise(seedHex) { // random-passage's draw: one passage of eight words or more
+  const long = GAME.binder.passages.filter((c) => wordsOf(c.text).length >= 8);
+  if (!long.length) return null;
+  const seed = new Uint8Array(seedHex.match(/../g).map((h) => parseInt(h, 16)));
+  const both = new Uint8Array(seed.length + LABEL.length); both.set(seed); both.set(LABEL, seed.length);
+  return long[new Stream(both).below(long.length)];
+}
+function ideas(seed, count, only) {
+  const worlds = ideaWorlds(only), g = ideaGrammar(worlds, only ? [] : C.canon.map((c) => c.fact));
+  const seeds = g.origin.length ? Array.from({ length: count }, (_, i) => oracleReading(g, seed, i + 1)) : [];
+  return { worlds, seeds, unplayed: unplayed(), promised: promised() };
+}
+window.__ideas = (seed, count, only, surpriseSeed) => { const r = ideas(seed, count, only); const c = surprise(surpriseSeed); return { seeds: r.seeds, unplayed: r.unplayed, promised: r.promised, surprise: c && `${c.path}:${c.line}` }; };
+
+let mode = "table";
+const B = { seed: `ideas ${utcDay()}`, count: 5, surpriseSeed: daySeed(utcDay()) };
+function betweenHTML() {
+  let r, err = "";
+  try { r = ideas(B.seed, B.count); } catch (e) { err = e.message; r = { worlds: ideaWorlds(), seeds: [], unplayed: unplayed(), promised: promised() }; }
+  const c = surprise(B.surpriseSeed);
+  const forWhat = r.worlds.length === 1 ? `for ${esc(r.worlds[0].title)}, the story last played` : "from every story in the box, since none has been played here yet";
+  const sec = (title, body) => `<section style="display:grid;gap:8px;width:min(640px,100%)"><h3 style="margin:0;font-family:var(--lid-font);font-weight:400;font-size:1.15rem">${title}</h3>${body}</section>`;
+  return `<p class="note" style="text-align:center;margin:0;max-width:60ch">For the GM's eyes. Nothing here is canon and nothing is handed in: an idea you like, you write in the binder or into a story.</p>
+    ${sec("Seeds", `<form id="seeds-form" class="actions" style="justify-content:flex-start;gap:6px" autocomplete="off"><label class="count" for="seeds-seed">Seed</label><input id="seeds-seed" value="${esc(B.seed)}" spellcheck="false" style="font:inherit;font-family:var(--mono);width:19ch;padding:6px 9px;border-radius:8px;border:1px solid var(--edge);background:#0004;color:var(--chalk)"><label class="count" for="seeds-count">How many</label><input id="seeds-count" type="number" min="1" max="20" value="${B.count}" style="font:inherit;width:5ch;padding:6px;border-radius:8px;border:1px solid var(--edge);background:#0004;color:var(--chalk)"><button class="btn" type="submit">Deal</button><button class="btn ghost" type="button" data-act="seeds-fresh">Another seed</button></form>
+      <p class="note" style="margin:0">Dealt ${forWhat}, from its people and places, the binder's monsters and people, the threads promised for next time${C.canon.length ? ", and what the table made true" : ""}. The same seed deals them again.</p>
+      ${err ? `<p style="color:#ff9b85;margin:0">${esc(err)}</p>` : r.seeds.length ? `<ul style="margin:0;padding-left:18px;display:grid;gap:6px;font-family:var(--prose);font-size:1.05rem">${r.seeds.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : `<p class="note">The box has too little in it yet to deal from.</p>`}`)}
+    ${sec("Set up, never played", r.unplayed.length ? `<ul style="margin:0;padding-left:18px">${r.unplayed.map((u) => `<li>${esc(u.name)} <span class="note">(${esc(u.folder)}/)</span></li>`).join("")}</ul><p class="note" style="margin:0">A monster or person with a page in the binder whose name no session's notes have said yet.</p>` : `<p class="note">Everything the binder sets up has come out at the table.</p>`)}
+    ${sec("Still open", r.promised.length ? `<ul style="margin:0;padding-left:18px;display:grid;gap:4px">${r.promised.map((p) => `<li><span style="font-family:var(--mono);font-size:.78rem;color:var(--chalk-dim)">${esc(p.path)}:${p.line}</span> ${esc(p.text)}</li>`).join("")}</ul>` : `<p class="note">No promises made for next time.</p>`)}
+    ${sec("Something you wrote and forgot", c ? `<p class="count" style="text-align:left;margin:0">From ${esc(c.path)}, line ${c.line}:</p><blockquote style="margin:0;padding:8px 14px;border-left:3px solid var(--edge);font-family:var(--prose);white-space:pre-wrap">${esc(c.text)}</blockquote><div class="actions" style="justify-content:flex-start"><button class="btn ghost" data-act="surprise">Draw another</button><span class="note" style="font-family:var(--mono);font-size:.68rem;word-break:break-all">seed ${B.surpriseSeed.slice(0, 16)}… ${B.surpriseSeed === daySeed(utcDay()) ? "(today's: the same passage all day)" : ""}</span></div>` : `<p class="note">Nothing in the binder is long enough to draw.</p>`)}`;
+}
+
 /* ---------- drawing ---------- */
+const modeSwitch = () => `<div class="actions" style="gap:6px" role="group" aria-label="Which side of the screen">${[["table", "At the table"], ["between", "Between sessions"]].map(([m, l]) => `<button class="toggle" data-mode="${m}" aria-pressed="${mode === m}">${l}</button>`).join("")}</div>`;
 function stageHTML(tumble) {
+  if (mode === "between") return modeSwitch() + betweenHTML();
   const w = world();
   const chips = WORLDS.map((x, i) => {
     const played = C.nights.filter((n) => n.story === x.id).length;
     return `<button class="toggle" style="border-color:var(--edge)" data-w="${i}" aria-pressed="${i === S.w}">${esc(x.title)}${played ? ` ✓${played > 1 ? played : ""}` : ""}</button>`;
   }).join("");
-  const head = `<div class="actions" style="gap:6px">${chips}</div><p class="note" style="font-style:italic;max-width:62ch;text-align:center;margin:0">${esc(w.setting)}</p>`;
+  const head = `${modeSwitch()}<div class="actions" style="gap:6px">${chips}</div><p class="note" style="font-style:italic;max-width:62ch;text-align:center;margin:0">${esc(w.setting)}</p>`;
   const sc = scene();
   if (!sc) {
     const n = (k) => S.rolls.filter((r) => r === k).length, made = tonightCanon();
@@ -268,6 +357,7 @@ function renderBinder(question) {
 /* ---------- events ---------- */
 document.addEventListener("click", (e) => {
   const t = e.target.closest("button"); if (!t || t.disabled) return;
+  if (t.dataset.mode) { mode = t.dataset.mode; return render(); }
   if (t.dataset.w) return start(+t.dataset.w);
   if (t.dataset.stat) { S.stat = t.dataset.stat; return render(); }
   if (t.dataset.offer) { const o = S.offers[+t.dataset.offer]; o.status = t.dataset.ans; frame.log(`${o.status === "sealed" ? "Canon" : "Set aside"}: ${esc(o.fact)}`); return render(); }
@@ -277,6 +367,8 @@ document.addEventListener("click", (e) => {
   else if (a === "seal") rule("sealed");
   else if (a === "decline") rule("declined");
   else if (a === "restart") start(S.w);
+  else if (a === "seeds-fresh") { B.seed = seedWords(); render(); }
+  else if (a === "surprise") { B.surpriseSeed = hex(crypto.getRandomValues(new Uint8Array(32))); render(); }
   else if (a === "reset") { S.confirmReset = true; render(); }
   else if (a === "reset-no") { S.confirmReset = false; render(); }
   else if (a === "reset-yes") { C = { nights: [], sealed: {}, canon: [] }; saveCampaign(); S.confirmReset = false; frame.log("<b>A new campaign.</b> Every earlier night is forgotten here."); render(); }
@@ -288,6 +380,8 @@ document.addEventListener("submit", (e) => {
     S.offers.push({ by: $("offer-by").value, kind: $("offer-kind").value, fact, status: "waiting" });
     frame.log(`<b>${esc(char($("offer-by").value).name)}</b> offers: ${esc(fact)}`);
     $("offer-fact").value = ""; render();
+  } else if (e.target.id === "seeds-form") {
+    e.preventDefault(); B.seed = $("seeds-seed").value.trim() || B.seed; B.count = Math.max(1, Math.min(20, +$("seeds-count").value || 5)); render();
   } else if (e.target.id === "binder-form") { e.preventDefault(); renderBinder($("binder-q").value); }
 });
 
