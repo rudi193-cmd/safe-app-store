@@ -67,7 +67,8 @@ DECKS = {
         "credit": "Adrian Kennard, after Goodall & Son",
         "license": "CC0 1.0",
         "source": "https://www.me.uk/cards/",
-        "query": "view&pip=0&back=Goodall&ace=Goodall&noleft=on&noflip=on",
+        # the Goodall ace, back and pips, with the corner index kept: a fanned hand shows only its corners
+        "query": "view&pip=0&back=Goodall&ace=Goodall",
     },
     "kennard-fourcolour": {
         "name": "Kennard, four colour",

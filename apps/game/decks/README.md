@@ -25,7 +25,7 @@ cardsJS, whose code is MIT but whose art is not).
 |---|---|---|---|---|
 | `knoll` | 52 | Byron Knoll, kept by notpeter | "released into the public domain, or optionally licensed under the WTFPL" | github.com/notpeter/Vector-Playing-Cards |
 | `tekeye` | 52 + 12 backs | Tek Eye | "placed into the Public Domain… no permission is required" | tekeye.uk/playing_cards/svg-playing-cards |
-| `kennard-goodall` | 52 + 2 backs | Adrian Kennard, after Goodall & Son | "Released under CC0 Public Domain licence" | me.uk/cards (his generator, old style) |
+| `kennard-goodall` | 52 + 2 backs | Adrian Kennard, after Goodall & Son | "Released under CC0 Public Domain licence" | me.uk/cards (his generator: old style, with the corner index kept) |
 | `kennard-fourcolour` | 52 + 2 backs | Adrian Kennard | CC0, as above | me.uk/cards (four colour) |
 | `rws1910` | 78 tarot | Pamela Colman Smith, 1909–1910 | public domain: published 1909–1910 (US); Smith died 1951, so life + 70 ended in 2022 (UK, EU) | the 1910 "Pamela-A" scans on Wikimedia Commons |
 
