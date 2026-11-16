@@ -1,0 +1,437 @@
+<title>Die-Namic Table</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: a lamp-lit table seen from above. The play area (scene, beat, dice tray) on the left; the night's log, the cast and the canon on the right; stacked on a phone. One look on purpose: the table is dark in any room. */
+:root {
+  --table: #191419;
+  --table-2: #221b22;
+  --felt: #2b222b;
+  --edge: #3d323c;
+  --ink: #efe6dc;
+  --ink-dim: #b3a69d;
+  --ink-faint: #7f726d;
+  --brass: #dca64a;
+  --brass-deep: #a8762a;
+  --bone: #f3ebdd;
+  --pip: #2a1f22;
+  --strong: #6fc3a0;
+  --weak: #e2b04f;
+  --miss: #e0745e;
+  --seal: #9db8f0;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --story: "Literata", "Iowan Old Style", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: radial-gradient(120% 80% at 30% 0%, #2a2029 0%, var(--table) 55%) fixed, var(--table);
+  color: var(--ink);
+  font-family: var(--story);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 20px;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+/* header */
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+.brand { font-family: var(--display); font-weight: 800; font-size: 1.6rem; letter-spacing: -0.01em; margin: 0; }
+.brand span { color: var(--brass); }
+.tagline { color: var(--ink-faint); font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.worlds { display: flex; flex-wrap: wrap; gap: 8px; }
+.world-chip {
+  border: 1px solid var(--edge); background: transparent; border-radius: 999px;
+  padding: 6px 14px; font-family: var(--display); font-weight: 500; font-size: 0.92rem; color: var(--ink-dim);
+}
+.world-chip:hover { border-color: var(--brass-deep); color: var(--ink); }
+.world-chip[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: #22170b; font-weight: 700; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+/* the play area */
+.play { display: grid; gap: 16px; min-width: 0; }
+.setting { color: var(--ink-dim); font-style: italic; margin: 0; max-width: 65ch; }
+.scene-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.eyebrow { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brass); }
+.scene-title { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 3.6vw, 2.3rem); line-height: 1.1; margin: 0; text-wrap: balance; }
+.opening { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 1.08rem; max-width: 62ch; }
+.opening li { color: var(--ink); }
+
+.beat {
+  background: linear-gradient(180deg, var(--felt), var(--table-2));
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  padding: 22px;
+  display: grid;
+  gap: 16px;
+  box-shadow: 0 18px 40px -24px #000;
+}
+.beat-kind { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.pill { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; border: 1px solid currentColor; }
+.pill.action { color: var(--brass); }
+.pill.decision { color: var(--seal); }
+.actor { font-family: var(--display); font-weight: 500; color: var(--ink-dim); }
+.prompt { font-size: 1.35rem; line-height: 1.35; margin: 0; text-wrap: balance; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.stat {
+  text-align: left; background: var(--table); border: 1px solid var(--edge); border-radius: 10px;
+  padding: 10px 12px; display: grid; gap: 8px;
+}
+.stat:hover { border-color: var(--brass-deep); }
+.stat[aria-pressed="true"] { border-color: var(--brass); box-shadow: inset 0 0 0 1px var(--brass); }
+.stat-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.stat-name { font-family: var(--display); font-weight: 700; }
+.stat-mod { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--brass); }
+.stat-sug { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+.odds { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: var(--edge); }
+.odds i { display: block; height: 100%; }
+.odds .s { background: var(--strong); } .odds .w { background: var(--weak); } .odds .m { background: var(--miss); }
+.odds-nums { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.68rem; font-variant-numeric: tabular-nums; color: var(--ink-faint); }
+
+.tray { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.dice { display: flex; gap: 12px; }
+.die {
+  width: 58px; height: 58px; border-radius: 12px; background: var(--bone);
+  box-shadow: inset 0 -4px 0 #d6cbb8, 0 6px 14px -6px #000;
+  display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); padding: 9px;
+}
+.die b { width: 10px; height: 10px; border-radius: 50%; background: var(--pip); place-self: center; visibility: hidden; }
+.die b.on { visibility: visible; }
+.die.idle { opacity: 0.35; }
+.die.tumble { animation: tumble 0.55s cubic-bezier(.3,.7,.4,1); }
+@keyframes tumble {
+  0% { transform: translateY(-14px) rotate(-200deg) scale(.85); }
+  60% { transform: translateY(3px) rotate(12deg); }
+  100% { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .die.tumble { animation: none; } }
+.sum { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 1rem; color: var(--ink-dim); }
+.sum strong { color: var(--ink); font-size: 1.6rem; }
+
+.btn {
+  border: 0; border-radius: 10px; padding: 11px 20px; font-family: var(--display); font-weight: 700; font-size: 1rem;
+  background: var(--brass); color: #22170b;
+}
+.btn:hover { background: #e8b65e; }
+.btn.ghost { background: transparent; border: 1px solid var(--edge); color: var(--ink); font-weight: 500; }
+.btn.ghost:hover { border-color: var(--brass-deep); }
+.btn.seal { background: var(--seal); color: #101a33; }
+.btn.small { padding: 6px 12px; font-size: 0.85rem; border-radius: 8px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.result { border-left: 3px solid var(--band, var(--edge)); padding: 4px 0 4px 14px; display: grid; gap: 4px; }
+.result .band { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--band); }
+.result p { margin: 0; font-size: 1.12rem; }
+.b-strong { --band: var(--strong); } .b-weak { --band: var(--weak); } .b-miss { --band: var(--miss); }
+.b-sealed { --band: var(--seal); } .b-declined { --band: var(--ink-faint); }
+
+.proposal { margin: 0; padding: 14px 16px; border: 1px dashed var(--seal); border-radius: 10px; font-size: 1.1rem; }
+.proposal footer { margin-top: 6px; font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); letter-spacing: 0.04em; }
+.yours { font-size: 0.85rem; color: var(--ink-faint); margin: 0; }
+
+.end { text-align: left; }
+.end h3 { font-family: var(--display); font-size: 1.5rem; margin: 0; }
+
+/* the side */
+.side { display: grid; gap: 16px; min-width: 0; }
+.panel { border: 1px solid var(--edge); border-radius: 14px; padding: 16px; display: grid; gap: 12px; background: color-mix(in srgb, var(--table-2) 70%, transparent); }
+.panel h2 { font-family: var(--display); font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; margin: 0; color: var(--ink-dim); font-weight: 700; }
+.cast { display: grid; gap: 10px; }
+.who { display: grid; gap: 4px; }
+.who-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.who-name { font-family: var(--display); font-weight: 700; }
+.who-role { font-size: 0.85rem; color: var(--ink-faint); font-style: italic; }
+.who.npc .who-name { color: var(--ink-dim); font-weight: 500; }
+.sheet { display: flex; flex-wrap: wrap; gap: 6px; }
+.sheet span { font-family: var(--mono); font-size: 0.72rem; font-variant-numeric: tabular-nums; padding: 2px 7px; border-radius: 6px; background: var(--table); border: 1px solid var(--edge); color: var(--ink-dim); }
+.sheet span.up { color: var(--brass); border-color: var(--brass-deep); }
+
+.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; max-height: 420px; overflow-y: auto; }
+.log li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; font-size: 0.92rem; }
+.log .tag { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--band, var(--ink-faint)); padding-top: 3px; min-width: 64px; }
+.log .txt { color: var(--ink-dim); }
+.log .txt b { color: var(--ink); font-weight: 500; }
+.empty { color: var(--ink-faint); font-size: 0.9rem; margin: 0; }
+
+.canon { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.canon li { font-size: 0.95rem; padding-left: 14px; border-left: 2px solid var(--seal); }
+
+.offer-form { display: grid; gap: 8px; }
+.offer-form label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); }
+select, textarea { font: inherit; font-size: 0.95rem; background: var(--table); color: var(--ink); border: 1px solid var(--edge); border-radius: 8px; padding: 8px 10px; width: 100%; }
+textarea { resize: vertical; min-height: 64px; font-family: var(--story); }
+.offers { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.offers li { display: grid; gap: 6px; padding: 10px 12px; border: 1px dashed var(--edge); border-radius: 10px; }
+.offers .meta { font-family: var(--mono); font-size: 0.68rem; color: var(--ink-faint); letter-spacing: 0.06em; text-transform: uppercase; }
+
+.note { color: var(--ink-faint); font-size: 0.8rem; font-family: var(--mono); line-height: 1.5; margin: 0; max-width: 80ch; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1 class="brand">Die<span>·</span>Namic</h1>
+      <div class="tagline">the box's worlds, played at the table</div>
+    </div>
+    <nav class="worlds" id="worlds" aria-label="Choose a world"></nav>
+  </header>
+
+  <div class="layout">
+    <main class="play" id="play"></main>
+    <aside class="side">
+      <section class="panel"><h2>At the table</h2><div class="cast" id="cast"></div></section>
+      <section class="panel"><h2>Canon</h2><ul class="canon" id="canon"></ul></section>
+      <section class="panel" id="offer-panel"><h2>Offers</h2><div id="offers"></div></section>
+      <section class="panel"><h2>The night</h2><ol class="log" id="log"></ol></section>
+    </aside>
+  </div>
+
+  <p class="note">A sketch of the table: the rolls here come from your browser and nothing is written to the record. On the record, game-master seeds each roll from the record's tip and only your key can seal a ruling.</p>
+</div>
+
+<script>
+const WORLDS = /*__WORLDS__*/null;
+const TWO_D6 = [0,0,1,2,3,4,5,6,5,4,3,2,1]; // ways to throw each total 2..12
+const BAND_LABEL = { strong: "Strong hit", weak: "Weak hit", miss: "Miss", sealed: "Sealed", declined: "Declined" };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+let S; // the night
+
+function band(total) { return total >= 10 ? "strong" : total >= 7 ? "weak" : "miss"; }
+function odds(mod) {
+  const o = { strong: 0, weak: 0, miss: 0 };
+  for (let t = 2; t <= 12; t++) o[band(t + mod)] += TWO_D6[t] / 36;
+  return o;
+}
+function d6() { const a = new Uint32Array(1); crypto.getRandomValues(a); return (a[0] % 6) + 1; }
+const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+function dieHTML(n, extra = "") {
+  const on = new Set(n ? PIPS[n] : []);
+  return `<div class="die ${extra}" role="img" aria-label="${n ? "a " + n : "a die"}">${[...Array(9)].map((_, i) => `<b class="${on.has(i) ? "on" : ""}"></b>`).join("")}</div>`;
+}
+
+function world() { return WORLDS[S.w]; }
+function char(id) { return world().characters.find((c) => c.id === id); }
+function statOf(c, stat) { return c && c.stats && stat in c.stats ? c.stats[stat] : world().base_stat ?? 0; }
+function scene() { return world().scenes[S.scene]; }
+
+function whenHolds(when) {
+  if (!when) return true;
+  if (when.beat) return when.is.includes(S.results[when.beat]);
+  if (when.offered) return S.offers.some((o) => o.kind === when.offered && when.is.includes(o.status));
+  return false; // a ruling from another story: not on this table
+}
+function nextBeat() {
+  const w = world();
+  while (S.scene < w.scenes.length) {
+    const beats = w.scenes[S.scene].beats;
+    while (++S.beat < beats.length) if (whenHolds(beats[S.beat].when)) return;
+    S.scene++; S.beat = -1;
+    if (S.scene < w.scenes.length) { S.opened = true; log("scene", `<b>${esc(w.scenes[S.scene].title)}</b>`); }
+  }
+}
+
+function start(w) {
+  S = { w, scene: 0, beat: -1, results: {}, offers: [], log: [], stat: null, roll: null, opened: true };
+  log("open", `<b>${esc(world().title)}</b> opens: ${esc(scene().title)}`);
+  nextBeat();
+  try { localStorage.setItem("dn-world", String(w)); } catch (e) {}
+  render();
+}
+function log(tag, html, bandName) { S.log.unshift({ tag, html, band: bandName }); }
+
+function beatNow() { const sc = scene(); return sc ? sc.beats[S.beat] : null; }
+
+function roll() {
+  const b = beatNow(); const c = char(b.by);
+  const stat = S.stat || b.suggests || world().stats[0];
+  const mod = statOf(c, stat), d = [d6(), d6()], total = d[0] + d[1] + mod, bd = band(total);
+  S.roll = { d, mod, stat, total, band: bd };
+  S.results[`${scene().id}::${b.id}`] = bd;
+  log(bd, `<b>${esc(c ? c.name : b.by)}</b> rolls ${esc(stat)}: ${d[0]}+${d[1]}${mod >= 0 ? "+" : "−"}${Math.abs(mod)} = ${total}`, bd);
+  render(true);
+}
+function rule(answer) {
+  const b = beatNow();
+  S.results[`${scene().id}::${b.id}`] = answer;
+  S.ruled = answer;
+  log(answer, answer === "sealed" ? `You sealed: ${esc(b.proposes.fact)}` : `You declined: ${esc(b.prompt)}`, answer);
+  render();
+}
+function advance() { S.roll = null; S.ruled = null; S.stat = null; S.opened = false; nextBeat(); render(); }
+
+function offer(by, kind, fact) {
+  S.offers.push({ by, kind, fact, status: "waiting" });
+  S.justOffered = true;
+  log("offer", `<b>${esc(char(by).name)}</b> offers: ${esc(fact)}`);
+  render();
+}
+function settleOffer(i, answer) {
+  const o = S.offers[i]; o.status = answer;
+  log(answer, `${answer === "sealed" ? "Canon" : "Set aside"}: ${esc(o.fact)}`, answer);
+  render();
+}
+
+/* ---------- render ---------- */
+function renderWorlds() {
+  $("worlds").innerHTML = WORLDS.map((w, i) =>
+    `<button class="world-chip" aria-pressed="${i === S.w}" data-w="${i}">${esc(w.title)}</button>`).join("");
+}
+
+function renderPlay(tumble) {
+  const w = world(), sc = scene(), b = beatNow();
+  if (!sc) {
+    const rolls = S.log.filter((l) => ["strong", "weak", "miss"].includes(l.tag));
+    const count = (k) => rolls.filter((r) => r.tag === k).length;
+    $("play").innerHTML = `
+      <p class="setting">${esc(w.setting)}</p>
+      <section class="beat end">
+        <span class="eyebrow">The night ends</span>
+        <h3>${esc(w.title)}</h3>
+        <p>${rolls.length} rolls: ${count("strong")} strong, ${count("weak")} weak, ${count("miss")} miss. ${canon().length === 1 ? "1 fact" : canon().length + " facts"} made canon.</p>
+        <div class="row"><button class="btn" data-act="restart">Play it again</button></div>
+      </section>`;
+    return;
+  }
+  const head = `
+    <p class="setting">${esc(w.setting)}</p>
+    <div class="scene-head"><span class="eyebrow">Scene ${S.scene + 1} of ${w.scenes.length}</span>
+      <span class="eyebrow" style="color:var(--ink-faint)">${esc((w.places.find((p) => p.id === sc.place) || {}).name || "")}</span></div>
+    <h2 class="scene-title">${esc(sc.title)}</h2>
+    ${S.opened && sc.opening ? `<ul class="opening">${sc.opening.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>` : ""}`;
+
+  let card = "";
+  if (b.kind === "action") {
+    const c = char(b.by), chosen = S.roll ? S.roll.stat : S.stat || b.suggests || w.stats[0];
+    const stats = w.stats.map((st) => {
+      const m = statOf(c, st), o = odds(m), pct = (x) => Math.round(x * 100);
+      return `<button class="stat" data-stat="${esc(st)}" aria-pressed="${st === chosen}" ${S.roll ? "disabled" : ""}>
+        <span class="stat-top"><span class="stat-name">${esc(st)}</span><span class="stat-mod">${m >= 0 ? "+" : "−"}${Math.abs(m)}</span></span>
+        <span class="odds" aria-hidden="true"><i class="s" style="width:${pct(o.strong)}%"></i><i class="w" style="width:${pct(o.weak)}%"></i><i class="m" style="width:${pct(o.miss)}%"></i></span>
+        <span class="odds-nums"><span>${pct(o.strong)}% strong</span><span>${pct(o.miss)}% miss</span></span>
+        ${st === b.suggests ? `<span class="stat-sug">the beat suggests</span>` : ""}
+      </button>`;
+    }).join("");
+    const r = S.roll;
+    card = `
+      <section class="beat">
+        <div class="beat-kind"><span class="pill action">Action</span><span class="actor">${esc(c ? c.name : b.by)}${c && c.role ? `, ${esc(c.role)}` : ""}</span></div>
+        <p class="prompt">${esc(b.prompt)}</p>
+        <div class="stats" role="group" aria-label="Roll with which stat">${stats}</div>
+        <div class="tray">
+          <div class="dice">${r ? dieHTML(r.d[0], tumble ? "tumble" : "") + dieHTML(r.d[1], tumble ? "tumble" : "") : dieHTML(0, "idle") + dieHTML(0, "idle")}</div>
+          ${r ? `<div class="sum">${r.d[0]} + ${r.d[1]} ${r.mod >= 0 ? "+" : "−"} ${Math.abs(r.mod)} ${esc(r.stat)} = <strong>${r.total}</strong></div>`
+              : `<button class="btn" data-act="roll">Roll 2d6 + ${esc(chosen)}</button>`}
+        </div>
+        ${r ? `<div class="result b-${r.band}"><span class="band">${BAND_LABEL[r.band]}</span><p>${esc(b.outcomes[r.band])}</p></div>
+               <div class="row"><button class="btn" data-act="next">Next beat</button></div>` : ""}
+      </section>`;
+  } else {
+    const p = b.proposes, by = char(p.proposed_by);
+    card = `
+      <section class="beat">
+        <div class="beat-kind"><span class="pill decision">Ruling</span><span class="actor">a fact on the table</span></div>
+        <p class="prompt">${esc(b.prompt)}</p>
+        <blockquote class="proposal">${esc(p.fact)}<footer>proposed by ${esc(by ? by.name : p.proposed_by)}</footer></blockquote>
+        ${S.ruled
+          ? `<div class="result b-${S.ruled}"><span class="band">${BAND_LABEL[S.ruled]}</span><p>${S.ruled === "sealed" ? "It is canon now." : "It stays a maybe. The story goes on without it."}</p></div>
+             <div class="row"><button class="btn" data-act="next">Next beat</button></div>`
+          : `<div class="row"><button class="btn seal" data-act="seal">Seal it</button><button class="btn ghost" data-act="decline">Decline</button></div>
+             <p class="yours">You're the game master. The call is yours; the table only proposes.</p>`}
+      </section>`;
+  }
+  $("play").innerHTML = head + card;
+}
+
+function renderCast() {
+  const w = world();
+  $("cast").innerHTML = w.characters.map((c) => `
+    <div class="who ${c.seat ? "" : "npc"}">
+      <div class="who-top"><span class="who-name">${esc(c.name)}</span><span class="who-role">${esc(c.role || "")}${c.seat ? "" : " · not a seat"}</span></div>
+      ${c.seat ? `<div class="sheet">${w.stats.map((st) => { const m = statOf(c, st); return `<span class="${m > (w.base_stat ?? 0) ? "up" : ""}">${esc(st)} ${m >= 0 ? "+" : "−"}${Math.abs(m)}</span>`; }).join("")}</div>` : ""}
+    </div>`).join("");
+}
+
+function canon() {
+  const facts = [];
+  for (const sc of world().scenes) for (const b of sc.beats)
+    if (b.kind === "decision" && S.results[`${sc.id}::${b.id}`] === "sealed") facts.push(b.proposes.fact);
+  S.offers.forEach((o) => { if (o.status === "sealed") facts.push(o.fact); });
+  return facts;
+}
+function renderCanon() {
+  const f = canon();
+  $("canon").innerHTML = f.length ? f.map((x) => `<li>${esc(x)}</li>`).join("") : `<p class="empty">Nothing yet. A fact becomes canon only when you seal it.</p>`;
+}
+
+function renderOffers() {
+  const w = world(), seats = w.characters.filter((c) => c.seat), kinds = w.offers && w.offers.length ? w.offers : ["fact"];
+  const list = S.offers.length ? `<ul class="offers">${S.offers.map((o, i) => `
+      <li><span class="meta">${esc(char(o.by).name)} · ${esc(o.kind)} · ${esc(o.status)}</span><span>${esc(o.fact)}</span>
+      ${o.status === "waiting" ? `<div class="row"><button class="btn seal small" data-offer="${i}" data-ans="sealed">Seal</button><button class="btn ghost small" data-offer="${i}" data-ans="declined">Decline</button></div>` : ""}</li>`).join("")}</ul>` : "";
+  $("offers").innerHTML = `
+    ${list}
+    <form class="offer-form" id="offer-form">
+      <label for="offer-by">Who brings it</label>
+      <select id="offer-by">${seats.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("")}</select>
+      <label for="offer-kind">What kind</label>
+      <select id="offer-kind">${kinds.map((k) => `<option>${esc(k)}</option>`).join("")}</select>
+      <label for="offer-fact">In their words</label>
+      <textarea id="offer-fact" placeholder="A guest walks in, carrying their own light…"></textarea>
+      <div class="row"><button class="btn ghost small" type="submit">Bring it to the table</button></div>
+    </form>
+    <p class="yours">An offer waits beside the story; the beats go on while it does.</p>`;
+}
+
+function renderLog() {
+  $("log").innerHTML = S.log.map((l) => `<li class="${l.band ? "b-" + l.band : ""}"><span class="tag">${esc(l.tag)}</span><span class="txt">${l.html}</span></li>`).join("");
+}
+
+function render(tumble) {
+  const f = $("offer-fact"), draft = f ? f.value : "", by = $("offer-by") ? $("offer-by").value : null;
+  renderWorlds(); renderPlay(tumble); renderCast(); renderCanon(); renderOffers(); renderLog();
+  if (draft && !S.justOffered) $("offer-fact").value = draft;
+  if (by && world().characters.some((c) => c.id === by && c.seat)) $("offer-by").value = by;
+  S.justOffered = false;
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.w) return start(+t.dataset.w);
+  if (t.dataset.stat) { S.stat = t.dataset.stat; return render(); }
+  if (t.dataset.offer) return settleOffer(+t.dataset.offer, t.dataset.ans);
+  const act = t.dataset.act;
+  if (act === "roll") roll();
+  else if (act === "next") advance();
+  else if (act === "seal") rule("sealed");
+  else if (act === "decline") rule("declined");
+  else if (act === "restart") start(S.w);
+});
+document.addEventListener("submit", (e) => {
+  if (e.target.id !== "offer-form") return;
+  e.preventDefault();
+  const fact = $("offer-fact").value.trim(); if (!fact) { $("offer-fact").focus(); return; }
+  offer($("offer-by").value, $("offer-kind").value, fact);
+});
+
+let first = WORLDS.findIndex((w) => w.id === "lantern-fair");
+try { const s = localStorage.getItem("dn-world"); if (s !== null && WORLDS[+s]) first = +s; } catch (e) {}
+start(first < 0 ? 0 : first);
+</script>
