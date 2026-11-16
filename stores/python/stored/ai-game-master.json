@@ -5,9 +5,9 @@
   ],
   "relation": null,
   "anchor": null,
-  "location": "apps/game/ai-game-master",
+  "location": "https://github.com/rudi193-cmd/die-namic-games/tree/main/ai-game-master",
   "maker": "USER / Claude",
   "lane": "user-{uuid}/ai-game-master/**",
   "state": "archived",
-  "notes": "Folded into Die-Namic (2026-11-16): moved whole to apps/game/ai-game-master, one of the pieces game's README said would come over; its standalone build is retired here, its code lives on there, not duplicated. Before: The willow-data-vault pattern applied to game-mastering: a blueprint (schema/ + bootstrap/), never a campaign. Stdlib-only, import-pure core (a promotion-bar property). Guards proven in tests/ (the SEALED-needs-a-human / propose-carries-no-seal / CC-BY-needs-attribution CHECKs, the --self-test tamper refusal, the --canon machine-seal refusal) and run in the app-tests CI matrix. Landed here 'for now' because its own repo (github.com/rudi193-cmd/ai-game-master) could not be created from-session (API 403); promotion lifts it out into that repo when it exists — Nestor and Jeles are the worked standard. The Vander campaign that proved it out is DATA and lives in a private box (sean-data-vault), never in this build."
+  "notes": "Folded into Die-Namic (2026-11-16), lifted out to its own repo the same day: it lives at https://github.com/rudi193-cmd/die-namic-games, folder ai-game-master, one of the pieces game's README said would come over; its standalone build is retired here, its code lives on there, not duplicated. Before: The willow-data-vault pattern applied to game-mastering: a blueprint (schema/ + bootstrap/), never a campaign. Stdlib-only, import-pure core (a promotion-bar property). Guards proven in tests/ (the SEALED-needs-a-human / propose-carries-no-seal / CC-BY-needs-attribution CHECKs, the --self-test tamper refusal, the --canon machine-seal refusal) and run in the app-tests CI matrix. Landed here 'for now' because its own repo (github.com/rudi193-cmd/ai-game-master) could not be created from-session (API 403); promotion lifts it out into that repo when it exists — Nestor and Jeles are the worked standard. The Vander campaign that proved it out is DATA and lives in a private box (sean-data-vault), never in this build."
 }

@@ -5,9 +5,9 @@
   ],
   "relation": null,
   "anchor": null,
-  "location": "apps/game",
+  "location": "https://github.com/rudi193-cmd/die-namic-games",
   "maker": "USER",
   "lane": null,
   "state": "building",
-  "notes": "2026-11-14: apps/game is now where Die-Namic is built, seeded empty. Its first engine (Jane GM, engine_v1_7.py, 'stalled': its code review found it could not run) is archived whole in apps/game/archive/first-engine, where the-table's SceneSession still rolls through it. The game box arrived from willow's demo/game-box the same day, running on willow's kernel and add-ons where they live, pinned by apps/game/willow.pin.json. 2026-11-16: the-table, ai-game-master and game-lab came over whole into apps/game/ (moved, not copied; their standalone records archived and pointing here), and ui/ and decks/ hold the pages that play the games in the browser and the card art they fetch."
+  "notes": "2026-11-14: apps/game is now where Die-Namic is built, seeded empty. Its first engine (Jane GM, engine_v1_7.py, 'stalled': its code review found it could not run) is archived whole in apps/game/archive/first-engine, where the-table's SceneSession still rolls through it. The game box arrived from willow's demo/game-box the same day, running on willow's kernel and add-ons where they live, pinned by apps/game/willow.pin.json. 2026-11-16: the-table, ai-game-master and game-lab came over whole into apps/game/ (moved, not copied; their standalone records archived and pointing here), and ui/ and decks/ hold the pages that play the games in the browser and the card art they fetch. 2026-11-16: lifted out into its own repo, https://github.com/rudi193-cmd/die-namic-games, with its history (the box's, and the-table's, ai-game-master's and game-lab's from before they came over). Extracted, not promoted: its promotion.json states its own repo and leaves verified_by and host_repointed for a person. apps/game is removed from the store; this record is what the store keeps of it."
 }

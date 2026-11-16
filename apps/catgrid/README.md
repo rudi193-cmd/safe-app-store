@@ -7,7 +7,7 @@ Meowdoku, without the ads. Stdlib only, Python 3.11+.
 ```sh
 python3 -m unittest discover -s tests -t .   # from apps/catgrid/
 python3 -m catgrid.play 7 6                  # play seed 7, 6x6, in a terminal
-python3 -m the_table.proof                   # from apps/game/the-table/: catgrid on the table
+python3 -m the_table.proof                   # from https://github.com/rudi193-cmd/die-namic-games/tree/main/the-table/: catgrid on the table
 ```
 
 ## Deterministic
@@ -143,7 +143,7 @@ The engine (`board`, `solve`, `play`) never imports storage.
 
 ## On the table
 
-`apps/game/the-table/the_table/catgrid_adapter.py` wraps `catgrid.play.Game` as a
+`https://github.com/rudi193-cmd/die-namic-games/blob/main/the-table/the_table/catgrid_adapter.py` wraps `catgrid.play.Game` as a
 `GameSession`, and `registry.py` registers it as `catgrid` (6x6). The table's
 proof drives it through the same GM loop as bureau, Crazy Eights and the scene,
 into the same tamper-evident ledger.
@@ -154,7 +154,7 @@ into the same tamper-evident ledger.
 |---|---|
 | xorshift32 and why it is specified | `apps/bureau/bureau/rng.py` (ported; `tests/test_rng.py` compares every draw) |
 | Cell addresses | willows-grove `templates/cross-table/README.md` |
-| The game shape and its guard tests | `apps/game/the-table` |
+| The game shape and its guard tests | [`die-namic-games/the-table`](https://github.com/rudi193-cmd/die-namic-games/tree/main/the-table) |
 | Trivia | Jeles, `ask_jeles_corpus` in SOIL |
 | Easter eggs | Gerald's napkins, `apps/UTETY-Reddit-Bots/gerald-bot` |
 | The lane | `libs/storage-backend`, willow-mcp's `store_scope` gate |
