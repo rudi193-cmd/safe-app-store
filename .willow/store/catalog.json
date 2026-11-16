@@ -736,10 +736,10 @@
     {
       "id": "ai-game-master",
       "name": "AI Game Master",
-      "description": "Blueprint for an AI Game Master's campaign vault — schemas + bootstrap, never a campaign. A yes-and bookkeeper, not a rules referee: the machine proposes and remembers; a named human seals canon. Built from fleet organs (Nestor ledger, terpsi seal, Jeles corpus).",
+      "description": "Blueprint for an AI Game Master's campaign vault — schemas + bootstrap, never a campaign. A yes-and bookkeeper, not a rules referee: the machine proposes and remembers; a named human seals canon. Built from fleet organs (Nestor ledger, terpsi seal, Jeles corpus). Folded into Die-Namic (2026-11-16): it lives on at apps/game/ai-game-master, part of the game build.",
       "author": "USER / Claude",
-      "status": "building",
-      "path": "apps/ai-game-master",
+      "status": "archived",
+      "path": "apps/game/ai-game-master",
       "tier": "playground",
       "majors": [
         "python"
@@ -755,10 +755,10 @@
     {
       "id": "game-lab",
       "name": "Game Lab",
-      "description": "Reference companion to AI Game Master: the games that engine can run, each with official cited rules, a stdlib self-play reference simulator, and a measured N=500 null-model baseline. Two findings it exists to show — an identical competent policy reveals turn-order structure random seating hides, and N=500 answers differ from N=100. Every number traces to a real run.",
+      "description": "Reference companion to AI Game Master: the games that engine can run, each with official cited rules, a stdlib self-play reference simulator, and a measured N=500 null-model baseline. Two findings it exists to show — an identical competent policy reveals turn-order structure random seating hides, and N=500 answers differ from N=100. Every number traces to a real run. Folded into Die-Namic (2026-11-16): it lives on at apps/game/game-lab, part of the game build.",
       "author": "USER / Claude",
-      "status": "seeded",
-      "path": "apps/game-lab",
+      "status": "archived",
+      "path": "apps/game/game-lab",
       "tier": "playground",
       "majors": [
         "python"
@@ -774,10 +774,10 @@
     {
       "id": "the-table",
       "name": "The Table",
-      "description": "A thin AI Game Master spine: a GameSession protocol (reset/observe/legal_moves/step/is_terminal/result) any game implements, plus a first adapter over bureau's real Session. Walking skeleton — the contract and one working game behind it, nothing more.",
+      "description": "A thin AI Game Master spine: a GameSession protocol (reset/observe/legal_moves/step/is_terminal/result) any game implements, plus a first adapter over bureau's real Session. Walking skeleton — the contract and one working game behind it, nothing more. Folded into Die-Namic (2026-11-16): it lives on at apps/game/the-table, part of the game build.",
       "author": "USER / Claude",
-      "status": "building",
-      "path": "apps/the-table",
+      "status": "archived",
+      "path": "apps/game/the-table",
       "tier": "playground",
       "majors": [
         "python"

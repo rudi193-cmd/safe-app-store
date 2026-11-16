@@ -21,4 +21,4 @@ Each deal, card, draw and pass is a row on the record, through the kernel. The h
 
 ## Where it came from
 
-Crazy Eights, ported from the-table's crazy eights over game-lab's rules (apps/the-table, apps/game-lab in this store), one card drawn at a time as the-table plays it; its legal cards checked against game-lab's in 159,776 states.
+Crazy Eights, ported from the-table's crazy eights over game-lab's rules (apps/game/the-table, apps/game/game-lab in this store), one card drawn at a time as the-table plays it; its legal cards checked against game-lab's in 159,776 states.

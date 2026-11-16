@@ -8,7 +8,7 @@
       "author": "vishwakarma",
       "verified_by": "",
       "date": "2026-11-14",
-      "record": "apps/game/archive/first-engine/engine_v1_7.py, apps/game/archive/first-engine/streamlit_app.py:158-159, apps/game/archive/first-engine/CODE_REVIEW.md; apps/the-table/the_table/game_engine_adapter.py (its dependency and the traps it avoids); willow adapters/stdlib/game-master (the roll rebuilt on the record); willow demo/game-box; found by asking a willow box over the three repos, sort's 'board and card games' and 'dice and odds' categories, 2026-11-14; archived and apps/game seeded as Die-Namic's home at the operator's word, 2026-11-14"
+      "record": "apps/game/archive/first-engine/engine_v1_7.py, apps/game/archive/first-engine/streamlit_app.py:158-159, apps/game/archive/first-engine/CODE_REVIEW.md; apps/game/the-table/the_table/game_engine_adapter.py (its dependency and the traps it avoids); willow adapters/stdlib/game-master (the roll rebuilt on the record); willow demo/game-box; found by asking a willow box over the three repos, sort's 'board and card games' and 'dice and odds' categories, 2026-11-14; archived and apps/game seeded as Die-Namic's home at the operator's word, 2026-11-14"
     }
   ],
   "proposed_rejections": [

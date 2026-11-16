@@ -20,4 +20,4 @@ Each cup is dice's own roll row, thrown straight before its round; each bid and 
 
 ## Where it came from
 
-Liar's Dice, ported from the-table's liar's dice over game-lab's rules and simplifications (apps/the-table, apps/game-lab in this store), checked against game-lab's on 159,920 bids, 100,000 counts and 3,000 whole games.
+Liar's Dice, ported from the-table's liar's dice over game-lab's rules and simplifications (apps/game/the-table, apps/game/game-lab in this store), checked against game-lab's on 159,920 bids, 100,000 counts and 3,000 whole games.

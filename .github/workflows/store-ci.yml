@@ -191,7 +191,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [ai-game-master, aristarchus, bureau, catgrid, civics-check, field-acoustics,
+        app: [game/ai-game-master, aristarchus, bureau, catgrid, civics-check, field-acoustics,
               homestead-health, intake-desk,
               law-gazelle, marching-arts, playgate, terpsi-chat, the-squirrel,
               utety-chat]
@@ -447,19 +447,19 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: apps/game-lab/requirements.txt
+          cache-dependency-path: apps/game/game-lab/requirements.txt
 
       - name: Install the one real dependency (python-chess, core-five path)
         run: |
           python -m pip install --upgrade pip
-          pip install -r apps/game-lab/requirements.txt
+          pip install -r apps/game/game-lab/requirements.txt
 
       - name: The gate can fail — prove it catches its own breakage
-        working-directory: apps/game-lab/sims
+        working-directory: apps/game/game-lab/sims
         run: python ci_smoke.py --self-test
 
       - name: Sims run and return measured shape (11 engines x 2 policies + import checks)
-        working-directory: apps/game-lab/sims
+        working-directory: apps/game/game-lab/sims
         run: python ci_smoke.py
 
   # marching-arts' browser port, held to the Python core by a differential.

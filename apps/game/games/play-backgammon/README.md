@@ -21,4 +21,4 @@ Each throw is dice's own roll row; each turn a row, through the kernel.
 
 ## Where it came from
 
-Backgammon, ported from the-table's backgammon over game-lab's rules (apps/the-table, apps/game-lab in this store), its moves checked against game-lab's on 216,372 positions. A turn uses as many dice as it can, and the larger when only one can, as the game's rules have it.
+Backgammon, ported from the-table's backgammon over game-lab's rules (apps/game/the-table, apps/game/game-lab in this store), its moves checked against game-lab's on 216,372 positions. A turn uses as many dice as it can, and the larger when only one can, as the game's rules have it.

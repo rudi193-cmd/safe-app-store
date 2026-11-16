@@ -21,4 +21,4 @@ Each deal, pass and card is a row on the record, through the kernel. The hands a
 
 ## Where it came from
 
-Hearts, ported from the-table's hearts over game-lab's rules (apps/the-table, apps/game-lab in this store), its legal plays checked against game-lab's in 104,000 states and its scoring on 2,000 hands.
+Hearts, ported from the-table's hearts over game-lab's rules (apps/game/the-table, apps/game/game-lab in this store), its legal plays checked against game-lab's in 104,000 states and its scoring on 2,000 hands.

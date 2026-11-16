@@ -19,4 +19,4 @@ Each move is a row on the record, through the kernel.
 
 ## Where it came from
 
-The-table's story session (apps/the-table), rebuilt on the record: the box plays its stories through it, and its worlds are the box's (../../box/worlds/).
+The-table's story session (apps/game/the-table), rebuilt on the record: the box plays its stories through it, and its worlds are the box's (../../box/worlds/).

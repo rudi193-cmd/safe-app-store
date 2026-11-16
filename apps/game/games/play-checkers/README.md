@@ -19,4 +19,4 @@ Each move is a row on the record, through the kernel.
 
 ## Where it came from
 
-English draughts, ported from the-table's checkers over game-lab's rules (apps/the-table, apps/game-lab in this store), checked against game-lab's on 22,039 positions. A draw is the game master's seal, never the code's call.
+English draughts, ported from the-table's checkers over game-lab's rules (apps/game/the-table, apps/game/game-lab in this store), checked against game-lab's on 22,039 positions. A draw is the game master's seal, never the code's call.

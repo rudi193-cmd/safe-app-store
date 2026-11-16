@@ -43,13 +43,34 @@ proposed in `stores/decisions/proposed.json`.
   each file's SHA-256. The box finds a willow checkout (`WILLOW_ROOT`, or
   one beside safe-app-store) and refuses one whose files differ.
 
-## What comes here next
+## What came over
 
-Each a step of its own:
-- **the-table**: the game protocol and the driver (its games are in
-  willow and pinned here now, its worlds in the box);
-- **ai-game-master**: the blueprint, its decisions and its covenant;
-- **game-lab**: official rules, simulators and measured baselines.
+The three builds this README said would come next came over whole on
+2026-11-16, each in its own folder, moved and not copied; their standalone
+catalog entries are archived and point here.
+
+- **[the-table](the-table/)**: the game protocol (`GameSession`) and the
+  driver, its adapters over bureau, catgrid and game-lab's rules, the
+  one-script sink and the proof. Its games went to willow as add-ons and
+  are pinned back here; its three worlds are in the box. Its session
+  scripts need willow-bot's one-script and willows-grove checked out beside
+  safe-app-store (`the_table/host.py`), and say so when they aren't.
+- **[ai-game-master](ai-game-master/)**: the blueprint, its decisions and
+  its covenant: the campaign vault's schemas and bootstrap, never a
+  campaign. The machine proposes and remembers; a named human seals canon.
+- **[game-lab](game-lab/)**: official cited rules, a stdlib self-play
+  simulator for each game, and measured N=500 baselines, every number
+  traced to a run. Store CI's `game-lab-sims` job is its gate.
+
+## The pages
+
+- **[ui/](ui/)**: Die-Namic's front page, a shelf of the games, and a page
+  of its own for the ones played in the browser (the Table with its
+  chapters, binder and between-sessions side; Hearts, Crazy Eights, Tarot,
+  the dice tray, Liar's Dice, Catgrid and Life), laid by `ui/build.py`.
+  They play in the browser and keep nothing on the record.
+- **[decks/](decks/)**: the card art, fetched by `decks/fetch_decks.py`,
+  never committed: public domain or CC0 only.
 
 The pieces willow keeps as add-ons (game-master, play-checkers, play-dice,
 play-odds and the rest) stay there, and Die-Namic pins them.
