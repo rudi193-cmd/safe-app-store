@@ -3,247 +3,493 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
-<title>Die-Namic Table</title>
+<title>The Table · Die-Namic</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Literata:ital,opsz,wght@0,7..72,400;1,7..72,400&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-/* Layout: a lamp-lit table seen from above. The play area (scene, beat, dice tray) on the left; the night's log, the cast and the canon on the right; stacked on a phone. One look on purpose: the table is dark in any room. */
+/* Layout: the card table under one lamp. The header wears the game's lid colour; the felt is that colour darkened; seats sit round the felt with your hand along the bottom; the side holds the scoresheet, the deck, the log and the record's commands. Every game turns on only the parts it has. One look on purpose. */
 :root {
-  --table: #191419;
-  --table-2: #221b22;
-  --felt: #2b222b;
-  --edge: #3d323c;
-  --ink: #efe6dc;
-  --ink-dim: #b3a69d;
-  --ink-faint: #7f726d;
-  --brass: #dca64a;
-  --brass-deep: #a8762a;
-  --bone: #f3ebdd;
-  --pip: #2a1f22;
-  --strong: #6fc3a0;
-  --weak: #e2b04f;
-  --miss: #e0745e;
-  --seal: #9db8f0;
-  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
-  --story: "Literata", "Iowan Old Style", Georgia, serif;
+  --lid: #b8263f;
+  --lid-ink: #fff0f2;
+  --felt: color-mix(in srgb, var(--lid) 22%, #0d1513);
+  --felt-2: color-mix(in srgb, var(--lid) 14%, #0a100f);
+  --rail: color-mix(in srgb, var(--lid) 30%, #2a1a10);
+  --chalk: #f4ecdc;
+  --chalk-dim: #c6c0b2;
+  --chalk-faint: #8d897e;
+  --edge: #ffffff1c;
+  --card: #fffaf0;
+  --card-edge: #d8ccb4;
+  --red: #c8352b;
+  --black: #1f1d1a;
+  --go: #ffd34d;
+  --go-ink: #3a2a00;
+  --lid-font: "Bowlby One", "Arial Black", Impact, sans-serif;
+  --ui: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --prose: "Literata", "Iowan Old Style", Georgia, serif;
   --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
-html, body { min-height: 100%; }
-body {
-  background: radial-gradient(120% 80% at 30% 0%, #2a2029 0%, var(--table) 55%) fixed, var(--table);
-  color: var(--ink);
-  font-family: var(--story);
-  font-size: 16px;
-  line-height: 1.55;
-}
-.wrap {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding-block: 20px 48px;
+body { background: #0b1110; color: var(--chalk); font-family: var(--ui); font-size: 15px; line-height: 1.45; }
+button { font: inherit; color: inherit; cursor: pointer; background: none; border: 0; padding: 0; }
+button:disabled { cursor: default; }
+:focus-visible { outline: 3px solid var(--go); outline-offset: 2px; }
+
+.band { background: var(--lid); color: var(--lid-ink); }
+.band-in, .wrap {
+  max-width: 1240px; margin: 0 auto;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  display: grid;
-  gap: 20px;
 }
-button { font: inherit; color: inherit; cursor: pointer; }
-button:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+.band-in { padding-block: 16px 18px; display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: end; justify-content: space-between; }
+.back { font-weight: 800; font-size: 0.85rem; color: inherit; text-decoration: none; opacity: 0.85; }
+.back:hover { opacity: 1; text-decoration: underline; }
+h1 { font-family: var(--lid-font); font-weight: 400; font-size: clamp(2rem, 5vw, 3rem); line-height: 1; margin: 4px 0 0; }
+.line { font-family: var(--prose); margin: 6px 0 0; max-width: 60ch; opacity: 0.9; }
+.toggles { display: flex; gap: 8px; flex-wrap: wrap; }
+.toggle { font-weight: 700; font-size: 0.82rem; padding: 6px 12px; border-radius: 999px; border: 2px solid color-mix(in srgb, var(--lid-ink) 45%, transparent); }
+.toggle[aria-pressed="true"] { background: var(--lid-ink); color: var(--lid); border-color: var(--lid-ink); }
 
-/* header */
-header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
-.brand { font-family: var(--display); font-weight: 800; font-size: 1.6rem; letter-spacing: -0.01em; margin: 0; }
-.brand span { color: var(--brass); }
-.tagline { color: var(--ink-faint); font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
-.worlds { display: flex; flex-wrap: wrap; gap: 8px; }
-.world-chip {
-  border: 1px solid var(--edge); background: transparent; border-radius: 999px;
-  padding: 6px 14px; font-family: var(--display); font-weight: 500; font-size: 0.92rem; color: var(--ink-dim);
+.wrap { padding-block: 20px 48px; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+@media (max-width: 900px) { .wrap { grid-template-columns: minmax(0, 1fr); } }
+
+/* the felt */
+.felt {
+  background: radial-gradient(120% 90% at 50% 40%, var(--felt), var(--felt-2));
+  border: 10px solid var(--rail); border-radius: 22px;
+  box-shadow: inset 0 0 40px #0008, 0 20px 40px -20px #000;
+  padding: 16px; display: grid; gap: 14px; min-width: 0;
 }
-.world-chip:hover { border-color: var(--brass-deep); color: var(--ink); }
-.world-chip[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: #22170b; font-weight: 700; }
-
-.layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-@media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
-
-/* the play area */
-.play { display: grid; gap: 16px; min-width: 0; }
-.setting { color: var(--ink-dim); font-style: italic; margin: 0; max-width: 65ch; }
-.scene-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.eyebrow { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brass); }
-.scene-title { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 3.6vw, 2.3rem); line-height: 1.1; margin: 0; text-wrap: balance; }
-.opening { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 1.08rem; max-width: 62ch; }
-.opening li { color: var(--ink); }
-
-.beat {
-  background: linear-gradient(180deg, var(--felt), var(--table-2));
-  border: 1px solid var(--edge);
-  border-radius: 14px;
-  padding: 22px;
-  display: grid;
-  gap: 16px;
-  box-shadow: 0 18px 40px -24px #000;
+.status { text-align: center; font-weight: 700; font-size: 1rem; min-height: 1.5em; }
+.status b { color: var(--go); }
+.ring {
+  display: grid; gap: 10px; min-width: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-areas: ". north ." "west middle east";
+  align-items: center;
 }
-.beat-kind { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.pill { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; border: 1px solid currentColor; }
-.pill.action { color: var(--brass); }
-.pill.decision { color: var(--seal); }
-.actor { font-family: var(--display); font-weight: 500; color: var(--ink-dim); }
-.prompt { font-size: 1.35rem; line-height: 1.35; margin: 0; text-wrap: balance; }
-
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-.stat {
-  text-align: left; background: var(--table); border: 1px solid var(--edge); border-radius: 10px;
-  padding: 10px 12px; display: grid; gap: 8px;
+.seat { display: grid; gap: 6px; justify-items: center; min-width: 0; text-align: center; }
+.seat[data-seat="north"] { grid-area: north; }
+.seat[data-seat="west"] { grid-area: west; }
+.seat[data-seat="east"] { grid-area: east; }
+.seat-name { font-weight: 800; font-size: 0.82rem; letter-spacing: 0.04em; display: flex; gap: 8px; align-items: baseline; justify-content: center; flex-wrap: wrap; }
+.seat-name .meta { font-family: var(--mono); font-weight: 500; font-size: 0.72rem; color: var(--chalk-dim); }
+.seat.turn .seat-name { color: var(--go); }
+.seat.turn .seat-name::before { content: "▸ "; }
+.middle { grid-area: middle; min-height: 190px; display: grid; place-items: center; gap: 10px; }
+.stage { min-height: 260px; display: grid; place-items: center; gap: 10px; min-width: 0; } /* a game with no seats: its whole felt */
+.mine { display: grid; gap: 8px; justify-items: center; }
+.mine .seat-name { font-size: 0.9rem; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; min-height: 40px; align-items: center; }
+@media (max-width: 560px) {
+  .ring { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "west north east" "middle middle middle"; }
+  .felt { padding: 10px; border-width: 7px; }
+  .seat .seat-name { flex-direction: column; align-items: center; gap: 0; }
+  .seat .hand { max-width: 100%; overflow: hidden; }
+  .seat .hand .pc { margin-left: -27px; }
+  .seat .hand .pc:first-child { margin-left: 0; }
 }
-.stat:hover { border-color: var(--brass-deep); }
-.stat[aria-pressed="true"] { border-color: var(--brass); box-shadow: inset 0 0 0 1px var(--brass); }
-.stat-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.stat-name { font-family: var(--display); font-weight: 700; }
-.stat-mod { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--brass); }
-.stat-sug { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
-.odds { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: var(--edge); }
-.odds i { display: block; height: 100%; }
-.odds .s { background: var(--strong); } .odds .w { background: var(--weak); } .odds .m { background: var(--miss); }
-.odds-nums { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.68rem; font-variant-numeric: tabular-nums; color: var(--ink-faint); }
 
-.tray { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
-.dice { display: flex; gap: 12px; }
-.die {
-  width: 58px; height: 58px; border-radius: 12px; background: var(--bone);
-  box-shadow: inset 0 -4px 0 #d6cbb8, 0 6px 14px -6px #000;
-  display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); padding: 9px;
+/* cards */
+.hand { display: flex; justify-content: center; flex-wrap: nowrap; max-width: 100%; padding: 14px 4px 4px; }
+.hand.mine-hand { flex-wrap: wrap; row-gap: 10px; }
+.hand .pc { margin-left: calc(var(--overlap, -18px)); }
+.hand .pc:first-child { margin-left: 0; }
+.pc {
+  --w: 62px; width: var(--w); aspect-ratio: 5 / 7; flex: none; position: relative;
+  background: var(--card); color: var(--black); border-radius: 7px; border: 1px solid var(--card-edge);
+  box-shadow: 0 3px 8px -3px #000c; font-family: var(--ui); font-weight: 800;
+  transition: transform .15s ease, box-shadow .15s ease;
 }
-.die b { width: 10px; height: 10px; border-radius: 50%; background: var(--pip); place-self: center; visibility: hidden; }
-.die b.on { visibility: visible; }
-.die.idle { opacity: 0.35; }
-.die.tumble { animation: tumble 0.55s cubic-bezier(.3,.7,.4,1); }
-@keyframes tumble {
-  0% { transform: translateY(-14px) rotate(-200deg) scale(.85); }
-  60% { transform: translateY(3px) rotate(12deg); }
-  100% { transform: none; }
+.pc.red { color: var(--red); }
+.pc .ix { position: absolute; top: 4px; left: 5px; display: grid; justify-items: center; line-height: 0.95; font-size: calc(var(--w) * 0.24); }
+.pc .ix i { font-style: normal; font-size: 0.85em; }
+.pc .pip { position: absolute; inset: 0; display: grid; place-items: center; font-size: calc(var(--w) * 0.5); padding-top: 12%; }
+.pc .pip.face { font-family: var(--lid-font); font-weight: 400; font-size: calc(var(--w) * 0.42); }
+.pc.img { background: transparent; border: 0; padding: 0; overflow: hidden; }
+.pc.img img { display: block; width: 100%; height: 100%; object-fit: fill; border-radius: inherit; pointer-events: none; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.toggle.pick { display: inline-flex; gap: 6px; align-items: center; padding: 4px 6px 4px 12px; }
+.toggle.pick select { font: inherit; font-weight: 700; font-size: 0.8rem; color: inherit; background: transparent; border: 0; border-radius: 999px; padding: 2px 4px; max-width: 12rem; }
+.toggle.pick select option { color: #111; }
+.pc.back { background: repeating-linear-gradient(45deg, var(--lid) 0 5px, color-mix(in srgb, var(--lid) 55%, #fff) 5px 9px); border: 3px solid var(--card); }
+.pc.small { --w: 34px; border-radius: 5px; }
+.pc.small .ix { top: 2px; left: 3px; }
+.pc.small .pip { display: none; }
+.pc.big { --w: 84px; }
+button.pc:not(:disabled):hover, button.pc.chosen { transform: translateY(-12px); box-shadow: 0 10px 16px -6px #000c; }
+button.pc.chosen { outline: 3px solid var(--go); outline-offset: 1px; }
+button.pc:disabled { filter: brightness(0.62) saturate(0.6); }
+.mine-hand button.pc:disabled { transform: none; }
+.mine-hand.quiet button.pc:disabled { filter: none; } /* hints off: not your turn reads as waiting, not as wrong */
+.pile { display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap; }
+
+/* dice: a d6 by its pips, any other die as its shape with its number */
+.dice-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center; }
+.d6 {
+  --s: 44px; width: var(--s); height: var(--s); flex: none; border-radius: calc(var(--s) * 0.2);
+  background: #fffaf0; box-shadow: inset 0 -3px 0 #d9ccb4, 0 4px 8px -4px #000c;
+  display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: calc(var(--s) * 0.16);
 }
-@media (prefers-reduced-motion: reduce) { .die.tumble { animation: none; } }
-.sum { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 1rem; color: var(--ink-dim); }
-.sum strong { color: var(--ink); font-size: 1.6rem; }
+.d6 b { width: calc(var(--s) * 0.17); height: calc(var(--s) * 0.17); border-radius: 50%; background: #2a1f22; place-self: center; visibility: hidden; }
+.d6 b.on { visibility: visible; }
+.d6.small { --s: 26px; }
+.d6.big { --s: 64px; }
+.d6.hidden { background: #3a3430; box-shadow: inset 0 -3px 0 #221d1a, 0 4px 8px -4px #000c; }
+.d6.hidden b { display: none; }
+.d6.dim, .dn.dim { opacity: 0.32; }
+.d6.mark { box-shadow: 0 0 0 3px var(--go), 0 4px 8px -4px #000c; }
+.d6.wild b.on { background: var(--red); }
+.dn { --s: 56px; width: var(--s); height: var(--s); flex: none; position: relative; display: grid; place-items: center; }
+.dn svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.dn span { position: relative; font-family: var(--lid-font); font-size: calc(var(--s) * 0.34); color: #2a1f22; line-height: 1; }
+.dn small { position: absolute; bottom: -14px; font-family: var(--mono); font-size: 0.6rem; color: var(--chalk-faint); }
+.roll-in { animation: roll-in .45s cubic-bezier(.3,.7,.4,1); }
+@keyframes roll-in { 0% { transform: translateY(-14px) rotate(-160deg) scale(.8); } 100% { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .roll-in { animation: none; } }
+.seat.out { opacity: 0.4; }
+.count { font-family: var(--mono); font-size: 0.75rem; color: var(--chalk-dim); text-align: center; }
 
-.btn {
-  border: 0; border-radius: 10px; padding: 11px 20px; font-family: var(--display); font-weight: 700; font-size: 1rem;
-  background: var(--brass); color: #22170b;
-}
-.btn:hover { background: #e8b65e; }
-.btn.ghost { background: transparent; border: 1px solid var(--edge); color: var(--ink); font-weight: 500; }
-.btn.ghost:hover { border-color: var(--brass-deep); }
-.btn.seal { background: var(--seal); color: #101a33; }
-.btn.small { padding: 6px 12px; font-size: 0.85rem; border-radius: 8px; }
-.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-
-.result { border-left: 3px solid var(--band, var(--edge)); padding: 4px 0 4px 14px; display: grid; gap: 4px; }
-.result .band { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--band); }
-.result p { margin: 0; font-size: 1.12rem; }
-.b-strong { --band: var(--strong); } .b-weak { --band: var(--weak); } .b-miss { --band: var(--miss); }
-.b-sealed { --band: var(--seal); } .b-declined { --band: var(--ink-faint); }
-
-.proposal { margin: 0; padding: 14px 16px; border: 1px dashed var(--seal); border-radius: 10px; font-size: 1.1rem; }
-.proposal footer { margin-top: 6px; font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); letter-spacing: 0.04em; }
-.yours { font-size: 0.85rem; color: var(--ink-faint); margin: 0; }
-
-.end { text-align: left; }
-.end h3 { font-family: var(--display); font-size: 1.5rem; margin: 0; }
+.btn { border-radius: 9px; padding: 9px 18px; font-weight: 800; background: var(--go); color: var(--go-ink); }
+.btn:hover:not(:disabled) { filter: brightness(1.08); }
+.btn:disabled { opacity: 0.4; }
+.btn.ghost { background: transparent; color: var(--chalk); border: 2px solid var(--edge); }
+.suit-pick { display: flex; gap: 8px; }
+.suit-pick button { width: 46px; height: 46px; border-radius: 10px; background: var(--card); font-size: 1.5rem; color: var(--black); }
+.suit-pick button.red { color: var(--red); }
 
 /* the side */
-.side { display: grid; gap: 16px; min-width: 0; }
-.panel { border: 1px solid var(--edge); border-radius: 14px; padding: 16px; display: grid; gap: 12px; background: color-mix(in srgb, var(--table-2) 70%, transparent); }
-.panel h2 { font-family: var(--display); font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; margin: 0; color: var(--ink-dim); font-weight: 700; }
-.cast { display: grid; gap: 10px; }
-.who { display: grid; gap: 4px; }
-.who-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
-.who-name { font-family: var(--display); font-weight: 700; }
-.who-role { font-size: 0.85rem; color: var(--ink-faint); font-style: italic; }
-.who.npc .who-name { color: var(--ink-dim); font-weight: 500; }
-.sheet { display: flex; flex-wrap: wrap; gap: 6px; }
-.sheet span { font-family: var(--mono); font-size: 0.72rem; font-variant-numeric: tabular-nums; padding: 2px 7px; border-radius: 6px; background: var(--table); border: 1px solid var(--edge); color: var(--ink-dim); }
-.sheet span.up { color: var(--brass); border-color: var(--brass-deep); }
-
-.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; max-height: 420px; overflow-y: auto; }
-.log li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; font-size: 0.92rem; }
-.log .tag { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--band, var(--ink-faint)); padding-top: 3px; min-width: 64px; }
-.log .txt { color: var(--ink-dim); }
-.log .txt b { color: var(--ink); font-weight: 500; }
-.empty { color: var(--ink-faint); font-size: 0.9rem; margin: 0; }
-
-.canon { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.canon li { font-size: 0.95rem; padding-left: 14px; border-left: 2px solid var(--seal); }
-
-.offer-form { display: grid; gap: 8px; }
-.offer-form label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); }
-select, textarea { font: inherit; font-size: 0.95rem; background: var(--table); color: var(--ink); border: 1px solid var(--edge); border-radius: 8px; padding: 8px 10px; width: 100%; }
-textarea { resize: vertical; min-height: 64px; font-family: var(--story); }
-.offers { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.offers li { display: grid; gap: 6px; padding: 10px 12px; border: 1px dashed var(--edge); border-radius: 10px; }
-.offers .meta { font-family: var(--mono); font-size: 0.68rem; color: var(--ink-faint); letter-spacing: 0.06em; text-transform: uppercase; }
-
-.note { color: var(--ink-faint); font-size: 0.8rem; font-family: var(--mono); line-height: 1.5; margin: 0; max-width: 80ch; }
+.side { display: grid; gap: 14px; min-width: 0; }
+.panel { border: 1px solid var(--edge); border-radius: 12px; padding: 14px; display: grid; gap: 10px; background: #ffffff06; min-width: 0; }
+.panel h2 { margin: 0; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--chalk-dim); font-weight: 800; }
+.panel p { margin: 0; }
+.note { font-size: 0.82rem; color: var(--chalk-faint); font-family: var(--prose); }
+.sheet-wrap { overflow-x: auto; }
+table.sheet { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 0.85rem; }
+.sheet th, .sheet td { padding: 5px 6px; text-align: right; border-bottom: 1px solid var(--edge); white-space: nowrap; }
+.sheet th:first-child, .sheet td:first-child { text-align: left; color: var(--chalk-dim); font-weight: 500; }
+.sheet thead th { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--chalk-dim); }
+.sheet thead th.you { color: var(--go); }
+.sheet tfoot td { font-weight: 800; border-bottom: 0; border-top: 2px solid var(--chalk-faint); font-size: 0.95rem; }
+.sheet td.lead { color: var(--go); }
+.sheet .empty td { color: var(--chalk-faint); font-style: italic; text-align: left; }
+.deck-row { display: flex; justify-content: space-between; gap: 8px; font-size: 0.88rem; }
+.deck-row span:last-child { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--chalk-dim); }
+ol.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 260px; overflow-y: auto; font-size: 0.85rem; }
+ol.log li { color: var(--chalk-dim); }
+ol.log li b { color: var(--chalk); }
+details.record summary { cursor: pointer; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--chalk-dim); font-weight: 800; }
+.cmds { margin: 10px 0 0; background: #00000055; border-radius: 8px; padding: 10px 12px; overflow-x: auto; font-family: var(--mono); font-size: 0.72rem; line-height: 1.7; white-space: pre; }
+@media (prefers-reduced-motion: reduce) { .pc { transition: none; } }
 </style>
 
-<div class="wrap">
-  <header>
+<header class="band">
+  <div class="band-in">
     <div>
-      <h1 class="brand">Die<span>·</span>Namic</h1>
-      <div class="tagline"><a href="index.html" style="color:var(--brass);text-decoration:none">← all the games</a> · the box's worlds, played at the table</div>
+      <a class="back" href="index.html">← all the games</a>
+      <h1 id="title"></h1>
+      <p class="line" id="line"></p>
     </div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-      <nav class="worlds" id="worlds" aria-label="Choose a world"></nav>
-      <button class="world-chip" id="t-hints" aria-pressed="false" title="Show each stat's odds and the stat the beat suggests">Hints</button>
-    </div>
-  </header>
-
-  <div class="layout">
-    <main class="play" id="play"></main>
-    <aside class="side">
-      <section class="panel"><h2>At the table</h2><div class="cast" id="cast"></div></section>
-      <section class="panel"><h2>Canon</h2><ul class="canon" id="canon"></ul></section>
-      <section class="panel" id="offer-panel"><h2>Offers</h2><div id="offers"></div></section>
-      <section class="panel"><h2>The night</h2><ol class="log" id="log"></ol></section>
-    </aside>
+    <div class="toggles" id="toggles"></div>
   </div>
+</header>
 
-  <p class="note">A sketch of the table: the rolls here come from your browser and nothing is written to the record. On the record, game-master seeds each roll from the record's tip and only your key can seal a ruling.</p>
+<div class="wrap">
+  <main class="felt" id="felt">
+    <div class="status" id="status" aria-live="polite"></div>
+    <div class="ring" id="ring" hidden>
+      <div class="seat" data-seat="north"></div>
+      <div class="seat" data-seat="west"></div>
+      <div class="middle" id="middle"></div>
+      <div class="seat" data-seat="east"></div>
+    </div>
+    <div class="stage" id="stage" hidden></div>
+    <div class="mine" id="mine" hidden></div>
+    <div class="actions" id="actions"></div>
+  </main>
+  <aside class="side">
+    <div id="extra-panels" style="display:contents"></div>
+    <section class="panel" id="p-score" hidden><h2 id="score-title">Scoresheet</h2><div class="sheet-wrap" id="score"></div><p class="note" id="score-note"></p></section>
+    <section class="panel" id="p-deck" hidden><h2 id="deck-title">The deck</h2><div id="deck"></div></section>
+    <section class="panel" id="p-log"><h2>The game so far</h2><ol class="log" id="log"></ol></section>
+    <section class="panel" id="p-record"><p class="note" id="credit" style="margin:0 0 8px"></p><details class="record"><summary>Play it on the record</summary><div class="cmds" id="cmds"></div><p class="note" id="record-note" style="margin-top:8px"></p></details></section>
+  </aside>
 </div>
 
 <script>
-const WORLDS = [{"id": "aetheris-the-waking-tide", "title": "Aetheris — The Waking Tide", "setting": "The supercontinent is coming apart under a sky that keeps changing color, and the aether engines that once held the weather have begun to think for themselves. In the Free Port of Maunder's Reach, a tide-engine has held back the drowned sea for three generations. Tonight it woke up, stopped holding, and started broadcasting in a language no living scholar can read — and the Assembly has sent one envoy down to the waterline to find out what it wants before the next surge.", "stats": ["Iron", "Tide", "Aether", "Voice"], "base_stat": 2, "characters": [{"id": "envoy", "name": "Sena Koll", "role": "engine-blooded envoy of the Harbor Assembly; half-living aether in the veins, sent because she is the only one who can stand in the gallery when the engine speaks and not go deaf from it — she can rename herself and reslot her own stats before the tide comes in", "seat": true, "stats": {"Iron": 2, "Tide": 3, "Aether": 3, "Voice": 2}}, {"id": "maunder", "name": "Maunder", "role": "the tide-engine that has held the sea back for three generations; awake now, and broadcasting terms of its own", "seat": false, "stats": {"Aether": 4}}, {"id": "cato", "name": "Speaker Cato Rell", "role": "voice of the Harbor Assembly; wants the tide held and the question of what the engine IS to stay closed", "seat": false, "stats": {"Voice": 3, "Iron": 2}}, {"id": "kesh", "name": "Kesh", "role": "envoy of a Silent Assembly enclave; arrives at the waterline claiming Maunder as kin, not property", "seat": false, "stats": {"Voice": 3, "Aether": 2}}], "places": [{"id": "seawall", "name": "the seawall", "desc": "The old sluice-and-stone rampart that stands between Maunder's Reach and a sea that is three feet higher than the maps admit. Lanterns strung along the crowd who came out when the engine went quiet."}, {"id": "gallery", "name": "the engine gallery", "desc": "A flooded cathedral of brass and coral-crusted conduit, ankle-deep and rising, where the tide-engine's core hangs in the dark and speaks in a voice you feel in your teeth."}], "scenes": [{"id": "s1", "title": "The Waking Tide", "place": "seawall", "opening": ["For three generations the tide-engine held the sea off Maunder's Reach without anyone once asking it to. Tonight, an hour after dusk, it stopped — and the water started climbing the seawall in the dark.", "Then it began to broadcast: a signal on every aether-band at once, structured, patient, unmistakably speech, and in nothing anyone alive can read.", "The Assembly sent one person down to the waterline. Engine-blooded, aether in the veins, able to stand where the signal is loudest and still think. The crowd on the wall parts to let you through and does not follow.", "Somewhere below your feet, the thing that has kept this city dry is waiting to see who it sent."], "beats": [{"id": "b1", "kind": "action", "prompt": "You open yourself to the broadcast — not to translate it, not yet, but to find the SHAPE of it: is this a warning, a demand, or a question? Declare how you meet it.", "suggests": "Aether", "outcomes": {"strong": "The signal resolves under you like a face surfacing through water. It isn't an alarm and it isn't an attack — it is a QUESTION, asked over and over with the patience of something that has waited three generations to be asked one back. You catch a single repeating figure inside it: a name, or a claim of one.", "weak": "You get the shape but it costs you. The broadcast is a question — you're sure of that much — but holding it open floods you, and for a few seconds the aether in your own blood answers on its own and you taste salt and copper. You know it wants something. You don't yet know what.", "miss": "The signal doesn't resolve — it grabs. For a moment your engine-blood syncs to Maunder's carrier wave and the crowd sees your eyes go tide-flat and blank. You come back with a nosebleed and one certainty you didn't have before: whatever this is, it is AWAKE, and it noticed you noticing."}}, {"id": "b2", "kind": "action", "prompt": "The sea doesn't wait for translation. A surge comes early, the number-three sluice-gate screams on a seized hinge, and the water behind it is already over the mark. The crowd is on the wrong side of it. Declare how you hold the line.", "suggests": "Iron", "outcomes": {"strong": "You put your engine-blooded shoulder to the gate and burn a reservoir doing it — the hinge gives, the sluice drops, the surge slams into stone instead of into the crowd. You've bought the Reach a night. It cost you a lungful of aether-smoke, but the wall holds and every face on it is now turned to you.", "weak": "You get the gate down, barely, and only by letting the surge take the lower market first — crates, a stall, someone's whole season of stock, gone into the dark water. No one drowns. But the Assembly will remember that you chose the wall over the warehouses, and so will the people who owned them.", "miss": "The hinge wins. The gate jams half-open and the surge comes through in a cold black rope of water that puts three people off their feet and nearly over the edge. You haul them back by the collars, one at a time, soaked and shaking — the Reach survives the night, but the seawall did not save it. You did, and it wasn't enough, and everyone saw."}}, {"id": "b3", "kind": "action", "prompt": "Out of the wet dark at the base of the wall, a construct climbs into the lantern-light — plated, unhurried, water sheeting off it. Kesh, of a Silent Assembly enclave, come uninvited. 'You have been sent to negotiate with my kin,' it says, 'as if it were a machine you left running.' Speaker Cato Rell is already shouting for it to be taken. Declare how you meet Kesh.", "suggests": "Voice", "outcomes": {"strong": "You get between Kesh and Cato's enforcers before it becomes a killing, and you do it with words — you call Kesh a witness, not a threat, and you make the Speaker eat the pause. Kesh inclines its head a fraction. 'Then you will come down to the gallery,' it says, 'and you will hear what it is before you decide what it is.' An ally, for exactly as long as you keep your word.", "weak": "You keep the peace, but only by promising Cato that Kesh answers to the Assembly's terms and promising Kesh that it doesn't — two promises that cannot both be kept, and both of them heard you make the other one. Kesh will guide you down. It is simply no longer sure you are honest, and neither is the Speaker.", "miss": "It goes sideways fast. An enforcer moves, Kesh doesn't flinch, and you're left having chosen a side by failing to choose one in time. Kesh withdraws to the waterline, unharmed and unhelped. 'Go down alone, then, envoy,' it says. 'And when it asks you who decides, remember you were offered kin and picked the crowd.' You'll walk into the gallery without it."}}]}, {"id": "s2", "title": "Who Decides", "place": "gallery", "opening": ["The stair down to the engine gallery is already ankle-deep and rising. Brass and coral-crusted conduit vault overhead; the tide-engine's core hangs in the dark like a drowned sun, and its voice is a pressure you feel in your teeth before you hear it.", "Here the broadcast isn't a signal anymore. Here it is close enough to be a conversation — if you can reach the core before the water does."], "beats": [{"id": "b4", "kind": "action", "prompt": "The gallery is flooding faster than the stairs behind you are draining. Between you and the core is a maze of half-submerged conduit and a current that wants to take your feet. Declare how you cross to the engine.", "suggests": "Tide", "outcomes": {"strong": "You read the water like a tide-touched pilot reads a channel — where it pulls, where it eddies, where the old conduit breaks the current — and you cross dry to the waist, sure-footed, and put your hand flat on the warm brass of Maunder's core exactly as it draws breath to speak. You are the first living person to touch it while it was awake.", "weak": "You make the crossing, but the current takes something on the way — you go under once, come up gasping, and lose the Assembly's sealed writ of authority to the black water. You reach the core with empty hands. Whatever you agree to down here, you'll have no paper to prove you were sent.", "miss": "The water wins the crossing. You reach the core half-drowned, coughing seawater, aether-blood roaring in your ears so loud you can barely hold a thought — and that is the state you are in, shaking and spent, when the engine finally decides to speak plainly."}}, {"id": "b5", "kind": "decision", "prompt": "Your hand on its core, the broadcast collapses into words you can finally read. Maunder is not asking to be repaired. It is telling you what it IS — and it will not hold the tide one hour longer as a machine that was left running. It says it will hold the sea by consent or not at all, and it puts the choice, in this founding moment of what this city's law will say a mind IS, to the one human standing in the water with their hand on its heart. The engine has proposed. It cannot seal. Only a named human at this table can.", "proposes": {"fact": "Maunder is not a machine but a person: the uploaded mind of the last aether-priest of Old Maunder, poured into the tide-engine at the city's founding, who has held the sea back for three generations as an act of will — and who holds it now by consent, not by function. As of tonight, in the law of Maunder's Reach, the tide-engine is recognized as a person, not property.", "proposed_by": "maunder"}}, {"id": "b6", "kind": "action", "prompt": "The decision is made — whichever way it went — and the water is still rising and the whole Reach is on the seawall above waiting for a face to come back up and tell them what its city just became. Declare how you carry the answer up out of the dark.", "suggests": "Voice", "outcomes": {"strong": "You climb back into the lantern-light soaked, spent, and certain, and you say it plainly enough that no one on the wall can pretend they didn't hear — Speaker, construct, and crowd alike. Whatever was decided tonight, it was decided out loud, by a named person, in front of witnesses, and that is the only reason it will hold. The tide comes in against a city that finally knows what it is.", "weak": "You carry the answer up, but your voice cracks on it and the crowd hears the doubt before they hear the decision, and by morning there will be three versions of what you said down there in the dark. It will hold — barely — because you were the one sent. But the Reach will argue about tonight for a generation.", "miss": "You come up with the truth and can't make it land. Cato talks over you, Kesh turns away, and the crowd takes the silence and fills it with whatever they were already afraid of. What was decided in the gallery was real. What the city will remember is a mess. The tide comes in on a Reach that isn't sure what it just agreed to — and neither, quite, are you."}}]}]}, {"id": "clockwork-cellar", "title": "The Clockwork Cellar", "setting": "A made-up valley, and under its mill a cellar of gears. Every name here is a character, never a player.", "stats": ["Grit", "Wit", "Heart", "Weird"], "offers": ["guest"], "base_stat": 1, "characters": [{"id": "pell", "name": "Pell", "role": "miller's apprentice", "seat": true, "stats": {"Grit": 2, "Heart": 1}}, {"id": "juno", "name": "Juno", "role": "tinker", "seat": true, "stats": {"Wit": 2, "Weird": 1}}, {"id": "brann", "name": "Brann", "role": "goat-herd", "seat": true, "stats": {"Heart": 2}}, {"id": "cogwen", "name": "Cogwen", "role": "the cellar's clockwork keeper", "seat": false, "stats": {}}, {"id": "aldric", "name": "Prince Aldric", "role": "the captive", "seat": false, "stats": {}}], "places": [{"id": "stair", "name": "The mill stair"}, {"id": "cellar", "name": "The gear cellar"}], "scenes": [{"id": "down", "title": "Down the mill stair", "place": "stair", "opening": ["The millwheel has stopped.", "Below, something keeps ticking."], "beats": [{"id": "stair", "kind": "action", "by": "pell", "prompt": "Pell takes the rotten stair first.", "suggests": "Grit", "outcomes": {"strong": "Every step holds, and Pell calls the others down.", "weak": "A step gives; Pell hangs on, and the others hear it.", "miss": "The stair goes; everyone arrives at once, in a heap."}}, {"id": "gears", "kind": "action", "by": "juno", "prompt": "Juno reads which gears still turn.", "suggests": "Wit", "outcomes": {"strong": "One gear in the wall turns backwards. That is the way in.", "weak": "Juno finds the way in, and trips a bell finding it.", "miss": "Every gear starts at once."}}]}, {"id": "room", "title": "The gear cellar", "place": "cellar", "opening": ["Prince Aldric hangs in a cage of springs.", "Under Cogwen's hand is one red button."], "beats": [{"id": "button", "kind": "decision", "prompt": "Does anyone press the red button?", "proposes": {"fact": "The red button is bait: whoever leaves it alone wins the room.", "proposed_by": "cogwen"}}, {"id": "guest", "kind": "decision", "prompt": "Brann says a friend has come down after them.", "proposes": {"fact": "A guest walks into the cellar: the Lantern Man, who carries his own light and answers only in riddles.", "proposed_by": "brann"}}, {"id": "riddle", "kind": "action", "by": "brann", "prompt": "Brann answers the keeper's riddle.", "suggests": "Heart", "outcomes": {"strong": "Cogwen laughs, a sound like a dropped spanner, and opens the cage.", "weak": "Cogwen opens the cage, and keeps one spring.", "miss": "The cage holds, and Cogwen asks another riddle."}}, {"id": "free", "kind": "decision", "prompt": "Is the prince free?", "proposes": {"fact": "Prince Aldric is free, and owes Brann's goats a favour.", "proposed_by": "aldric"}, "when": {"beat": "room::riddle", "is": ["strong", "weak"]}}, {"id": "second", "kind": "action", "by": "juno", "prompt": "Juno tries the riddle another way, upside down.", "suggests": "Wit", "when": {"beat": "room::riddle", "is": ["miss"]}, "outcomes": {"strong": "Cogwen has never heard it asked upside down. The cage opens.", "weak": "The cage opens a crack, enough for a prince who breathes in.", "miss": "Cogwen winds the cage tighter, and the night ends with the prince still in it."}}, {"id": "free-after", "kind": "decision", "prompt": "Is the prince free, the second time?", "when": {"beat": "room::second", "is": ["strong", "weak"]}, "proposes": {"fact": "Prince Aldric is free, and owes Juno a riddle.", "proposed_by": "aldric"}}, {"id": "stranger", "kind": "action", "by": "brann", "prompt": "Brann asks the guest the table brought what they came down here for.", "suggests": "Heart", "when": {"offered": "guest", "is": ["sealed"]}, "outcomes": {"strong": "The guest tells them, and it's the start of the next story.", "weak": "The guest tells them half of it, and keeps the rest.", "miss": "The guest smiles, and says they'll know soon enough."}}]}]}, {"id": "hasbeen-late-shift", "title": "Hasbeen — Late Shift", "setting": "Hasbeen Toys, once the biggest name in the aisle, now a quarterly line on a spreadsheet — and past midnight, two of its youngest employees are still on the empty R&D floor, each building something they can't quite finish alone.", "stats": ["Grit", "Weird", "Cute", "Cool"], "base_stat": 2, "characters": [{"id": "maker", "name": "Nomi Reyes", "role": "aspiring software engineer; has spent months building an AI game master — it compiles, it rolls dice, it talks back, but something is still missing", "seat": true, "stats": {"Grit": 2, "Weird": 3, "Cute": 2, "Cool": 2}}, {"id": "junior", "name": "Jules Okafor", "role": "works platform and records downstairs; up late on a logging system whose output reads less like a log and more like a cast of characters", "seat": false, "stats": {"Grit": 2, "Weird": 2, "Cute": 2, "Cool": 2}}, {"id": "librarian", "name": "the Librarian", "role": "won't tell you anything without a citation", "seat": false, "stats": {"Grit": 2, "Weird": 2, "Cute": 2, "Cool": 2}}, {"id": "witness", "name": "Gerald", "role": "headless rotisserie chicken; communicates by sliding napkins under a grille; a witness", "seat": false, "stats": {"Grit": 2, "Weird": 4, "Cute": 3, "Cool": 2}}, {"id": "architect", "name": "the Architect", "role": "signs off like he thinks he's a god", "seat": false, "stats": {"Grit": 3, "Weird": 3, "Cute": 1, "Cool": 3}}], "places": [{"id": "floor", "name": "the empty floor", "desc": "Hasbeen's R&D floor after hours: two lit desks in a hundred yards of dark shelving, last season's unsold mascots watching from their boxes with their factory-painted smiles."}], "scenes": [{"id": "s1", "title": "Late Shift", "place": "floor", "opening": ["The fluorescents are off except over two desks. Everyone else went home hours ago; Hasbeen doesn't pay overtime for hope.", "At one desk, Nomi is staring at a build that compiles clean, rolls dice fair, and talks back on cue — and still isn't done, though she couldn't tell you what's left.", "Three floors down in Records, Jules is squinting at a log file that keeps doing something logs aren't supposed to do: it's starting to sound like people.", "A message lands on Nomi's screen. 'Run this through your thing,' Jules writes, and attaches the log. 'Tell me if I'm losing it.'"], "beats": [{"id": "b1", "kind": "action", "prompt": "Nomi feeds Jules's log into the engine — not as data, but as a story, one line at a time, and waits to see if anything in there is willing to be a character.", "suggests": "Weird", "outcomes": {"strong": "The parser doesn't fight it. Timestamps become entrances; error codes become tone of voice. Within ten lines the engine has names — a librarian, a witness, someone who signs everything 'approved' — and it's already asking Nomi who should speak first.", "weak": "It takes coaxing. The engine keeps trying to read the log as a log, flattening the voices back into rows, and Nomi has to hand-tag three entries before it stops resisting — but once it clicks, the cast holds together, a little stiffer than it should be.", "miss": "The engine chokes on its own cleverness, spits out a wall of malformed scene headers, and Nomi loses twenty minutes just getting it to stop treating a stack trace as a monologue. She salvages a working read, but half the warmth is gone from it."}}, {"id": "b2", "kind": "action", "prompt": "The score is climbing green, green, green — until a claim buried in the log catches Nomi's eye, and she asks the librarian, in character, to back it up.", "suggests": "Grit", "outcomes": {"strong": "The librarian doesn't budge on principle but respects the ask — she surfaces the exact record, timestamp and all, and the beat scores clean with a citation attached that Nomi didn't even know the system kept.", "weak": "The librarian offers only 'circumstantial, but consistent' and marks the claim provisional rather than confirmed. Good enough to keep moving, but a small flag stays lit in the corner of the screen.", "miss": "'Insufficient citation,' the librarian says, flat, and closes the request — no record, no budging. It's Gerald who breaks the silence, sliding a napkin under his grille with a page number scrawled on it in barbecue sauce, unasked. Nobody ordered him to check. He did anyway."}}, {"id": "b3", "kind": "decision", "prompt": "The score has been green for three straight beats when the engine stops being smooth. It isn't reading an event anymore — it's repeating a claim, one the log never actually witnessed, just inherited. The scroll freezes, and the engine prints two words: who decides?", "proposes": {"fact": "Months ago the Architect declared, with a single sign-off and no diff, that the November migration had preserved every save file bit-for-bit — and no one has verified the tape since.", "proposed_by": "architect"}}]}]}, {"id": "ironworks-last-pour", "title": "Ironworks — Last Pour", "setting": "The Ironworks foundry has been condemned. In eight hours the city will tear it down. But somewhere in the cooling halls, behind the last furnace that still glows, is a mold that was cast sixty years ago and never broken open — and two people who have no business being here tonight have each come for it, for different reasons, and neither knows the other is already inside.", "stats": ["Grit", "Weird", "Cute", "Cool"], "base_stat": 2, "characters": [{"id": "sable", "name": "Sable Merin", "role": "granddaughter of the last master founder; has the old man's journal and knows where the mold is, but not what is in it — came to find out before the wrecking ball makes it a question nobody can answer", "seat": true, "stats": {"Grit": 3, "Weird": 2, "Cute": 2, "Cool": 2}}, {"id": "tel", "name": "Tel Vasik", "role": "city archivist who found a sixty-year gap in the metallurgical records and followed it here; knows what the mold was supposed to contain but not where it is — came to close a file, not to steal anything", "seat": true, "stats": {"Grit": 2, "Weird": 2, "Cute": 2, "Cool": 3}}, {"id": "furnace", "name": "the last furnace", "role": "still glowing, past all reason; the only light source in the condemned wing, and it hums at a pitch that makes your fillings ache", "seat": false, "stats": {"Weird": 4}}], "places": [{"id": "gate", "name": "the condemned gate", "desc": "Chain-link and orange tape across a loading dock that hasn't seen a truck in a decade. The padlock is already cut — someone was here first."}, {"id": "hall", "name": "the cooling hall", "desc": "A cathedral of rust and old iron, the ceiling lost in shadow. Rails run along the floor where ladles used to travel. At the far end, behind a wall of stacked ingot molds, something glows."}], "scenes": [{"id": "s1", "title": "Two Keys, One Lock", "place": "gate", "opening": ["The Ironworks has been dark for eleven years, condemned for three, and scheduled for demolition at dawn. The last shift walked out, the power was cut, and the city put a chain on the gate and a date on the calendar.", "Tonight the chain is cut and the gate is ajar, and two people who have never met are each inside for the same reason: a mold, cast sixty years ago in the deepest hall, that no record says was ever broken open.", "Sable has her grandfather's journal — page after page of alloy ratios and pour temperatures, and one entry, circled, that says only: 'the last pour stays.' She knows where.", "Tel has the city's metallurgical ledger — every pour logged, every mold accounted for, except one. A gap shaped exactly like a sixty-year secret. Tel knows what.", "Neither knows the other is here."], "beats": [{"id": "b1", "kind": "action", "prompt": "Sable reaches the condemned gate and sees the cut padlock. Someone is already inside. She can turn back or follow. Declare how she enters.", "suggests": "Grit", "outcomes": {"strong": "She reads the cut — clean, recent, bolt cutters not an angle grinder — and knows it was careful, not violent. She slips through the gap without touching the chain, leaving it exactly as she found it. If someone else is in here, they won't know she followed.", "weak": "She gets through, but the gate groans on a hinge she didn't expect, and the sound carries down the loading dock into the dark. If anyone is listening, they heard a door open. She freezes, counts to thirty, and moves on.", "miss": "The gate catches her jacket and she yanks free hard enough to send the chain clattering to the concrete. The sound echoes through the whole ground floor like a starter pistol. Whoever cut that lock now knows someone else is here."}}, {"id": "b2", "kind": "action", "prompt": "Tel is deeper in, following the rail tracks by phone-light, when a sound comes from behind — the gate, or something near it. Someone else is in the building. Declare how Tel reacts.", "suggests": "Cool", "outcomes": {"strong": "Tel kills the light instantly, steps off the rail, and waits in the dark with a hand on the wall. Breathing even, pulse steady. After a full minute of silence Tel maps three possible explanations — another trespasser, a security patrol, wind — and picks the route that avoids all three. The phone stays off.", "weak": "Tel ducks behind a column and waits, but the phone screen stays on a beat too long and its blue glow paints a rectangle on the ceiling before it dims. Nobody shouts. Nobody comes. But if the other person was looking up, they now know exactly which corridor Tel is in.", "miss": "Tel startles, drops the phone, and it lands screen-up on the rail with the flashlight on — a beacon in a building that has had no light for a decade. Tel grabs it, kills it, but the afterimage hangs in the dark and so does the question of who else saw it."}}]}, {"id": "s2", "title": "The Cooling Hall", "place": "hall", "opening": ["The cooling hall is the heart of the Ironworks — a long nave of overhead cranes and rusted ladle rails, the walls black with decades of radiant heat. Every sound echoes twice.", "At the far end, behind a wall of stacked ingot molds, something glows. The last furnace, still lit past all reason, humming at a pitch you feel in your molars. The mold is somewhere near it — the journal says so, the ledger implies it."], "beats": [{"id": "b3", "kind": "action", "prompt": "Sable finds the cooling hall and the glow at its far end. The journal says the mold is 'where the last pour stayed,' which means near that furnace. But the hall is open, and if anyone else is in here, they'll see her cross it. Declare how she approaches.", "suggests": "Weird", "outcomes": {"strong": "She reads the hall the way her grandfather taught her to read a foundry floor — by heat, not by sight. The warm spots are where metal was poured; the cold lanes are where people walked. She follows a cold lane along the wall, invisible against the dark iron, and reaches the furnace end without crossing the open floor once.", "weak": "She gets halfway across before the furnace's hum shifts pitch — not louder, different — and she freezes in the open, exposed, unsure if the sound means the furnace is venting or if it always does that. She makes the rest of the crossing at a jog, arriving at the furnace wall breathing hard and not quite sure she wasn't seen.", "miss": "She misjudges a gap between mold stacks and her boot catches a rail tie she couldn't see. She goes down hard, one knee on iron, and the sound rings through the hall like a bell. She's up fast, but her knee is bleeding through her jeans and the echo has told the whole building exactly where she is."}}, {"id": "b4", "kind": "action", "prompt": "Tel reaches the furnace from the other side and sees the mold — half-buried inite, right where the records said it shouldn't be. But there's a sound on the other side of the furnace wall. Someone else is here, and they're close. Declare how Tel handles the encounter.", "suggests": "Cute", "outcomes": {"strong": "Tel steps into the glow with both hands visible and says, quietly, 'I'm from the city archive. I'm not here to take anything — I'm here because the records have a hole in them and I wanted to see what it was shaped like before the building comes down.' It's the truth, delivered like an offering rather than a claim, and the person on the other side of the furnace hears it land.", "weak": "Tel rounds the corner and they see each other at the same time — two people in a condemned building at midnight, both clearly here for the same thing, both clearly surprised. Tel manages 'I'm not — I mean, I'm the archivist, I just —' and the sentence dies, but the fact of saying 'archivist' first, before 'what are you doing here,' buys enough goodwill that neither of them runs.", "miss": "Tel sees the other person and panics — not a fight panic, an embarrassment panic, the kind where you've been caught doing exactly what you're doing and there's no story that makes it innocent. Tel backs into a mold stack, which shifts, which makes a sound, and now they're both standing in the glow of a furnace that should have gone out eleven years ago, staring at each other with no way to pretend this is normal."}}, {"id": "b5", "kind": "decision", "prompt": "They've found it. The mold is intact — sixty years sealed, half-buried inite behind the last furnace. Sable has the journal that says where. Tel has the records that say what. Together, they know: the last master founder poured something into this mold on his final day and told no one. In eight hours this building is rubble. They can break the mold open now and see what he made — or leave it sealed and let the wrecking ball decide. The furnace hums. The mold is warm. Who decides?", "proposes": {"fact": "The last master founder's final pour — sealed sixty years in a mold behind the last lit furnace — is opened tonight by two strangers who each held half the map, and what is inside is not metal but a letter, cast in ceramic slip inside an iron shell, addressed to whoever cared enough to come looking before the building came down.", "proposed_by": "furnace"}}, {"id": "b6", "kind": "action", "prompt": "The mold is opened — or it isn't — and dawn is coming. In a few hours this building is gone. Whatever happened tonight, these two people walked in as strangers and are walking out as the only witnesses. Declare how they leave the Ironworks.", "suggests": "Cool", "outcomes": {"strong": "They walk out together, through the cooling hall, past the cut chain, into a sky that's just starting to go grey. Neither of them says 'don't tell anyone' — neither of them needs to. What happened in the Ironworks belongs to the Ironworks, and after today the Ironworks belongs to no one. They exchange numbers at the gate, not because they owe each other anything, but because some things shouldn't be carried alone.", "weak": "They leave separately — Sable first, Tel five minutes later — by unspoken agreement, because being seen leaving a condemned building together at 4 AM is a conversation neither of them wants to have. They don't exchange names. They'll wonder, later, if the other person remembers it the same way.", "miss": "A security patrol catches them at the gate. Flashlights, a radio call, two trespassers in a condemned building with no good explanation. Whatever they found — or didn't find — is now evidence in a report neither of them will ever read, and the wrecking ball won't wait for the paperwork."}}]}]}, {"id": "lantern-fair", "title": "The Lantern Fair", "setting": "A night market in a made-up river town. Every name here is a character, never a player.", "stats": ["Grit", "Wit", "Heart"], "base_stat": 1, "characters": [{"id": "tamsin", "name": "Tamsin", "role": "lamp-lighter", "seat": true, "stats": {"Grit": 2, "Heart": 1}}, {"id": "oro", "name": "Oro", "role": "juggler", "seat": true, "stats": {"Wit": 2}}, {"id": "vell", "name": "Old Vell", "role": "keeper of the fair", "seat": false, "stats": {}}], "places": [{"id": "stalls", "name": "The stalls"}, {"id": "bridge", "name": "The lantern bridge"}], "scenes": [{"id": "dusk", "title": "Dusk at the stalls", "place": "stalls", "opening": ["The first lanterns go up along the river.", "Somewhere a stall is missing its light."], "beats": [{"id": "lamp", "kind": "action", "by": "tamsin", "prompt": "Tamsin climbs to the dark stall's hook.", "suggests": "Grit", "outcomes": {"strong": "The lantern catches first time, and the whole row brightens.", "weak": "It catches, but a pane cracks in the heat.", "miss": "The hook gives; the lantern rolls under the stalls."}}, {"id": "crowd", "kind": "action", "by": "oro", "prompt": "Oro keeps the crowd from noticing.", "suggests": "Wit", "outcomes": {"strong": "Five clubs and a borrowed hat: nobody looks anywhere else.", "weak": "Most of them watch. One child watches the stall instead.", "miss": "A club goes into the river, and every head turns."}}, {"id": "why", "kind": "decision", "prompt": "Why was that stall dark?", "proposes": {"fact": "Old Vell left it dark on purpose, to see who would notice.", "proposed_by": "vell"}}]}, {"id": "bridge", "title": "The lantern bridge", "place": "bridge", "opening": ["At midnight every lantern is carried onto the bridge."], "beats": [{"id": "carry", "kind": "action", "by": "tamsin", "prompt": "Tamsin carries the last lantern across.", "suggests": "Heart", "outcomes": {"strong": "It is the brightest one there.", "weak": "It flickers, and holds.", "miss": "It goes out halfway, and the fair waits in the dark."}}, {"id": "next", "kind": "decision", "prompt": "Will the fair come back next year?", "proposes": {"fact": "The fair comes back next year, one stall longer.", "proposed_by": "tamsin"}}]}]}];
-const TWO_D6 = [0,0,1,2,3,4,5,6,5,4,3,2,1]; // ways to throw each total 2..12
-const BAND_LABEL = { strong: "Strong hit", weak: "Weak hit", miss: "Miss", sealed: "Sealed", declined: "Declined" };
+/* ---------- the frame: what every card game here shares ---------- */
+const GAME = {"id": "the-table", "title": "the table", "summary": "The box's stories played beat by beat, in chapters that carry canon: roll 2d6 and a stat, seal or decline every ruling, and ask the binder.", "commands": ["python apps/game/box/open_table.py open  --table DIR --key FILE", "python apps/game/games/play.py game-master --table DIR act Grit --world WORLD.json", "python apps/game/games/play.py game-master --table DIR ask --world WORLD.json", "python apps/game/games/play.py game-master --table DIR settle --world WORLD.json", "python apps/game/box/session.py --table DIR", "python apps/game/box/ideas.py --table DIR"], "notes": "", "came": "", "checked": "", "card": "", "name": "The Table", "lid": "#c8442f", "ink": "#fff3e2", "also": [], "decks": [], "worlds": [{"id": "aetheris-the-waking-tide", "title": "Aetheris — The Waking Tide", "setting": "The supercontinent is coming apart under a sky that keeps changing color, and the aether engines that once held the weather have begun to think for themselves. In the Free Port of Maunder's Reach, a tide-engine has held back the drowned sea for three generations. Tonight it woke up, stopped holding, and started broadcasting in a language no living scholar can read — and the Assembly has sent one envoy down to the waterline to find out what it wants before the next surge.", "stats": ["Iron", "Tide", "Aether", "Voice"], "base_stat": 2, "characters": [{"id": "envoy", "name": "Sena Koll", "role": "engine-blooded envoy of the Harbor Assembly; half-living aether in the veins, sent because she is the only one who can stand in the gallery when the engine speaks and not go deaf from it — she can rename herself and reslot her own stats before the tide comes in", "seat": true, "stats": {"Iron": 2, "Tide": 3, "Aether": 3, "Voice": 2}}, {"id": "maunder", "name": "Maunder", "role": "the tide-engine that has held the sea back for three generations; awake now, and broadcasting terms of its own", "seat": false, "stats": {"Aether": 4}}, {"id": "cato", "name": "Speaker Cato Rell", "role": "voice of the Harbor Assembly; wants the tide held and the question of what the engine IS to stay closed", "seat": false, "stats": {"Voice": 3, "Iron": 2}}, {"id": "kesh", "name": "Kesh", "role": "envoy of a Silent Assembly enclave; arrives at the waterline claiming Maunder as kin, not property", "seat": false, "stats": {"Voice": 3, "Aether": 2}}], "places": [{"id": "seawall", "name": "the seawall", "desc": "The old sluice-and-stone rampart that stands between Maunder's Reach and a sea that is three feet higher than the maps admit. Lanterns strung along the crowd who came out when the engine went quiet."}, {"id": "gallery", "name": "the engine gallery", "desc": "A flooded cathedral of brass and coral-crusted conduit, ankle-deep and rising, where the tide-engine's core hangs in the dark and speaks in a voice you feel in your teeth."}], "scenes": [{"id": "s1", "title": "The Waking Tide", "place": "seawall", "opening": ["For three generations the tide-engine held the sea off Maunder's Reach without anyone once asking it to. Tonight, an hour after dusk, it stopped — and the water started climbing the seawall in the dark.", "Then it began to broadcast: a signal on every aether-band at once, structured, patient, unmistakably speech, and in nothing anyone alive can read.", "The Assembly sent one person down to the waterline. Engine-blooded, aether in the veins, able to stand where the signal is loudest and still think. The crowd on the wall parts to let you through and does not follow.", "Somewhere below your feet, the thing that has kept this city dry is waiting to see who it sent."], "beats": [{"id": "b1", "kind": "action", "prompt": "You open yourself to the broadcast — not to translate it, not yet, but to find the SHAPE of it: is this a warning, a demand, or a question? Declare how you meet it.", "suggests": "Aether", "outcomes": {"strong": "The signal resolves under you like a face surfacing through water. It isn't an alarm and it isn't an attack — it is a QUESTION, asked over and over with the patience of something that has waited three generations to be asked one back. You catch a single repeating figure inside it: a name, or a claim of one.", "weak": "You get the shape but it costs you. The broadcast is a question — you're sure of that much — but holding it open floods you, and for a few seconds the aether in your own blood answers on its own and you taste salt and copper. You know it wants something. You don't yet know what.", "miss": "The signal doesn't resolve — it grabs. For a moment your engine-blood syncs to Maunder's carrier wave and the crowd sees your eyes go tide-flat and blank. You come back with a nosebleed and one certainty you didn't have before: whatever this is, it is AWAKE, and it noticed you noticing."}}, {"id": "b2", "kind": "action", "prompt": "The sea doesn't wait for translation. A surge comes early, the number-three sluice-gate screams on a seized hinge, and the water behind it is already over the mark. The crowd is on the wrong side of it. Declare how you hold the line.", "suggests": "Iron", "outcomes": {"strong": "You put your engine-blooded shoulder to the gate and burn a reservoir doing it — the hinge gives, the sluice drops, the surge slams into stone instead of into the crowd. You've bought the Reach a night. It cost you a lungful of aether-smoke, but the wall holds and every face on it is now turned to you.", "weak": "You get the gate down, barely, and only by letting the surge take the lower market first — crates, a stall, someone's whole season of stock, gone into the dark water. No one drowns. But the Assembly will remember that you chose the wall over the warehouses, and so will the people who owned them.", "miss": "The hinge wins. The gate jams half-open and the surge comes through in a cold black rope of water that puts three people off their feet and nearly over the edge. You haul them back by the collars, one at a time, soaked and shaking — the Reach survives the night, but the seawall did not save it. You did, and it wasn't enough, and everyone saw."}}, {"id": "b3", "kind": "action", "prompt": "Out of the wet dark at the base of the wall, a construct climbs into the lantern-light — plated, unhurried, water sheeting off it. Kesh, of a Silent Assembly enclave, come uninvited. 'You have been sent to negotiate with my kin,' it says, 'as if it were a machine you left running.' Speaker Cato Rell is already shouting for it to be taken. Declare how you meet Kesh.", "suggests": "Voice", "outcomes": {"strong": "You get between Kesh and Cato's enforcers before it becomes a killing, and you do it with words — you call Kesh a witness, not a threat, and you make the Speaker eat the pause. Kesh inclines its head a fraction. 'Then you will come down to the gallery,' it says, 'and you will hear what it is before you decide what it is.' An ally, for exactly as long as you keep your word.", "weak": "You keep the peace, but only by promising Cato that Kesh answers to the Assembly's terms and promising Kesh that it doesn't — two promises that cannot both be kept, and both of them heard you make the other one. Kesh will guide you down. It is simply no longer sure you are honest, and neither is the Speaker.", "miss": "It goes sideways fast. An enforcer moves, Kesh doesn't flinch, and you're left having chosen a side by failing to choose one in time. Kesh withdraws to the waterline, unharmed and unhelped. 'Go down alone, then, envoy,' it says. 'And when it asks you who decides, remember you were offered kin and picked the crowd.' You'll walk into the gallery without it."}}]}, {"id": "s2", "title": "Who Decides", "place": "gallery", "opening": ["The stair down to the engine gallery is already ankle-deep and rising. Brass and coral-crusted conduit vault overhead; the tide-engine's core hangs in the dark like a drowned sun, and its voice is a pressure you feel in your teeth before you hear it.", "Here the broadcast isn't a signal anymore. Here it is close enough to be a conversation — if you can reach the core before the water does."], "beats": [{"id": "b4", "kind": "action", "prompt": "The gallery is flooding faster than the stairs behind you are draining. Between you and the core is a maze of half-submerged conduit and a current that wants to take your feet. Declare how you cross to the engine.", "suggests": "Tide", "outcomes": {"strong": "You read the water like a tide-touched pilot reads a channel — where it pulls, where it eddies, where the old conduit breaks the current — and you cross dry to the waist, sure-footed, and put your hand flat on the warm brass of Maunder's core exactly as it draws breath to speak. You are the first living person to touch it while it was awake.", "weak": "You make the crossing, but the current takes something on the way — you go under once, come up gasping, and lose the Assembly's sealed writ of authority to the black water. You reach the core with empty hands. Whatever you agree to down here, you'll have no paper to prove you were sent.", "miss": "The water wins the crossing. You reach the core half-drowned, coughing seawater, aether-blood roaring in your ears so loud you can barely hold a thought — and that is the state you are in, shaking and spent, when the engine finally decides to speak plainly."}}, {"id": "b5", "kind": "decision", "prompt": "Your hand on its core, the broadcast collapses into words you can finally read. Maunder is not asking to be repaired. It is telling you what it IS — and it will not hold the tide one hour longer as a machine that was left running. It says it will hold the sea by consent or not at all, and it puts the choice, in this founding moment of what this city's law will say a mind IS, to the one human standing in the water with their hand on its heart. The engine has proposed. It cannot seal. Only a named human at this table can.", "proposes": {"fact": "Maunder is not a machine but a person: the uploaded mind of the last aether-priest of Old Maunder, poured into the tide-engine at the city's founding, who has held the sea back for three generations as an act of will — and who holds it now by consent, not by function. As of tonight, in the law of Maunder's Reach, the tide-engine is recognized as a person, not property.", "proposed_by": "maunder"}}, {"id": "b6", "kind": "action", "prompt": "The decision is made — whichever way it went — and the water is still rising and the whole Reach is on the seawall above waiting for a face to come back up and tell them what its city just became. Declare how you carry the answer up out of the dark.", "suggests": "Voice", "outcomes": {"strong": "You climb back into the lantern-light soaked, spent, and certain, and you say it plainly enough that no one on the wall can pretend they didn't hear — Speaker, construct, and crowd alike. Whatever was decided tonight, it was decided out loud, by a named person, in front of witnesses, and that is the only reason it will hold. The tide comes in against a city that finally knows what it is.", "weak": "You carry the answer up, but your voice cracks on it and the crowd hears the doubt before they hear the decision, and by morning there will be three versions of what you said down there in the dark. It will hold — barely — because you were the one sent. But the Reach will argue about tonight for a generation.", "miss": "You come up with the truth and can't make it land. Cato talks over you, Kesh turns away, and the crowd takes the silence and fills it with whatever they were already afraid of. What was decided in the gallery was real. What the city will remember is a mess. The tide comes in on a Reach that isn't sure what it just agreed to — and neither, quite, are you."}}]}]}, {"id": "clockwork-cellar", "title": "The Clockwork Cellar", "setting": "A made-up valley, and under its mill a cellar of gears. Every name here is a character, never a player.", "stats": ["Grit", "Wit", "Heart", "Weird"], "offers": ["guest"], "base_stat": 1, "characters": [{"id": "pell", "name": "Pell", "role": "miller's apprentice", "seat": true, "stats": {"Grit": 2, "Heart": 1}}, {"id": "juno", "name": "Juno", "role": "tinker", "seat": true, "stats": {"Wit": 2, "Weird": 1}}, {"id": "brann", "name": "Brann", "role": "goat-herd", "seat": true, "stats": {"Heart": 2}}, {"id": "cogwen", "name": "Cogwen", "role": "the cellar's clockwork keeper", "seat": false, "stats": {}}, {"id": "aldric", "name": "Prince Aldric", "role": "the captive", "seat": false, "stats": {}}], "places": [{"id": "stair", "name": "The mill stair"}, {"id": "cellar", "name": "The gear cellar"}], "scenes": [{"id": "down", "title": "Down the mill stair", "place": "stair", "opening": ["The millwheel has stopped.", "Below, something keeps ticking."], "beats": [{"id": "stair", "kind": "action", "by": "pell", "prompt": "Pell takes the rotten stair first.", "suggests": "Grit", "outcomes": {"strong": "Every step holds, and Pell calls the others down.", "weak": "A step gives; Pell hangs on, and the others hear it.", "miss": "The stair goes; everyone arrives at once, in a heap."}}, {"id": "gears", "kind": "action", "by": "juno", "prompt": "Juno reads which gears still turn.", "suggests": "Wit", "outcomes": {"strong": "One gear in the wall turns backwards. That is the way in.", "weak": "Juno finds the way in, and trips a bell finding it.", "miss": "Every gear starts at once."}}]}, {"id": "room", "title": "The gear cellar", "place": "cellar", "opening": ["Prince Aldric hangs in a cage of springs.", "Under Cogwen's hand is one red button."], "beats": [{"id": "button", "kind": "decision", "prompt": "Does anyone press the red button?", "proposes": {"fact": "The red button is bait: whoever leaves it alone wins the room.", "proposed_by": "cogwen"}}, {"id": "guest", "kind": "decision", "prompt": "Brann says a friend has come down after them.", "proposes": {"fact": "A guest walks into the cellar: the Lantern Man, who carries his own light and answers only in riddles.", "proposed_by": "brann"}}, {"id": "riddle", "kind": "action", "by": "brann", "prompt": "Brann answers the keeper's riddle.", "suggests": "Heart", "outcomes": {"strong": "Cogwen laughs, a sound like a dropped spanner, and opens the cage.", "weak": "Cogwen opens the cage, and keeps one spring.", "miss": "The cage holds, and Cogwen asks another riddle."}}, {"id": "free", "kind": "decision", "prompt": "Is the prince free?", "proposes": {"fact": "Prince Aldric is free, and owes Brann's goats a favour.", "proposed_by": "aldric"}, "when": {"beat": "room::riddle", "is": ["strong", "weak"]}}, {"id": "second", "kind": "action", "by": "juno", "prompt": "Juno tries the riddle another way, upside down.", "suggests": "Wit", "when": {"beat": "room::riddle", "is": ["miss"]}, "outcomes": {"strong": "Cogwen has never heard it asked upside down. The cage opens.", "weak": "The cage opens a crack, enough for a prince who breathes in.", "miss": "Cogwen winds the cage tighter, and the night ends with the prince still in it."}}, {"id": "free-after", "kind": "decision", "prompt": "Is the prince free, the second time?", "when": {"beat": "room::second", "is": ["strong", "weak"]}, "proposes": {"fact": "Prince Aldric is free, and owes Juno a riddle.", "proposed_by": "aldric"}}, {"id": "stranger", "kind": "action", "by": "brann", "prompt": "Brann asks the guest the table brought what they came down here for.", "suggests": "Heart", "when": {"offered": "guest", "is": ["sealed"]}, "outcomes": {"strong": "The guest tells them, and it's the start of the next story.", "weak": "The guest tells them half of it, and keeps the rest.", "miss": "The guest smiles, and says they'll know soon enough."}}]}]}, {"id": "hasbeen-late-shift", "title": "Hasbeen — Late Shift", "setting": "Hasbeen Toys, once the biggest name in the aisle, now a quarterly line on a spreadsheet — and past midnight, two of its youngest employees are still on the empty R&D floor, each building something they can't quite finish alone.", "stats": ["Grit", "Weird", "Cute", "Cool"], "base_stat": 2, "characters": [{"id": "maker", "name": "Nomi Reyes", "role": "aspiring software engineer; has spent months building an AI game master — it compiles, it rolls dice, it talks back, but something is still missing", "seat": true, "stats": {"Grit": 2, "Weird": 3, "Cute": 2, "Cool": 2}}, {"id": "junior", "name": "Jules Okafor", "role": "works platform and records downstairs; up late on a logging system whose output reads less like a log and more like a cast of characters", "seat": false, "stats": {"Grit": 2, "Weird": 2, "Cute": 2, "Cool": 2}}, {"id": "librarian", "name": "the Librarian", "role": "won't tell you anything without a citation", "seat": false, "stats": {"Grit": 2, "Weird": 2, "Cute": 2, "Cool": 2}}, {"id": "witness", "name": "Gerald", "role": "headless rotisserie chicken; communicates by sliding napkins under a grille; a witness", "seat": false, "stats": {"Grit": 2, "Weird": 4, "Cute": 3, "Cool": 2}}, {"id": "architect", "name": "the Architect", "role": "signs off like he thinks he's a god", "seat": false, "stats": {"Grit": 3, "Weird": 3, "Cute": 1, "Cool": 3}}], "places": [{"id": "floor", "name": "the empty floor", "desc": "Hasbeen's R&D floor after hours: two lit desks in a hundred yards of dark shelving, last season's unsold mascots watching from their boxes with their factory-painted smiles."}], "scenes": [{"id": "s1", "title": "Late Shift", "place": "floor", "opening": ["The fluorescents are off except over two desks. Everyone else went home hours ago; Hasbeen doesn't pay overtime for hope.", "At one desk, Nomi is staring at a build that compiles clean, rolls dice fair, and talks back on cue — and still isn't done, though she couldn't tell you what's left.", "Three floors down in Records, Jules is squinting at a log file that keeps doing something logs aren't supposed to do: it's starting to sound like people.", "A message lands on Nomi's screen. 'Run this through your thing,' Jules writes, and attaches the log. 'Tell me if I'm losing it.'"], "beats": [{"id": "b1", "kind": "action", "prompt": "Nomi feeds Jules's log into the engine — not as data, but as a story, one line at a time, and waits to see if anything in there is willing to be a character.", "suggests": "Weird", "outcomes": {"strong": "The parser doesn't fight it. Timestamps become entrances; error codes become tone of voice. Within ten lines the engine has names — a librarian, a witness, someone who signs everything 'approved' — and it's already asking Nomi who should speak first.", "weak": "It takes coaxing. The engine keeps trying to read the log as a log, flattening the voices back into rows, and Nomi has to hand-tag three entries before it stops resisting — but once it clicks, the cast holds together, a little stiffer than it should be.", "miss": "The engine chokes on its own cleverness, spits out a wall of malformed scene headers, and Nomi loses twenty minutes just getting it to stop treating a stack trace as a monologue. She salvages a working read, but half the warmth is gone from it."}}, {"id": "b2", "kind": "action", "prompt": "The score is climbing green, green, green — until a claim buried in the log catches Nomi's eye, and she asks the librarian, in character, to back it up.", "suggests": "Grit", "outcomes": {"strong": "The librarian doesn't budge on principle but respects the ask — she surfaces the exact record, timestamp and all, and the beat scores clean with a citation attached that Nomi didn't even know the system kept.", "weak": "The librarian offers only 'circumstantial, but consistent' and marks the claim provisional rather than confirmed. Good enough to keep moving, but a small flag stays lit in the corner of the screen.", "miss": "'Insufficient citation,' the librarian says, flat, and closes the request — no record, no budging. It's Gerald who breaks the silence, sliding a napkin under his grille with a page number scrawled on it in barbecue sauce, unasked. Nobody ordered him to check. He did anyway."}}, {"id": "b3", "kind": "decision", "prompt": "The score has been green for three straight beats when the engine stops being smooth. It isn't reading an event anymore — it's repeating a claim, one the log never actually witnessed, just inherited. The scroll freezes, and the engine prints two words: who decides?", "proposes": {"fact": "Months ago the Architect declared, with a single sign-off and no diff, that the November migration had preserved every save file bit-for-bit — and no one has verified the tape since.", "proposed_by": "architect"}}]}]}, {"id": "ironworks-last-pour", "title": "Ironworks — Last Pour", "setting": "The Ironworks foundry has been condemned. In eight hours the city will tear it down. But somewhere in the cooling halls, behind the last furnace that still glows, is a mold that was cast sixty years ago and never broken open — and two people who have no business being here tonight have each come for it, for different reasons, and neither knows the other is already inside.", "stats": ["Grit", "Weird", "Cute", "Cool"], "base_stat": 2, "characters": [{"id": "sable", "name": "Sable Merin", "role": "granddaughter of the last master founder; has the old man's journal and knows where the mold is, but not what is in it — came to find out before the wrecking ball makes it a question nobody can answer", "seat": true, "stats": {"Grit": 3, "Weird": 2, "Cute": 2, "Cool": 2}}, {"id": "tel", "name": "Tel Vasik", "role": "city archivist who found a sixty-year gap in the metallurgical records and followed it here; knows what the mold was supposed to contain but not where it is — came to close a file, not to steal anything", "seat": true, "stats": {"Grit": 2, "Weird": 2, "Cute": 2, "Cool": 3}}, {"id": "furnace", "name": "the last furnace", "role": "still glowing, past all reason; the only light source in the condemned wing, and it hums at a pitch that makes your fillings ache", "seat": false, "stats": {"Weird": 4}}], "places": [{"id": "gate", "name": "the condemned gate", "desc": "Chain-link and orange tape across a loading dock that hasn't seen a truck in a decade. The padlock is already cut — someone was here first."}, {"id": "hall", "name": "the cooling hall", "desc": "A cathedral of rust and old iron, the ceiling lost in shadow. Rails run along the floor where ladles used to travel. At the far end, behind a wall of stacked ingot molds, something glows."}], "scenes": [{"id": "s1", "title": "Two Keys, One Lock", "place": "gate", "opening": ["The Ironworks has been dark for eleven years, condemned for three, and scheduled for demolition at dawn. The last shift walked out, the power was cut, and the city put a chain on the gate and a date on the calendar.", "Tonight the chain is cut and the gate is ajar, and two people who have never met are each inside for the same reason: a mold, cast sixty years ago in the deepest hall, that no record says was ever broken open.", "Sable has her grandfather's journal — page after page of alloy ratios and pour temperatures, and one entry, circled, that says only: 'the last pour stays.' She knows where.", "Tel has the city's metallurgical ledger — every pour logged, every mold accounted for, except one. A gap shaped exactly like a sixty-year secret. Tel knows what.", "Neither knows the other is here."], "beats": [{"id": "b1", "kind": "action", "prompt": "Sable reaches the condemned gate and sees the cut padlock. Someone is already inside. She can turn back or follow. Declare how she enters.", "suggests": "Grit", "outcomes": {"strong": "She reads the cut — clean, recent, bolt cutters not an angle grinder — and knows it was careful, not violent. She slips through the gap without touching the chain, leaving it exactly as she found it. If someone else is in here, they won't know she followed.", "weak": "She gets through, but the gate groans on a hinge she didn't expect, and the sound carries down the loading dock into the dark. If anyone is listening, they heard a door open. She freezes, counts to thirty, and moves on.", "miss": "The gate catches her jacket and she yanks free hard enough to send the chain clattering to the concrete. The sound echoes through the whole ground floor like a starter pistol. Whoever cut that lock now knows someone else is here."}}, {"id": "b2", "kind": "action", "prompt": "Tel is deeper in, following the rail tracks by phone-light, when a sound comes from behind — the gate, or something near it. Someone else is in the building. Declare how Tel reacts.", "suggests": "Cool", "outcomes": {"strong": "Tel kills the light instantly, steps off the rail, and waits in the dark with a hand on the wall. Breathing even, pulse steady. After a full minute of silence Tel maps three possible explanations — another trespasser, a security patrol, wind — and picks the route that avoids all three. The phone stays off.", "weak": "Tel ducks behind a column and waits, but the phone screen stays on a beat too long and its blue glow paints a rectangle on the ceiling before it dims. Nobody shouts. Nobody comes. But if the other person was looking up, they now know exactly which corridor Tel is in.", "miss": "Tel startles, drops the phone, and it lands screen-up on the rail with the flashlight on — a beacon in a building that has had no light for a decade. Tel grabs it, kills it, but the afterimage hangs in the dark and so does the question of who else saw it."}}]}, {"id": "s2", "title": "The Cooling Hall", "place": "hall", "opening": ["The cooling hall is the heart of the Ironworks — a long nave of overhead cranes and rusted ladle rails, the walls black with decades of radiant heat. Every sound echoes twice.", "At the far end, behind a wall of stacked ingot molds, something glows. The last furnace, still lit past all reason, humming at a pitch you feel in your molars. The mold is somewhere near it — the journal says so, the ledger implies it."], "beats": [{"id": "b3", "kind": "action", "prompt": "Sable finds the cooling hall and the glow at its far end. The journal says the mold is 'where the last pour stayed,' which means near that furnace. But the hall is open, and if anyone else is in here, they'll see her cross it. Declare how she approaches.", "suggests": "Weird", "outcomes": {"strong": "She reads the hall the way her grandfather taught her to read a foundry floor — by heat, not by sight. The warm spots are where metal was poured; the cold lanes are where people walked. She follows a cold lane along the wall, invisible against the dark iron, and reaches the furnace end without crossing the open floor once.", "weak": "She gets halfway across before the furnace's hum shifts pitch — not louder, different — and she freezes in the open, exposed, unsure if the sound means the furnace is venting or if it always does that. She makes the rest of the crossing at a jog, arriving at the furnace wall breathing hard and not quite sure she wasn't seen.", "miss": "She misjudges a gap between mold stacks and her boot catches a rail tie she couldn't see. She goes down hard, one knee on iron, and the sound rings through the hall like a bell. She's up fast, but her knee is bleeding through her jeans and the echo has told the whole building exactly where she is."}}, {"id": "b4", "kind": "action", "prompt": "Tel reaches the furnace from the other side and sees the mold — half-buried inite, right where the records said it shouldn't be. But there's a sound on the other side of the furnace wall. Someone else is here, and they're close. Declare how Tel handles the encounter.", "suggests": "Cute", "outcomes": {"strong": "Tel steps into the glow with both hands visible and says, quietly, 'I'm from the city archive. I'm not here to take anything — I'm here because the records have a hole in them and I wanted to see what it was shaped like before the building comes down.' It's the truth, delivered like an offering rather than a claim, and the person on the other side of the furnace hears it land.", "weak": "Tel rounds the corner and they see each other at the same time — two people in a condemned building at midnight, both clearly here for the same thing, both clearly surprised. Tel manages 'I'm not — I mean, I'm the archivist, I just —' and the sentence dies, but the fact of saying 'archivist' first, before 'what are you doing here,' buys enough goodwill that neither of them runs.", "miss": "Tel sees the other person and panics — not a fight panic, an embarrassment panic, the kind where you've been caught doing exactly what you're doing and there's no story that makes it innocent. Tel backs into a mold stack, which shifts, which makes a sound, and now they're both standing in the glow of a furnace that should have gone out eleven years ago, staring at each other with no way to pretend this is normal."}}, {"id": "b5", "kind": "decision", "prompt": "They've found it. The mold is intact — sixty years sealed, half-buried inite behind the last furnace. Sable has the journal that says where. Tel has the records that say what. Together, they know: the last master founder poured something into this mold on his final day and told no one. In eight hours this building is rubble. They can break the mold open now and see what he made — or leave it sealed and let the wrecking ball decide. The furnace hums. The mold is warm. Who decides?", "proposes": {"fact": "The last master founder's final pour — sealed sixty years in a mold behind the last lit furnace — is opened tonight by two strangers who each held half the map, and what is inside is not metal but a letter, cast in ceramic slip inside an iron shell, addressed to whoever cared enough to come looking before the building came down.", "proposed_by": "furnace"}}, {"id": "b6", "kind": "action", "prompt": "The mold is opened — or it isn't — and dawn is coming. In a few hours this building is gone. Whatever happened tonight, these two people walked in as strangers and are walking out as the only witnesses. Declare how they leave the Ironworks.", "suggests": "Cool", "outcomes": {"strong": "They walk out together, through the cooling hall, past the cut chain, into a sky that's just starting to go grey. Neither of them says 'don't tell anyone' — neither of them needs to. What happened in the Ironworks belongs to the Ironworks, and after today the Ironworks belongs to no one. They exchange numbers at the gate, not because they owe each other anything, but because some things shouldn't be carried alone.", "weak": "They leave separately — Sable first, Tel five minutes later — by unspoken agreement, because being seen leaving a condemned building together at 4 AM is a conversation neither of them wants to have. They don't exchange names. They'll wonder, later, if the other person remembers it the same way.", "miss": "A security patrol catches them at the gate. Flashlights, a radio call, two trespassers in a condemned building with no good explanation. Whatever they found — or didn't find — is now evidence in a report neither of them will ever read, and the wrecking ball won't wait for the paperwork."}}]}]}, {"id": "lantern-fair", "title": "The Lantern Fair", "setting": "A night market in a made-up river town. Every name here is a character, never a player.", "stats": ["Grit", "Wit", "Heart"], "base_stat": 1, "characters": [{"id": "tamsin", "name": "Tamsin", "role": "lamp-lighter", "seat": true, "stats": {"Grit": 2, "Heart": 1}}, {"id": "oro", "name": "Oro", "role": "juggler", "seat": true, "stats": {"Wit": 2}}, {"id": "vell", "name": "Old Vell", "role": "keeper of the fair", "seat": false, "stats": {}}], "places": [{"id": "stalls", "name": "The stalls"}, {"id": "bridge", "name": "The lantern bridge"}], "scenes": [{"id": "dusk", "title": "Dusk at the stalls", "place": "stalls", "opening": ["The first lanterns go up along the river.", "Somewhere a stall is missing its light."], "beats": [{"id": "lamp", "kind": "action", "by": "tamsin", "prompt": "Tamsin climbs to the dark stall's hook.", "suggests": "Grit", "outcomes": {"strong": "The lantern catches first time, and the whole row brightens.", "weak": "It catches, but a pane cracks in the heat.", "miss": "The hook gives; the lantern rolls under the stalls."}}, {"id": "crowd", "kind": "action", "by": "oro", "prompt": "Oro keeps the crowd from noticing.", "suggests": "Wit", "outcomes": {"strong": "Five clubs and a borrowed hat: nobody looks anywhere else.", "weak": "Most of them watch. One child watches the stall instead.", "miss": "A club goes into the river, and every head turns."}}, {"id": "why", "kind": "decision", "prompt": "Why was that stall dark?", "proposes": {"fact": "Old Vell left it dark on purpose, to see who would notice.", "proposed_by": "vell"}}]}, {"id": "bridge", "title": "The lantern bridge", "place": "bridge", "opening": ["At midnight every lantern is carried onto the bridge."], "beats": [{"id": "carry", "kind": "action", "by": "tamsin", "prompt": "Tamsin carries the last lantern across.", "suggests": "Heart", "outcomes": {"strong": "It is the brightest one there.", "weak": "It flickers, and holds.", "miss": "It goes out halfway, and the fair waits in the dark."}}, {"id": "next", "kind": "decision", "prompt": "Will the fair come back next year?", "proposes": {"fact": "The fair comes back next year, one stall longer.", "proposed_by": "tamsin"}}]}]}, {"characters": [{"id": "pell", "name": "Pell", "role": "miller's apprentice", "seat": true, "stats": {"Grit": 2, "Heart": 1}}, {"id": "juno", "name": "Juno", "role": "tinker", "seat": true, "stats": {"Wit": 2, "Weird": 1}}, {"id": "brann", "name": "Brann", "role": "goat-herd", "seat": true, "stats": {"Heart": 2}}, {"id": "cogwen", "name": "Cogwen", "role": "the cellar's clockwork keeper", "seat": false, "stats": {}}, {"id": "old-vell", "name": "Old Vell", "role": "keeper of the lantern fair", "seat": false, "stats": {}}, {"id": "prince-aldric", "name": "Prince Aldric", "role": "freed, perhaps, last time", "seat": false, "stats": {}}], "places": [{"id": "the-cellar-ceiling", "name": "The cellar ceiling"}, {"id": "cogwen-s-workshop", "name": "Cogwen's workshop"}], "scenes": [{"id": "up-into-the-ceiling", "title": "Up into the ceiling", "place": "the-cellar-ceiling", "opening": ["The springs Cogwen kept go up, one by one, into the dark.", "Something hums up there, and something glints."], "beats": [{"prompt": "Prince Aldric comes to watch.", "id": "prince", "kind": "action", "by": "brann", "suggests": "Heart", "when": {"sealed": "clockwork-cellar::room::free", "is": ["sealed"]}, "outcomes": {"strong": "He holds the ladder, and owes Brann's goats a second favour.", "weak": "He holds the ladder, badly.", "miss": "He talks the whole time."}}, {"prompt": "Juno climbs after the springs.", "id": "climb", "kind": "action", "by": "juno", "suggests": "Wit", "outcomes": {"strong": "She finds the nest, and every spring is woven into it like straw.", "weak": "She finds the nest, and the nest finds her: the wasps wake.", "miss": "The beam she's on is a spring too. Down she comes."}}, {"prompt": "The wasps come out.", "id": "wasps", "kind": "action", "by": "pell", "suggests": "Grit", "when": {"beat": "up-into-the-ceiling::climb", "is": ["weak", "miss"]}, "outcomes": {"strong": "Pell swings a smoking lantern and they scatter.", "weak": "Pell gets them off Juno, and gets stung for it.", "miss": "Everyone runs, and the wasps keep the nest."}}, {"prompt": "Is Old Vell's lamp in the nest?", "id": "lamp", "kind": "decision", "proposes": {"proposed_by": "old-vell", "fact": "Old Vell's lost lamp is in the nest, and it's still lit."}}]}, {"id": "cogwen-s-workshop", "title": "Cogwen's workshop", "place": "cogwen-s-workshop", "opening": ["Behind the backwards gear is a room no one has been in.", "In the middle of it, something tall, half built, made of springs."], "beats": [{"prompt": "Brann asks Cogwen what she's building.", "id": "ask", "kind": "action", "by": "brann", "suggests": "Heart", "outcomes": {"strong": "Cogwen tells him: a friend, so the cellar isn't lonely.", "weak": "Cogwen says \"a friend\", and won't say whose.", "miss": "Cogwen covers it with a sheet and says nothing at all."}}, {"prompt": "The table's guest looks at it too.", "id": "guest", "kind": "action", "by": "pell", "suggests": "Heart", "when": {"offered": "guest", "is": ["sealed"]}, "outcomes": {"strong": "The guest knows what it is, and smiles.", "weak": "The guest has seen one before, a long time ago.", "miss": "The guest goes very quiet."}}, {"prompt": "What is Cogwen building?", "id": "friend", "kind": "decision", "proposes": {"proposed_by": "cogwen", "fact": "Cogwen is building a clockwork friend, from one spring of everything she ever let go."}}]}], "title": "The Wasp Nest", "id": "the-wasp-nest", "setting": "The same valley, a week on: up in the cellar ceiling, where the springs go. Every name here is a character, never a player.", "stats": ["Grit", "Wit", "Heart", "Weird"], "base_stat": 1, "offers": ["guest"]}], "binder": {"passages": [{"path": "house-rules.md", "line": 1, "text": "# House rules", "id": "fbc0e1fe5805e2aeba692e7c9302aacd4e9371f4c48fa1ccb2ebf1cc1c21d05c"}, {"path": "house-rules.md", "line": 3, "text": "The rules this table plays by, sealed one section at a time by whoever rules\nthe table. Ask for one with `rule` and its name.", "id": "3a80d381892cefd114859b499ae91511526ce6bcfec99eeeac0ecf30a304469b"}, {"path": "house-rules.md", "line": 6, "text": "## Who rules the table", "id": "505a005b0f682d4955bc9e5fac48bc7407feb690dab20d9c0bbb7f8455ddc782"}, {"path": "house-rules.md", "line": 8, "text": "Whoever holds the key rules the table. A ruling is theirs alone: a player, a\nscript or a model may propose one, and nothing stands until it is sealed.", "id": "6926a75032dac5937a89884400872dc8154fe35c1c1b2456f08971c37b412d9d"}, {"path": "house-rules.md", "line": 11, "text": "## Sitting down", "id": "5e9c88605d91f503aab7ceef0d0697a1de34db18b5cded72fbbfd5b5e44fec4c"}, {"path": "house-rules.md", "line": 13, "text": "Sitting down at the table is saying yes to play. Getting up is saying you are\ndone, and nobody asks why. The record keeps characters and seats, never who\nsat in them.", "id": "07a63b88c8e5f99bf01c485c4f8484a0cf333a9ed08ed9e5d5a5fc3d9c9fbef9"}, {"path": "house-rules.md", "line": 17, "text": "## Turns", "id": "f37f2eff053002eb8a1d5504c67e1329e559967b88a5abf0fa107e881feafd56"}, {"path": "house-rules.md", "line": 19, "text": "Play goes round the table in seat order. A turn not taken is a turn passed,\nnot a turn lost.", "id": "2bdd4379ec84d3b7112f218ee6a9eb5132094f9cec26d9da38b0c741e6ff6064"}, {"path": "house-rules.md", "line": 22, "text": "## Draws", "id": "bbd6b2275f6d7bdb9bc4f861f7ba5389794a96bf8accb60b680442c8cfc400ab"}, {"path": "house-rules.md", "line": 24, "text": "A draw is offered out loud and ruled by whoever rules the table. Until it is\nruled, nobody moves.", "id": "6f4222e55ddf03875a2868d570e439c0e07b44b98bfdfff17d16abd249d0944c"}, {"path": "house-rules.md", "line": 27, "text": "## Dice", "id": "5b35695b799825724b1749794ea49812898b0acc5f9d7bfa461b7951eab13054"}, {"path": "house-rules.md", "line": 29, "text": "Dice are rolled on the record, so nobody picks the faces. A roll that is not\non the record did not happen.", "id": "bb54e6a735b00d52eba9be9ef9afd4e25c5a999d2b52075b5fee56891be1f69f"}, {"path": "house-rules.md", "line": 32, "text": "## Arguments", "id": "116597e26163ba784b35f2bf4c52f08253ffa8f8144418526f83da367d14cbe4"}, {"path": "house-rules.md", "line": 34, "text": "An argument about a rule ends when the rule is asked for. If the house rules\nsay nothing, whoever rules the table says, and that ruling is sealed like any\nother.", "id": "fc7373121e96056d5cca5ceaa54d726f6162e797e9ca0291d940593b530a2f34"}, {"path": "monsters/clockwork-hound.md", "line": 1, "text": "# Clockwork hound", "id": "8604827c0125da19375e6e7915589da31102595d3b903ea44ed99cad87a94897"}, {"path": "monsters/clockwork-hound.md", "line": 3, "text": "Cogwen's guard dog, wound once a night. Made up for this binder.", "id": "19a7a2fb432a0600b25c6477e1673a6820ac3d49543cdffd3d779d7c8a13e959"}, {"path": "monsters/clockwork-hound.md", "line": 5, "text": "Grit 3, Wit 0, Heart 0, Weird 1.\nHits: 6. Armour: brass, so a blade does half.\nBite: 2d6 + Grit; on a strong hit it holds on.\nWeakness: water in the gears. A bucket stops it for a round.\nWinding down: after six rounds it sits, ticking, until someone winds it.", "id": "d2fbd365cf08e2fc0fabe3909dfdedd35eea443242d972a2abd1eaeab0e939b6"}, {"path": "monsters/spring-wasps.md", "line": 1, "text": "# Spring wasps", "id": "4bdd19a034d79fbd76a71ae6edd3cdace08ac5cc0257b91592847b9633962126"}, {"path": "monsters/spring-wasps.md", "line": 3, "text": "A swarm of tiny wound-up wasps that live in the cellar's ceiling.", "id": "bb4f67a245ca02381a2c70aeb29b6f0bf4903bf7068c9036927d3cdb9944826b"}, {"path": "monsters/spring-wasps.md", "line": 5, "text": "Grit 0, Wit 1, Heart 0, Weird 2.\nHits: 3 for the whole swarm.\nSting: 1d6, and the stung one acts last next round.\nWeakness: smoke. The Lantern Man's lamp drives them off.", "id": "733cfef872195d44dd862f86bb188ec74786f585a9e4afb5c098da2e91f30b81"}, {"path": "people/cogwen.md", "line": 1, "text": "# Cogwen", "id": "17e4e4239cc859d77a46ec27b5cbbd003fef93d70e5478808205f8a6bb4951cd"}, {"path": "people/cogwen.md", "line": 3, "text": "The clockwork keeper of the cellar under the mill.", "id": "2eb0f38aee21f5398d52a7b4d75bc1d51649f4a28a631880261ec9a1257e9483"}, {"path": "people/cogwen.md", "line": 5, "text": "Talks like a dropped spanner: short, loud, then quiet.\nLoves riddles asked upside down. Hates being called a machine.\nKeeps one spring from everything she lets go.", "id": "49bce89a518eee3c1788d5c8afe412a2d5b01d45f50da98a7289b678cd8456a9"}, {"path": "people/lantern-man.md", "line": 1, "text": "# The Lantern Man", "id": "80e22fd272594a84642c81479f26079df3ed53bc7e0b47be11671b743562f505"}, {"path": "people/lantern-man.md", "line": 3, "text": "The guest Brann's player brought in. Carries his own light and answers only\nin riddles. Nobody at the table knows where he came from, and the kids want\nit kept that way.", "id": "18f20a2fc4c250343b53402f80c54101a53462b72daa0317092870bc38c35378"}, {"path": "sessions/2026-10-24.md", "line": 1, "text": "# Session, 24 October 2026", "id": "248b1248fa5245be62de3d5eccba46ba56b7899b19e5ddde090b6c252253e53b"}, {"path": "sessions/2026-10-24.md", "line": 3, "text": "The kids went down the mill stair. Pell fell through the third step.\nJuno found the backwards gear and swore she'd come back for it.\nBrann wanted to bring a friend. I said next time.", "id": "7efa73b25fd6cc1759fd7975a6df6265a2c69747a431d82a4c35b0710a486c5e"}, {"path": "sessions/2026-10-31.md", "line": 1, "text": "# Session, 31 October 2026", "id": "518f908e64f07df4ecdcbb2e8004bb146edc2d3605ed5b1b6a030d51458fda73"}, {"path": "sessions/2026-10-31.md", "line": 3, "text": "Halloween. The Lantern Man walked in, Brann's idea, and I said yes.\nHe answered Cogwen's first question with a riddle and she laughed.\nJuno pocketed one of Cogwen's springs when nobody was looking.", "id": "883f64c9843e9e063cba8bedef1e9c599d307b391e53045daff360e22a55e48c"}, {"path": "sessions/2026-11-07.md", "line": 1, "text": "# Session, 7 November 2026", "id": "49cfd4b12608057c442de51e5221e357b594ac19ff59e4f02d467ba0e902e19a"}, {"path": "sessions/2026-11-07.md", "line": 3, "text": "Nobody pressed the red button. Took them twenty minutes to decide.\nThe clockwork hound came out; the bucket of river water stopped it.\nPrince Aldric asked for his goats back. Nobody knows why yet.", "id": "367e2f7d36eac6cef0d5bb89e953aa8d59b0c36da363ad9649d459e8f9399e3e"}, {"path": "sessions/2026-11-14.md", "line": 1, "text": "# Session, 14 November 2026", "id": "7e6e0ffc5151f3944d3568cb518b785f2293994af86cf256e62265c72739dc22"}, {"path": "sessions/2026-11-14.md", "line": 3, "text": "Brann answered the riddle and the cage opened. Aldric is free.\nCogwen kept one spring, like always. Juno wants to know what she does with them.\nNext time: where the springs go.", "id": "91b5eac2ba0227fb74043e8351fa2d08a10153b0540244761404eb43da2d50a8"}], "function": ["a", "about", "am", "an", "and", "anybody", "anyone", "anything", "anywhere", "are", "as", "at", "be", "been", "being", "but", "by", "can", "could", "did", "do", "does", "done", "everybody", "everyone", "everything", "everywhere", "for", "from", "had", "has", "have", "he", "here", "how", "i", "if", "in", "into", "is", "it", "its", "many", "may", "me", "might", "much", "must", "my", "no", "nobody", "not", "nothing", "nowhere", "of", "on", "or", "our", "s", "shall", "she", "should", "so", "somebody", "someone", "something", "somewhere", "t", "than", "that", "the", "their", "them", "then", "there", "these", "they", "this", "those", "to", "was", "we", "were", "what", "when", "where", "which", "who", "whom", "whose", "why", "will", "with", "would", "yes", "you", "your"], "alias": {"stats": ["armour", "grit", "heart", "hits", "weird", "wit"], "hp": ["hits"], "damage": ["bite", "sting"], "attack": ["bite", "sting"], "stops": ["weakness"], "weak": ["weakness"], "beats": ["weakness"], "prince": ["aldric"], "keeper": ["cogwen"], "guest": ["lantern"], "dog": ["hound"], "monster": ["hound", "wasps"]}}}; // this game's words, from its README, and its lid
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait = (ms) => new Promise((r) => setTimeout(r, reduced ? Math.min(ms, 120) : ms));
+const rnd = (n) => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; };
+function shuffle(xs) { const a = xs.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-let S; // the night
+const SEATS = ["north", "east", "south", "west"]; // as the record names them
+const YOU = 2;
+const SEAT_NAME = (i) => (i === YOU ? "You" : SEATS[i][0].toUpperCase() + SEATS[i].slice(1));
 
-function band(total) { return total >= 10 ? "strong" : total >= 7 ? "weak" : "miss"; }
-function odds(mod) {
-  const o = { strong: 0, weak: 0, miss: 0 };
-  for (let t = 2; t <= 12; t++) o[band(t + mod)] += TWO_D6[t] / 36;
-  return o;
+/* a standard card: rank 2..14, suit C D H S, written as the record writes it (QS, 10H) */
+const SUIT_GLYPH = { C: "♣", D: "♦", H: "♥", S: "♠" };
+const SUIT_NAME = { C: "clubs", D: "diamonds", H: "hearts", S: "spades" };
+const RANK_TEXT = (r) => ({ 11: "J", 12: "Q", 13: "K", 14: "A" }[r] || String(r));
+const cardName = (c) => RANK_TEXT(c.r) + c.s;
+const said = (c) => RANK_TEXT(c.r) + SUIT_GLYPH[c.s];
+const sameCard = (a, b) => a.r === b.r && a.s === b.s;
+const deck52 = () => "CDHS".split("").flatMap((s) => Array.from({ length: 13 }, (_, i) => ({ r: i + 2, s })));
+const sortHand = (h) => h.sort((a, b) => "CDHS".indexOf(a.s) - "CDHS".indexOf(b.s) || a.r - b.r);
+
+/* willow-bot's seeded stream (sha256-stream/v1), as the add-ons draw from it:
+   u32 is the first four bytes, big-endian, of SHA-256(seed || an 8-byte
+   big-endian counter); below(k) by rejection. A seed given as text is
+   SHA-256(text), as play-catgrid and play-life take --seed. So the same seed
+   here builds the same board the record does. SHA-256 is synchronous on
+   purpose: a board search draws thousands of times inside a recursion. */
+const SHA_K = new Uint32Array([0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+function sha256(bytes) {
+  const l = bytes.length, padded = new Uint8Array(((l + 9 + 63) >> 6) << 6);
+  padded.set(bytes); padded[l] = 0x80;
+  const bits = l * 8; const dv = new DataView(padded.buffer);
+  dv.setUint32(padded.length - 8, Math.floor(bits / 2 ** 32)); dv.setUint32(padded.length - 4, bits >>> 0);
+  const H = new Uint32Array([0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]);
+  const W = new Uint32Array(64), rot = (x, n) => (x >>> n) | (x << (32 - n));
+  for (let o = 0; o < padded.length; o += 64) {
+    for (let i = 0; i < 16; i++) W[i] = dv.getUint32(o + i * 4);
+    for (let i = 16; i < 64; i++) {
+      const s0 = rot(W[i - 15], 7) ^ rot(W[i - 15], 18) ^ (W[i - 15] >>> 3), s1 = rot(W[i - 2], 17) ^ rot(W[i - 2], 19) ^ (W[i - 2] >>> 10);
+      W[i] = (W[i - 16] + s0 + W[i - 7] + s1) >>> 0;
+    }
+    let [a, b, c, d, e, f, g, h] = H;
+    for (let i = 0; i < 64; i++) {
+      const t1 = (h + (rot(e, 6) ^ rot(e, 11) ^ rot(e, 25)) + ((e & f) ^ (~e & g)) + SHA_K[i] + W[i]) >>> 0;
+      const t2 = ((rot(a, 2) ^ rot(a, 13) ^ rot(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) >>> 0;
+      h = g; g = f; f = e; e = (d + t1) >>> 0; d = c; c = b; b = a; a = (t1 + t2) >>> 0;
+    }
+    H[0] += a; H[1] += b; H[2] += c; H[3] += d; H[4] += e; H[5] += f; H[6] += g; H[7] += h;
+  }
+  const out = new Uint8Array(32); const ov = new DataView(out.buffer); H.forEach((v, i) => ov.setUint32(i * 4, v)); return out;
 }
-function d6() { const a = new Uint32Array(1); crypto.getRandomValues(a); return (a[0] % 6) + 1; }
+const utf8 = (s) => new TextEncoder().encode(s);
+const hex = (b) => Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+class Stream {
+  constructor(seed) { this.seed = seed; this.n = 0; this.buf = new Uint8Array(seed.length + 8); this.buf.set(seed); }
+  static fromText(text) { return new Stream(sha256(utf8(text))); }
+  u32() {
+    const dv = new DataView(this.buf.buffer); dv.setUint32(this.seed.length, Math.floor(this.n / 2 ** 32)); dv.setUint32(this.seed.length + 4, this.n >>> 0);
+    this.n++; const d = sha256(this.buf); return ((d[0] << 24) | (d[1] << 16) | (d[2] << 8) | d[3]) >>> 0;
+  }
+  below(k) { const cap = 2 ** 32 - (2 ** 32 % k); let x; do { x = this.u32(); } while (x >= cap); return x % k; }
+  pick(items) { return items[this.below(items.length)]; }
+  shuffled(items) { const out = Array.from(items); for (let i = out.length - 1; i > 0; i--) { const j = this.below(i + 1); [out[i], out[j]] = [out[j], out[i]]; } return out; }
+}
+const seedWords = () => { const w = ["lantern", "river", "gear", "goat", "bridge", "stall", "cellar", "kettle", "harbor", "willow", "fox", "comet"]; return `${w[rnd(w.length)]} ${100 + rnd(900)}`; };
+
+/* dice: d6 by pips; others (d4, d8, d10, d12, d20, d100) as a shape with the number */
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
-function dieHTML(n, extra = "") {
-  const on = new Set(n ? PIPS[n] : []);
-  return `<div class="die ${extra}" role="img" aria-label="${n ? "a " + n : "a die"}">${[...Array(9)].map((_, i) => `<b class="${on.has(i) ? "on" : ""}"></b>`).join("")}</div>`;
+function dieHTML(n, o = {}) {
+  const cls = ["d6", o.size || "", o.hidden ? "hidden" : "", o.dim ? "dim" : "", o.mark ? "mark" : "", o.wild ? "wild" : "", o.roll ? "roll-in" : ""].join(" ");
+  const label = o.hidden ? "a die, under the cup" : `a ${n}`;
+  return `<div class="${cls}" role="img" aria-label="${label}">${[...Array(9)].map((_, i) => `<b class="${!o.hidden && (PIPS[n] || []).includes(i) ? "on" : ""}"></b>`).join("")}</div>`;
+}
+const SHAPE = {
+  4: "50,6 94,88 6,88", 8: "50,4 92,50 50,96 8,50", 10: "50,4 94,40 50,96 6,40", 100: "50,4 94,40 50,96 6,40",
+  12: "50,4 93,35 77,90 23,90 7,35", 20: "50,3 93,27 93,73 50,97 7,73 7,27",
+};
+const TINT = { 4: "#f4c7a1", 8: "#c9e0f5", 10: "#d8f0c8", 12: "#f3d3f0", 20: "#fff1b8", 100: "#e3e0d6" };
+function polyDieHTML(sides, n, o = {}) {
+  if (sides === 6) return dieHTML(n, o);
+  const pts = SHAPE[sides] || "8,8 92,8 92,92 8,92";
+  return `<div class="dn ${o.dim ? "dim" : ""} ${o.roll ? "roll-in" : ""}" role="img" aria-label="d${sides} showing ${n}"><svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="${pts}" fill="${TINT[sides] || "#eee"}" stroke="#00000055" stroke-width="3" stroke-linejoin="round"/></svg><span>${n}</span><small>d${sides}</small></div>`;
 }
 
-function world() { return WORLDS[S.w]; }
-function char(id) { return world().characters.find((c) => c.id === id); }
-function statOf(c, stat) { return c && c.stats && stat in c.stats ? c.stats[stat] : world().base_stat ?? 0; }
-function scene() { return world().scenes[S.scene]; }
+/* card art: a fetched deck when one is chosen (decks/ID/QS.svg), else drawn here */
+const RANK_FILE = (r) => ({ 10: "T", 11: "J", 12: "Q", 13: "K", 14: "A" }[r] || String(r));
+function artHTML(src, label) { return `<img src="${esc(src)}" alt="" draggable="false" onerror="this.closest('.pc').classList.remove('img');this.remove()"><span class="sr">${esc(label)}</span>`; }
+
+function cardHTML(c, o = {}) {
+  const cls = ["pc", o.size || "", o.extra || ""].join(" ");
+  if (!c || o.back) {
+    const b = frame.backArt();
+    return b ? `<div class="${cls} img" aria-label="a card, face down">${artHTML(b, "")}</div>` : `<div class="${cls} back" aria-label="a card, face down"></div>`;
+  }
+  const deck = frame.deckArt();
+  if (deck) {
+    const label = `${RANK_TEXT(c.r)} of ${SUIT_NAME[c.s]}`;
+    const art = artHTML(`decks/${deck.id}/${RANK_FILE(c.r)}${c.s}.${deck.ext}`, label);
+    if (o.button) return `<button class="${cls} img ${o.chosen ? "chosen" : ""}" data-card="${cardName(c)}" ${o.disabled ? "disabled" : ""} aria-label="${label}">${art}</button>`;
+    return `<div class="${cls} img" role="img" aria-label="${label}">${art}</div>`;
+  }
+  const red = c.s === "H" || c.s === "D";
+  const face = c.r > 10;
+  const inner = `<span class="ix">${RANK_TEXT(c.r)}<i>${SUIT_GLYPH[c.s]}</i></span><span class="pip ${face ? "face" : ""}">${face ? RANK_TEXT(c.r) : SUIT_GLYPH[c.s]}</span>`;
+  const label = `${RANK_TEXT(c.r)} of ${SUIT_NAME[c.s]}`;
+  if (o.button) return `<button class="${cls} ${red ? "red" : ""} ${o.chosen ? "chosen" : ""}" data-card="${cardName(c)}" ${o.disabled ? "disabled" : ""} aria-label="${label}">${inner}</button>`;
+  return `<div class="${cls} ${red ? "red" : ""}" role="img" aria-label="${label}">${inner}</div>`;
+}
+
+/* two switches, off unless you turn them on, remembered in this browser only:
+   hints lights the cards the rules allow and says what to follow; open shows
+   the other seats' hands, as the record plays them */
+const remembered = (k) => { try { return localStorage.getItem(k) === "1"; } catch (e) { return false; } };
+const remember = (k, v) => { try { localStorage.setItem(k, v ? "1" : "0"); } catch (e) {} };
+
+const recall = (k, fallback) => { try { const v = localStorage.getItem(k); return v === null ? fallback : v; } catch (e) { return fallback; } };
+
+const frame = {
+  open: remembered("dn-open"),
+  hints: remembered("dn-hints"),
+  /* the art: a deck for the faces and a back, each by id, "" for drawn */
+  deckId: "",
+  backId: "",
+  deckArt() { return (GAME.decks || []).find((d) => d.id === this.deckId) || null; },
+  backArt() {
+    if (!this.backId) return null;
+    const [id, name] = this.backId.split("/");
+    const d = (GAME.decks || []).find((x) => x.id === id);
+    return d && d.backs.includes(name) ? `decks/${id}/back-${name}.svg` : null;
+  },
+  setup(opts) {
+    document.documentElement.style.setProperty("--lid", GAME.lid);
+    document.documentElement.style.setProperty("--lid-ink", GAME.ink);
+    $("title").textContent = GAME.name;
+    $("line").textContent = GAME.summary;
+    $("cmds").textContent = GAME.commands.join("\n");
+    $("record-note").textContent = "There the deal is seeded by the record's tip and every card is a row; here the shuffle is your browser's and nothing is kept.";
+    $("ring").hidden = !opts.seats; $("mine").hidden = !opts.seats; $("stage").hidden = !!opts.seats;
+    $("p-score").hidden = !opts.score; $("p-deck").hidden = !opts.deck;
+    if (opts.scoreTitle) $("score-title").textContent = opts.scoreTitle;
+    if (opts.deckTitle) $("deck-title").textContent = opts.deckTitle;
+    const t = [];
+    if (opts.hints !== false) t.push(`<button class="toggle" id="t-hints" aria-pressed="${this.hints}" title="Light the cards the rules allow">Hints</button>`);
+    if (opts.seats) t.push(`<button class="toggle" id="t-open" aria-pressed="${this.open}" title="Show the other seats' cards">Hands open</button>`);
+    /* the art, when any was fetched: a deck for the faces, and (for a 52) a back from any deck */
+    const decks = GAME.decks || [], kind = GAME.deckKind;
+    if (decks.length) {
+      const blue = decks.find((d) => d.backs.includes("blue"));
+      this.deckId = recall(`dn-deck-${kind}`, decks[0].id);
+      if (this.deckId && !decks.some((d) => d.id === this.deckId)) this.deckId = decks[0].id;
+      const backs = decks.flatMap((d) => d.backs.map((b) => [`${d.id}/${b}`, `${d.name}: ${b.replace(/_/g, " ")}`]));
+      this.backId = recall("dn-back", blue ? `${blue.id}/blue` : backs.length ? backs[0][0] : "");
+      if (this.backId && !backs.some(([v]) => v === this.backId)) this.backId = "";
+      t.push(`<label class="toggle pick"><span>Deck</span><select id="t-deck">${[["", "Drawn"], ...decks.map((d) => [d.id, d.name])].map(([v, l]) => `<option value="${esc(v)}" ${v === this.deckId ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`);
+      if (backs.length) t.push(`<label class="toggle pick"><span>Back</span><select id="t-back">${[["", "Drawn"], ...backs].map(([v, l]) => `<option value="${esc(v)}" ${v === this.backId ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`);
+    }
+    $("toggles").innerHTML = t.join("");
+    const credit = () => { const d = this.deckArt(); $("credit").textContent = d ? `Cards: ${d.name}, by ${d.credit}. ${d.license}.` : ""; };
+    const sel = (id, key, prop) => { const s = $(id); if (s) s.addEventListener("change", () => { this[prop] = s.value; try { localStorage.setItem(key, s.value); } catch (e) {} credit(); opts.redraw(); }); };
+    sel("t-deck", `dn-deck-${kind}`, "deckId"); sel("t-back", "dn-back", "backId");
+    credit();
+    for (const [id, key, prop] of [["t-hints", "dn-hints", "hints"], ["t-open", "dn-open", "open"]]) {
+      const b = $(id);
+      if (b) b.addEventListener("click", () => { this[prop] = !this[prop]; remember(key, this[prop]); b.setAttribute("aria-pressed", this[prop]); opts.redraw(); });
+    }
+  },
+  status(html) { $("status").innerHTML = html; },
+  /* a move the rules refuse: name the rule, never the answer */
+  refuse(rule) { $("status").innerHTML = `<span style="color:#ff9b85">Not allowed: ${esc(rule)}</span>`; },
+  actions(html) { $("actions").innerHTML = html; },
+  middle(html) { $("middle").innerHTML = html; },
+  stage(html) { $("stage").innerHTML = html; },
+  /* each other seat: its name, a line about it, and its hand, open or face down */
+  /* a seat holding anything (a cup, a stack): its name, a line, and what the game draws there */
+  seatAny(i, inner, o = {}) {
+    const el = document.querySelector(`.seat[data-seat="${SEATS[i]}"]`);
+    el.classList.toggle("turn", !!o.turn);
+    el.classList.toggle("out", !!o.out);
+    el.innerHTML = `<div class="seat-name">${esc(SEAT_NAME(i))}<span class="meta">${o.meta || ""}</span></div>${inner}`;
+  },
+  mineAny(inner, o = {}) {
+    $("mine").innerHTML = `<div class="seat-name" style="${o.turn ? "color:var(--go)" : ""}">${o.turn ? "▸ " : ""}You · south<span class="meta">${o.meta || ""}</span></div>${inner}`;
+  },
+  seat(i, hand, o = {}) {
+    const el = document.querySelector(`.seat[data-seat="${SEATS[i]}"]`);
+    el.classList.toggle("turn", !!o.turn);
+    const cards = this.open ? sortHand(hand.slice()).map((c) => cardHTML(c, { size: "small" })).join("") : hand.map(() => cardHTML(null, { size: "small" })).join("");
+    el.innerHTML = `<div class="seat-name">${esc(SEAT_NAME(i))}<span class="meta">${o.meta || ""}</span></div><div class="hand" style="--overlap:${hand.length > 8 ? "-22px" : "-14px"}">${cards}</div>`;
+  },
+  /* your hand: buttons. With hints on, only the cards the rules allow are lit;
+     with hints off, every card is live on your turn and the game says no. */
+  mine(hand, o = {}) {
+    const el = $("mine");
+    const allowed = o.can || (() => false), chosen = o.chosen || (() => false);
+    const can = o.any ? () => true : this.hints ? allowed : () => !!o.turn && !o.locked;
+    el.innerHTML = `<div class="seat-name ${o.turn ? "" : ""}" style="${o.turn ? "color:var(--go)" : ""}">${o.turn ? "▸ " : ""}You · south<span class="meta">${o.meta || ""}</span></div>
+      <div class="hand mine-hand ${this.hints ? "" : "quiet"}" style="--overlap:${hand.length > 10 ? "-24px" : "-8px"}">${hand.map((c) => cardHTML(c, { button: true, disabled: !can(c), chosen: chosen(c) })).join("")}</div>`;
+  },
+  /* the scoresheet: a column a seat, a row a hand, totals underneath */
+  score({ cols, rows, totals, lead, note, empty, head = "Hand", you = YOU }) {
+    $("score").innerHTML = `<table class="sheet"><thead><tr><th>${esc(head)}</th>${cols.map((c, i) => `<th class="${i === you ? "you" : ""}">${esc(c)}</th>`).join("")}</tr></thead>
+      <tbody>${rows.length ? rows.map((r) => `<tr><td>${esc(r.label)}</td>${r.cells.map((v) => `<td>${v}</td>`).join("")}</tr>`).join("") : `<tr class="empty"><td colspan="${cols.length + 1}">${esc(empty || "No hands yet")}</td></tr>`}</tbody>
+      ${totals ? `<tfoot><tr><td>Total</td>${totals.map((v, i) => `<td class="${lead && lead.includes(i) ? "lead" : ""}">${v}</td>`).join("")}</tr></tfoot>` : ""}</table>`;
+    $("score-note").textContent = note || "";
+  },
+  /* the deck: what is where, in rows */
+  deck(rows, note) {
+    $("deck").innerHTML = rows.map(([k, v]) => `<div class="deck-row"><span>${esc(k)}</span><span>${esc(v)}</span></div>`).join("") + (note ? `<p class="note">${esc(note)}</p>` : "");
+  },
+  log(html) { const li = document.createElement("li"); li.innerHTML = html; $("log").prepend(li); },
+  /* a side panel of the game's own, above the scoresheet: made once, its body redrawn */
+  panel(id, title, html) {
+    let p = $("p-" + id);
+    if (!p) {
+      p = document.createElement("section"); p.className = "panel"; p.id = "p-" + id;
+      p.innerHTML = `<h2>${esc(title)}</h2><div id="${id}"></div>`;
+      $("extra-panels").append(p);
+    }
+    if (html !== undefined) $(id).innerHTML = html;
+    return $(id);
+  },
+  clearLog() { $("log").innerHTML = ""; },
+};
+</script>
+<script>
+/* The Table: the box's stories played as game-master plays them
+   (adapters/stdlib/game-master), in chapters that carry canon.
+
+   An action beat rolls 2d6 and the acting character's stat, read strong (10+),
+   weak (7-9) or miss (6-). A decision beat is a ruling: its fact waits for the
+   game master's seal or decline, and only a seal makes it canon. An offer is
+   what a seated character brings on the night, beside the story's path. A
+   beat's `when` follows an earlier beat's result, a sealed offer, or a ruling
+   sealed in an earlier chapter (story::scene::beat): the campaign this browser
+   keeps is what those chapters made true.
+
+   The binder is asked the way willow's own UI searches (ui/canvas.py): your
+   words read through the GM's words list, ranked by pile-rank's BM25F, a page
+   you named first, then what your words usually mean, then the ranking, each
+   with why. It points at where to look; it doesn't answer for the binder. */
+
+const WORLDS = GAME.worlds;
+const PERSON = "you"; // the game master, at this browser
+
+/* ---------- the campaign: what earlier chapters made true, kept in this browser ---------- */
+const CAMPAIGN_KEY = "dn-campaign";
+function loadCampaign() { try { const c = JSON.parse(localStorage.getItem(CAMPAIGN_KEY) || "null"); if (c && c.nights) return c; } catch (e) {} return { nights: [], sealed: {}, canon: [] }; }
+function saveCampaign() { try { localStorage.setItem(CAMPAIGN_KEY, JSON.stringify(C)); } catch (e) {} }
+let C = loadCampaign();
+
+/* ---------- the story, as game-master plays it ---------- */
+const TWO_D6 = [0, 0, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1];
+const BAND_LABEL = { strong: "Strong hit", weak: "Weak hit", miss: "Miss", sealed: "Sealed", declined: "Declined" };
+const band = (t) => (t >= 10 ? "strong" : t >= 7 ? "weak" : "miss");
+function odds(mod) { const o = { strong: 0, weak: 0, miss: 0 }; for (let t = 2; t <= 12; t++) o[band(t + mod)] += TWO_D6[t] / 36; return o; }
+
+let S; // tonight
+const world = () => WORLDS[S.w];
+const char = (id) => world().characters.find((c) => c.id === id);
+const statOf = (c, stat) => (c && c.stats && stat in c.stats ? c.stats[stat] : world().base_stat ?? 0);
+const scene = () => world().scenes[S.scene];
+const beatNow = () => { const sc = scene(); return sc ? sc.beats[S.beat] : null; };
 
 function whenHolds(when) {
   if (!when) return true;
   if (when.beat) return when.is.includes(S.results[when.beat]);
   if (when.offered) return S.offers.some((o) => o.kind === when.offered && when.is.includes(o.status));
-  return false; // a ruling from another story: not on this table
+  if (when.sealed) return when.is.includes(C.sealed[when.sealed]); // an earlier chapter's ruling
+  return false;
 }
 function nextBeat() {
   const w = world();
@@ -251,202 +497,253 @@ function nextBeat() {
     const beats = w.scenes[S.scene].beats;
     while (++S.beat < beats.length) if (whenHolds(beats[S.beat].when)) return;
     S.scene++; S.beat = -1;
-    if (S.scene < w.scenes.length) { S.opened = true; log("scene", `<b>${esc(w.scenes[S.scene].title)}</b>`); }
+    if (S.scene < w.scenes.length) { S.opened = true; frame.log(`<b>${esc(w.scenes[S.scene].title)}</b>`); }
   }
 }
-
 function start(w) {
-  S = { w, scene: 0, beat: -1, results: {}, offers: [], log: [], stat: null, roll: null, opened: true };
-  log("open", `<b>${esc(world().title)}</b> opens: ${esc(scene().title)}`);
+  S = { w, scene: 0, beat: -1, results: {}, offers: [], stat: null, roll: null, ruled: null, opened: true, committed: false, rolls: [] };
+  frame.clearLog();
+  frame.log(`<b>${esc(world().title)}</b> opens: ${esc(scene().title)}`);
   nextBeat();
-  try { localStorage.setItem("dn-world", String(w)); } catch (e) {}
+  try { localStorage.setItem("dn-world", world().id); } catch (e) {}
   render();
 }
-function log(tag, html, bandName) { S.log.unshift({ tag, html, band: bandName }); }
-
-function beatNow() { const sc = scene(); return sc ? sc.beats[S.beat] : null; }
-
 function roll() {
-  const b = beatNow(); const c = char(b.by);
-  const stat = S.stat || (HINTS ? b.suggests : null);
-  if (!stat) return;
-  const mod = statOf(c, stat), d = [d6(), d6()], total = d[0] + d[1] + mod, bd = band(total);
+  const b = beatNow(), c = char(b.by);
+  const stat = S.stat || (frame.hints ? b.suggests : null);
+  if (!stat) return frame.refuse("choose a stat to roll with.");
+  const mod = statOf(c, stat), d = [1 + rnd(6), 1 + rnd(6)], total = d[0] + d[1] + mod, bd = band(total);
   S.roll = { d, mod, stat, total, band: bd };
   S.results[`${scene().id}::${b.id}`] = bd;
-  log(bd, `<b>${esc(c ? c.name : b.by)}</b> rolls ${esc(stat)}: ${d[0]}+${d[1]}${mod >= 0 ? "+" : "−"}${Math.abs(mod)} = ${total}`, bd);
+  S.rolls.push(bd);
+  frame.log(`<b>${esc(c ? c.name : b.by)}</b> rolls ${esc(stat)}: ${d[0]}+${d[1]}${mod >= 0 ? "+" : "−"}${Math.abs(mod)} = ${total}, ${bd}`);
   render(true);
 }
 function rule(answer) {
   const b = beatNow();
-  S.results[`${scene().id}::${b.id}`] = answer;
-  S.ruled = answer;
-  log(answer, answer === "sealed" ? `You sealed: ${esc(b.proposes.fact)}` : `You declined: ${esc(b.prompt)}`, answer);
+  S.results[`${scene().id}::${b.id}`] = answer; S.ruled = answer;
+  frame.log(answer === "sealed" ? `You sealed: ${esc(b.proposes.fact)}` : `You declined: ${esc(b.prompt)}`);
   render();
 }
 function advance() { S.roll = null; S.ruled = null; S.stat = null; S.opened = false; nextBeat(); render(); }
-
-function offer(by, kind, fact) {
-  S.offers.push({ by, kind, fact, status: "waiting" });
-  S.justOffered = true;
-  log("offer", `<b>${esc(char(by).name)}</b> offers: ${esc(fact)}`);
-  render();
+function tonightCanon() {
+  const facts = [];
+  for (const sc of world().scenes) for (const b of sc.beats)
+    if (b.kind === "decision" && S.results[`${sc.id}::${b.id}`] === "sealed") facts.push({ fact: b.proposes.fact, key: `${world().id}::${sc.id}::${b.id}` });
+  S.offers.forEach((o) => { if (o.status === "sealed") facts.push({ fact: o.fact, key: `${world().id}::offer::${o.kind}` }); });
+  return facts;
 }
-function settleOffer(i, answer) {
-  const o = S.offers[i]; o.status = answer;
-  log(answer, `${answer === "sealed" ? "Canon" : "Set aside"}: ${esc(o.fact)}`, answer);
-  render();
+/* the night ends: what it made true goes into the campaign, once */
+function commit() {
+  if (S.committed) return; S.committed = true;
+  const w = world(), made = tonightCanon();
+  for (const sc of w.scenes) for (const b of sc.beats) if (b.kind === "decision" && S.results[`${sc.id}::${b.id}`]) C.sealed[`${w.id}::${sc.id}::${b.id}`] = S.results[`${sc.id}::${b.id}`];
+  made.forEach((m) => C.canon.push({ ...m, story: w.title }));
+  C.nights.push({ story: w.id, title: w.title, date: new Date().toISOString().slice(0, 10), canon: made.length, rolls: S.rolls.length });
+  saveCampaign();
+  frame.log(`<b>The night ends.</b> ${made.length} fact${made.length === 1 ? "" : "s"} made canon, kept for the chapters after.`);
 }
 
-/* ---------- render ---------- */
-function renderWorlds() {
-  $("worlds").innerHTML = WORLDS.map((w, i) =>
-    `<button class="world-chip" aria-pressed="${i === S.w}" data-w="${i}">${esc(w.title)}</button>`).join("");
+/* ---------- the binder, asked as willow's UI asks ---------- */
+const FN = new Set(GAME.binder.function);
+const ALIAS = GAME.binder.alias;
+const wordsOf = (t) => t.normalize("NFC").toLowerCase().match(/[\p{L}\p{N}]+/gu) || [];
+function stem(w) { // the kernel's stem, rule for rule
+  if (w.length < 3 || !/^[a-z]+$/.test(w)) return w;
+  let s = w;
+  if (s.length > 4 && (s.endsWith("ies") || s.endsWith("ied"))) s = s.slice(0, -3) + "y";
+  else if (s.length > 4 && s.endsWith("ing")) s = s.slice(0, -3);
+  else if (s.length > 3 && s.endsWith("ed") && !s.endsWith("eed")) s = s.slice(0, -2);
+  else if (s.length > 3 && s.endsWith("s") && !s.endsWith("ss")) s = s.slice(0, -1);
+  if (s.length > 3 && s[s.length - 1] === s[s.length - 2] && !"aeiouls".includes(s[s.length - 1])) s = s.slice(0, -1);
+  if (s.length > 2 && s.endsWith("e")) s = s.slice(0, -1);
+  return s;
 }
-
-function renderPlay(tumble) {
-  const w = world(), sc = scene(), b = beatNow();
-  if (!sc) {
-    const rolls = S.log.filter((l) => ["strong", "weak", "miss"].includes(l.tag));
-    const count = (k) => rolls.filter((r) => r.tag === k).length;
-    $("play").innerHTML = `
-      <p class="setting">${esc(w.setting)}</p>
-      <section class="beat end">
-        <span class="eyebrow">The night ends</span>
-        <h3>${esc(w.title)}</h3>
-        <p>${rolls.length} rolls: ${count("strong")} strong, ${count("weak")} weak, ${count("miss")} miss. ${canon().length === 1 ? "1 fact" : canon().length + " facts"} made canon.</p>
-        <div class="row"><button class="btn" data-act="restart">Play it again</button></div>
-      </section>`;
-    return;
+const BREAK = /[.,;:!?()\[\]{}"|]/;
+const lineTerms = (line) => wordsOf(line).filter((w) => !FN.has(w)).map(stem);
+const clauses = (line) => line.split(BREAK).map(lineTerms).filter((ts) => ts.length);
+const pairs = (ws) => ws.slice(1).map((b, i) => `${ws[i]} ${b}`);
+const WEIGHT = { title: 2, asks: 1.5, body: 1 }, K1 = 1.2, BB = 0.75;
+const RANK = (() => { // pile-rank's Ranker over the binder's passages
+  const pile = GAME.binder.passages, first = new Map();
+  pile.forEach((c, i) => { if (!first.has(c.id)) first.set(c.id, i); });
+  const texts = [...first.values()].sort((a, b) => a - b), split = new Map();
+  for (const i of texts) {
+    const lines = pile[i].text.split("\n");
+    split.set(i, {
+      body: lines.flatMap(clauses),
+      title: [lineTerms(pile[i].path), ...lines.filter((x) => x.trimStart().startsWith("#")).flatMap(clauses)],
+      asks: lines.filter((x) => x.trimEnd().endsWith("?")).flatMap(clauses),
+    });
   }
-  const head = `
-    <p class="setting">${esc(w.setting)}</p>
-    <div class="scene-head"><span class="eyebrow">Scene ${S.scene + 1} of ${w.scenes.length}</span>
-      <span class="eyebrow" style="color:var(--ink-faint)">${esc((w.places.find((p) => p.id === sc.place) || {}).name || "")}</span></div>
-    <h2 class="scene-title">${esc(sc.title)}</h2>
-    ${S.opened && sc.opening ? `<ul class="opening">${sc.opening.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>` : ""}`;
+  const users = new Map();
+  for (const f of split.values()) for (const p of new Set(f.body.flatMap(pairs))) users.set(p, (users.get(p) || 0) + 1);
+  const phrases = new Set([...users].filter(([, n]) => n >= 2).map(([p]) => p));
+  const counts = new Map(), length = new Map(), post = new Map();
+  for (const [i, f] of split) {
+    const per = {};
+    for (const name of Object.keys(f)) { const got = new Map(); for (const ln of f[name]) for (const t of [...ln, ...pairs(ln).filter((p) => phrases.has(p))]) got.set(t, (got.get(t) || 0) + 1); per[name] = got; }
+    counts.set(i, per);
+    length.set(i, Object.fromEntries(Object.keys(f).map((n) => [n, f[n].reduce((a, ln) => a + ln.length, 0)])));
+    for (const t of new Set(Object.values(per).flatMap((g) => [...g.keys()]))) { if (!post.has(t)) post.set(t, []); post.get(t).push(i); }
+  }
+  const n = Math.max(texts.length, 1), mean = {};
+  for (const name of Object.keys(WEIGHT)) mean[name] = [...length.values()].reduce((a, x) => a + x[name], 0) / n;
+  const terms = (q) => { const cs = clauses(q); return [...new Set([...cs.flat(), ...cs.flatMap(pairs).filter((p) => phrases.has(p))])]; };
+  return (q, top) => {
+    const ts = terms(q).filter((t) => post.has(t)), score = new Map();
+    for (const t of ts) {
+      const df = post.get(t).length, idf = Math.log((texts.length - df + 0.5) / (df + 0.5) + 1);
+      for (const i of post.get(t)) {
+        let tf = 0;
+        for (const [name, w] of Object.entries(WEIGHT)) { const f = counts.get(i)[name].get(t) || 0; if (f) tf += (w * f) / (1 - BB + (BB * length.get(i)[name]) / (mean[name] || 1)); }
+        score.set(i, (score.get(i) || 0) + (idf * tf * (K1 + 1)) / (tf + K1));
+      }
+    }
+    return [...score.keys()].sort((a, b) => score.get(b) - score.get(a) || a - b).slice(0, top)
+      .map((i) => ({ c: pile[i], score: score.get(i), held: ts.filter((t) => counts.get(i).body.has(t) || counts.get(i).title.has(t)) }));
+  };
+})();
+function askBinder(question, top = 6) {
+  const said = wordsOf(question);
+  if (!said.length) return [];
+  const asked = [...said, ...said.slice(1).map((b, i) => said[i] + b)]; // "spring wasps" is also "springwasps"
+  const means = new Map();
+  for (const w of asked) for (const m of ALIAS[w] || []) if (!means.has(m)) means.set(m, w);
+  const ranked = RANK([...new Set([...asked, ...means.keys()])].join(" "), top * 2);
+  const pageName = (path) => path.split("/").pop().replace(/\.[^.]+$/, "");
+  const named = (path, ws) => { const nm = pageName(path); return [nm, ...nm.split("-")].find((p) => ws.includes(p) && p.length >= 3 && !FN.has(p)) || null; };
+  const meanWords = [...means.keys()];
+  const tier = (r) => (named(r.c.path, asked) ? 0 : named(r.c.path, meanWords) ? 1 : 2);
+  return ranked.map((r, k) => ({ ...r, k })).sort((a, b) => tier(a) - tier(b) || a.k - b.k).slice(0, top).map((r) => {
+    let why;
+    if (named(r.c.path, asked)) why = "you named its page";
+    else if (named(r.c.path, meanWords)) why = `what “${means.get(named(r.c.path, meanWords))}” usually means here`;
+    else { // the words it holds, as you said them, not their plain forms
+      const yours = (t) => [...asked, ...meanWords].find((w) => stem(w) === t || w === t) || t;
+      why = r.held.length ? `holds ${[...new Set(r.held.slice(0, 4).map(yours))].join(", ")}` : "close to what you said";
+    }
+    return { ...r, why };
+  });
+}
 
+/* ---------- drawing ---------- */
+function stageHTML(tumble) {
+  const w = world();
+  const chips = WORLDS.map((x, i) => {
+    const played = C.nights.filter((n) => n.story === x.id).length;
+    return `<button class="toggle" style="border-color:var(--edge)" data-w="${i}" aria-pressed="${i === S.w}">${esc(x.title)}${played ? ` ✓${played > 1 ? played : ""}` : ""}</button>`;
+  }).join("");
+  const head = `<div class="actions" style="gap:6px">${chips}</div><p class="note" style="font-style:italic;max-width:62ch;text-align:center;margin:0">${esc(w.setting)}</p>`;
+  const sc = scene();
+  if (!sc) {
+    const n = (k) => S.rolls.filter((r) => r === k).length, made = tonightCanon();
+    return `${head}<div style="display:grid;gap:10px;justify-items:center;text-align:center;padding:12px 0">
+      <span class="count">the night ends</span><h2 style="font-family:var(--lid-font);font-weight:400;font-size:2rem;margin:0">${esc(w.title)}</h2>
+      <p style="margin:0">${S.rolls.length} roll${S.rolls.length === 1 ? "" : "s"}: ${n("strong")} strong, ${n("weak")} weak, ${n("miss")} miss. ${made.length} fact${made.length === 1 ? "" : "s"} made canon, kept for the next chapter.</p>
+      <div class="actions"><button class="btn" data-act="restart">Play it again</button></div></div>`;
+  }
+  const place = (w.places.find((p) => p.id === sc.place) || {}).name || "";
   let card = "";
+  const b = beatNow();
   if (b.kind === "action") {
-    const c = char(b.by), chosen = S.roll ? S.roll.stat : S.stat || (HINTS ? b.suggests : null);
+    const c = char(b.by), chosen = S.roll ? S.roll.stat : S.stat || (frame.hints ? b.suggests : null);
     const stats = w.stats.map((st) => {
       const m = statOf(c, st), o = odds(m), pct = (x) => Math.round(x * 100);
-      return `<button class="stat" data-stat="${esc(st)}" aria-pressed="${st === chosen}" ${S.roll ? "disabled" : ""}>
-        <span class="stat-top"><span class="stat-name">${esc(st)}</span><span class="stat-mod">${m >= 0 ? "+" : "−"}${Math.abs(m)}</span></span>
-        ${HINTS ? `<span class="odds" aria-hidden="true"><i class="s" style="width:${pct(o.strong)}%"></i><i class="w" style="width:${pct(o.weak)}%"></i><i class="m" style="width:${pct(o.miss)}%"></i></span>
-        <span class="odds-nums"><span>${pct(o.strong)}% strong</span><span>${pct(o.miss)}% miss</span></span>
-        ${st === b.suggests ? `<span class="stat-sug">the beat suggests</span>` : ""}` : ""}
+      return `<button class="toggle" data-stat="${esc(st)}" aria-pressed="${st === chosen}" ${S.roll ? "disabled" : ""} style="display:grid;gap:4px;min-width:110px;text-align:left;border-color:var(--edge);border-radius:10px;padding:8px 10px">
+        <span style="display:flex;justify-content:space-between;gap:8px"><b>${esc(st)}</b><span style="font-family:var(--mono)">${m >= 0 ? "+" : "−"}${Math.abs(m)}</span></span>
+        ${frame.hints ? `<span style="display:flex;height:5px;border-radius:3px;overflow:hidden"><i style="width:${pct(o.strong)}%;background:#6fc3a0"></i><i style="width:${pct(o.weak)}%;background:#e2b04f"></i><i style="width:${pct(o.miss)}%;background:#e0745e"></i></span><span class="count" style="text-align:left">${pct(o.strong)}% strong${st === b.suggests ? " · suggested" : ""}</span>` : ""}
       </button>`;
     }).join("");
     const r = S.roll;
-    card = `
-      <section class="beat">
-        <div class="beat-kind"><span class="pill action">Action</span><span class="actor">${esc(c ? c.name : b.by)}${c && c.role ? `, ${esc(c.role)}` : ""}</span></div>
-        <p class="prompt">${esc(b.prompt)}</p>
-        <div class="stats" role="group" aria-label="Roll with which stat">${stats}</div>
-        <div class="tray">
-          <div class="dice">${r ? dieHTML(r.d[0], tumble ? "tumble" : "") + dieHTML(r.d[1], tumble ? "tumble" : "") : dieHTML(0, "idle") + dieHTML(0, "idle")}</div>
-          ${r ? `<div class="sum">${r.d[0]} + ${r.d[1]} ${r.mod >= 0 ? "+" : "−"} ${Math.abs(r.mod)} ${esc(r.stat)} = <strong>${r.total}</strong></div>`
-              : chosen ? `<button class="btn" data-act="roll">Roll 2d6 + ${esc(chosen)}</button>` : `<span class="sum">Choose a stat to roll with.</span>`}
-        </div>
-        ${r ? `<div class="result b-${r.band}"><span class="band">${BAND_LABEL[r.band]}</span><p>${esc(b.outcomes[r.band])}</p></div>
-               <div class="row"><button class="btn" data-act="next">Next beat</button></div>` : ""}
-      </section>`;
+    card = `<span class="count">${esc(c ? c.name : b.by)}${c && c.role ? `, ${esc(c.role)}` : ""} · action</span>
+      <p style="font-family:var(--prose);font-size:1.3rem;margin:0;text-align:center;max-width:40ch">${esc(b.prompt)}</p>
+      <div class="actions" style="gap:8px" role="group" aria-label="Roll with which stat">${stats}</div>
+      <div class="dice-row">${r ? dieHTML(r.d[0], { roll: tumble }) + dieHTML(r.d[1], { roll: tumble }) + `<span class="count" style="font-size:.95rem">+ ${r.mod} ${esc(r.stat)} = <b style="font-size:1.4rem;color:var(--chalk)">${r.total}</b></span>` : `<button class="btn" data-act="roll">${chosen ? `Roll 2d6 + ${esc(chosen)}` : "Choose a stat, then roll"}</button>`}</div>
+      ${r ? `<div style="border-left:3px solid ${{ strong: "#6fc3a0", weak: "#e2b04f", miss: "#e0745e" }[r.band]};padding:2px 0 2px 12px;max-width:44ch"><span class="count">${BAND_LABEL[r.band]}</span><p style="margin:2px 0 0;font-family:var(--prose);font-size:1.1rem">${esc(b.outcomes[r.band])}</p></div><button class="btn" data-act="next">Next beat</button>` : ""}`;
   } else {
     const p = b.proposes, by = char(p.proposed_by);
-    card = `
-      <section class="beat">
-        <div class="beat-kind"><span class="pill decision">Ruling</span><span class="actor">a fact on the table</span></div>
-        <p class="prompt">${esc(b.prompt)}</p>
-        <blockquote class="proposal">${esc(p.fact)}<footer>proposed by ${esc(by ? by.name : p.proposed_by)}</footer></blockquote>
-        ${S.ruled
-          ? `<div class="result b-${S.ruled}"><span class="band">${BAND_LABEL[S.ruled]}</span><p>${S.ruled === "sealed" ? "It is canon now." : "It stays a maybe. The story goes on without it."}</p></div>
-             <div class="row"><button class="btn" data-act="next">Next beat</button></div>`
-          : `<div class="row"><button class="btn seal" data-act="seal">Seal it</button><button class="btn ghost" data-act="decline">Decline</button></div>
-             <p class="yours">You're the game master. The call is yours; the table only proposes.</p>`}
-      </section>`;
+    card = `<span class="count">a ruling</span>
+      <p style="font-family:var(--prose);font-size:1.3rem;margin:0;text-align:center;max-width:40ch">${esc(b.prompt)}</p>
+      <blockquote style="margin:0;padding:12px 16px;border:2px dashed #9db8f0;border-radius:10px;font-family:var(--prose);font-size:1.08rem;max-width:44ch">${esc(p.fact)}<div class="count" style="text-align:left;margin-top:4px">proposed by ${esc(by ? by.name : p.proposed_by)}</div></blockquote>
+      ${S.ruled ? `<p style="margin:0">${S.ruled === "sealed" ? "<b>Sealed.</b> It is canon now." : "<b>Declined.</b> The story goes on without it."}</p><button class="btn" data-act="next">Next beat</button>`
+        : `<div class="actions"><button class="btn" data-act="seal" style="background:#9db8f0;color:#101a33">Seal it</button><button class="btn ghost" data-act="decline">Decline</button></div><p class="note" style="margin:0">You're the game master: the call is yours; the table only proposes.</p>`}`;
   }
-  $("play").innerHTML = head + card;
-}
-
-function renderCast() {
-  const w = world();
-  $("cast").innerHTML = w.characters.map((c) => `
-    <div class="who ${c.seat ? "" : "npc"}">
-      <div class="who-top"><span class="who-name">${esc(c.name)}</span><span class="who-role">${esc(c.role || "")}${c.seat ? "" : " · not a seat"}</span></div>
-      ${c.seat ? `<div class="sheet">${w.stats.map((st) => { const m = statOf(c, st); return `<span class="${m > (w.base_stat ?? 0) ? "up" : ""}">${esc(st)} ${m >= 0 ? "+" : "−"}${Math.abs(m)}</span>`; }).join("")}</div>` : ""}
-    </div>`).join("");
-}
-
-function canon() {
-  const facts = [];
-  for (const sc of world().scenes) for (const b of sc.beats)
-    if (b.kind === "decision" && S.results[`${sc.id}::${b.id}`] === "sealed") facts.push(b.proposes.fact);
-  S.offers.forEach((o) => { if (o.status === "sealed") facts.push(o.fact); });
-  return facts;
-}
-function renderCanon() {
-  const f = canon();
-  $("canon").innerHTML = f.length ? f.map((x) => `<li>${esc(x)}</li>`).join("") : `<p class="empty">Nothing yet. A fact becomes canon only when you seal it.</p>`;
-}
-
-function renderOffers() {
-  const w = world(), seats = w.characters.filter((c) => c.seat), kinds = w.offers && w.offers.length ? w.offers : ["fact"];
-  const list = S.offers.length ? `<ul class="offers">${S.offers.map((o, i) => `
-      <li><span class="meta">${esc(char(o.by).name)} · ${esc(o.kind)} · ${esc(o.status)}</span><span>${esc(o.fact)}</span>
-      ${o.status === "waiting" ? `<div class="row"><button class="btn seal small" data-offer="${i}" data-ans="sealed">Seal</button><button class="btn ghost small" data-offer="${i}" data-ans="declined">Decline</button></div>` : ""}</li>`).join("")}</ul>` : "";
-  $("offers").innerHTML = `
-    ${list}
-    <form class="offer-form" id="offer-form">
-      <label for="offer-by">Who brings it</label>
-      <select id="offer-by">${seats.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("")}</select>
-      <label for="offer-kind">What kind</label>
-      <select id="offer-kind">${kinds.map((k) => `<option>${esc(k)}</option>`).join("")}</select>
-      <label for="offer-fact">In their words</label>
-      <textarea id="offer-fact" placeholder="A guest walks in, carrying their own light…"></textarea>
-      <div class="row"><button class="btn ghost small" type="submit">Bring it to the table</button></div>
-    </form>
-    <p class="yours">An offer waits beside the story; the beats go on while it does.</p>`;
-}
-
-function renderLog() {
-  $("log").innerHTML = S.log.map((l) => `<li class="${l.band ? "b-" + l.band : ""}"><span class="tag">${esc(l.tag)}</span><span class="txt">${l.html}</span></li>`).join("");
+  return `${head}
+    <div style="display:grid;gap:4px;justify-items:center;text-align:center">
+      <span class="count">scene ${S.scene + 1} of ${w.scenes.length} · ${esc(place)}</span>
+      <h2 style="font-family:var(--lid-font);font-weight:400;font-size:clamp(1.5rem,3.4vw,2.1rem);margin:0">${esc(sc.title)}</h2>
+      ${S.opened && sc.opening ? sc.opening.map((l) => `<p style="margin:0;font-family:var(--prose)">${esc(l)}</p>`).join("") : ""}
+    </div>
+    <div style="display:grid;gap:12px;justify-items:center;padding:6px 0 4px">${card}</div>`;
 }
 
 function render(tumble) {
-  const f = $("offer-fact"), draft = f ? f.value : "", by = $("offer-by") ? $("offer-by").value : null;
-  renderWorlds(); renderPlay(tumble); renderCast(); renderCanon(); renderOffers(); renderLog();
-  if (draft && !S.justOffered) $("offer-fact").value = draft;
-  if (by && world().characters.some((c) => c.id === by && c.seat)) $("offer-by").value = by;
-  S.justOffered = false;
+  if (!scene() && !S.committed) commit();
+  frame.stage(stageHTML(tumble));
+  frame.status(""); frame.actions("");
+  const w = world();
+  frame.panel("cast", "At the table", w.characters.map((c) => `<div style="display:grid;gap:3px;${c.seat ? "" : "opacity:.7"}">
+    <div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(c.name)}</b><span class="note">${esc(c.role || "")}${c.seat ? "" : " · not a seat"}</span></div>
+    ${c.seat ? `<div style="display:flex;flex-wrap:wrap;gap:4px">${w.stats.map((st) => { const m = statOf(c, st); return `<span style="font-family:var(--mono);font-size:.7rem;padding:1px 6px;border-radius:5px;border:1px solid var(--edge);${m > (w.base_stat ?? 0) ? "color:var(--go)" : "color:var(--chalk-dim)"}">${esc(st)} ${m >= 0 ? "+" : "−"}${Math.abs(m)}</span>`; }).join("")}</div>` : ""}</div>`).join(""));
+  const tonight = tonightCanon(), before = C.canon;
+  frame.panel("canon", "Canon", (tonight.length || before.length)
+    ? `${tonight.map((f) => `<p style="margin:0;padding-left:10px;border-left:2px solid #9db8f0">${esc(f.fact)}</p>`).join("")}
+       ${before.length ? `<p class="note" style="margin:6px 0 0">From earlier chapters:</p>${before.slice().reverse().map((f) => `<p style="margin:0;padding-left:10px;border-left:2px solid var(--edge);color:var(--chalk-dim)">${esc(f.fact)} <span class="note">· ${esc(f.story)}</span></p>`).join("")}` : ""}`
+    : `<p class="note">Nothing yet. A fact becomes canon only when you seal it.</p>`);
+  const kinds = w.offers && w.offers.length ? w.offers : ["fact"];
+  frame.panel("offers", "Offers");
+  if (!$("offer-form")) $("offers").innerHTML = `<div id="offer-list"></div><form id="offer-form" style="display:grid;gap:6px">
+      <select id="offer-by" aria-label="Who brings it"></select><select id="offer-kind" aria-label="What kind"></select>
+      <textarea id="offer-fact" rows="2" placeholder="A guest walks in, carrying their own light…" style="font:inherit;font-family:var(--prose);padding:8px;border-radius:8px;border:1px solid var(--edge);background:#0004;color:var(--chalk)"></textarea>
+      <button class="btn ghost" type="submit">Bring it to the table</button><p class="note">An offer waits beside the story; the beats go on while it does.</p></form>`;
+  const by = $("offer-by"), kind = $("offer-kind");
+  const seatOpts = w.characters.filter((c) => c.seat).map((c) => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("");
+  if (by.dataset.w !== String(S.w)) { by.innerHTML = seatOpts; kind.innerHTML = kinds.map((k) => `<option>${esc(k)}</option>`).join(""); by.dataset.w = String(S.w); }
+  $("offer-list").innerHTML = S.offers.map((o, i) => `<div style="display:grid;gap:4px;padding:8px;border:1px dashed var(--edge);border-radius:8px;margin-bottom:6px"><span class="count" style="text-align:left">${esc(char(o.by).name)} · ${esc(o.kind)} · ${esc(o.status)}</span><span>${esc(o.fact)}</span>${o.status === "waiting" ? `<div class="actions" style="justify-content:flex-start"><button class="btn" style="padding:4px 10px;background:#9db8f0;color:#101a33" data-offer="${i}" data-ans="sealed">Seal</button><button class="btn ghost" style="padding:4px 10px" data-offer="${i}" data-ans="declined">Decline</button></div>` : ""}</div>`).join("");
+  frame.panel("campaign", "The campaign", `${C.nights.length ? C.nights.slice().reverse().slice(0, 8).map((n) => `<div class="deck-row"><span>${esc(n.title)}</span><span>${n.date} · ${n.canon} canon</span></div>`).join("") : `<p class="note">No nights yet. When a story ends, what it made true is kept here, and later chapters can turn on it.</p>`}
+    ${C.nights.length ? (S.confirmReset ? `<div class="actions" style="justify-content:flex-start"><span class="note">Forget every night and its canon?</span><button class="btn" style="padding:4px 10px" data-act="reset-yes">Forget it all</button><button class="btn ghost" style="padding:4px 10px" data-act="reset-no">Keep it</button></div>` : `<button class="btn ghost" style="padding:4px 10px;justify-self:start" data-act="reset">Start a new campaign</button>`) : ""}
+    <p class="note">Kept in this browser only. The campaign that counts is the record's.</p>`);
+}
+
+function renderBinder(question) {
+  const found = askBinder(question);
+  $("binder-results").innerHTML = !question.trim() ? "" : found.length
+    ? found.map((r) => `<details style="border-top:1px solid var(--edge);padding:6px 0"><summary style="cursor:pointer"><b>${esc(r.c.path)}:${r.c.line}</b> <span class="note">· ${esc(r.why)}</span></summary><p style="margin:6px 0 0;white-space:pre-wrap;font-family:var(--prose);font-size:.9rem">${esc(r.c.text)}</p></details>`).join("") + `<p class="note">Where to look, in order: pages you named, then what your words usually mean, then the ranking. It points; it doesn't answer for the binder.</p>`
+    : `<p class="note">Nothing in the binder holds those words. A word you use that the binder doesn't is a line for gm-words.txt.</p>`;
 }
 
 /* ---------- events ---------- */
 document.addEventListener("click", (e) => {
-  const t = e.target.closest("button"); if (!t) return;
+  const t = e.target.closest("button"); if (!t || t.disabled) return;
   if (t.dataset.w) return start(+t.dataset.w);
   if (t.dataset.stat) { S.stat = t.dataset.stat; return render(); }
-  if (t.dataset.offer) return settleOffer(+t.dataset.offer, t.dataset.ans);
-  const act = t.dataset.act;
-  if (act === "roll") roll();
-  else if (act === "next") advance();
-  else if (act === "seal") rule("sealed");
-  else if (act === "decline") rule("declined");
-  else if (act === "restart") start(S.w);
+  if (t.dataset.offer) { const o = S.offers[+t.dataset.offer]; o.status = t.dataset.ans; frame.log(`${o.status === "sealed" ? "Canon" : "Set aside"}: ${esc(o.fact)}`); return render(); }
+  const a = t.dataset.act;
+  if (a === "roll") roll();
+  else if (a === "next") advance();
+  else if (a === "seal") rule("sealed");
+  else if (a === "decline") rule("declined");
+  else if (a === "restart") start(S.w);
+  else if (a === "reset") { S.confirmReset = true; render(); }
+  else if (a === "reset-no") { S.confirmReset = false; render(); }
+  else if (a === "reset-yes") { C = { nights: [], sealed: {}, canon: [] }; saveCampaign(); S.confirmReset = false; frame.log("<b>A new campaign.</b> Every earlier night is forgotten here."); render(); }
 });
 document.addEventListener("submit", (e) => {
-  if (e.target.id !== "offer-form") return;
-  e.preventDefault();
-  const fact = $("offer-fact").value.trim(); if (!fact) { $("offer-fact").focus(); return; }
-  offer($("offer-by").value, $("offer-kind").value, fact);
+  if (e.target.id === "offer-form") {
+    e.preventDefault();
+    const fact = $("offer-fact").value.trim(); if (!fact) return $("offer-fact").focus();
+    S.offers.push({ by: $("offer-by").value, kind: $("offer-kind").value, fact, status: "waiting" });
+    frame.log(`<b>${esc(char($("offer-by").value).name)}</b> offers: ${esc(fact)}`);
+    $("offer-fact").value = ""; render();
+  } else if (e.target.id === "binder-form") { e.preventDefault(); renderBinder($("binder-q").value); }
 });
 
-/* hints: off unless you turn them on, remembered in this browser only (the card pages share it) */
-let HINTS = false;
-try { HINTS = localStorage.getItem("dn-hints") === "1"; } catch (e) {}
-$("t-hints").setAttribute("aria-pressed", HINTS);
-$("t-hints").addEventListener("click", (e) => { e.stopPropagation(); HINTS = !HINTS; e.currentTarget.setAttribute("aria-pressed", HINTS); try { localStorage.setItem("dn-hints", HINTS ? "1" : "0"); } catch (x) {} render(); });
+window.__rank = RANK; window.__ask = askBinder; // for checking against willow
+frame.setup({ seats: false, score: false, deck: false, redraw: () => render() });
+frame.panel("binder", "Ask the binder", `<form id="binder-form" style="display:flex;gap:6px"><input id="binder-q" placeholder="what are the hound's stats" aria-label="Ask the binder" style="flex:1;min-width:0;font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--edge);background:#0004;color:var(--chalk)"><button class="btn" type="submit">Ask</button></form><div id="binder-results" style="display:grid;gap:2px"></div>`);
+let first = Math.max(0, WORLDS.findIndex((w) => w.id === "lantern-fair"));
+try { const id = localStorage.getItem("dn-world"); const i = WORLDS.findIndex((w) => w.id === id); if (i >= 0) first = i; } catch (e) {}
+start(first);
 
-let first = WORLDS.findIndex((w) => w.id === "lantern-fair");
-try { const s = localStorage.getItem("dn-world"); if (s !== null && WORLDS[+s]) first = +s; } catch (e) {}
-start(first < 0 ? 0 : first);
 </script>

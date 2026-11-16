@@ -205,6 +205,7 @@ details.record summary { cursor: pointer; font-size: 0.72rem; letter-spacing: 0.
     <div class="actions" id="actions"></div>
   </main>
   <aside class="side">
+    <div id="extra-panels" style="display:contents"></div>
     <section class="panel" id="p-score" hidden><h2 id="score-title">Scoresheet</h2><div class="sheet-wrap" id="score"></div><p class="note" id="score-note"></p></section>
     <section class="panel" id="p-deck" hidden><h2 id="deck-title">The deck</h2><div id="deck"></div></section>
     <section class="panel" id="p-log"><h2>The game so far</h2><ol class="log" id="log"></ol></section>
@@ -425,6 +426,17 @@ const frame = {
     $("deck").innerHTML = rows.map(([k, v]) => `<div class="deck-row"><span>${esc(k)}</span><span>${esc(v)}</span></div>`).join("") + (note ? `<p class="note">${esc(note)}</p>` : "");
   },
   log(html) { const li = document.createElement("li"); li.innerHTML = html; $("log").prepend(li); },
+  /* a side panel of the game's own, above the scoresheet: made once, its body redrawn */
+  panel(id, title, html) {
+    let p = $("p-" + id);
+    if (!p) {
+      p = document.createElement("section"); p.className = "panel"; p.id = "p-" + id;
+      p.innerHTML = `<h2>${esc(title)}</h2><div id="${id}"></div>`;
+      $("extra-panels").append(p);
+    }
+    if (html !== undefined) $(id).innerHTML = html;
+    return $(id);
+  },
   clearLog() { $("log").innerHTML = ""; },
 };
 </script>
