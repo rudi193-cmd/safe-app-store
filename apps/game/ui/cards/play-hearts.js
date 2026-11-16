@@ -23,6 +23,18 @@ function legal(hand, trick, broken, first) {
   return hand.slice();
 }
 
+/* which rule a card breaks: the rule, never which card would do */
+function broken(card) {
+  const hand = G.hands[YOU], first = G.tricks === 0;
+  if (!G.trick.length) {
+    if (first) return "the 2♣ leads the first trick.";
+    return "hearts can't be led until one has been played.";
+  }
+  if (card.s !== G.trick[0][1].s && hand.some((c) => c.s === G.trick[0][1].s)) return "follow the suit led.";
+  if (first && points(card)) return "no points on the first trick.";
+  return "the rules don't allow that card now.";
+}
+
 let G; // the game
 let busy = false, running = false; // busy: a full trick being taken; running: the other seats playing
 
@@ -128,7 +140,7 @@ function render() {
   let can = () => false, chosen = (c) => G.chosen.some((x) => sameCard(x, c));
   if (G.phase === "pass") can = () => true;
   if (G.phase === "play" && turn === YOU && !busy && !running) { const ok = legal(G.hands[YOU], G.trick, G.broken, G.tricks === 0); can = (c) => ok.some((x) => sameCard(x, c)); }
-  frame.mine(G.hands[YOU], { can, chosen, turn: turn === YOU, meta: `${G.scores[YOU]} · this hand ♥${handPts(YOU)}` });
+  frame.mine(G.hands[YOU], { can, chosen, any: G.phase === "pass", turn: turn === YOU, locked: busy || running, meta:`${G.scores[YOU]} · this hand ♥${handPts(YOU)}` });
 
   if (G.phase === "pass") {
     frame.status(`Choose three cards to pass <b>${WAYS[G.way]}</b>.`);
@@ -136,7 +148,8 @@ function render() {
   } else if (G.phase === "play") {
     const ok = turn === YOU ? legal(G.hands[YOU], G.trick, G.broken, G.tricks === 0) : [];
     const why = turn !== YOU ? "" : G.tricks === 0 && !G.trick.length ? "You hold the 2♣: it leads." : !G.trick.length && !G.broken && ok.every((c) => c.s !== "H") ? "Your lead. Hearts aren't broken yet." : G.trick.length && ok[0] && ok[0].s === G.trick[0][1].s ? `Follow ${SUIT_NAME[G.trick[0][1].s]}.` : "Your play.";
-    frame.status(turn === YOU ? `<b>${why}</b>` : `${SEAT_NAME(turn)} to play…`);
+    const plain = G.trick.length ? "Your play." : "Your lead.";
+    frame.status(turn === YOU ? `<b>${frame.hints ? why : plain}</b>` : `${SEAT_NAME(turn)} to play…`);
     frame.actions("");
   } else if (G.phase === "between") {
     frame.status(`Hand ${G.handNo + 1} is done.`);
@@ -163,7 +176,11 @@ document.addEventListener("click", (e) => {
       if (i >= 0) G.chosen.splice(i, 1); else if (G.chosen.length < 3) G.chosen.push(c);
       return render();
     }
-    if (G.phase === "play" && toPlay() === YOU && !busy && !running && G.trick.length < 4) { play(YOU, c).then(run); }
+    if (G.phase === "play" && toPlay() === YOU && !busy && !running && G.trick.length < 4) {
+      const ok = legal(G.hands[YOU], G.trick, G.broken, G.tricks === 0);
+      if (!ok.some((x) => sameCard(x, c))) return frame.refuse(broken(c));
+      play(YOU, c).then(run);
+    }
     return;
   }
   const d = b.dataset.do;

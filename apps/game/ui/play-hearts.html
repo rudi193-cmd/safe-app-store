@@ -117,6 +117,7 @@ button.pc:not(:disabled):hover, button.pc.chosen { transform: translateY(-12px);
 button.pc.chosen { outline: 3px solid var(--go); outline-offset: 1px; }
 button.pc:disabled { filter: brightness(0.62) saturate(0.6); }
 .mine-hand button.pc:disabled { transform: none; }
+.mine-hand.quiet button.pc:disabled { filter: none; } /* hints off: not your turn reads as waiting, not as wrong */
 .pile { display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap; }
 .count { font-family: var(--mono); font-size: 0.75rem; color: var(--chalk-dim); text-align: center; }
 
@@ -220,8 +221,15 @@ function cardHTML(c, o = {}) {
   return `<div class="${cls} ${red ? "red" : ""}" role="img" aria-label="${label}">${inner}</div>`;
 }
 
+/* two switches, off unless you turn them on, remembered in this browser only:
+   hints lights the cards the rules allow and says what to follow; open shows
+   the other seats' hands, as the record plays them */
+const remembered = (k) => { try { return localStorage.getItem(k) === "1"; } catch (e) { return false; } };
+const remember = (k, v) => { try { localStorage.setItem(k, v ? "1" : "0"); } catch (e) {} };
+
 const frame = {
-  open: true, // hands open, as the record plays them
+  open: remembered("dn-open"),
+  hints: remembered("dn-hints"),
   setup(opts) {
     document.documentElement.style.setProperty("--lid", GAME.lid);
     document.documentElement.style.setProperty("--lid-ink", GAME.ink);
@@ -233,13 +241,17 @@ const frame = {
     $("p-score").hidden = !opts.score; $("p-deck").hidden = !opts.deck;
     if (opts.scoreTitle) $("score-title").textContent = opts.scoreTitle;
     const t = [];
-    if (opts.seats) t.push(`<button class="toggle" id="t-open" aria-pressed="${this.open}">Hands open</button>`);
-    t.push(...(opts.toggles || []));
+    if (opts.hints !== false) t.push(`<button class="toggle" id="t-hints" aria-pressed="${this.hints}" title="Light the cards the rules allow">Hints</button>`);
+    if (opts.seats) t.push(`<button class="toggle" id="t-open" aria-pressed="${this.open}" title="Show the other seats' cards">Hands open</button>`);
     $("toggles").innerHTML = t.join("");
-    const o = $("t-open");
-    if (o) o.addEventListener("click", () => { this.open = !this.open; o.setAttribute("aria-pressed", this.open); opts.redraw(); });
+    for (const [id, key, prop] of [["t-hints", "dn-hints", "hints"], ["t-open", "dn-open", "open"]]) {
+      const b = $(id);
+      if (b) b.addEventListener("click", () => { this[prop] = !this[prop]; remember(key, this[prop]); b.setAttribute("aria-pressed", this[prop]); opts.redraw(); });
+    }
   },
   status(html) { $("status").innerHTML = html; },
+  /* a move the rules refuse: name the rule, never the answer */
+  refuse(rule) { $("status").innerHTML = `<span style="color:#ff9b85">Not allowed: ${esc(rule)}</span>`; },
   actions(html) { $("actions").innerHTML = html; },
   middle(html) { $("middle").innerHTML = html; },
   stage(html) { $("stage").innerHTML = html; },
@@ -250,12 +262,14 @@ const frame = {
     const cards = this.open ? sortHand(hand.slice()).map((c) => cardHTML(c, { size: "small" })).join("") : hand.map(() => cardHTML(null, { size: "small" })).join("");
     el.innerHTML = `<div class="seat-name">${esc(SEAT_NAME(i))}<span class="meta">${o.meta || ""}</span></div><div class="hand" style="--overlap:${hand.length > 8 ? "-22px" : "-14px"}">${cards}</div>`;
   },
-  /* your hand: buttons, the playable ones live */
+  /* your hand: buttons. With hints on, only the cards the rules allow are lit;
+     with hints off, every card is live on your turn and the game says no. */
   mine(hand, o = {}) {
     const el = $("mine");
-    const can = o.can || (() => false), chosen = o.chosen || (() => false);
+    const allowed = o.can || (() => false), chosen = o.chosen || (() => false);
+    const can = o.any ? () => true : this.hints ? allowed : () => !!o.turn && !o.locked;
     el.innerHTML = `<div class="seat-name ${o.turn ? "" : ""}" style="${o.turn ? "color:var(--go)" : ""}">${o.turn ? "▸ " : ""}You · south<span class="meta">${o.meta || ""}</span></div>
-      <div class="hand mine-hand" style="--overlap:${hand.length > 10 ? "-24px" : "-8px"}">${hand.map((c) => cardHTML(c, { button: true, disabled: !can(c), chosen: chosen(c) })).join("")}</div>`;
+      <div class="hand mine-hand ${this.hints ? "" : "quiet"}" style="--overlap:${hand.length > 10 ? "-24px" : "-8px"}">${hand.map((c) => cardHTML(c, { button: true, disabled: !can(c), chosen: chosen(c) })).join("")}</div>`;
   },
   /* the scoresheet: a column a seat, a row a hand, totals underneath */
   score({ cols, rows, totals, lead, note, empty }) {
@@ -296,6 +310,18 @@ function legal(hand, trick, broken, first) {
   if (follow.length) return follow;
   if (first) { const safe = hand.filter((c) => points(c) === 0); return safe.length ? safe : hand.slice(); }
   return hand.slice();
+}
+
+/* which rule a card breaks: the rule, never which card would do */
+function broken(card) {
+  const hand = G.hands[YOU], first = G.tricks === 0;
+  if (!G.trick.length) {
+    if (first) return "the 2♣ leads the first trick.";
+    return "hearts can't be led until one has been played.";
+  }
+  if (card.s !== G.trick[0][1].s && hand.some((c) => c.s === G.trick[0][1].s)) return "follow the suit led.";
+  if (first && points(card)) return "no points on the first trick.";
+  return "the rules don't allow that card now.";
 }
 
 let G; // the game
@@ -403,7 +429,7 @@ function render() {
   let can = () => false, chosen = (c) => G.chosen.some((x) => sameCard(x, c));
   if (G.phase === "pass") can = () => true;
   if (G.phase === "play" && turn === YOU && !busy && !running) { const ok = legal(G.hands[YOU], G.trick, G.broken, G.tricks === 0); can = (c) => ok.some((x) => sameCard(x, c)); }
-  frame.mine(G.hands[YOU], { can, chosen, turn: turn === YOU, meta: `${G.scores[YOU]} · this hand ♥${handPts(YOU)}` });
+  frame.mine(G.hands[YOU], { can, chosen, any: G.phase === "pass", turn: turn === YOU, locked: busy || running, meta:`${G.scores[YOU]} · this hand ♥${handPts(YOU)}` });
 
   if (G.phase === "pass") {
     frame.status(`Choose three cards to pass <b>${WAYS[G.way]}</b>.`);
@@ -411,7 +437,8 @@ function render() {
   } else if (G.phase === "play") {
     const ok = turn === YOU ? legal(G.hands[YOU], G.trick, G.broken, G.tricks === 0) : [];
     const why = turn !== YOU ? "" : G.tricks === 0 && !G.trick.length ? "You hold the 2♣: it leads." : !G.trick.length && !G.broken && ok.every((c) => c.s !== "H") ? "Your lead. Hearts aren't broken yet." : G.trick.length && ok[0] && ok[0].s === G.trick[0][1].s ? `Follow ${SUIT_NAME[G.trick[0][1].s]}.` : "Your play.";
-    frame.status(turn === YOU ? `<b>${why}</b>` : `${SEAT_NAME(turn)} to play…`);
+    const plain = G.trick.length ? "Your play." : "Your lead.";
+    frame.status(turn === YOU ? `<b>${frame.hints ? why : plain}</b>` : `${SEAT_NAME(turn)} to play…`);
     frame.actions("");
   } else if (G.phase === "between") {
     frame.status(`Hand ${G.handNo + 1} is done.`);
@@ -438,7 +465,11 @@ document.addEventListener("click", (e) => {
       if (i >= 0) G.chosen.splice(i, 1); else if (G.chosen.length < 3) G.chosen.push(c);
       return render();
     }
-    if (G.phase === "play" && toPlay() === YOU && !busy && !running && G.trick.length < 4) { play(YOU, c).then(run); }
+    if (G.phase === "play" && toPlay() === YOU && !busy && !running && G.trick.length < 4) {
+      const ok = legal(G.hands[YOU], G.trick, G.broken, G.tricks === 0);
+      if (!ok.some((x) => sameCard(x, c))) return frame.refuse(broken(c));
+      play(YOU, c).then(run);
+    }
     return;
   }
   const d = b.dataset.do;

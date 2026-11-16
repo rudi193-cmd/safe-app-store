@@ -61,6 +61,6 @@ document.addEventListener("click", (e) => {
   else if (b.dataset.do === "draw") draw();
 });
 
-frame.setup({ seats: false, score: false, deck: true, redraw: render });
+frame.setup({ seats: false, score: false, deck: true, hints: false, redraw: render });
 frame.log("Nothing drawn yet. Each draw is listed here as the record lists it.");
 render();

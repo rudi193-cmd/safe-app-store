@@ -112,6 +112,7 @@ button.pc:not(:disabled):hover, button.pc.chosen { transform: translateY(-12px);
 button.pc.chosen { outline: 3px solid var(--go); outline-offset: 1px; }
 button.pc:disabled { filter: brightness(0.62) saturate(0.6); }
 .mine-hand button.pc:disabled { transform: none; }
+.mine-hand.quiet button.pc:disabled { filter: none; } /* hints off: not your turn reads as waiting, not as wrong */
 .pile { display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap; }
 .count { font-family: var(--mono); font-size: 0.75rem; color: var(--chalk-dim); text-align: center; }
 
@@ -215,8 +216,15 @@ function cardHTML(c, o = {}) {
   return `<div class="${cls} ${red ? "red" : ""}" role="img" aria-label="${label}">${inner}</div>`;
 }
 
+/* two switches, off unless you turn them on, remembered in this browser only:
+   hints lights the cards the rules allow and says what to follow; open shows
+   the other seats' hands, as the record plays them */
+const remembered = (k) => { try { return localStorage.getItem(k) === "1"; } catch (e) { return false; } };
+const remember = (k, v) => { try { localStorage.setItem(k, v ? "1" : "0"); } catch (e) {} };
+
 const frame = {
-  open: true, // hands open, as the record plays them
+  open: remembered("dn-open"),
+  hints: remembered("dn-hints"),
   setup(opts) {
     document.documentElement.style.setProperty("--lid", GAME.lid);
     document.documentElement.style.setProperty("--lid-ink", GAME.ink);
@@ -228,13 +236,17 @@ const frame = {
     $("p-score").hidden = !opts.score; $("p-deck").hidden = !opts.deck;
     if (opts.scoreTitle) $("score-title").textContent = opts.scoreTitle;
     const t = [];
-    if (opts.seats) t.push(`<button class="toggle" id="t-open" aria-pressed="${this.open}">Hands open</button>`);
-    t.push(...(opts.toggles || []));
+    if (opts.hints !== false) t.push(`<button class="toggle" id="t-hints" aria-pressed="${this.hints}" title="Light the cards the rules allow">Hints</button>`);
+    if (opts.seats) t.push(`<button class="toggle" id="t-open" aria-pressed="${this.open}" title="Show the other seats' cards">Hands open</button>`);
     $("toggles").innerHTML = t.join("");
-    const o = $("t-open");
-    if (o) o.addEventListener("click", () => { this.open = !this.open; o.setAttribute("aria-pressed", this.open); opts.redraw(); });
+    for (const [id, key, prop] of [["t-hints", "dn-hints", "hints"], ["t-open", "dn-open", "open"]]) {
+      const b = $(id);
+      if (b) b.addEventListener("click", () => { this[prop] = !this[prop]; remember(key, this[prop]); b.setAttribute("aria-pressed", this[prop]); opts.redraw(); });
+    }
   },
   status(html) { $("status").innerHTML = html; },
+  /* a move the rules refuse: name the rule, never the answer */
+  refuse(rule) { $("status").innerHTML = `<span style="color:#ff9b85">Not allowed: ${esc(rule)}</span>`; },
   actions(html) { $("actions").innerHTML = html; },
   middle(html) { $("middle").innerHTML = html; },
   stage(html) { $("stage").innerHTML = html; },
@@ -245,12 +257,14 @@ const frame = {
     const cards = this.open ? sortHand(hand.slice()).map((c) => cardHTML(c, { size: "small" })).join("") : hand.map(() => cardHTML(null, { size: "small" })).join("");
     el.innerHTML = `<div class="seat-name">${esc(SEAT_NAME(i))}<span class="meta">${o.meta || ""}</span></div><div class="hand" style="--overlap:${hand.length > 8 ? "-22px" : "-14px"}">${cards}</div>`;
   },
-  /* your hand: buttons, the playable ones live */
+  /* your hand: buttons. With hints on, only the cards the rules allow are lit;
+     with hints off, every card is live on your turn and the game says no. */
   mine(hand, o = {}) {
     const el = $("mine");
-    const can = o.can || (() => false), chosen = o.chosen || (() => false);
+    const allowed = o.can || (() => false), chosen = o.chosen || (() => false);
+    const can = o.any ? () => true : this.hints ? allowed : () => !!o.turn && !o.locked;
     el.innerHTML = `<div class="seat-name ${o.turn ? "" : ""}" style="${o.turn ? "color:var(--go)" : ""}">${o.turn ? "▸ " : ""}You · south<span class="meta">${o.meta || ""}</span></div>
-      <div class="hand mine-hand" style="--overlap:${hand.length > 10 ? "-24px" : "-8px"}">${hand.map((c) => cardHTML(c, { button: true, disabled: !can(c), chosen: chosen(c) })).join("")}</div>`;
+      <div class="hand mine-hand ${this.hints ? "" : "quiet"}" style="--overlap:${hand.length > 10 ? "-24px" : "-8px"}">${hand.map((c) => cardHTML(c, { button: true, disabled: !can(c), chosen: chosen(c) })).join("")}</div>`;
   },
   /* the scoresheet: a column a seat, a row a hand, totals underneath */
   score({ cols, rows, totals, lead, note, empty }) {

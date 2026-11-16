@@ -70,14 +70,15 @@ function render() {
   for (const i of [0, 1, 3]) frame.seat(i, G.hands[i], { turn: !G.over && G.turn === i, meta: `${G.hands[i].length} cards · ${G.wins[i]} won` });
   const mineTurn = !G.over && G.turn === YOU && !busy;
   const ok = mineTurn && !G.pick8 ? can(YOU) : [];
-  const mustDraw = mineTurn && !ok.length && G.stock.length && !G.pick8;
+  // with hints off the stock is always there to reach for; the rules say no if you can play
+  const mustDraw = mineTurn && G.stock.length && !G.pick8 && (!frame.hints || !ok.length);
   const red = G.suit === "H" || G.suit === "D";
   frame.middle(`<div class="pile">
       <div style="display:grid;gap:4px;justify-items:center">${G.stock.length ? (mustDraw ? `<button class="pc back big" data-do="draw" aria-label="Draw from the stock"></button>` : cardHTML(null, { back: true, size: "big" })) : `<div class="pc big" style="opacity:.15"></div>`}<span class="count">stock ${G.stock.length}</span></div>
       <div style="display:grid;gap:4px;justify-items:center">${cardHTML(G.top, { size: "big" })}<span class="count">pile ${G.pile.length}</span></div>
     </div>
     <div class="count" style="font-size:.85rem">to follow: <b style="font-size:1.2rem;color:${red ? "#ff8f7a" : "var(--chalk)"}">${SUIT_GLYPH[G.suit]}</b> ${SUIT_NAME[G.suit]}</div>`);
-  frame.mine(sortHand(G.hands[YOU].slice()), { can: (c) => ok.some((x) => sameCard(x, c)), chosen: (c) => G.pick8 && sameCard(c, G.pick8), turn: !G.over && G.turn === YOU, meta: `${G.hands[YOU].length} cards · ${G.wins[YOU]} won` });
+  frame.mine(sortHand(G.hands[YOU].slice()), { can: (c) => ok.some((x) => sameCard(x, c)), chosen: (c) => G.pick8 && sameCard(c, G.pick8), turn: !G.over && G.turn === YOU && !G.pick8, locked: busy, meta: `${G.hands[YOU].length} cards · ${G.wins[YOU]} won` });
 
   if (G.over) {
     frame.status(G.winner === null ? "<b>Stalled.</b> Nobody wins this hand." : `<b>${SEAT_NAME(G.winner)} ${G.winner === YOU ? "went" : "goes"} out.</b>`);
@@ -85,6 +86,9 @@ function render() {
   } else if (G.pick8) {
     frame.status("<b>An 8 is wild.</b> Name the suit to follow.");
     frame.actions(`<div class="suit-pick">${"CDHS".split("").map((s) => `<button class="${s === "H" || s === "D" ? "red" : ""}" data-suit="${s}" aria-label="${SUIT_NAME[s]}">${SUIT_GLYPH[s]}</button>`).join("")}</div><button class="btn ghost" data-do="unpick">Keep the 8</button>`);
+  } else if (mineTurn && !frame.hints) {
+    frame.status("<b>Your turn.</b>");
+    frame.actions(G.stock.length ? `<button class="btn ghost" data-do="draw">Draw a card</button>` : `<button class="btn ghost" data-do="pass">Pass</button>`);
   } else if (mineTurn) {
     frame.status(ok.length ? `<b>Your turn.</b> Play a ${SUIT_NAME[G.suit].replace(/s$/, "")}, a ${RANK_TEXT(G.top.r)}, or an 8.` : G.stock.length ? "<b>Nothing to play.</b> Draw one, and go again." : "<b>Nothing to play, and no stock.</b> Pass.");
     frame.actions(!ok.length ? (G.stock.length ? `<button class="btn" data-do="draw">Draw a card</button>` : `<button class="btn" data-do="pass">Pass</button>`) : "");
@@ -101,14 +105,22 @@ document.addEventListener("click", (e) => {
   const b = e.target.closest("button"); if (!b || b.disabled) return;
   if (b.dataset.card && !G.over && G.turn === YOU && !busy) {
     const c = G.hands[YOU].find((x) => cardName(x) === b.dataset.card);
+    if (G.pick8) return;
+    if (!can(YOU).some((x) => sameCard(x, c))) return frame.refuse("match the suit to follow or the top card's rank, or play an 8.");
     if (c.r === 8) { G.pick8 = c; return render(); }
     playCard(YOU, c); render(); return run();
   }
   if (b.dataset.suit && G.pick8) { const c = G.pick8; G.pick8 = null; playCard(YOU, c, b.dataset.suit); render(); return run(); }
   const d = b.dataset.do;
   if (d === "unpick") { G.pick8 = null; render(); }
-  else if (d === "draw" && G.turn === YOU && !can(YOU).length && G.stock.length) { drawCard(YOU); render(); }
-  else if (d === "pass" && G.turn === YOU) { passTurn(YOU); render(); run(); }
+  else if (d === "draw" && G.turn === YOU && !busy && !G.over && G.stock.length) {
+    if (can(YOU).length) return frame.refuse("a seat that can play doesn't draw.");
+    drawCard(YOU); render();
+  } else if (d === "pass" && G.turn === YOU && !busy && !G.over) {
+    if (can(YOU).length) return frame.refuse("a seat that can play doesn't pass.");
+    if (G.stock.length) return frame.refuse("draw first, while there's stock.");
+    passTurn(YOU); render(); run();
+  }
   else if (d === "next") { G.handNo++; deal(); }
 });
 

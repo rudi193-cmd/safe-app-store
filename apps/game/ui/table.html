@@ -193,7 +193,10 @@ textarea { resize: vertical; min-height: 64px; font-family: var(--story); }
       <h1 class="brand">Die<span>·</span>Namic</h1>
       <div class="tagline"><a href="index.html" style="color:var(--brass);text-decoration:none">← all the games</a> · the box's worlds, played at the table</div>
     </div>
-    <nav class="worlds" id="worlds" aria-label="Choose a world"></nav>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+      <nav class="worlds" id="worlds" aria-label="Choose a world"></nav>
+      <button class="world-chip" id="t-hints" aria-pressed="false" title="Show each stat's odds and the stat the beat suggests">Hints</button>
+    </div>
   </header>
 
   <div class="layout">
@@ -265,7 +268,8 @@ function beatNow() { const sc = scene(); return sc ? sc.beats[S.beat] : null; }
 
 function roll() {
   const b = beatNow(); const c = char(b.by);
-  const stat = S.stat || b.suggests || world().stats[0];
+  const stat = S.stat || (HINTS ? b.suggests : null);
+  if (!stat) return;
   const mod = statOf(c, stat), d = [d6(), d6()], total = d[0] + d[1] + mod, bd = band(total);
   S.roll = { d, mod, stat, total, band: bd };
   S.results[`${scene().id}::${b.id}`] = bd;
@@ -323,14 +327,14 @@ function renderPlay(tumble) {
 
   let card = "";
   if (b.kind === "action") {
-    const c = char(b.by), chosen = S.roll ? S.roll.stat : S.stat || b.suggests || w.stats[0];
+    const c = char(b.by), chosen = S.roll ? S.roll.stat : S.stat || (HINTS ? b.suggests : null);
     const stats = w.stats.map((st) => {
       const m = statOf(c, st), o = odds(m), pct = (x) => Math.round(x * 100);
       return `<button class="stat" data-stat="${esc(st)}" aria-pressed="${st === chosen}" ${S.roll ? "disabled" : ""}>
         <span class="stat-top"><span class="stat-name">${esc(st)}</span><span class="stat-mod">${m >= 0 ? "+" : "−"}${Math.abs(m)}</span></span>
-        <span class="odds" aria-hidden="true"><i class="s" style="width:${pct(o.strong)}%"></i><i class="w" style="width:${pct(o.weak)}%"></i><i class="m" style="width:${pct(o.miss)}%"></i></span>
+        ${HINTS ? `<span class="odds" aria-hidden="true"><i class="s" style="width:${pct(o.strong)}%"></i><i class="w" style="width:${pct(o.weak)}%"></i><i class="m" style="width:${pct(o.miss)}%"></i></span>
         <span class="odds-nums"><span>${pct(o.strong)}% strong</span><span>${pct(o.miss)}% miss</span></span>
-        ${st === b.suggests ? `<span class="stat-sug">the beat suggests</span>` : ""}
+        ${st === b.suggests ? `<span class="stat-sug">the beat suggests</span>` : ""}` : ""}
       </button>`;
     }).join("");
     const r = S.roll;
@@ -342,7 +346,7 @@ function renderPlay(tumble) {
         <div class="tray">
           <div class="dice">${r ? dieHTML(r.d[0], tumble ? "tumble" : "") + dieHTML(r.d[1], tumble ? "tumble" : "") : dieHTML(0, "idle") + dieHTML(0, "idle")}</div>
           ${r ? `<div class="sum">${r.d[0]} + ${r.d[1]} ${r.mod >= 0 ? "+" : "−"} ${Math.abs(r.mod)} ${esc(r.stat)} = <strong>${r.total}</strong></div>`
-              : `<button class="btn" data-act="roll">Roll 2d6 + ${esc(chosen)}</button>`}
+              : chosen ? `<button class="btn" data-act="roll">Roll 2d6 + ${esc(chosen)}</button>` : `<span class="sum">Choose a stat to roll with.</span>`}
         </div>
         ${r ? `<div class="result b-${r.band}"><span class="band">${BAND_LABEL[r.band]}</span><p>${esc(b.outcomes[r.band])}</p></div>
                <div class="row"><button class="btn" data-act="next">Next beat</button></div>` : ""}
@@ -435,6 +439,12 @@ document.addEventListener("submit", (e) => {
   const fact = $("offer-fact").value.trim(); if (!fact) { $("offer-fact").focus(); return; }
   offer($("offer-by").value, $("offer-kind").value, fact);
 });
+
+/* hints: off unless you turn them on, remembered in this browser only (the card pages share it) */
+let HINTS = false;
+try { HINTS = localStorage.getItem("dn-hints") === "1"; } catch (e) {}
+$("t-hints").setAttribute("aria-pressed", HINTS);
+$("t-hints").addEventListener("click", (e) => { e.stopPropagation(); HINTS = !HINTS; e.currentTarget.setAttribute("aria-pressed", HINTS); try { localStorage.setItem("dn-hints", HINTS ? "1" : "0"); } catch (x) {} render(); });
 
 let first = WORLDS.findIndex((w) => w.id === "lantern-fair");
 try { const s = localStorage.getItem("dn-world"); if (s !== null && WORLDS[+s]) first = +s; } catch (e) {}
