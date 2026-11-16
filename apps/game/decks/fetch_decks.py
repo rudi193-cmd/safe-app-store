@@ -166,6 +166,31 @@ def tarot_name(file: str) -> str | None:
     return f"{m.group(1).lower()}-{m.group(2)}" if m else None
 
 
+def as_jpeg(folder: Path, width: int) -> str:
+    """Commons gives PNG scans as PNG thumbnails, and at its own standard
+    widths (asked for 360, it sends 500): ~900 KB a card. With Pillow, each
+    card is made a JPEG `width` wide (~40 KB); without it, the PNGs stay, named
+    .png. Either way the extension returned is the one on disk."""
+    try:
+        from PIL import Image
+    except ImportError:
+        for p in folder.glob("*.jpg"):
+            if p.read_bytes()[:4] == b"\x89PNG":
+                p.rename(p.with_suffix(".png"))
+        return "png" if any(folder.glob("*.png")) else "jpg"
+    for p in list(folder.glob("*.jpg")) + list(folder.glob("*.png")):
+        with Image.open(p) as im:
+            if im.format == "JPEG" and im.width <= width:
+                continue
+            im = im.convert("RGB")
+            if im.width > width:
+                im = im.resize((width, round(im.height * width / im.width)), Image.LANCZOS)
+            im.save(p.with_suffix(".jpg"), "JPEG", quality=86, optimize=True)
+        if p.suffix == ".png":
+            p.unlink()
+    return "jpg"
+
+
 def rws1910(folder: Path, deck: dict) -> dict:
     api = "https://commons.wikimedia.org/w/api.php?"
     listing = json.loads(get(api + urllib.parse.urlencode({"action": "query", "list": "allimages", "aiprefix": "RWS_Tarot_1910_-_", "ailimit": "100", "format": "json"}), 2))
@@ -173,7 +198,7 @@ def rws1910(folder: Path, deck: dict) -> dict:
     files.pop(None, None)
     if len(files) != 78:
         failed.append(f"rws1910: Commons lists {len(files)} cards, not 78")
-    todo = {k: v for k, v in files.items() if not (folder / f"{k}.jpg").exists()}
+    todo = {k: v for k, v in files.items() if not any((folder / f"{k}.{e}").exists() for e in ("jpg", "png"))}
     urls: dict = {}
     names = sorted(todo.values())
     for i in range(0, len(names), 40):  # the API answers up to 50 titles at once
@@ -189,7 +214,7 @@ def rws1910(folder: Path, deck: dict) -> dict:
             keep(folder, f"{key}.jpg", lambda url=url: get(url, 5))
         else:
             failed.append(f"rws1910/{key}: no URL from Commons")
-    return {"ext": "jpg", "backs": [], "sources": {k: "https://commons.wikimedia.org/wiki/File:" + urllib.parse.quote(v) for k, v in sorted(files.items())}}
+    return {"ext": as_jpeg(folder, deck["width"]), "backs": [], "sources": {k: "https://commons.wikimedia.org/wiki/File:" + urllib.parse.quote(v) for k, v in sorted(files.items())}}
 
 
 FETCH = {"knoll": knoll, "tekeye": tekeye, "kennard-goodall": kennard, "kennard-fourcolour": kennard, "rws1910": rws1910}
@@ -223,7 +248,7 @@ def main(argv: list[str]) -> int:
         folder.mkdir(parents=True, exist_ok=True)
         print(f"{key}: fetching into {folder.relative_to(HERE.parents[2])}")
         held = FETCH[key](folder, deck)
-        cards = sorted(p.stem for p in folder.iterdir() if p.suffix in (".svg", ".jpg") and not p.stem.startswith("back-"))
+        cards = sorted(p.stem for p in folder.iterdir() if p.suffix in (".svg", ".jpg", ".png") and not p.stem.startswith("back-"))
         meta = {"id": key, **{k: v for k, v in deck.items() if k not in ("query", "width")}, **held, "cards": len(cards)}
         (folder / "deck.json").write_text(json.dumps(meta, indent=1) + "\n")
         print(f"{key}: {len(cards)} cards, {len(held['backs'])} backs")
