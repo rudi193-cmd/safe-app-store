@@ -186,7 +186,7 @@ textarea { resize: vertical; min-height: 64px; font-family: var(--story); }
   <header>
     <div>
       <h1 class="brand">Die<span>·</span>Namic</h1>
-      <div class="tagline">the box's worlds, played at the table</div>
+      <div class="tagline"><a href="index.html" style="color:var(--brass);text-decoration:none">← all the games</a> · the box's worlds, played at the table</div>
     </div>
     <nav class="worlds" id="worlds" aria-label="Choose a world"></nav>
   </header>
@@ -205,7 +205,7 @@ textarea { resize: vertical; min-height: 64px; font-family: var(--story); }
 </div>
 
 <script>
-const WORLDS = /*__WORLDS__*/null;
+const WORLDS = /*__DATA__*/null;
 const TWO_D6 = [0,0,1,2,3,4,5,6,5,4,3,2,1]; // ways to throw each total 2..12
 const BAND_LABEL = { strong: "Strong hit", weak: "Weak hit", miss: "Miss", sealed: "Sealed", declined: "Declined" };
 const $ = (id) => document.getElementById(id);
