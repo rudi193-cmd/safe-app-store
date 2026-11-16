@@ -89,7 +89,7 @@ function render(fresh) {
       </div>` : `<p class="count" style="font-size:.95rem">Type dice, or pick one above, and roll.</p>`}`);
   frame.status("");
   frame.actions("");
-  frame.score({ head: "Roll", cols: ["Dice", "Total"], rows: history.slice(0, 30), note: "The last thirty rolls, newest first. Kept only while this page is open.", empty: "Your rolls go here." });
+  frame.score({ you: -1, head: "Roll", cols: ["Dice", "Total"], rows: history.slice(0, 30), note: "The last thirty rolls, newest first. Kept only while this page is open.", empty: "Your rolls go here." });
   const dropped = shown ? shown.groups.reduce((a, g) => a + g.count - g.kept.length, 0) : 0;
   frame.deck(shown ? [["Dice thrown", shown.groups.reduce((a, g) => a + g.count, 0)], ["Kept", shown.groups.reduce((a, g) => a + g.kept.length, 0)], ["Dropped", dropped], ["Lowest it can be", shown.lo], ["Highest it can be", shown.hi]] : [["Dice thrown", "–"]],
     "Up to 100 dice of 2 to 1000 sides a term. kh keeps the highest, kl the lowest; adv and dis are 2d20 keeping one.");

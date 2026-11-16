@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Life · Die-Namic</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Literata:ital,opsz,wght@0,7..72,400;1,7..72,400&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: the card table under one lamp. The header wears the game's lid colour; the felt is that colour darkened; seats sit round the felt with your hand along the bottom; the side holds the scoresheet, the deck, the log and the record's commands. Every game turns on only the parts it has. One look on purpose. */
+:root {
+  --lid: #b8263f;
+  --lid-ink: #fff0f2;
+  --felt: color-mix(in srgb, var(--lid) 22%, #0d1513);
+  --felt-2: color-mix(in srgb, var(--lid) 14%, #0a100f);
+  --rail: color-mix(in srgb, var(--lid) 30%, #2a1a10);
+  --chalk: #f4ecdc;
+  --chalk-dim: #c6c0b2;
+  --chalk-faint: #8d897e;
+  --edge: #ffffff1c;
+  --card: #fffaf0;
+  --card-edge: #d8ccb4;
+  --red: #c8352b;
+  --black: #1f1d1a;
+  --go: #ffd34d;
+  --go-ink: #3a2a00;
+  --lid-font: "Bowlby One", "Arial Black", Impact, sans-serif;
+  --ui: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --prose: "Literata", "Iowan Old Style", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: #0b1110; color: var(--chalk); font-family: var(--ui); font-size: 15px; line-height: 1.45; }
+button { font: inherit; color: inherit; cursor: pointer; background: none; border: 0; padding: 0; }
+button:disabled { cursor: default; }
+:focus-visible { outline: 3px solid var(--go); outline-offset: 2px; }
+
+.band { background: var(--lid); color: var(--lid-ink); }
+.band-in, .wrap {
+  max-width: 1240px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.band-in { padding-block: 16px 18px; display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: end; justify-content: space-between; }
+.back { font-weight: 800; font-size: 0.85rem; color: inherit; text-decoration: none; opacity: 0.85; }
+.back:hover { opacity: 1; text-decoration: underline; }
+h1 { font-family: var(--lid-font); font-weight: 400; font-size: clamp(2rem, 5vw, 3rem); line-height: 1; margin: 4px 0 0; }
+.line { font-family: var(--prose); margin: 6px 0 0; max-width: 60ch; opacity: 0.9; }
+.toggles { display: flex; gap: 8px; flex-wrap: wrap; }
+.toggle { font-weight: 700; font-size: 0.82rem; padding: 6px 12px; border-radius: 999px; border: 2px solid color-mix(in srgb, var(--lid-ink) 45%, transparent); }
+.toggle[aria-pressed="true"] { background: var(--lid-ink); color: var(--lid); border-color: var(--lid-ink); }
+
+.wrap { padding-block: 20px 48px; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+@media (max-width: 900px) { .wrap { grid-template-columns: minmax(0, 1fr); } }
+
+/* the felt */
+.felt {
+  background: radial-gradient(120% 90% at 50% 40%, var(--felt), var(--felt-2));
+  border: 10px solid var(--rail); border-radius: 22px;
+  box-shadow: inset 0 0 40px #0008, 0 20px 40px -20px #000;
+  padding: 16px; display: grid; gap: 14px; min-width: 0;
+}
+.status { text-align: center; font-weight: 700; font-size: 1rem; min-height: 1.5em; }
+.status b { color: var(--go); }
+.ring {
+  display: grid; gap: 10px; min-width: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-areas: ". north ." "west middle east";
+  align-items: center;
+}
+.seat { display: grid; gap: 6px; justify-items: center; min-width: 0; text-align: center; }
+.seat[data-seat="north"] { grid-area: north; }
+.seat[data-seat="west"] { grid-area: west; }
+.seat[data-seat="east"] { grid-area: east; }
+.seat-name { font-weight: 800; font-size: 0.82rem; letter-spacing: 0.04em; display: flex; gap: 8px; align-items: baseline; justify-content: center; flex-wrap: wrap; }
+.seat-name .meta { font-family: var(--mono); font-weight: 500; font-size: 0.72rem; color: var(--chalk-dim); }
+.seat.turn .seat-name { color: var(--go); }
+.seat.turn .seat-name::before { content: "▸ "; }
+.middle { grid-area: middle; min-height: 190px; display: grid; place-items: center; gap: 10px; }
+.stage { min-height: 260px; display: grid; place-items: center; gap: 10px; min-width: 0; } /* a game with no seats: its whole felt */
+.mine { display: grid; gap: 8px; justify-items: center; }
+.mine .seat-name { font-size: 0.9rem; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; min-height: 40px; align-items: center; }
+@media (max-width: 560px) {
+  .ring { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "west north east" "middle middle middle"; }
+  .felt { padding: 10px; border-width: 7px; }
+  .seat .seat-name { flex-direction: column; align-items: center; gap: 0; }
+  .seat .hand { max-width: 100%; overflow: hidden; }
+  .seat .hand .pc { margin-left: -27px; }
+  .seat .hand .pc:first-child { margin-left: 0; }
+}
+
+/* cards */
+.hand { display: flex; justify-content: center; flex-wrap: nowrap; max-width: 100%; padding: 14px 4px 4px; }
+.hand.mine-hand { flex-wrap: wrap; row-gap: 10px; }
+.hand .pc { margin-left: calc(var(--overlap, -18px)); }
+.hand .pc:first-child { margin-left: 0; }
+.pc {
+  --w: 62px; width: var(--w); aspect-ratio: 5 / 7; flex: none; position: relative;
+  background: var(--card); color: var(--black); border-radius: 7px; border: 1px solid var(--card-edge);
+  box-shadow: 0 3px 8px -3px #000c; font-family: var(--ui); font-weight: 800;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.pc.red { color: var(--red); }
+.pc .ix { position: absolute; top: 4px; left: 5px; display: grid; justify-items: center; line-height: 0.95; font-size: calc(var(--w) * 0.24); }
+.pc .ix i { font-style: normal; font-size: 0.85em; }
+.pc .pip { position: absolute; inset: 0; display: grid; place-items: center; font-size: calc(var(--w) * 0.5); padding-top: 12%; }
+.pc .pip.face { font-family: var(--lid-font); font-weight: 400; font-size: calc(var(--w) * 0.42); }
+.pc.img { background: transparent; border: 0; padding: 0; overflow: hidden; }
+.pc.img img { display: block; width: 100%; height: 100%; object-fit: fill; border-radius: inherit; pointer-events: none; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.toggle.pick { display: inline-flex; gap: 6px; align-items: center; padding: 4px 6px 4px 12px; }
+.toggle.pick select { font: inherit; font-weight: 700; font-size: 0.8rem; color: inherit; background: transparent; border: 0; border-radius: 999px; padding: 2px 4px; max-width: 12rem; }
+.toggle.pick select option { color: #111; }
+.pc.back { background: repeating-linear-gradient(45deg, var(--lid) 0 5px, color-mix(in srgb, var(--lid) 55%, #fff) 5px 9px); border: 3px solid var(--card); }
+.pc.small { --w: 34px; border-radius: 5px; }
+.pc.small .ix { top: 2px; left: 3px; }
+.pc.small .pip { display: none; }
+.pc.big { --w: 84px; }
+button.pc:not(:disabled):hover, button.pc.chosen { transform: translateY(-12px); box-shadow: 0 10px 16px -6px #000c; }
+button.pc.chosen { outline: 3px solid var(--go); outline-offset: 1px; }
+button.pc:disabled { filter: brightness(0.62) saturate(0.6); }
+.mine-hand button.pc:disabled { transform: none; }
+.mine-hand.quiet button.pc:disabled { filter: none; } /* hints off: not your turn reads as waiting, not as wrong */
+.pile { display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap; }
+
+/* dice: a d6 by its pips, any other die as its shape with its number */
+.dice-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center; }
+.d6 {
+  --s: 44px; width: var(--s); height: var(--s); flex: none; border-radius: calc(var(--s) * 0.2);
+  background: #fffaf0; box-shadow: inset 0 -3px 0 #d9ccb4, 0 4px 8px -4px #000c;
+  display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: calc(var(--s) * 0.16);
+}
+.d6 b { width: calc(var(--s) * 0.17); height: calc(var(--s) * 0.17); border-radius: 50%; background: #2a1f22; place-self: center; visibility: hidden; }
+.d6 b.on { visibility: visible; }
+.d6.small { --s: 26px; }
+.d6.big { --s: 64px; }
+.d6.hidden { background: #3a3430; box-shadow: inset 0 -3px 0 #221d1a, 0 4px 8px -4px #000c; }
+.d6.hidden b { display: none; }
+.d6.dim, .dn.dim { opacity: 0.32; }
+.d6.mark { box-shadow: 0 0 0 3px var(--go), 0 4px 8px -4px #000c; }
+.d6.wild b.on { background: var(--red); }
+.dn { --s: 56px; width: var(--s); height: var(--s); flex: none; position: relative; display: grid; place-items: center; }
+.dn svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.dn span { position: relative; font-family: var(--lid-font); font-size: calc(var(--s) * 0.34); color: #2a1f22; line-height: 1; }
+.dn small { position: absolute; bottom: -14px; font-family: var(--mono); font-size: 0.6rem; color: var(--chalk-faint); }
+.roll-in { animation: roll-in .45s cubic-bezier(.3,.7,.4,1); }
+@keyframes roll-in { 0% { transform: translateY(-14px) rotate(-160deg) scale(.8); } 100% { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .roll-in { animation: none; } }
+.seat.out { opacity: 0.4; }
+.count { font-family: var(--mono); font-size: 0.75rem; color: var(--chalk-dim); text-align: center; }
+
+.btn { border-radius: 9px; padding: 9px 18px; font-weight: 800; background: var(--go); color: var(--go-ink); }
+.btn:hover:not(:disabled) { filter: brightness(1.08); }
+.btn:disabled { opacity: 0.4; }
+.btn.ghost { background: transparent; color: var(--chalk); border: 2px solid var(--edge); }
+.suit-pick { display: flex; gap: 8px; }
+.suit-pick button { width: 46px; height: 46px; border-radius: 10px; background: var(--card); font-size: 1.5rem; color: var(--black); }
+.suit-pick button.red { color: var(--red); }
+
+/* the side */
+.side { display: grid; gap: 14px; min-width: 0; }
+.panel { border: 1px solid var(--edge); border-radius: 12px; padding: 14px; display: grid; gap: 10px; background: #ffffff06; min-width: 0; }
+.panel h2 { margin: 0; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--chalk-dim); font-weight: 800; }
+.panel p { margin: 0; }
+.note { font-size: 0.82rem; color: var(--chalk-faint); font-family: var(--prose); }
+.sheet-wrap { overflow-x: auto; }
+table.sheet { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 0.85rem; }
+.sheet th, .sheet td { padding: 5px 6px; text-align: right; border-bottom: 1px solid var(--edge); white-space: nowrap; }
+.sheet th:first-child, .sheet td:first-child { text-align: left; color: var(--chalk-dim); font-weight: 500; }
+.sheet thead th { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--chalk-dim); }
+.sheet thead th.you { color: var(--go); }
+.sheet tfoot td { font-weight: 800; border-bottom: 0; border-top: 2px solid var(--chalk-faint); font-size: 0.95rem; }
+.sheet td.lead { color: var(--go); }
+.sheet .empty td { color: var(--chalk-faint); font-style: italic; text-align: left; }
+.deck-row { display: flex; justify-content: space-between; gap: 8px; font-size: 0.88rem; }
+.deck-row span:last-child { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--chalk-dim); }
+ol.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 260px; overflow-y: auto; font-size: 0.85rem; }
+ol.log li { color: var(--chalk-dim); }
+ol.log li b { color: var(--chalk); }
+details.record summary { cursor: pointer; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--chalk-dim); font-weight: 800; }
+.cmds { margin: 10px 0 0; background: #00000055; border-radius: 8px; padding: 10px 12px; overflow-x: auto; font-family: var(--mono); font-size: 0.72rem; line-height: 1.7; white-space: pre; }
+@media (prefers-reduced-motion: reduce) { .pc { transition: none; } }
+</style>
+
+<header class="band">
+  <div class="band-in">
+    <div>
+      <a class="back" href="index.html">← all the games</a>
+      <h1 id="title"></h1>
+      <p class="line" id="line"></p>
+    </div>
+    <div class="toggles" id="toggles"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <main class="felt" id="felt">
+    <div class="status" id="status" aria-live="polite"></div>
+    <div class="ring" id="ring" hidden>
+      <div class="seat" data-seat="north"></div>
+      <div class="seat" data-seat="west"></div>
+      <div class="middle" id="middle"></div>
+      <div class="seat" data-seat="east"></div>
+    </div>
+    <div class="stage" id="stage" hidden></div>
+    <div class="mine" id="mine" hidden></div>
+    <div class="actions" id="actions"></div>
+  </main>
+  <aside class="side">
+    <section class="panel" id="p-score" hidden><h2 id="score-title">Scoresheet</h2><div class="sheet-wrap" id="score"></div><p class="note" id="score-note"></p></section>
+    <section class="panel" id="p-deck" hidden><h2 id="deck-title">The deck</h2><div id="deck"></div></section>
+    <section class="panel" id="p-log"><h2>The game so far</h2><ol class="log" id="log"></ol></section>
+    <section class="panel" id="p-record"><p class="note" id="credit" style="margin:0 0 8px"></p><details class="record"><summary>Play it on the record</summary><div class="cmds" id="cmds"></div><p class="note" id="record-note" style="margin-top:8px"></p></details></section>
+  </aside>
+</div>
+
+<script>
+/* ---------- the frame: what every card game here shares ---------- */
+const GAME = {"id": "play-life", "title": "play-life", "summary": "Conway's Game of Life as rows: a fully deterministic world on the record.", "commands": ["python apps/game/games/play.py play-life --table DIR play", "python apps/game/games/play.py play-life --table DIR play --seed \"my soup\" --size 20 --generations 200", "python apps/game/games/play.py play-life --table DIR check", "python apps/game/games/play.py play-life --table DIR play [--seed TEXT] [--size N]"], "notes": "On a box laid by `box/open_table.py`, `--table DIR` plays on its record. Each move is a row on the record, through the kernel.", "came": "", "checked": "", "card": "https://github.com/willow-memory/Willow/tree/bdf8d3cb62bf3facfb714b38fd439b6b56fb44dd/adapters/stdlib/play-life", "name": "Life", "lid": "#111a14", "ink": "#9ff0b4", "also": [], "decks": []}; // this game's words, from its README, and its lid
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait = (ms) => new Promise((r) => setTimeout(r, reduced ? Math.min(ms, 120) : ms));
+const rnd = (n) => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; };
+function shuffle(xs) { const a = xs.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+const SEATS = ["north", "east", "south", "west"]; // as the record names them
+const YOU = 2;
+const SEAT_NAME = (i) => (i === YOU ? "You" : SEATS[i][0].toUpperCase() + SEATS[i].slice(1));
+
+/* a standard card: rank 2..14, suit C D H S, written as the record writes it (QS, 10H) */
+const SUIT_GLYPH = { C: "♣", D: "♦", H: "♥", S: "♠" };
+const SUIT_NAME = { C: "clubs", D: "diamonds", H: "hearts", S: "spades" };
+const RANK_TEXT = (r) => ({ 11: "J", 12: "Q", 13: "K", 14: "A" }[r] || String(r));
+const cardName = (c) => RANK_TEXT(c.r) + c.s;
+const said = (c) => RANK_TEXT(c.r) + SUIT_GLYPH[c.s];
+const sameCard = (a, b) => a.r === b.r && a.s === b.s;
+const deck52 = () => "CDHS".split("").flatMap((s) => Array.from({ length: 13 }, (_, i) => ({ r: i + 2, s })));
+const sortHand = (h) => h.sort((a, b) => "CDHS".indexOf(a.s) - "CDHS".indexOf(b.s) || a.r - b.r);
+
+/* willow-bot's seeded stream (sha256-stream/v1), as the add-ons draw from it:
+   u32 is the first four bytes, big-endian, of SHA-256(seed || an 8-byte
+   big-endian counter); below(k) by rejection. A seed given as text is
+   SHA-256(text), as play-catgrid and play-life take --seed. So the same seed
+   here builds the same board the record does. SHA-256 is synchronous on
+   purpose: a board search draws thousands of times inside a recursion. */
+const SHA_K = new Uint32Array([0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+function sha256(bytes) {
+  const l = bytes.length, padded = new Uint8Array(((l + 9 + 63) >> 6) << 6);
+  padded.set(bytes); padded[l] = 0x80;
+  const bits = l * 8; const dv = new DataView(padded.buffer);
+  dv.setUint32(padded.length - 8, Math.floor(bits / 2 ** 32)); dv.setUint32(padded.length - 4, bits >>> 0);
+  const H = new Uint32Array([0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]);
+  const W = new Uint32Array(64), rot = (x, n) => (x >>> n) | (x << (32 - n));
+  for (let o = 0; o < padded.length; o += 64) {
+    for (let i = 0; i < 16; i++) W[i] = dv.getUint32(o + i * 4);
+    for (let i = 16; i < 64; i++) {
+      const s0 = rot(W[i - 15], 7) ^ rot(W[i - 15], 18) ^ (W[i - 15] >>> 3), s1 = rot(W[i - 2], 17) ^ rot(W[i - 2], 19) ^ (W[i - 2] >>> 10);
+      W[i] = (W[i - 16] + s0 + W[i - 7] + s1) >>> 0;
+    }
+    let [a, b, c, d, e, f, g, h] = H;
+    for (let i = 0; i < 64; i++) {
+      const t1 = (h + (rot(e, 6) ^ rot(e, 11) ^ rot(e, 25)) + ((e & f) ^ (~e & g)) + SHA_K[i] + W[i]) >>> 0;
+      const t2 = ((rot(a, 2) ^ rot(a, 13) ^ rot(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) >>> 0;
+      h = g; g = f; f = e; e = (d + t1) >>> 0; d = c; c = b; b = a; a = (t1 + t2) >>> 0;
+    }
+    H[0] += a; H[1] += b; H[2] += c; H[3] += d; H[4] += e; H[5] += f; H[6] += g; H[7] += h;
+  }
+  const out = new Uint8Array(32); const ov = new DataView(out.buffer); H.forEach((v, i) => ov.setUint32(i * 4, v)); return out;
+}
+const utf8 = (s) => new TextEncoder().encode(s);
+const hex = (b) => Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+class Stream {
+  constructor(seed) { this.seed = seed; this.n = 0; this.buf = new Uint8Array(seed.length + 8); this.buf.set(seed); }
+  static fromText(text) { return new Stream(sha256(utf8(text))); }
+  u32() {
+    const dv = new DataView(this.buf.buffer); dv.setUint32(this.seed.length, Math.floor(this.n / 2 ** 32)); dv.setUint32(this.seed.length + 4, this.n >>> 0);
+    this.n++; const d = sha256(this.buf); return ((d[0] << 24) | (d[1] << 16) | (d[2] << 8) | d[3]) >>> 0;
+  }
+  below(k) { const cap = 2 ** 32 - (2 ** 32 % k); let x; do { x = this.u32(); } while (x >= cap); return x % k; }
+  pick(items) { return items[this.below(items.length)]; }
+  shuffled(items) { const out = Array.from(items); for (let i = out.length - 1; i > 0; i--) { const j = this.below(i + 1); [out[i], out[j]] = [out[j], out[i]]; } return out; }
+}
+const seedWords = () => { const w = ["lantern", "river", "gear", "goat", "bridge", "stall", "cellar", "kettle", "harbor", "willow", "fox", "comet"]; return `${w[rnd(w.length)]} ${100 + rnd(900)}`; };
+
+/* dice: d6 by pips; others (d4, d8, d10, d12, d20, d100) as a shape with the number */
+const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+function dieHTML(n, o = {}) {
+  const cls = ["d6", o.size || "", o.hidden ? "hidden" : "", o.dim ? "dim" : "", o.mark ? "mark" : "", o.wild ? "wild" : "", o.roll ? "roll-in" : ""].join(" ");
+  const label = o.hidden ? "a die, under the cup" : `a ${n}`;
+  return `<div class="${cls}" role="img" aria-label="${label}">${[...Array(9)].map((_, i) => `<b class="${!o.hidden && (PIPS[n] || []).includes(i) ? "on" : ""}"></b>`).join("")}</div>`;
+}
+const SHAPE = {
+  4: "50,6 94,88 6,88", 8: "50,4 92,50 50,96 8,50", 10: "50,4 94,40 50,96 6,40", 100: "50,4 94,40 50,96 6,40",
+  12: "50,4 93,35 77,90 23,90 7,35", 20: "50,3 93,27 93,73 50,97 7,73 7,27",
+};
+const TINT = { 4: "#f4c7a1", 8: "#c9e0f5", 10: "#d8f0c8", 12: "#f3d3f0", 20: "#fff1b8", 100: "#e3e0d6" };
+function polyDieHTML(sides, n, o = {}) {
+  if (sides === 6) return dieHTML(n, o);
+  const pts = SHAPE[sides] || "8,8 92,8 92,92 8,92";
+  return `<div class="dn ${o.dim ? "dim" : ""} ${o.roll ? "roll-in" : ""}" role="img" aria-label="d${sides} showing ${n}"><svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="${pts}" fill="${TINT[sides] || "#eee"}" stroke="#00000055" stroke-width="3" stroke-linejoin="round"/></svg><span>${n}</span><small>d${sides}</small></div>`;
+}
+
+/* card art: a fetched deck when one is chosen (decks/ID/QS.svg), else drawn here */
+const RANK_FILE = (r) => ({ 10: "T", 11: "J", 12: "Q", 13: "K", 14: "A" }[r] || String(r));
+function artHTML(src, label) { return `<img src="${esc(src)}" alt="" draggable="false" onerror="this.closest('.pc').classList.remove('img');this.remove()"><span class="sr">${esc(label)}</span>`; }
+
+function cardHTML(c, o = {}) {
+  const cls = ["pc", o.size || "", o.extra || ""].join(" ");
+  if (!c || o.back) {
+    const b = frame.backArt();
+    return b ? `<div class="${cls} img" aria-label="a card, face down">${artHTML(b, "")}</div>` : `<div class="${cls} back" aria-label="a card, face down"></div>`;
+  }
+  const deck = frame.deckArt();
+  if (deck) {
+    const label = `${RANK_TEXT(c.r)} of ${SUIT_NAME[c.s]}`;
+    const art = artHTML(`decks/${deck.id}/${RANK_FILE(c.r)}${c.s}.${deck.ext}`, label);
+    if (o.button) return `<button class="${cls} img ${o.chosen ? "chosen" : ""}" data-card="${cardName(c)}" ${o.disabled ? "disabled" : ""} aria-label="${label}">${art}</button>`;
+    return `<div class="${cls} img" role="img" aria-label="${label}">${art}</div>`;
+  }
+  const red = c.s === "H" || c.s === "D";
+  const face = c.r > 10;
+  const inner = `<span class="ix">${RANK_TEXT(c.r)}<i>${SUIT_GLYPH[c.s]}</i></span><span class="pip ${face ? "face" : ""}">${face ? RANK_TEXT(c.r) : SUIT_GLYPH[c.s]}</span>`;
+  const label = `${RANK_TEXT(c.r)} of ${SUIT_NAME[c.s]}`;
+  if (o.button) return `<button class="${cls} ${red ? "red" : ""} ${o.chosen ? "chosen" : ""}" data-card="${cardName(c)}" ${o.disabled ? "disabled" : ""} aria-label="${label}">${inner}</button>`;
+  return `<div class="${cls} ${red ? "red" : ""}" role="img" aria-label="${label}">${inner}</div>`;
+}
+
+/* two switches, off unless you turn them on, remembered in this browser only:
+   hints lights the cards the rules allow and says what to follow; open shows
+   the other seats' hands, as the record plays them */
+const remembered = (k) => { try { return localStorage.getItem(k) === "1"; } catch (e) { return false; } };
+const remember = (k, v) => { try { localStorage.setItem(k, v ? "1" : "0"); } catch (e) {} };
+
+const recall = (k, fallback) => { try { const v = localStorage.getItem(k); return v === null ? fallback : v; } catch (e) { return fallback; } };
+
+const frame = {
+  open: remembered("dn-open"),
+  hints: remembered("dn-hints"),
+  /* the art: a deck for the faces and a back, each by id, "" for drawn */
+  deckId: "",
+  backId: "",
+  deckArt() { return (GAME.decks || []).find((d) => d.id === this.deckId) || null; },
+  backArt() {
+    if (!this.backId) return null;
+    const [id, name] = this.backId.split("/");
+    const d = (GAME.decks || []).find((x) => x.id === id);
+    return d && d.backs.includes(name) ? `decks/${id}/back-${name}.svg` : null;
+  },
+  setup(opts) {
+    document.documentElement.style.setProperty("--lid", GAME.lid);
+    document.documentElement.style.setProperty("--lid-ink", GAME.ink);
+    $("title").textContent = GAME.name;
+    $("line").textContent = GAME.summary;
+    $("cmds").textContent = GAME.commands.join("\n");
+    $("record-note").textContent = "There the deal is seeded by the record's tip and every card is a row; here the shuffle is your browser's and nothing is kept.";
+    $("ring").hidden = !opts.seats; $("mine").hidden = !opts.seats; $("stage").hidden = !!opts.seats;
+    $("p-score").hidden = !opts.score; $("p-deck").hidden = !opts.deck;
+    if (opts.scoreTitle) $("score-title").textContent = opts.scoreTitle;
+    if (opts.deckTitle) $("deck-title").textContent = opts.deckTitle;
+    const t = [];
+    if (opts.hints !== false) t.push(`<button class="toggle" id="t-hints" aria-pressed="${this.hints}" title="Light the cards the rules allow">Hints</button>`);
+    if (opts.seats) t.push(`<button class="toggle" id="t-open" aria-pressed="${this.open}" title="Show the other seats' cards">Hands open</button>`);
+    /* the art, when any was fetched: a deck for the faces, and (for a 52) a back from any deck */
+    const decks = GAME.decks || [], kind = GAME.deckKind;
+    if (decks.length) {
+      const blue = decks.find((d) => d.backs.includes("blue"));
+      this.deckId = recall(`dn-deck-${kind}`, decks[0].id);
+      if (this.deckId && !decks.some((d) => d.id === this.deckId)) this.deckId = decks[0].id;
+      const backs = decks.flatMap((d) => d.backs.map((b) => [`${d.id}/${b}`, `${d.name}: ${b.replace(/_/g, " ")}`]));
+      this.backId = recall("dn-back", blue ? `${blue.id}/blue` : backs.length ? backs[0][0] : "");
+      if (this.backId && !backs.some(([v]) => v === this.backId)) this.backId = "";
+      t.push(`<label class="toggle pick"><span>Deck</span><select id="t-deck">${[["", "Drawn"], ...decks.map((d) => [d.id, d.name])].map(([v, l]) => `<option value="${esc(v)}" ${v === this.deckId ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`);
+      if (backs.length) t.push(`<label class="toggle pick"><span>Back</span><select id="t-back">${[["", "Drawn"], ...backs].map(([v, l]) => `<option value="${esc(v)}" ${v === this.backId ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`);
+    }
+    $("toggles").innerHTML = t.join("");
+    const credit = () => { const d = this.deckArt(); $("credit").textContent = d ? `Cards: ${d.name}, by ${d.credit}. ${d.license}.` : ""; };
+    const sel = (id, key, prop) => { const s = $(id); if (s) s.addEventListener("change", () => { this[prop] = s.value; try { localStorage.setItem(key, s.value); } catch (e) {} credit(); opts.redraw(); }); };
+    sel("t-deck", `dn-deck-${kind}`, "deckId"); sel("t-back", "dn-back", "backId");
+    credit();
+    for (const [id, key, prop] of [["t-hints", "dn-hints", "hints"], ["t-open", "dn-open", "open"]]) {
+      const b = $(id);
+      if (b) b.addEventListener("click", () => { this[prop] = !this[prop]; remember(key, this[prop]); b.setAttribute("aria-pressed", this[prop]); opts.redraw(); });
+    }
+  },
+  status(html) { $("status").innerHTML = html; },
+  /* a move the rules refuse: name the rule, never the answer */
+  refuse(rule) { $("status").innerHTML = `<span style="color:#ff9b85">Not allowed: ${esc(rule)}</span>`; },
+  actions(html) { $("actions").innerHTML = html; },
+  middle(html) { $("middle").innerHTML = html; },
+  stage(html) { $("stage").innerHTML = html; },
+  /* each other seat: its name, a line about it, and its hand, open or face down */
+  /* a seat holding anything (a cup, a stack): its name, a line, and what the game draws there */
+  seatAny(i, inner, o = {}) {
+    const el = document.querySelector(`.seat[data-seat="${SEATS[i]}"]`);
+    el.classList.toggle("turn", !!o.turn);
+    el.classList.toggle("out", !!o.out);
+    el.innerHTML = `<div class="seat-name">${esc(SEAT_NAME(i))}<span class="meta">${o.meta || ""}</span></div>${inner}`;
+  },
+  mineAny(inner, o = {}) {
+    $("mine").innerHTML = `<div class="seat-name" style="${o.turn ? "color:var(--go)" : ""}">${o.turn ? "▸ " : ""}You · south<span class="meta">${o.meta || ""}</span></div>${inner}`;
+  },
+  seat(i, hand, o = {}) {
+    const el = document.querySelector(`.seat[data-seat="${SEATS[i]}"]`);
+    el.classList.toggle("turn", !!o.turn);
+    const cards = this.open ? sortHand(hand.slice()).map((c) => cardHTML(c, { size: "small" })).join("") : hand.map(() => cardHTML(null, { size: "small" })).join("");
+    el.innerHTML = `<div class="seat-name">${esc(SEAT_NAME(i))}<span class="meta">${o.meta || ""}</span></div><div class="hand" style="--overlap:${hand.length > 8 ? "-22px" : "-14px"}">${cards}</div>`;
+  },
+  /* your hand: buttons. With hints on, only the cards the rules allow are lit;
+     with hints off, every card is live on your turn and the game says no. */
+  mine(hand, o = {}) {
+    const el = $("mine");
+    const allowed = o.can || (() => false), chosen = o.chosen || (() => false);
+    const can = o.any ? () => true : this.hints ? allowed : () => !!o.turn && !o.locked;
+    el.innerHTML = `<div class="seat-name ${o.turn ? "" : ""}" style="${o.turn ? "color:var(--go)" : ""}">${o.turn ? "▸ " : ""}You · south<span class="meta">${o.meta || ""}</span></div>
+      <div class="hand mine-hand ${this.hints ? "" : "quiet"}" style="--overlap:${hand.length > 10 ? "-24px" : "-8px"}">${hand.map((c) => cardHTML(c, { button: true, disabled: !can(c), chosen: chosen(c) })).join("")}</div>`;
+  },
+  /* the scoresheet: a column a seat, a row a hand, totals underneath */
+  score({ cols, rows, totals, lead, note, empty, head = "Hand", you = YOU }) {
+    $("score").innerHTML = `<table class="sheet"><thead><tr><th>${esc(head)}</th>${cols.map((c, i) => `<th class="${i === you ? "you" : ""}">${esc(c)}</th>`).join("")}</tr></thead>
+      <tbody>${rows.length ? rows.map((r) => `<tr><td>${esc(r.label)}</td>${r.cells.map((v) => `<td>${v}</td>`).join("")}</tr>`).join("") : `<tr class="empty"><td colspan="${cols.length + 1}">${esc(empty || "No hands yet")}</td></tr>`}</tbody>
+      ${totals ? `<tfoot><tr><td>Total</td>${totals.map((v, i) => `<td class="${lead && lead.includes(i) ? "lead" : ""}">${v}</td>`).join("")}</tr></tfoot>` : ""}</table>`;
+    $("score-note").textContent = note || "";
+  },
+  /* the deck: what is where, in rows */
+  deck(rows, note) {
+    $("deck").innerHTML = rows.map(([k, v]) => `<div class="deck-row"><span>${esc(k)}</span><span>${esc(v)}</span></div>`).join("") + (note ? `<p class="note">${esc(note)}</p>` : "");
+  },
+  log(html) { const li = document.createElement("li"); li.innerHTML = html; $("log").prepend(li); },
+  clearLog() { $("log").innerHTML = ""; },
+};
+</script>
+<script>
+/* Life, as play-life plays it (adapters/stdlib/play-life): a square soup,
+   --size cells a side (16), each alive at --density percent (35), drawn from
+   the seeded stream; run --generations steps (64, at most 500) of a Life-like
+   rule (B3/S23) on an unbounded plane. How it ends is found as the add-on
+   finds it, by each board's shape hash from its top-left live cell:
+   dies, still, oscillator (back in place every P), spaceship (back, moved,
+   every P), running (nothing repeated). The same seed and settings make the
+   same game here and on the record. You can also draw the first board. */
+const MAX_GENERATIONS = 500, MAX_SIZE = 64;
+const RULE = /^B([0-8]*)\/S([0-8]*)$/;
+
+function ruleOf(text) {
+  const m = RULE.exec(text.trim().toUpperCase());
+  if (!m) throw new Error(`${text} isn't a Life-like rule: B3/S23, for instance.`);
+  return [new Set([...m[1]].map(Number)), new Set([...m[2]].map(Number))];
+}
+const key = (x, y) => `${x},${y}`;
+function soup(seedText, size, density) {
+  const rng = Stream.fromText(seedText), board = new Map();
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (rng.below(100) < density) board.set(key(x, y), [x, y]);
+  return board;
+}
+function step(board, birth, survive) {
+  const counts = new Map();
+  for (const [x, y] of board.values()) for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) if (dx || dy) {
+    const k = key(x + dx, y + dy), c = counts.get(k); counts.set(k, c ? [c[0], c[1], c[2] + 1] : [x + dx, y + dy, 1]);
+  }
+  const next = new Map();
+  for (const [k, [x, y, n]] of counts) if (board.has(k) ? survive.has(n) : birth.has(n)) next.set(k, [x, y]);
+  return next;
+}
+function shape(board) {
+  if (!board.size) return [hex(sha256(utf8(""))).slice(0, 16), 0, 0];
+  const cells = [...board.values()];
+  const x0 = Math.min(...cells.map((c) => c[0])), y0 = Math.min(...cells.map((c) => c[1]));
+  const s = cells.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]).map(([x, y]) => `${x - x0},${y - y0}`).join(";");
+  return [hex(sha256(utf8(s))).slice(0, 16), x0, y0];
+}
+function runLife(first, generations, ruleText) {
+  const [birth, survive] = ruleOf(ruleText);
+  const boards = [], steps = [], seen = new Map();
+  let board = first, fate = "running", period = 0;
+  for (let g = 0; g <= generations; g++) {
+    const [h, x, y] = shape(board);
+    steps.push([board.size, x, y, h]); boards.push(board);
+    if (!board.size) { fate = "dies"; break; }
+    if (seen.has(h)) {
+      const firstSeen = seen.get(h); period = g - firstSeen;
+      const moved = x !== steps[firstSeen][1] || y !== steps[firstSeen][2];
+      fate = moved ? "spaceship" : period === 1 ? "still" : "oscillator"; break;
+    }
+    seen.set(h, g);
+    if (g < generations) board = step(board, birth, survive);
+  }
+  return { boards, steps, fate, period };
+}
+window.__life = (seedText, size, density, generations, rule) => { const r = runLife(soup(seedText, size, density), generations, rule); return { fate: r.fate, period: r.period, steps: r.steps.length, first: r.steps[0], last: r.steps[r.steps.length - 1] }; };
+
+const FATE = { dies: "It dies out", still: "It settles still", oscillator: "It oscillates", spaceship: "A spaceship: it repeats, moved", running: "Still running: nothing repeated" };
+
+let opts = { seed: seedWords(), size: 16, density: 35, generations: 64, rule: "B3/S23" };
+let G = null, gen = 0, timer = null, speed = 6, drawn = null, sheet = [];
+
+function start(fromDrawn) {
+  stop();
+  try {
+    ruleOf(opts.rule);
+    if (!(opts.size >= 1 && opts.size <= MAX_SIZE)) throw new Error(`a soup is 1 to ${MAX_SIZE} cells a side.`);
+    if (!(opts.density >= 0 && opts.density <= 100)) throw new Error("density is a percentage, 0 to 100.");
+    if (!(opts.generations >= 0 && opts.generations <= MAX_GENERATIONS)) throw new Error(`at most ${MAX_GENERATIONS} generations.`);
+    const first = fromDrawn ? new Map(drawn) : soup(opts.seed, opts.size, opts.density);
+    G = { ...runLife(first, opts.generations, opts.rule), by: fromDrawn ? "drawn" : opts.seed, logged: false };
+  } catch (e) { return frame.refuse(e.message); }
+  if (!fromDrawn) drawn = null;
+  gen = 0; render(); play();
+}
+function play() { stop(); if (gen >= G.boards.length - 1) gen = 0; timer = setInterval(() => { if (gen < G.boards.length - 1) { gen++; render(); } else { stop(); finish(); render(); } }, Math.round(1000 / speed)); render(); }
+function stop() { if (timer) { clearInterval(timer); timer = null; } }
+function finish() {
+  if (G.logged) return; G.logged = true;
+  const f = G.fate + (G.period ? ` ·${G.period}` : "");
+  sheet.unshift({ label: String(sheet.length + 1), cells: [esc(G.by), esc(f), String(G.steps.length - 1)] });
+  frame.log(`<b>${esc(G.by)}</b>: ${esc(FATE[G.fate])}${G.period ? ` (period ${G.period})` : ""} at generation ${G.steps.length - 1}.`);
+}
+
+function view() {
+  // fit every generation, a cell of margin round it; past 120 a side, follow the current board
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const b of G.boards) for (const [x, y] of b.values()) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  if (x0 === Infinity) return { x0: 0, y0: 0, w: opts.size, h: opts.size };
+  if (x1 - x0 > 118 || y1 - y0 > 118) {
+    const cur = [...G.boards[gen].values()]; const cx = cur.length ? cur.reduce((a, c) => a + c[0], 0) / cur.length : 0, cy = cur.length ? cur.reduce((a, c) => a + c[1], 0) / cur.length : 0;
+    return { x0: Math.round(cx - 60), y0: Math.round(cy - 60), w: 120, h: 120 };
+  }
+  return { x0: x0 - 1, y0: y0 - 1, w: x1 - x0 + 3, h: y1 - y0 + 3 };
+}
+
+function render() {
+  const v = G ? view() : { x0: 0, y0: 0, w: opts.size, h: opts.size };
+  const px = Math.max(3, Math.min(22, Math.floor(560 / Math.max(v.w, v.h))));
+  // the settings and the speed draw once, so typing and dragging survive the animation;
+  // only the board and its buttons redraw each generation
+  if (!$("lifeform")) frame.stage(`
+    <form id="lifeform" class="actions" style="gap:8px" autocomplete="off">
+      <label class="count" for="seed">Seed</label><input id="seed" value="${esc(opts.seed)}" spellcheck="false" style="font:inherit;font-family:var(--mono);width:13ch;padding:7px 9px;border-radius:9px;border:2px solid var(--edge);background:#0004;color:var(--chalk)">
+      <label class="count" for="size">Size</label><input id="size" type="number" min="1" max="${MAX_SIZE}" value="${opts.size}" style="font:inherit;width:6ch;padding:7px;border-radius:9px;border:2px solid var(--edge);background:#0004;color:var(--chalk)">
+      <label class="count" for="density">Alive %</label><input id="density" type="number" min="0" max="100" value="${opts.density}" style="font:inherit;width:6ch;padding:7px;border-radius:9px;border:2px solid var(--edge);background:#0004;color:var(--chalk)">
+      <label class="count" for="gens">Steps</label><input id="gens" type="number" min="0" max="${MAX_GENERATIONS}" value="${opts.generations}" style="font:inherit;width:7.5ch;padding:7px;border-radius:9px;border:2px solid var(--edge);background:#0004;color:var(--chalk)">
+      <label class="count" for="rule">Rule</label><input id="rule" value="${esc(opts.rule)}" spellcheck="false" style="font:inherit;font-family:var(--mono);width:9ch;padding:7px;border-radius:9px;border:2px solid var(--edge);background:#0004;color:var(--chalk)">
+      <button class="btn" type="submit">Seed the soup</button>
+      <button class="btn ghost" type="button" data-do="fresh">New seed</button>
+    </form>
+    <div id="lifeview"></div>
+    <div id="lifectl"></div>
+    <div class="actions" style="gap:8px"><label class="count" for="speed">Speed</label><input id="speed" type="range" min="1" max="30" value="${speed}"></div>`);
+  $("lifeview").innerHTML = `<canvas id="life" width="${v.w * px}" height="${v.h * px}" style="max-width:100%;background:#06100a;border-radius:8px;box-shadow:0 10px 24px -12px #000;cursor:${timer ? "default" : "crosshair"};image-rendering:pixelated" role="img" aria-label="Generation ${gen}, ${G ? G.boards[gen].size : 0} cells alive"></canvas>`;
+  $("lifectl").innerHTML = `<div class="actions" style="gap:8px">
+      <button class="btn ghost" data-do="back" aria-label="Back one generation">◂</button>
+      <button class="btn" data-do="${timer ? "pause" : "play"}">${timer ? "Pause" : gen >= (G ? G.boards.length - 1 : 0) ? "Play again" : "Play"}</button>
+      <button class="btn ghost" data-do="step" aria-label="Forward one generation">▸</button>
+      <button class="btn ghost" data-do="draw">Draw your own</button>
+    </div>`;
+  const cv = $("life"), cx = cv.getContext("2d");
+  if (G) {
+    cx.fillStyle = "#9ff0b4";
+    for (const [x, y] of G.boards[gen].values()) { const sx = x - v.x0, sy = y - v.y0; if (sx >= 0 && sy >= 0 && sx < v.w && sy < v.h) cx.fillRect(sx * px + 0.5, sy * px + 0.5, px - 1, px - 1); }
+  }
+  cv.addEventListener("click", (e) => {
+    if (timer || !G) return;
+    const r = cv.getBoundingClientRect(), x = Math.floor(((e.clientX - r.left) / r.width) * v.w) + v.x0, y = Math.floor(((e.clientY - r.top) / r.height) * v.h) + v.y0;
+    drawn = new Map(G.boards[gen]); const k = key(x, y); drawn.has(k) ? drawn.delete(k) : drawn.set(k, [x, y]);
+    G = { ...runLife(drawn, opts.generations, opts.rule), by: "drawn", logged: false }; gen = 0; render();
+  });
+  const ended = G && gen === G.boards.length - 1;
+  frame.status(!G ? "" : timer ? `Generation ${gen}` : ended ? `<b>${esc(FATE[G.fate])}</b>${G.period ? `, every ${G.period} generation${G.period > 1 ? "s" : ""}` : ""}, at generation ${gen}.` : `Generation ${gen}. ${gen === 0 ? "Tap cells to change the first board, then play." : ""}`);
+  frame.actions("");
+  frame.score({ you: -1, head: "Game", cols: ["Seed", "Ended", "Steps"], rows: sheet.slice(0, 20), note: "Kept only while this page is open.", empty: "Each game's ending goes here." });
+  frame.deck(G ? [["Generation", `${gen} of ${G.steps.length - 1}`], ["Alive", G.boards[gen].size], ["Rule", opts.rule], ["First board", G.by === "drawn" ? "drawn by you" : `${opts.size}×${opts.size} at ${opts.density}%`]] : [["Generation", "–"]],
+    G && G.by !== "drawn" ? `The same game on the record: play.py play-life --table DIR play --seed "${opts.seed}" --size ${opts.size} --density ${opts.density} --generations ${opts.generations} --rule ${opts.rule}` : "A board you draw has no seed: the record plays only seeded soups.");
+}
+
+function readForm() { opts = { seed: $("seed").value.trim() || seedWords(), size: +$("size").value, density: +$("density").value, generations: +$("gens").value, rule: $("rule").value.trim().toUpperCase() || "B3/S23" }; }
+document.addEventListener("submit", (e) => { if (e.target.id !== "lifeform") return; e.preventDefault(); readForm(); start(false); });
+document.addEventListener("input", (e) => { if (e.target.id === "speed") { speed = +e.target.value; if (timer) play(); } });
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-do]"); if (!b) return;
+  const d = b.dataset.do;
+  if (d === "fresh") { opts.seed = seedWords(); start(false); }
+  else if (d === "play") play();
+  else if (d === "pause") { stop(); render(); }
+  else if (d === "step" && G) { stop(); if (gen < G.boards.length - 1) gen++; if (gen === G.boards.length - 1) finish(); render(); }
+  else if (d === "back" && G) { stop(); if (gen > 0) gen--; render(); }
+  else if (d === "draw") { stop(); readForm(); drawn = new Map(); G = { ...runLife(drawn, opts.generations, opts.rule), by: "drawn", logged: false }; gen = 0; render(); frame.status("<b>An empty board.</b> Tap cells to bring them alive, then play."); }
+});
+
+frame.setup({ seats: false, score: true, deck: true, hints: false, scoreTitle: "Games", deckTitle: "This world", redraw: render });
+frame.clearLog();
+start(false);
+
+</script>
