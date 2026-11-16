@@ -69,12 +69,40 @@ def lay(src: str, out: str, data, whole: bool = False) -> None:
     (HERE / out).write_text((HEAD if whole else "") + text.replace(MARK, blob))
 
 
+# The games played on a page of their own, in the card table's frame
+# (cards/frame.src.html), each with its rules in cards/GAME.js. Their lids'
+# colours match the front page's.
+CARD_PAGES = {
+    "play-hearts": {"name": "Hearts", "lid": "#b8263f", "ink": "#fff0f2"},
+    "play-crazy-eights": {"name": "Crazy Eights", "lid": "#d9662a", "ink": "#fff4ea"},
+    "play-tarot": {"name": "Tarot", "lid": "#0f3d3a", "ink": "#f1d9a0"},
+}
+
+
+def card_page(g: dict, lid: dict) -> None:
+    frame = (HERE / "cards" / "frame.src.html").read_text()
+    script = (HERE / "cards" / f"{g['id']}.js").read_text()
+    for mark in ("/*__TITLE__*/", "/*__GAME_SCRIPT__*/"):
+        assert frame.count(mark) == 1, f"frame: needs one {mark}"
+    assert "</script" not in script, f"{g['id']}.js: no </script inside"
+    data = {**g, **lid}
+    text = frame.replace("/*__TITLE__*/", f"{lid['name']} · Die-Namic").replace("/*__GAME_SCRIPT__*/", script)
+    blob = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
+    assert text.count(MARK) == 1
+    (HERE / f"{g['id']}.html").write_text(HEAD + text.replace(MARK, blob))
+
+
 def main() -> None:
     games = [game(p.parent) for p in sorted((GAME / "games").glob("*/README.md"))]
     worlds = [json.loads(p.read_text()) for p in sorted((GAME / "box" / "worlds").glob("*.json"))]
-    lay("index.src.html", "index.html", {"games": games, "worlds": [w["title"] for w in worlds]})
+    by_id = {g["id"]: g for g in games}
+    for gid, lid in CARD_PAGES.items():
+        card_page(by_id[gid], lid)
+    data = {"games": games, "worlds": [w["title"] for w in worlds], "pages": sorted(CARD_PAGES)}
+    lay("index.src.html", "index.html", data)
     lay("table.src.html", "table.html", worlds, whole=True)
-    print(f"index.html: {len(games)} games; table.html: {len(worlds)} worlds")
+    print(f"index.html: {len(games)} games; table.html: {len(worlds)} worlds; "
+          f"pages: {', '.join(f'{g}.html' for g in CARD_PAGES)}")
 
 
 if __name__ == "__main__":
