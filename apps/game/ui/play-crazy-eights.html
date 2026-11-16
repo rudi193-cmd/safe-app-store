@@ -125,6 +125,31 @@ button.pc:disabled { filter: brightness(0.62) saturate(0.6); }
 .mine-hand button.pc:disabled { transform: none; }
 .mine-hand.quiet button.pc:disabled { filter: none; } /* hints off: not your turn reads as waiting, not as wrong */
 .pile { display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap; }
+
+/* dice: a d6 by its pips, any other die as its shape with its number */
+.dice-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center; }
+.d6 {
+  --s: 44px; width: var(--s); height: var(--s); flex: none; border-radius: calc(var(--s) * 0.2);
+  background: #fffaf0; box-shadow: inset 0 -3px 0 #d9ccb4, 0 4px 8px -4px #000c;
+  display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: calc(var(--s) * 0.16);
+}
+.d6 b { width: calc(var(--s) * 0.17); height: calc(var(--s) * 0.17); border-radius: 50%; background: #2a1f22; place-self: center; visibility: hidden; }
+.d6 b.on { visibility: visible; }
+.d6.small { --s: 26px; }
+.d6.big { --s: 64px; }
+.d6.hidden { background: #3a3430; box-shadow: inset 0 -3px 0 #221d1a, 0 4px 8px -4px #000c; }
+.d6.hidden b { display: none; }
+.d6.dim, .dn.dim { opacity: 0.32; }
+.d6.mark { box-shadow: 0 0 0 3px var(--go), 0 4px 8px -4px #000c; }
+.d6.wild b.on { background: var(--red); }
+.dn { --s: 56px; width: var(--s); height: var(--s); flex: none; position: relative; display: grid; place-items: center; }
+.dn svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.dn span { position: relative; font-family: var(--lid-font); font-size: calc(var(--s) * 0.34); color: #2a1f22; line-height: 1; }
+.dn small { position: absolute; bottom: -14px; font-family: var(--mono); font-size: 0.6rem; color: var(--chalk-faint); }
+.roll-in { animation: roll-in .45s cubic-bezier(.3,.7,.4,1); }
+@keyframes roll-in { 0% { transform: translateY(-14px) rotate(-160deg) scale(.8); } 100% { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .roll-in { animation: none; } }
+.seat.out { opacity: 0.4; }
 .count { font-family: var(--mono); font-size: 0.75rem; color: var(--chalk-dim); text-align: center; }
 
 .btn { border-radius: 9px; padding: 9px 18px; font-weight: 800; background: var(--go); color: var(--go-ink); }
@@ -186,7 +211,7 @@ details.record summary { cursor: pointer; font-size: 0.72rem; letter-spacing: 0.
   </main>
   <aside class="side">
     <section class="panel" id="p-score" hidden><h2 id="score-title">Scoresheet</h2><div class="sheet-wrap" id="score"></div><p class="note" id="score-note"></p></section>
-    <section class="panel" id="p-deck" hidden><h2>The deck</h2><div id="deck"></div></section>
+    <section class="panel" id="p-deck" hidden><h2 id="deck-title">The deck</h2><div id="deck"></div></section>
     <section class="panel" id="p-log"><h2>The game so far</h2><ol class="log" id="log"></ol></section>
     <section class="panel" id="p-record"><p class="note" id="credit" style="margin:0 0 8px"></p><details class="record"><summary>Play it on the record</summary><div class="cmds" id="cmds"></div><p class="note" id="record-note" style="margin-top:8px"></p></details></section>
   </aside>
@@ -194,7 +219,7 @@ details.record summary { cursor: pointer; font-size: 0.72rem; letter-spacing: 0.
 
 <script>
 /* ---------- the frame: what every card game here shares ---------- */
-const GAME = {"id": "play-crazy-eights", "title": "play-crazy-eights", "summary": "Crazy Eights on the record, hands open and the deck seeded by the record's tip: every card, draw and pass held to the rules.", "commands": ["python apps/game/games/play.py play-crazy-eights --table DIR new", "python apps/game/games/play.py play-crazy-eights --table DIR show", "python apps/game/games/play.py play-crazy-eights --table DIR play 8H S", "python apps/game/games/play.py play-crazy-eights --table DIR draw", "python apps/game/games/play.py play-crazy-eights --table DIR pass", "python apps/game/games/play.py play-crazy-eights --table DIR check"], "notes": "On a box laid by `box/open_table.py`, `--table DIR` plays on its record. Each deal, card, draw and pass is a row on the record, through the kernel. The hands are open for now.", "came": "Crazy Eights, ported from the-table's crazy eights over game-lab's rules (apps/the-table, apps/game-lab in this store), one card drawn at a time as the-table plays it; its legal cards checked against game-lab's in 159,776 states.", "checked": "159,776 states", "card": "https://github.com/willow-memory/Willow/tree/bdf8d3cb62bf3facfb714b38fd439b6b56fb44dd/adapters/stdlib/play-crazy-eights", "name": "Crazy Eights", "lid": "#d9662a", "ink": "#fff4ea", "deckKind": "standard", "decks": [{"id": "knoll", "name": "Vector Playing Cards", "kind": "standard", "credit": "Byron Knoll; kept by notpeter", "license": "Public domain (or, optionally, WTFPL)", "ext": "svg", "backs": [], "cards": 52}, {"id": "tekeye", "name": "Tek Eye", "kind": "standard", "credit": "Tek Eye", "license": "Public domain", "ext": "svg", "backs": ["abstract", "abstract_clouds", "abstract_scene", "astronaut", "blue", "blue2", "cars", "castle", "fish", "frog", "red", "red2"], "cards": 52}, {"id": "kennard-goodall", "name": "Kennard, old style", "kind": "standard", "credit": "Adrian Kennard, after Goodall & Son", "license": "CC0 1.0", "ext": "svg", "backs": ["one", "two"], "cards": 52}, {"id": "kennard-fourcolour", "name": "Kennard, four colour", "kind": "standard", "credit": "Adrian Kennard", "license": "CC0 1.0", "ext": "svg", "backs": ["one", "two"], "cards": 52}]}; // this game's words, from its README, and its lid
+const GAME = {"id": "play-crazy-eights", "title": "play-crazy-eights", "summary": "Crazy Eights on the record, hands open and the deck seeded by the record's tip: every card, draw and pass held to the rules.", "commands": ["python apps/game/games/play.py play-crazy-eights --table DIR new", "python apps/game/games/play.py play-crazy-eights --table DIR show", "python apps/game/games/play.py play-crazy-eights --table DIR play 8H S", "python apps/game/games/play.py play-crazy-eights --table DIR draw", "python apps/game/games/play.py play-crazy-eights --table DIR pass", "python apps/game/games/play.py play-crazy-eights --table DIR check"], "notes": "On a box laid by `box/open_table.py`, `--table DIR` plays on its record. Each deal, card, draw and pass is a row on the record, through the kernel. The hands are open for now.", "came": "Crazy Eights, ported from the-table's crazy eights over game-lab's rules (apps/the-table, apps/game-lab in this store), one card drawn at a time as the-table plays it; its legal cards checked against game-lab's in 159,776 states.", "checked": "159,776 states", "card": "https://github.com/willow-memory/Willow/tree/bdf8d3cb62bf3facfb714b38fd439b6b56fb44dd/adapters/stdlib/play-crazy-eights", "name": "Crazy Eights", "lid": "#d9662a", "ink": "#fff4ea", "deckKind": "standard", "also": [], "decks": [{"id": "knoll", "name": "Vector Playing Cards", "kind": "standard", "credit": "Byron Knoll; kept by notpeter", "license": "Public domain (or, optionally, WTFPL)", "ext": "svg", "backs": [], "cards": 52}, {"id": "tekeye", "name": "Tek Eye", "kind": "standard", "credit": "Tek Eye", "license": "Public domain", "ext": "svg", "backs": ["abstract", "abstract_clouds", "abstract_scene", "astronaut", "blue", "blue2", "cars", "castle", "fish", "frog", "red", "red2"], "cards": 52}, {"id": "kennard-goodall", "name": "Kennard, old style", "kind": "standard", "credit": "Adrian Kennard, after Goodall & Son", "license": "CC0 1.0", "ext": "svg", "backs": ["one", "two"], "cards": 52}, {"id": "kennard-fourcolour", "name": "Kennard, four colour", "kind": "standard", "credit": "Adrian Kennard", "license": "CC0 1.0", "ext": "svg", "backs": ["one", "two"], "cards": 52}]}; // this game's words, from its README, and its lid
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -215,6 +240,24 @@ const said = (c) => RANK_TEXT(c.r) + SUIT_GLYPH[c.s];
 const sameCard = (a, b) => a.r === b.r && a.s === b.s;
 const deck52 = () => "CDHS".split("").flatMap((s) => Array.from({ length: 13 }, (_, i) => ({ r: i + 2, s })));
 const sortHand = (h) => h.sort((a, b) => "CDHS".indexOf(a.s) - "CDHS".indexOf(b.s) || a.r - b.r);
+
+/* dice: d6 by pips; others (d4, d8, d10, d12, d20, d100) as a shape with the number */
+const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+function dieHTML(n, o = {}) {
+  const cls = ["d6", o.size || "", o.hidden ? "hidden" : "", o.dim ? "dim" : "", o.mark ? "mark" : "", o.wild ? "wild" : "", o.roll ? "roll-in" : ""].join(" ");
+  const label = o.hidden ? "a die, under the cup" : `a ${n}`;
+  return `<div class="${cls}" role="img" aria-label="${label}">${[...Array(9)].map((_, i) => `<b class="${!o.hidden && (PIPS[n] || []).includes(i) ? "on" : ""}"></b>`).join("")}</div>`;
+}
+const SHAPE = {
+  4: "50,6 94,88 6,88", 8: "50,4 92,50 50,96 8,50", 10: "50,4 94,40 50,96 6,40", 100: "50,4 94,40 50,96 6,40",
+  12: "50,4 93,35 77,90 23,90 7,35", 20: "50,3 93,27 93,73 50,97 7,73 7,27",
+};
+const TINT = { 4: "#f4c7a1", 8: "#c9e0f5", 10: "#d8f0c8", 12: "#f3d3f0", 20: "#fff1b8", 100: "#e3e0d6" };
+function polyDieHTML(sides, n, o = {}) {
+  if (sides === 6) return dieHTML(n, o);
+  const pts = SHAPE[sides] || "8,8 92,8 92,92 8,92";
+  return `<div class="dn ${o.dim ? "dim" : ""} ${o.roll ? "roll-in" : ""}" role="img" aria-label="d${sides} showing ${n}"><svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="${pts}" fill="${TINT[sides] || "#eee"}" stroke="#00000055" stroke-width="3" stroke-linejoin="round"/></svg><span>${n}</span><small>d${sides}</small></div>`;
+}
 
 /* card art: a fetched deck when one is chosen (decks/ID/QS.svg), else drawn here */
 const RANK_FILE = (r) => ({ 10: "T", 11: "J", 12: "Q", 13: "K", 14: "A" }[r] || String(r));
@@ -272,6 +315,7 @@ const frame = {
     $("ring").hidden = !opts.seats; $("mine").hidden = !opts.seats; $("stage").hidden = !!opts.seats;
     $("p-score").hidden = !opts.score; $("p-deck").hidden = !opts.deck;
     if (opts.scoreTitle) $("score-title").textContent = opts.scoreTitle;
+    if (opts.deckTitle) $("deck-title").textContent = opts.deckTitle;
     const t = [];
     if (opts.hints !== false) t.push(`<button class="toggle" id="t-hints" aria-pressed="${this.hints}" title="Light the cards the rules allow">Hints</button>`);
     if (opts.seats) t.push(`<button class="toggle" id="t-open" aria-pressed="${this.open}" title="Show the other seats' cards">Hands open</button>`);
@@ -304,6 +348,16 @@ const frame = {
   middle(html) { $("middle").innerHTML = html; },
   stage(html) { $("stage").innerHTML = html; },
   /* each other seat: its name, a line about it, and its hand, open or face down */
+  /* a seat holding anything (a cup, a stack): its name, a line, and what the game draws there */
+  seatAny(i, inner, o = {}) {
+    const el = document.querySelector(`.seat[data-seat="${SEATS[i]}"]`);
+    el.classList.toggle("turn", !!o.turn);
+    el.classList.toggle("out", !!o.out);
+    el.innerHTML = `<div class="seat-name">${esc(SEAT_NAME(i))}<span class="meta">${o.meta || ""}</span></div>${inner}`;
+  },
+  mineAny(inner, o = {}) {
+    $("mine").innerHTML = `<div class="seat-name" style="${o.turn ? "color:var(--go)" : ""}">${o.turn ? "▸ " : ""}You · south<span class="meta">${o.meta || ""}</span></div>${inner}`;
+  },
   seat(i, hand, o = {}) {
     const el = document.querySelector(`.seat[data-seat="${SEATS[i]}"]`);
     el.classList.toggle("turn", !!o.turn);
@@ -320,8 +374,8 @@ const frame = {
       <div class="hand mine-hand ${this.hints ? "" : "quiet"}" style="--overlap:${hand.length > 10 ? "-24px" : "-8px"}">${hand.map((c) => cardHTML(c, { button: true, disabled: !can(c), chosen: chosen(c) })).join("")}</div>`;
   },
   /* the scoresheet: a column a seat, a row a hand, totals underneath */
-  score({ cols, rows, totals, lead, note, empty }) {
-    $("score").innerHTML = `<table class="sheet"><thead><tr><th>Hand</th>${cols.map((c, i) => `<th class="${i === YOU ? "you" : ""}">${esc(c)}</th>`).join("")}</tr></thead>
+  score({ cols, rows, totals, lead, note, empty, head = "Hand" }) {
+    $("score").innerHTML = `<table class="sheet"><thead><tr><th>${esc(head)}</th>${cols.map((c, i) => `<th class="${i === YOU ? "you" : ""}">${esc(c)}</th>`).join("")}</tr></thead>
       <tbody>${rows.length ? rows.map((r) => `<tr><td>${esc(r.label)}</td>${r.cells.map((v) => `<td>${v}</td>`).join("")}</tr>`).join("") : `<tr class="empty"><td colspan="${cols.length + 1}">${esc(empty || "No hands yet")}</td></tr>`}</tbody>
       ${totals ? `<tfoot><tr><td>Total</td>${totals.map((v, i) => `<td class="${lead && lead.includes(i) ? "lead" : ""}">${v}</td>`).join("")}</tr></tfoot>` : ""}</table>`;
     $("score-note").textContent = note || "";

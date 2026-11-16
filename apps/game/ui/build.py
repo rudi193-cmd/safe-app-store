@@ -69,13 +69,17 @@ def lay(src: str, out: str, data, whole: bool = False) -> None:
     (HERE / out).write_text((HEAD if whole else "") + text.replace(MARK, blob))
 
 
-# The games played on a page of their own, in the card table's frame
-# (cards/frame.src.html), each with its rules in cards/GAME.js. Their lids'
-# colours match the front page's.
-CARD_PAGES = {
+# The games played on a page of their own, in the table frame every one of
+# them shares (tables/frame.src.html), each with its rules in tables/GAME.js.
+# Their lids' colours match the front page's. deckKind: the card art it
+# offers, if any; also: other games on the shelf this page plays (the dice
+# tray rolls both dice's notation and dice5e's).
+PAGES = {
     "play-hearts": {"name": "Hearts", "lid": "#b8263f", "ink": "#fff0f2", "deckKind": "standard"},
     "play-crazy-eights": {"name": "Crazy Eights", "lid": "#d9662a", "ink": "#fff4ea", "deckKind": "standard"},
     "play-tarot": {"name": "Tarot", "lid": "#0f3d3a", "ink": "#f1d9a0", "deckKind": "tarot"},
+    "play-dice": {"name": "Dice", "lid": "#2a9d8f", "ink": "#f0fffc", "also": ["play-dice5e"]},
+    "play-liars-dice": {"name": "Liar's Dice", "lid": "#2f2f2f", "ink": "#ffd34d"},
 }
 
 
@@ -92,13 +96,14 @@ def decks() -> list[dict]:
     return sorted(out, key=lambda d: order.index(d["id"]) if d["id"] in order else len(order))
 
 
-def card_page(g: dict, lid: dict) -> None:
-    frame = (HERE / "cards" / "frame.src.html").read_text()
-    script = (HERE / "cards" / f"{g['id']}.js").read_text()
+def table_page(g: dict, lid: dict, also: list) -> None:
+    frame = (HERE / "tables" / "frame.src.html").read_text()
+    script = (HERE / "tables" / f"{g['id']}.js").read_text()
     for mark in ("/*__TITLE__*/", "/*__GAME_SCRIPT__*/"):
         assert frame.count(mark) == 1, f"frame: needs one {mark}"
     assert "</script" not in script, f"{g['id']}.js: no </script inside"
-    data = {**g, **lid, "decks": [d for d in decks() if d["kind"] == lid["deckKind"]]}
+    kind = lid.get("deckKind")
+    data = {**g, **lid, "also": also, "decks": [d for d in decks() if d["kind"] == kind] if kind else []}
     text = frame.replace("/*__TITLE__*/", f"{lid['name']} · Die-Namic").replace("/*__GAME_SCRIPT__*/", script)
     blob = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
     assert text.count(MARK) == 1
@@ -109,13 +114,15 @@ def main() -> None:
     games = [game(p.parent) for p in sorted((GAME / "games").glob("*/README.md"))]
     worlds = [json.loads(p.read_text()) for p in sorted((GAME / "box" / "worlds").glob("*.json"))]
     by_id = {g["id"]: g for g in games}
-    for gid, lid in CARD_PAGES.items():
-        card_page(by_id[gid], lid)
-    data = {"games": games, "worlds": [w["title"] for w in worlds], "pages": sorted(CARD_PAGES)}
+    for gid, lid in PAGES.items():
+        table_page(by_id[gid], lid, [by_id[a] for a in lid.get("also", [])])
+    # each game on the shelf that has a page, and the page that plays it
+    pages = {gid: gid for gid in PAGES} | {a: gid for gid, lid in PAGES.items() for a in lid.get("also", [])}
+    data = {"games": games, "worlds": [w["title"] for w in worlds], "pages": pages}
     lay("index.src.html", "index.html", data)
     lay("table.src.html", "table.html", worlds, whole=True)
     print(f"index.html: {len(games)} games; table.html: {len(worlds)} worlds; "
-          f"pages: {', '.join(f'{g}.html' for g in CARD_PAGES)}")
+          f"pages: {', '.join(f'{g}.html' for g in PAGES)}")
 
 
 if __name__ == "__main__":

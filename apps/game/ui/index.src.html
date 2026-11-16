@@ -469,7 +469,7 @@ function openBox(id) {
        <p><a class="go" href="table.html">Sit down at the table</a></p>
        <p class="note">${esc(g.came)}</p>`
     : `<p class="lede">${esc(g.summary)}</p>
-       ${(DATA.pages || []).includes(id) ? `<p><a class="go" href="${esc(id)}.html">Play it here</a></p>` : ""}
+       ${DATA.pages && DATA.pages[id] ? `<p><a class="go" href="${esc(DATA.pages[id])}.html">Play it here</a></p>` : ""}
        ${g.commands.length ? `<div><h4>How to play</h4><div class="cmds"><button class="copy" data-copy>Copy</button><pre id="cmd-text">${esc(g.commands.join("\n"))}</pre></div></div>` : ""}
        ${g.notes ? `<p class="note">${esc(g.notes.replace(/`/g, ""))}</p>` : ""}
        ${g.came ? `<div><h4>Where it came from</h4><p>${esc(g.came)}</p></div>` : ""}
